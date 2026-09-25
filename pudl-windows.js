@@ -583,6 +583,9 @@
     if (!el || !layer.contains(el)) return;
     var key = el.getAttribute('data-win');
 
+    /* A press anywhere in a window raises it at once, before any drag. */
+    if (state.top !== key) commit(raised(state, key), false);
+
     var handle = e.target.closest('.win-rh');
     if (handle) {
       e.preventDefault();
@@ -596,9 +599,7 @@
     if (head && !e.target.closest('button, input, select, textarea, .win-chrome')) {
       e.preventDefault();
       gesture({ currentTarget: head, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY }, key, null);
-      return;
     }
-    if (state.top !== key) commit(raised(state, key), false);
   }
 
   function onDoubleClick(e) {
