@@ -30,6 +30,34 @@ Copy a tagged release into your project, keeping the `fonts` folder beside `pudl
 
 `pudl-theme.js` goes first so that the saved theme is applied before the first paint. It sets `data-theme` on the `<html>` element to `light` or `dark`, and it gives you `pudlToggleTheme()` for a toggle button.
 
+### From a CDN
+
+For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl-theme.js"
+        integrity="sha384-MVBsHKpekAHr+tn0bTWhvmuChc2GE0LuMgNXVtxFYU2ht0dMVHtSreaYuhhEb2my"
+        crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl.css"
+      integrity="sha384-9LFYpTiMDcoOPv8iCY+/1rPEEQ6FvEt6lIkknyS8GJX3mTCIoRDdo1lcrIgUefoT"
+      crossorigin="anonymous">
+```
+
+With floating windows as well:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl-windows.css"
+      integrity="sha384-a6Hk3ctcWCEH1a1w21ajWl1IJ6RtMngseAQgi5F0x0obYAeTOM3lEwFiONe5o/kn"
+      crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl-windows.js" defer
+        integrity="sha384-DqM9FWJUDZTv5dfaQoBPgKI5FfAqDQwxEcxwGpoIAu4OSh0CDtCnDXYpmr912Mz9"
+        crossorigin="anonymous"></script>
+```
+
+Always name an exact release, as these examples do. jsDelivr also accepts a loose version such as `@v0` or `@latest`, but PUDL's changes are visual, and a page linked that way would change its look whenever a release lands, which is the surprise that pinning exists to prevent. The `integrity` attribute makes the browser refuse a file whose bytes differ from the release, so a pinned page cannot change even if the CDN misbehaves.
+
+An application in production should still copy a release into its own tree. A CDN is a third party that sees every visitor's address, and it cannot be reached offline or from inside a closed network.
+
 A project themes PUDL with its own stylesheet, loaded after `pudl.css`. It may replace the whole palette, background and topbar included, and it may change the fonts, within the restrictions below. The neutral graphite palette in `pudl.css` is a default that a project is free to replace.
 
 A palette is the block of tokens at the top of `pudl.css` under "The palette": six for the page and text, seven for the accent and status colours, four for lighting and two for the topbar, each given once for the light theme and once for the dark. Every other token is derived from those, so a theme sets nothing else. Set them on `:root` and on `[data-theme="dark"]`, because that is where the derived tokens are computed.
@@ -133,7 +161,8 @@ With a title bar focused, the arrow keys move the window, Shift with the arrow k
 - `pudl-theme.js`, the pre-paint theme loader and toggle
 - `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
 - `fonts/`, Inter in its upright and italic variable files, with its licence
-- `reference.html`, the living reference for every component
+- `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
+- `RELEASING.md`, the steps for cutting a release
 - `examples/brand.css`, a theme that changes only the accent
 - `examples/slate.css`, a theme that replaces the whole palette
 - `examples/parchment.css`, the warm palette PUDL used by default up to 0.2.0
