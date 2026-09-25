@@ -213,6 +213,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .topbar-chrome {
   display: inline-flex; align-items: center; gap: 8px;
 }
+/* A topbar pill is raised, so it is always a link or a button, never a label. */
 .topbar-pill {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 12px; border-radius: var(--radius-sm);
