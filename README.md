@@ -30,15 +30,19 @@ Copy a tagged release into your project and load three files in this order:
 
 `pudl-theme.js` goes first so that the saved theme is applied before the first paint. It sets `data-theme` on the `<html>` element to `light` or `dark`, and it gives you `pudlToggleTheme()` for a toggle button.
 
-A project themes PUDL with its own stylesheet, loaded after `pudl.css`. It may replace the whole palette, background and topbar included, and it may change the fonts, within the restrictions below. The parchment palette and the leather topbar in `pudl.css` are defaults that a project is free to replace. What stays constant from one project to the next is the grammar: a user who has learned what raised, sunken and flat mean in one application finds the same meanings in every other.
+A project themes PUDL with its own stylesheet, loaded after `pudl.css`. It may replace the whole palette, background and topbar included, and it may change the fonts, within the restrictions below. The parchment palette and the leather topbar in `pudl.css` are defaults that a project is free to replace.
 
-The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme.
+A palette is the block of tokens at the top of `pudl.css` under "The palette": six for the page and text, seven for the accent and status colours, four for lighting and two for the topbar, each given once for the light theme and once for the dark. Every other token is derived from those, so a theme sets nothing else. Set them on `:root` and on `[data-theme="dark"]`, because that is where the derived tokens are computed.
+
+The lighting tokens are what keep the raised and sunken surfaces readable on a new palette. `--light` is the colour of the light falling on a raised control and `--shade` the colour of its shadow. `--lit` sets how strongly the highlight shows and `--depth` how strongly the shadow does. A light theme usually wants a strong highlight and a soft shadow, and a dark theme the reverse. What stays constant from one project to the next is the grammar: a user who has learned what raised, sunken and flat mean in one application finds the same meanings in every other.
+
+The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one, gives it a light topbar, and sets headings in the body's sans-serif face.
 
 ## What a project may change
 
 A theme may change any colour token and the font tokens, provided the result keeps these rules.
 
-- **The three surfaces stay distinct.** A raised control must still read as raised against the surface behind it, a sunken field as sunken, and flat content as flat. A new palette therefore retunes the raised-control tokens (`--raise-*`) and the input shadow (`--entry-shadow`) along with the colours, and never removes them.
+- **The three surfaces stay distinct.** A raised control must still read as raised against the surface behind it, a sunken field as sunken, and flat content as flat. A theme tunes this with the four lighting tokens and leaves the derived raised and sunken tokens alone.
 - **Contrast meets WCAG 2.2 AA.** Body text needs 4.5:1 against its background. Control boundaries and focus indicators need 3:1 against what surrounds them (WCAG 1.4.11).
 - **Status colours stay apart.** `--warn`, `--danger`, `--pr` and `--accent` must remain distinguishable from one another, and each still carries its glyph.
 - **Both themes exist.** A project supplies light and dark values for every token it changes.
@@ -53,7 +57,8 @@ Pin a release rather than tracking the default branch. A change to PUDL reaches 
 - `pudl.css`, the tokens and component classes
 - `pudl-theme.js`, the pre-paint theme loader and toggle
 - `reference.html`, the living reference for every component
-- `examples/brand.css`, an example project theme
+- `examples/brand.css`, a theme that changes only the accent
+- `examples/slate.css`, a theme that replaces the whole palette
 
 ## Status
 
