@@ -169,7 +169,7 @@ With a title bar focused, the arrow keys move the window, Shift with the arrow k
 
 ## Status
 
-This is version 0.4.1 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.4.2 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 
