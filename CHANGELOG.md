@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+- The master-detail layout shows one pane at a time when it is 640px wide or less: the list, or a record. The server marks the layout with `data-md-pane="detail"` when the URL names a record, and the detail pane's new `.md-back` link returns to the list with its filters kept, scrolled to the record's row. The list's toolbar and filter chips step aside while a record shows, and list rows grow taller as touch targets. The README sets out the contract.
+- The layout measures its own width with a container query, so a master-detail layout in a narrow window or panel behaves as it does on a phone.
+- This replaces 0.4.2's narrow-screen rule, which stacked the list above the record. A project on 0.4.2 that wants the record pane on a phone must now render `data-md-pane="detail"` and an `.md-back` link.
+
 ## 0.4.2
 
 - The master-detail layout works on a phone. Below 640px wide the toolbar wraps, the filter takes a full row, and the sidebar sits above the detail, holding at most two fifths of the height, instead of keeping its 260px width beside it.

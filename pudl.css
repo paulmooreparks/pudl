@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.4.2.
+   Version 0.5.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -617,20 +617,43 @@ body:has(> .md-layout) {
   background: var(--bg);
 }
 
-/* On a narrow screen the toolbar wraps, and the sidebar sits above the
-   detail instead of beside it, holding at most two fifths of the height. */
-@media (max-width: 640px) {
+/* The back link returns from a record to its list. It shows only when the
+   layout is narrow enough to show one pane at a time. */
+.md-back { display: none; }
+
+/* === One pane at a time =================================================
+   When the layout itself is 640px wide or less (a phone, or a narrow window
+   or panel on a larger screen), it shows either the list or the record,
+   never both. The server says which with data-md-pane on .md-layout:
+   "detail" when the URL names a record, and "list", or nothing, otherwise.
+   Each pane is its own URL, so Back, reload and sharing all work, and the
+   detail's .md-back link returns to the list. */
+.md-layout { container: md / inline-size; }
+
+@container md (max-width: 640px) {
   .md-toolbar { flex-wrap: wrap; padding: 8px 12px; }
   .md-toolbar .md-filter { flex: 1 1 100%; width: auto; }
   .md-toolbar-spacer { display: none; }
   .md-toolbar-cmds { flex-wrap: wrap; }
-  .md-body { flex-direction: column; }
-  .md-sidebar {
-    width: auto; max-height: 40%;
-    border-right: 0; border-bottom: 1px solid var(--border);
-  }
   .md-resize { display: none; }
-  .md-detail { padding: 16px; }
+
+  /* The list pane fills the layout, and its rows are touch targets. */
+  .md-sidebar { flex: 1; width: auto; border-right: 0; }
+  .md-item { padding-top: 10px; padding-bottom: 10px; }
+  .md-detail { display: none; padding: 16px; }
+
+  /* The detail pane: the list, its toolbar and its filters step aside. */
+  .md-layout[data-md-pane="detail"] .md-toolbar,
+  .md-layout[data-md-pane="detail"] .md-chips,
+  .md-layout[data-md-pane="detail"] .md-sidebar { display: none; }
+  .md-layout[data-md-pane="detail"] .md-detail { display: block; }
+
+  .md-back {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-bottom: 12px;
+    font-size: 14px; font-weight: 600;
+  }
+  .md-back::before { content: "\2039"; font-size: 18px; line-height: 1; text-decoration: none; }
 }
 
 /* Sidebar rows: compact text list (not big touch targets); 3px accent edge
