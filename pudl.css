@@ -1,0 +1,629 @@
+/* ==========================================================================
+   PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
+   Version 0.1.0.
+
+   PUDL gives every affordance one visual representation, so that somebody
+   who has learned it once can use any application built with it on sight.
+
+   Elevation signals interactivity:
+     - Raised, with a hairline border and an inset highlight, is pressable (.btn).
+     - Sunken, with an inset shadow, is an input (.form-input).
+     - Flat is display only (.kv-table cells, .form-input[readonly]).
+   Colour is never the only signal: every meaningful state carries a glyph.
+   One .btn-primary per visible context.
+
+   Brand a project by loading a small stylesheet after this one that overrides
+   --accent and --accent-hover. Leave every other token alone.
+
+   Extracted from the Andoneer Design Language v2 reference page
+   (Andoneer repository, mockups/adl-v2-reference.html, commit 097a9c7).
+   ========================================================================== */
+
+:root {
+  /* === Light theme: warm parchment register, navy default accent. ======== */
+  --bg: #f5efe4;
+  --surface: #fbf6eb;
+  --surface-alt: #ebe2cf;
+  --text: #1a1410;
+  --text-muted: #7a6f5e;
+  --accent: #1e3a5c;
+  --accent-hover: #162a47;
+  --on-accent: #fbf6eb;
+  --warn: #c47435;
+  --danger: #a02424;
+  --danger-hover: #7a1a1a;
+  --pr: #2f6b3a;                  /* positive / shipped / Done */
+  --border: #d8ccb4;
+  --input-bg: #fffaf0;
+  --btn-bg: #fbf6eb;
+
+  /* GTK raised-control treatment, recoloured for parchment:
+     top-lit gradient + defined border + inset highlight + soft shadow.
+     :active flattens. */
+  --raise-grad: linear-gradient(#fffaf0, #ece2cd);
+  --raise-grad-hover: linear-gradient(#fffaf0, #e2d8c2);
+  --raise-active-bg: #d8ccb4;
+  --raise-border: #c2b497;
+  --raise-border-hover: #9a8c70;
+  --raise-shadow:
+      inset 0 1px rgba(255, 250, 240, 0.85),
+      0 1px 2px rgba(40, 25, 10, 0.18);
+  --raise-active-shadow: inset 0 1px 3px rgba(40, 25, 10, 0.22);
+  --entry-shadow: inset 0 1px 2px rgba(40, 25, 10, 0.10);
+
+  --shadow-btn: var(--raise-shadow);
+  --shadow-btn-primary:
+      inset 0 1px rgba(255, 255, 255, 0.32),
+      0 1px 2px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow-card:
+      0 1px 3px rgba(40, 25, 10, 0.10),
+      0 0 0 1px rgba(40, 25, 10, 0.04);
+
+  --radius: 12px;        /* cards (GTK rhythm) */
+  --radius-sm: 7px;      /* buttons, entries (GTK rhythm) */
+  --radius-pill: 999px;
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: ui-serif, Georgia, "Times New Roman", "Hoefler Text", serif;
+  --mono: "SF Mono", "Cascadia Code", "Consolas", monospace;
+
+  /* Both rings derive from their colour tokens, so a brand override of
+     --accent recolours the focus ring with no further work. */
+  --focus-ring: color-mix(in srgb, var(--accent) 22%, transparent);
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 22%, transparent);
+
+  /* The dialog panel is one step brighter than --bg in every theme, so the
+     panel always reads as a lifted card on the page. In light this is
+     the same as --surface (parchment > page). In dark it overrides to
+     --surface-alt because plain --surface is barely lighter than --bg. */
+  --dialog-bg: var(--surface);
+
+  /* The topbar is dark leather in both themes. A light bar in the GTK
+     sense would be wrong for this palette, and the leather topbar is
+     PUDL's signature chrome. The on-topbar tokens keep it readable. */
+  --tb-bg: #4a3f33;
+  --tb-grad: linear-gradient(#5a4f43, #4a3f33);
+  --tb-border: #2e2620;
+  --tb-hi: rgba(255, 250, 240, 0.18);
+  --tb-brand: #fbf6eb;
+  --tb-chrome-fg: #d4c5a6;
+  --tb-chrome-bg: rgba(251, 246, 235, 0.06);
+  --tb-chrome-border: rgba(251, 246, 235, 0.28);
+  --tb-chrome-hover-fg: #fbf6eb;
+  --tb-chrome-hover-bg: rgba(251, 246, 235, 0.14);
+  --tb-chrome-hover-border: rgba(251, 246, 235, 0.55);
+  --tb-trough: rgba(0, 0, 0, 0.22);
+  --tb-trough-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.30);
+  --tb-chip: linear-gradient(rgba(255, 250, 240, 0.20), rgba(255, 250, 240, 0.10));
+  --tb-chip-shadow: inset 0 1px rgba(255, 250, 240, 0.22), 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="dark"] {
+  /* === Dark theme: leather-bound, after hours. =========================== */
+  --bg: #1a1612;
+  --surface: #241e18;
+  --surface-alt: #2e2620;
+  --text: #ede4d4;
+  --text-muted: #a89f8d;
+  --accent: #5b87bc;
+  --accent-hover: #7aa3d4;
+  --on-accent: #1a1612;
+  --warn: #d18a4f;
+  --danger: #d44a4a;
+  --danger-hover: #ec6a6a;
+  --pr: #6fa370;
+  --border: #4a3f33;
+  --input-bg: #2e2620;
+  --btn-bg: #2e2620;
+
+  --raise-grad: linear-gradient(#3a302a, #2e2620);
+  --raise-grad-hover: linear-gradient(#42372f, #342a23);
+  --raise-active-bg: #261f1a;
+  --raise-border: #1f1813;
+  --raise-border-hover: #15100c;
+  --raise-shadow:
+      inset 0 1px rgba(255, 245, 225, 0.06),
+      0 1px 2px rgba(0, 0, 0, 0.45);
+  --raise-active-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
+  --entry-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.40);
+
+  --shadow-btn-primary:
+      inset 0 1px rgba(255, 255, 255, 0.16),
+      0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-card:
+      0 1px 3px rgba(0, 0, 0, 0.50),
+      0 0 0 1px rgba(0, 0, 0, 0.40);
+
+  --focus-ring: color-mix(in srgb, var(--accent) 30%, transparent);
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 32%, transparent);
+
+  /* The dialog panel is one step lighter than --surface, so it reads as
+     visibly lifted on the leather page. */
+  --dialog-bg: var(--surface-alt);
+
+  --tb-bg: #3a302a;
+  --tb-grad: linear-gradient(#42372f, #342a23);
+  --tb-border: #1f1813;
+  --tb-hi: rgba(255, 245, 225, 0.07);
+  --tb-brand: #ede4d4;
+  --tb-chrome-fg: #c8b89c;
+  --tb-chrome-bg: rgba(237, 228, 212, 0.06);
+  --tb-chrome-border: rgba(237, 228, 212, 0.22);
+  --tb-chrome-hover-fg: #ede4d4;
+  --tb-chrome-hover-bg: rgba(237, 228, 212, 0.14);
+  --tb-chrome-hover-border: rgba(237, 228, 212, 0.5);
+  --tb-trough: rgba(0, 0, 0, 0.30);
+  --tb-trough-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.50);
+  --tb-chip: linear-gradient(rgba(255, 245, 225, 0.18), rgba(255, 245, 225, 0.10));
+  --tb-chip-shadow: inset 0 1px rgba(255, 245, 225, 0.22), 0 1px 2px rgba(0, 0, 0, 0.50);
+}
+
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;       /* tabular numerals everywhere: IDs, counts, dates */
+}
+
+/* === Topbar / brand chrome ============================================== */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--tb-grad);
+  border-bottom: 1px solid var(--tb-border);
+  box-shadow: inset 0 1px var(--tb-hi);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--tb-brand); text-decoration: none;
+}
+.topbar-chrome {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.topbar-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600;
+  color: var(--tb-chrome-fg);
+  background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
+  text-decoration: none;
+}
+.topbar-pill:hover { color: var(--tb-chrome-hover-fg); }
+/* The theme toggle shares the chip styling on the leather chrome. */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  padding: 0; border-radius: var(--radius-sm);
+  font-size: 14px; line-height: 1; font-family: var(--font);
+  color: var(--tb-chrome-fg);
+  background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
+  border: 0; cursor: pointer;
+}
+.theme-toggle:hover { color: var(--tb-chrome-hover-fg); }
+
+/* === Sub-nav / notebook tab strip ======================================= */
+/* GTK Notebook: a recessed band of inactive tabs; the active tab "punches
+   through" the baseline so it visually merges with the content below.
+   Use it for section navigation within a page. */
+.app-section-bar {
+  display: flex; padding: 0 16px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+.section-tab {
+  padding: 9px 14px 8px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-muted); text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.section-tab:hover { color: var(--text); }
+.section-tab.active {
+  color: var(--text); background: var(--surface);
+  border-bottom-color: var(--surface);
+  box-shadow: inset 0 1px var(--border), 1px 0 var(--border), -1px 0 var(--border);
+}
+
+/* === Buttons (raised; one look) ========================================= */
+/* Every button is raised. There is no flat. Disabled is dimmed.
+   At most one .btn-primary per visible context. */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 600; font-family: var(--font);
+  color: var(--text); cursor: pointer; text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid var(--raise-border);
+  background: var(--raise-grad);
+  box-shadow: var(--raise-shadow);
+  transition: background .1s, border-color .1s, box-shadow .1s;
+}
+.btn:hover {
+  background: var(--raise-grad-hover);
+  border-color: var(--raise-border-hover);
+  text-decoration: none;
+}
+.btn:active {
+  background: var(--raise-active-bg);
+  box-shadow: var(--raise-active-shadow);
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring);
+}
+.btn[disabled], .btn.is-disabled {
+  opacity: .45; cursor: not-allowed;
+  box-shadow: var(--raise-shadow);
+  background: var(--raise-grad);
+}
+.btn-sm { padding: 4px 10px; font-size: 12.5px; }
+.btn-primary {
+  color: var(--on-accent);
+  border-color: color-mix(in srgb, var(--accent) 62%, #000);
+  background: linear-gradient(color-mix(in srgb, var(--accent) 78%, #fff), var(--accent));
+  box-shadow: var(--shadow-btn-primary);
+}
+.btn-primary:hover {
+  color: var(--on-accent);
+  background: linear-gradient(color-mix(in srgb, var(--accent) 88%, #fff), color-mix(in srgb, var(--accent) 94%, #000));
+}
+.btn-primary:active {
+  background: color-mix(in srgb, var(--accent) 86%, #000);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.32);
+}
+.btn-danger {
+  color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, var(--raise-border));
+}
+.btn-danger:hover {
+  color: var(--on-accent);
+  background: linear-gradient(color-mix(in srgb, var(--danger) 78%, #fff), var(--danger));
+  border-color: color-mix(in srgb, var(--danger) 62%, #000);
+}
+
+/* Icon button: raised square for row actions (drag, remove, archive). */
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  background: var(--raise-grad); border: 1px solid var(--raise-border);
+  box-shadow: var(--raise-shadow);
+  color: var(--text-muted); cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.icon-btn.danger:hover { color: var(--danger); }
+
+/* === Links ============================================================== */
+a, .link {
+  color: var(--accent); text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 2px;
+}
+a:hover, .link:hover {
+  color: var(--accent-hover);
+  text-decoration-thickness: 2px;
+}
+.link-muted {
+  color: var(--text-muted); text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 2px;
+}
+.link-muted:hover { color: var(--text); }
+button.link {
+  border: 0; background: none; padding: 0; font: inherit; cursor: pointer;
+  color: var(--accent); text-decoration: underline;
+}
+
+/* === Forms ============================================================== */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.form-input, .form-select, .form-textarea {
+  padding: 8px 11px; font-size: 14px; font-family: var(--font);
+  background: var(--input-bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  width: 100%;
+  box-shadow: var(--entry-shadow);
+}
+.form-textarea { min-height: 5em; resize: vertical; line-height: 1.5; }
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent); outline: none;
+  box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring);
+}
+/* Read-only fields render as flat display, not input chrome. */
+.form-input[readonly], .form-select[disabled] {
+  background: transparent; border-color: transparent; box-shadow: none;
+  padding-left: 0; padding-right: 0; cursor: default;
+}
+::placeholder { color: var(--text-muted); opacity: .5; }
+
+/* Checkbox + label as one inline control. */
+.check {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14px; cursor: pointer;
+}
+.check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+
+/* Toggle switch (boolean preference). Submit button styled as a slider. */
+.switch {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: var(--text); cursor: pointer;
+}
+.switch-track {
+  position: relative; flex: none;
+  width: 40px; height: 22px; border-radius: var(--radius-pill);
+  background: var(--surface-alt); border: 1px solid var(--border);
+  transition: background .15s, border-color .15s;
+}
+.switch-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform .15s, background .15s;
+}
+.switch[aria-checked="true"] .switch-track {
+  background: var(--accent); border-color: var(--accent-hover);
+}
+.switch[aria-checked="true"] .switch-thumb {
+  transform: translateX(18px); background: var(--on-accent);
+}
+.switch:focus-visible .switch-track {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.form-error {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--danger); margin: 4px 0 12px;
+}
+.form-error::before { content: "⚠"; }
+
+/* === Segmented control / view switcher ================================== */
+/* Inset trough with raised active segment. Use for boolean / few-option
+   choices (a small scale, kg|lbs, Read|Edit). */
+.seg {
+  display: inline-flex; padding: 3px; gap: 2px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.seg button {
+  padding: 4px 12px; border-radius: 4px;
+  background: transparent; border: 0; cursor: pointer;
+  font: 600 13px var(--font); color: var(--text-muted);
+}
+.seg button:hover { color: var(--text); }
+.seg button.active {
+  color: var(--text);
+  background: var(--raise-grad);
+  border: 1px solid var(--raise-border);
+  box-shadow: var(--raise-shadow);
+}
+.seg.pill { border-radius: var(--radius-pill); }
+.seg.pill button { border-radius: var(--radius-pill); }
+.seg.sm button { padding: 2px 9px; font-size: 12px; }
+
+/* === Badges + chips ===================================================== */
+/* Badge: a state pill carrying a glyph + label (color + glyph redundancy).
+   Use it for the state of an entity: open, overdue, done, and so on. */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: var(--radius-pill);
+  font-size: 11.5px; font-weight: 700; line-height: 1.55;
+  background: color-mix(in srgb, var(--text-muted) 18%, transparent);
+  color: var(--text);
+}
+.badge.warn { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+.badge.danger { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
+.badge.pr { background: color-mix(in srgb, var(--pr) 22%, transparent); color: var(--pr); }
+.badge.accent { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.badge::before {
+  font-size: 9px; line-height: 1;
+}
+.badge.warn::before { content: "▲"; }
+.badge.danger::before { content: "■"; }
+.badge.pr::before { content: "●"; }
+.badge.accent::before { content: "◆"; }
+
+/* Chip: a flat, accent-tinted metadata pill for an attribute a thing
+   carries, such as a tag or a category. It has no border and no shadow.
+   A badge says "this is the state"; a chip says "this has the attribute". */
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: var(--radius-sm);
+  font-size: 11.5px; font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+/* === Cards ============================================================== */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+  box-shadow: var(--shadow-card);
+}
+.card-title { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
+.card-subtitle { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.card-desc { margin: 0 0 14px; font-size: 13px; color: var(--text-muted); }
+
+/* === Key/value table for read-only record fields ======================== */
+/* Detail panes use this for displayed-only fields, not fake input boxes
+   (elevation = interactivity). */
+.kv-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.kv-table th {
+  text-align: left; font-weight: 600; color: var(--text-muted); font-size: 13px;
+  padding: 8px 16px 8px 0; white-space: nowrap; vertical-align: top; width: 1%;
+}
+.kv-table td { padding: 8px 0; color: var(--text); vertical-align: top; }
+.kv-table tr + tr th, .kv-table tr + tr td { border-top: 1px solid var(--border); }
+
+/* === Server-rendered dialogs ============================================
+   The backdrop dims gently, to 40%, because the panel's shadow does the
+   elevation work. Padding is generous and the drop shadow is large so the
+   panel reads as lifted. The panel is always one step brighter than the
+   page; in dark mode that is what separates them, the page being the
+   leather beneath and the panel a parchment slip laid on top. */
+.dialog-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  background: color-mix(in srgb, #000 40%, transparent);
+}
+.dialog-backdrop[hidden] { display: none; }
+.dialog {
+  width: 100%; max-width: 480px;
+  background: var(--dialog-bg, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow:
+      var(--shadow-card),
+      0 24px 64px rgba(0, 0, 0, 0.32);
+  padding: 24px 26px;
+}
+.dialog-title {
+  margin: 0 0 8px;
+  font-size: 17px; font-weight: 700;
+  color: var(--text);
+}
+.dialog-body {
+  margin: 0 0 22px;
+  color: var(--text-muted);
+  font-size: 14px; line-height: 1.55;
+}
+.dialog-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+/* === Master–detail layout (the new primary layout primitive) ============ */
+/* body:has(> .md-layout) is full-viewport flex; the toolbar + chip row +
+   body fill the page. Scoped to a DIRECT child so a reference demo or any
+   other embedded .md-layout doesn't accidentally kill page scrolling. */
+body:has(> .md-layout) {
+  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+}
+.md-layout {
+  display: flex; flex-direction: column; flex: 1; min-height: 0;
+}
+.md-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border); flex: none;
+  --ctl-h: 30px;
+}
+.md-toolbar .btn-sm,
+.md-toolbar .seg,
+.md-toolbar .md-filter {
+  box-sizing: border-box; height: var(--ctl-h);
+  display: inline-flex; align-items: center;
+}
+.md-toolbar .md-filter { padding: 4px 12px; }
+.md-filter {
+  box-sizing: border-box; flex: none; width: 220px;
+  padding: 6px 11px; font-size: 13px;
+  background: var(--input-bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--entry-shadow);
+}
+.md-filter:focus {
+  border-color: var(--accent); outline: none;
+  box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring);
+}
+.md-toolbar-spacer { flex: 1; }
+.md-toolbar-cmds {
+  flex: none; display: flex; align-items: center; gap: 6px;
+}
+.md-toolbar-sep {
+  width: 1px; height: var(--ctl-h);
+  background: var(--border); align-self: center; margin: 0 4px;
+}
+
+/* Active-filter chips, below the toolbar. */
+.md-chips {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 8px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border); flex: none;
+}
+.md-chips:empty { display: none; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 6px 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.fc-kind {
+  opacity: .65; font-weight: 500; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.filter-chip-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: none; color: inherit; text-decoration: none;
+  font-size: 14px; line-height: 1; opacity: .7;
+}
+.filter-chip-x:hover {
+  opacity: 1; background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.md-chips-clear {
+  font-size: 12px; color: var(--accent); text-decoration: underline; cursor: pointer;
+}
+
+/* Body row: sidebar + resize + detail. */
+.md-body { display: flex; flex: 1; min-height: 0; }
+.md-sidebar {
+  width: var(--md-sidebar-w, 260px); flex: none; min-height: 0; overflow-y: auto;
+  background: var(--surface); border-right: 1px solid var(--border);
+}
+.md-resize {
+  flex: none; width: 6px; margin: 0 -3px; z-index: 3; cursor: col-resize;
+  background: transparent; position: relative;
+}
+.md-resize::before {
+  content: ""; position: absolute; inset: 0 2px; border-radius: 2px;
+  background: transparent; transition: background .12s;
+}
+.md-resize:hover::before { background: var(--accent); }
+.md-detail {
+  flex: 1; overflow-y: auto; padding: 24px; min-width: 0;
+  background: var(--bg);
+}
+
+/* Sidebar rows: compact text list (not big touch targets); 3px accent edge
+   on the side facing the detail pane for the active row. */
+.md-section-label {
+  padding: 14px 14px 4px;
+  font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.md-row {
+  display: flex; align-items: center;
+  border-right: 3px solid transparent;
+  border-bottom: 1px solid var(--surface-alt);
+}
+.md-row:hover { background: var(--surface-alt); }
+.md-row.active {
+  background: var(--surface-alt);
+  border-right-color: var(--accent);
+}
+.md-row.active .md-item { font-weight: 700; color: var(--text); }
+.md-item {
+  flex: 1; min-width: 0;
+  padding: 5px 14px;
+  font-size: 13px; line-height: 1.5;
+  color: var(--text); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+}
+.md-item .md-meta {
+  display: block; font-size: 11px; font-weight: 500; color: var(--text-muted);
+}
+.md-grip {
+  flex: none; width: 22px; text-align: center; cursor: grab;
+  color: var(--text-muted); font-size: 14px; line-height: 1;
+}
