@@ -1,0 +1,207 @@
+/* ==========================================================================
+   PUDL floating windows. Load after pudl.css, and only on pages that use
+   them. pudl-windows.js adds dragging, resizing and snapping; without it the
+   windows the server rendered still show where the URL put them.
+
+   A window's placement is four fractions of the layer, --win-x, --win-y,
+   --win-w and --win-h, which the server writes into a style attribute and
+   the script updates. data-win-mode selects maximised or a snapped half, and
+   the fractions are then the floating geometry to restore to. A minimised
+   window carries the hidden attribute.
+
+   The window's frame is a band of the raised tint between two hairlines, and
+   the whole band is the resize border.
+   ========================================================================== */
+
+:root {
+  --win-band: 5px;            /* width of the frame between the two hairlines */
+  --win-hit: 10px;            /* resize hit area, wider than the band */
+  --win-min-w: 320px;
+  --win-min-h: 200px;
+  --win-shadow:
+      0 2px 6px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.8), transparent),
+      0 10px 28px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.9), transparent);
+  --win-shadow-active:
+      0 3px 8px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.1), transparent),
+      0 18px 48px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.4), transparent);
+}
+
+/* The host is the region the windows float over, usually the main area
+   below the topbar. It does not scroll; the content inside it does. */
+.win-host { position: relative; }
+
+.win-layer {
+  position: absolute; inset: 0; z-index: 50;
+  overflow: hidden;
+  pointer-events: none;       /* the content beneath stays usable */
+}
+
+/* === The window ========================================================== */
+.win {
+  position: absolute;
+  left: calc(var(--win-x, 0.06) * 100%);
+  top: calc(var(--win-y, 0.05) * 100%);
+  width: calc(var(--win-w, 0.55) * 100%);
+  height: calc(var(--win-h, 0.75) * 100%);
+  min-width: min(var(--win-min-w), 100%);
+  min-height: min(var(--win-min-h), 100%);
+  display: flex; flex-direction: column;
+  padding: var(--win-band);
+  background: var(--surface-alt);
+  border: 1px solid var(--raise-border);
+  border-radius: var(--radius);
+  box-shadow: var(--win-shadow);
+  pointer-events: auto;
+}
+.win[hidden] { display: none; }
+.win.active {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--raise-border));
+  box-shadow: var(--win-shadow-active);
+}
+
+/* Maximised and snapped windows fill their slot and lose the frame, since
+   they cannot be resized from it. */
+.win[data-win-mode="maximized"],
+.win[data-win-mode="left"],
+.win[data-win-mode="right"] {
+  top: 0; height: 100%;
+  padding: 0; border-width: 0; border-radius: 0;
+  min-width: 0; min-height: 0;
+}
+.win[data-win-mode="maximized"] { left: 0; width: 100%; }
+.win[data-win-mode="left"] { left: 0; width: 50%; }
+.win[data-win-mode="right"] { left: 50%; width: 50%; }
+.win[data-win-mode="left"] { border-right-width: 1px; }
+.win[data-win-mode="right"] { border-left-width: 1px; }
+
+/* === Title bar ============================================================
+   The title bar is what you drag, so it is raised. The active window's
+   title bar takes the accent. */
+.win-head {
+  flex: none;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 38px; padding: 5px 7px 5px 12px;
+  background: var(--raise-grad);
+  border: 1px solid var(--raise-border);
+  border-radius: calc(var(--radius) - var(--win-band)) calc(var(--radius) - var(--win-band)) 0 0;
+  box-shadow: inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent);
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+.win-head:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.win.active .win-head {
+  background: linear-gradient(color-mix(in srgb, #fff 10%, var(--accent)), var(--accent));
+  border-color: var(--accent-hover);
+  color: var(--on-accent);
+}
+/* The title is usually a heading, so it resets what a page's own heading
+   styles might give it. */
+.win-title {
+  flex: 1; min-width: 0; margin: 0; padding: 0; border: 0;
+  font: 700 14px/1.3 var(--font);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.win-chrome { flex: none; display: inline-flex; gap: 5px; align-items: center; }
+
+/* Window buttons are small raised circles, so they stay legible on the
+   accent title bar. */
+.win-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--raise-border);
+  background: var(--raise-grad);
+  box-shadow: var(--raise-shadow);
+  color: var(--text-muted);
+  font: 600 13px/1 var(--font);
+  text-decoration: none;
+  cursor: pointer;
+}
+.win-btn:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.win-btn:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
+.win-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.win-btn[data-win-action="close"]:hover { color: var(--danger); }
+
+/* The glyphs come from here, so the server renders each button empty with
+   an aria-label, and the maximise button's glyph follows the window's mode. */
+.win-btn[data-win-action="page"]::before { content: "\2197"; }
+.win-btn[data-win-action="minimize"]::before { content: "\2013"; }
+.win-btn[data-win-action="maximize"]::before { content: "\25A1"; font-size: 14px; }
+.win-btn[data-win-action="close"]::before { content: "\00D7"; font-size: 16px; }
+.win:not([data-win-mode="floating"]) .win-btn[data-win-action="maximize"]::before { content: "\2750"; }
+
+.win[data-win-mode="maximized"] .win-head,
+.win[data-win-mode="left"] .win-head,
+.win[data-win-mode="right"] .win-head { border-radius: 0; border-width: 0 0 1px; }
+
+/* === Body ================================================================ */
+.win-body {
+  flex: 1; min-height: 0; overflow: auto;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border); border-top: 0;
+  border-radius: 0 0 calc(var(--radius) - var(--win-band)) calc(var(--radius) - var(--win-band));
+}
+.win[data-win-mode="maximized"] .win-body,
+.win[data-win-mode="left"] .win-body,
+.win[data-win-mode="right"] .win-body { border: 0; border-radius: 0; }
+
+/* === Resize handles ======================================================
+   Invisible strips the script adds along each edge and at each corner. They
+   straddle the frame so the band and a hair beyond it can be grabbed. */
+.win-rh { position: absolute; z-index: 2; }
+.win-rh[data-edge="n"], .win-rh[data-edge="s"] { left: var(--win-hit); right: var(--win-hit); height: var(--win-hit); cursor: ns-resize; }
+.win-rh[data-edge="e"], .win-rh[data-edge="w"] { top: var(--win-hit); bottom: var(--win-hit); width: var(--win-hit); cursor: ew-resize; }
+.win-rh[data-edge="n"] { top: calc(var(--win-hit) / -2); }
+.win-rh[data-edge="s"] { bottom: calc(var(--win-hit) / -2); }
+.win-rh[data-edge="w"] { left: calc(var(--win-hit) / -2); }
+.win-rh[data-edge="e"] { right: calc(var(--win-hit) / -2); }
+.win-rh[data-edge="nw"], .win-rh[data-edge="ne"],
+.win-rh[data-edge="sw"], .win-rh[data-edge="se"] { width: calc(var(--win-hit) * 1.5); height: calc(var(--win-hit) * 1.5); }
+.win-rh[data-edge="nw"] { top: calc(var(--win-hit) / -2); left: calc(var(--win-hit) / -2); cursor: nwse-resize; }
+.win-rh[data-edge="se"] { bottom: calc(var(--win-hit) / -2); right: calc(var(--win-hit) / -2); cursor: nwse-resize; }
+.win-rh[data-edge="ne"] { top: calc(var(--win-hit) / -2); right: calc(var(--win-hit) / -2); cursor: nesw-resize; }
+.win-rh[data-edge="sw"] { bottom: calc(var(--win-hit) / -2); left: calc(var(--win-hit) / -2); cursor: nesw-resize; }
+.win[data-win-mode="maximized"] .win-rh,
+.win[data-win-mode="left"] .win-rh,
+.win[data-win-mode="right"] .win-rh { display: none; }
+
+/* A dashed outline shows where a window will land while it is dragged
+   towards an edge. */
+.win-ghost {
+  position: absolute; z-index: 1000; pointer-events: none;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: var(--radius);
+}
+.win-ghost[hidden] { display: none; }
+
+/* Dragging over an iframe or a text selection would lose the pointer, so
+   the layer takes every event while a drag is in progress. */
+.win-layer.dragging { pointer-events: auto; cursor: move; }
+.win-layer.dragging * { user-select: none; }
+
+/* === Dock ================================================================
+   One tab per open window, in the order they were opened. A tab raises its
+   window, and the active window's tab reads as pressed in. The glyph shows
+   whether the window is visible (filled) or minimised (hollow). */
+.win-dock { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.win-dock:empty { display: none; }
+.win-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  max-width: 220px; padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--raise-border);
+  background: var(--raise-grad);
+  box-shadow: var(--raise-shadow);
+  font-size: 12.5px; font-weight: 600;
+  color: var(--text); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.win-tab::before { content: "\25CF"; font-size: 9px; color: var(--accent); flex: none; }
+.win-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.win-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.win-tab[aria-current="true"] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
+.win-tab.minimized { color: var(--text-muted); }
+.win-tab.minimized::before { content: "\25CB"; color: var(--text-muted); }

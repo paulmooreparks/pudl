@@ -54,10 +54,84 @@ The type scale, the spacing grid and the corner radii belong to the language and
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
+## Floating windows
+
+A project can open records as windows floating above a list or a board, from two optional files loaded after the core ones:
+
+```html
+<link rel="stylesheet" href="pudl-windows.css">
+<script src="pudl-windows.js" defer></script>
+```
+
+The windows follow the same principles as the rest of PUDL. The URL holds the whole arrangement, so a page with windows open can be bookmarked, reloaded and shared, and Back and Forward step between sets of open windows. The server renders the windows the URL names, so they appear without script, and the script adds dragging, resizing, snapping and the keyboard. Every window button is a real link to the state it produces. A window is not modal and never stands in for a page: each record keeps its own page, which is where its link goes without script.
+
+### The URL
+
+Four kinds of query parameter describe the windows, alongside whatever parameters the page already uses:
+
+| Parameter | Value | Meaning |
+|---|---|---|
+| `open` | keys, comma-separated | the open windows, in the order they were opened, which is the dock's order |
+| `top` | one key | the active window, drawn above the others |
+| `min` | keys, comma-separated | the minimised windows, which stay open and show only in the dock |
+| `p.<key>` | `<mode>:<x>,<y>,<w>,<h>` | one window's placement |
+
+A key names a record and is made of letters, digits, `-` and `_`. The mode is `floating`, `maximized`, `left` or `right`, the last two being the snapped halves. The four numbers are the window's left edge, top edge, width and height as fractions of the layer, from 0 to 1, with at most three decimal places. A maximised or snapped window keeps its floating numbers, which are where it returns when restored. For example:
+
+```
+/trips/manila?open=exp-12,exp-13&top=exp-13&min=exp-12&p.exp-12=floating:0.36,0.04,0.5,0.72&p.exp-13=left:0.4,0.08,0.5,0.72
+```
+
+A server ignores a key it does not recognise and a placement it cannot parse. A window whose placement is missing opens floating, cascading from the top left.
+
+### The markup
+
+The windows float over a host, the region they may occupy, which is usually the main area below the topbar. The host holds the page's own content and one layer, and a page has one layer. `data-win-src` on the layer says where the script fetches a window's markup, with `{key}` standing for the key. A value starting with `#` names a `<template>` in the page instead.
+
+```html
+<main class="win-host">
+  <div class="board">
+    <a href="/expenses/exp-12" data-win-open="exp-12">Hotel, Makati</a>
+  </div>
+  <div class="win-layer" data-win-layer data-win-src="/expenses/{key}/window">
+    <!-- the windows the URL names, rendered by the server -->
+  </div>
+</main>
+<nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+```
+
+A link with `data-win-open` opens its record as a window on a plain click, and a modified click is left to the browser. Its `href` is the record's own page. The host does not scroll, and the content inside it does. The dock may sit anywhere on the page, and the script fills it with one tab per open window.
+
+Each window is the same markup whether the server renders it into the page or returns it from the `data-win-src` URL:
+
+```html
+<article class="win" data-win="exp-12" data-win-mode="floating"
+         role="dialog" aria-labelledby="win-exp-12-title"
+         style="--win-x:0.36; --win-y:0.04; --win-w:0.5; --win-h:0.72">
+  <header class="win-head">
+    <h2 class="win-title" id="win-exp-12-title">Hotel, Makati, three nights</h2>
+    <nav class="win-chrome" aria-label="Window">
+      <a class="win-btn" data-win-action="page" href="/expenses/exp-12" aria-label="Open as a page"></a>
+      <a class="win-btn" data-win-action="minimize" href="…" aria-label="Minimize"></a>
+      <a class="win-btn" data-win-action="maximize" href="…" aria-label="Maximize"></a>
+      <a class="win-btn" data-win-action="close" href="…" aria-label="Close"></a>
+    </nav>
+  </header>
+  <div class="win-body">…</div>
+</article>
+```
+
+The server writes the placement from the URL into `data-win-mode` and the four `--win-` properties, gives a minimised window the `hidden` attribute, gives the active window the class `active`, and renders the windows in stacking order with the active one last. Each button's `href` is the URL of the state that pressing it produces, with the other parameters kept. The buttons are empty because their glyphs come from the stylesheet. The title is plain text. A page opens with the ↗ button, and the whole title bar is the drag handle. A window's `data-win-src` URL should return the window markup alone, not a whole page, so that opening a window costs one small render.
+
+Scripts inside a fetched window do not run. A project wires up a window's content by listening for `pudl:window-open`, which fires on each window as it arrives. `pudl:window-place` fires on the layer before a window opens with no placement in the URL, and a listener may set `event.detail.placement` to `{mode, x, y, w, h}`, from saved state for example. `pudl:windows-change` fires on the layer after every change with the whole state, for a project that wants to remember placements. PUDL keeps no state of its own beyond the URL.
+
+With a title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Double-clicking the title bar also maximises or restores it, and dragging it against the left, right or top edge of the layer snaps it to that half or maximises it.
+
 ## What is in the repository
 
 - `pudl.css`, the tokens and component classes
 - `pudl-theme.js`, the pre-paint theme loader and toggle
+- `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
 - `fonts/`, Inter in its upright and italic variable files, with its licence
 - `reference.html`, the living reference for every component
 - `examples/brand.css`, a theme that changes only the accent
@@ -66,11 +140,11 @@ Pin a release rather than tracking the default branch. A change to PUDL reaches 
 
 ## Status
 
-This is version 0.3.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The reference page describes floating windows with a composite resize border, but PUDL ships no class for them yet, and it ships no script for dragging or for resizing the master-detail sidebar.
+This is version 0.4.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 
-PUDL supersedes three earlier design languages. The Tela Design Language came first. The Andoneer Design Language and the Planning Fit Design Language extended it for their own products, and the second version of the Andoneer Design Language moved the control vocabulary to a grammar taken from GTK. PUDL is that second version, separated from Andoneer so that every project can share it.
+PUDL supersedes three earlier design languages. The Tela Design Language came first. The Andoneer Design Language and the Planning Fit Design Language extended it for their own products, and the second version of the Andoneer Design Language moved the control vocabulary to a grammar modelled on desktop toolkits, GTK in particular. PUDL borrows ideas from GTK and contains none of its code, stylesheets or artwork. PUDL is that second version, separated from Andoneer so that every project can share it.
 
 ## Licence
 
