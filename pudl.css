@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.3.0.
+   Version 0.4.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -235,7 +235,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .theme-toggle:hover { color: var(--tb-chrome-hover-fg); }
 
 /* === Sub-nav / notebook tab strip ======================================= */
-/* GTK Notebook: a recessed band of inactive tabs; the active tab "punches
+/* After the notebook widget in desktop toolkits: a recessed band of inactive tabs; the active tab "punches
    through" the baseline so it visually merges with the content below.
    Use it for section navigation within a page. */
 .app-section-bar {
