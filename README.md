@@ -35,21 +35,21 @@ Copy a tagged release into your project, keeping the `fonts` folder beside `pudl
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.2/pudl-theme.js"
         integrity="sha384-MVBsHKpekAHr+tn0bTWhvmuChc2GE0LuMgNXVtxFYU2ht0dMVHtSreaYuhhEb2my"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl.css"
-      integrity="sha384-9LFYpTiMDcoOPv8iCY+/1rPEEQ6FvEt6lIkknyS8GJX3mTCIoRDdo1lcrIgUefoT"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.2/pudl.css"
+      integrity="sha384-meP4B9Evie8n3dXPckSC1XO7U/i/me2RBAhKLZgWIZe0E8fOCTGNxCk47wnsnWWW"
       crossorigin="anonymous">
 ```
 
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl-windows.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.2/pudl-windows.css"
       integrity="sha384-a6Hk3ctcWCEH1a1w21ajWl1IJ6RtMngseAQgi5F0x0obYAeTOM3lEwFiONe5o/kn"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.1/pudl-windows.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.4.2/pudl-windows.js" defer
         integrity="sha384-DqM9FWJUDZTv5dfaQoBPgKI5FfAqDQwxEcxwGpoIAu4OSh0CDtCnDXYpmr912Mz9"
         crossorigin="anonymous"></script>
 ```
