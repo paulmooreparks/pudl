@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.1.0.
+   Version 0.1.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -12,8 +12,10 @@
    Colour is never the only signal: every meaningful state carries a glyph.
    One .btn-primary per visible context.
 
-   Brand a project by loading a small stylesheet after this one that overrides
-   --accent and --accent-hover. Leave every other token alone.
+   A project themes PUDL with a stylesheet loaded after this one. It may
+   change any colour token, including the background and the topbar, and
+   the font tokens, within the restrictions in the README. It never changes
+   what a raised, sunken or flat surface means.
 
    Extracted from the Andoneer Design Language v2 reference page
    (Andoneer repository, mockups/adl-v2-reference.html, commit 097a9c7).

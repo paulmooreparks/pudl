@@ -1,11 +1,11 @@
-/* An example brand override. Load it after pudl.css.
+/* An example project theme. Load it after pudl.css.
 
-   A project brands PUDL by setting --accent and --accent-hover and nothing
-   else. Links, primary buttons, focus rings, the segmented control's active
-   state, chips and filter chips all follow the accent, so these few lines
-   recolour the whole interface while every elevation cue stays intact.
-   Give the dark theme its own pair, because an accent chosen for parchment
-   is usually too dark to read on leather. */
+   This one changes only the accent, which is the smallest useful theme.
+   Links, primary buttons, focus rings, the segmented control's active state,
+   chips and filter chips all follow the accent. A project may go further and
+   replace the whole palette, the topbar and the fonts, within the
+   restrictions in the README. Give the dark theme its own values, because a
+   colour chosen for a light page rarely reads well on a dark one. */
 
 :root {
   --accent: #1f6b64;

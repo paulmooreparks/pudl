@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- A project may now replace the whole palette, background and topbar included, and the fonts, within restrictions the README sets out. The 0.1.0 README said a project could change only the accent, which was wrong.
+
 ## 0.1.0
 
 The first release, extracted from the Andoneer Design Language v2 reference page (Andoneer repository, `mockups/adl-v2-reference.html`, commit 097a9c7).
