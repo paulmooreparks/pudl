@@ -1,0 +1,18 @@
+/* An example brand override. Load it after pudl.css.
+
+   A project brands PUDL by setting --accent and --accent-hover and nothing
+   else. Links, primary buttons, focus rings, the segmented control's active
+   state, chips and filter chips all follow the accent, so these few lines
+   recolour the whole interface while every elevation cue stays intact.
+   Give the dark theme its own pair, because an accent chosen for parchment
+   is usually too dark to read on leather. */
+
+:root {
+  --accent: #1f6b64;
+  --accent-hover: #17524d;
+}
+
+[data-theme="dark"] {
+  --accent: #4fb3a8;
+  --accent-hover: #72c7bd;
+}
