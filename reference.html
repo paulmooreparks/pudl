@@ -48,18 +48,18 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <span class="topbar-pill">Reference</span>
-      <span class="topbar-pill">v0.1.1</span>
+      <span class="topbar-pill">v0.2.0</span>
     </div>
   </header>
 
   <div class="ref">
     <h1>PUDL, the Pleasantly Usable Design Language</h1>
     <p class="lead">
-      PUDL pairs a parchment palette and a heraldic-navy default accent with a control grammar taken from GTK: raised buttons, sunken inputs, segmented controls, a master-detail layout, filter chips, key/value tables, switches and server-rendered dialogs. Elevation signals interactivity, so raised means pressable, sunken means input and flat means display. Colour is never the only signal, and every meaningful state carries a glyph.
+      PUDL is a control grammar taken from GTK: raised buttons, sunken inputs, segmented controls, a master-detail layout, filter chips, key/value tables, switches and server-rendered dialogs. Elevation signals interactivity, so raised means pressable, sunken means input and flat means display. Colour is never the only signal, and every meaningful state carries a glyph.
     </p>
 
     <h2>1. Tokens</h2>
-    <p>Two themes: parchment-light and leather-dark. Topbar stays as warm leather chrome in BOTH themes (not the GTK light bar). Accent recolour propagates across links, primaries, focus rings, segmented active state, filter chips, badges.</p>
+    <p>A theme sets the tokens below for light and dark, and PUDL derives every other token from them. The default palette shown here is parchment for the light theme and leather for the dark, with a dark leather topbar in both. A project may replace all of it. A change to the accent reaches links, primary buttons, focus rings, the segmented control's active state, chips and badges.</p>
     <div class="demo">
       <div class="swatch-grid">
         <div><div class="swatch" style="background: var(--bg);"></div><div class="swatch-cell"><strong>--bg</strong>page</div></div>
@@ -254,7 +254,7 @@
       <li><span class="lbl">Numerals</span>tabular everywhere: identifiers, counts, money, timestamps.</li>
       <li><span class="lbl">Tabs</span>active notebook tab merges with content (baseline punch-through).</li>
       <li><span class="lbl">No breadcrumbs.</span>Every full-screen page anchors to a tab bar somewhere in the hierarchy (topbar mode tabs or the section bar below them). If a page wants to live <em>below</em> the deepest tab strip, it's either a dialog or a one-off that merits a redesign of the page structure. When in doubt, expand the tab structure rather than growing a breadcrumb trail.</li>
-      <li><span class="lbl">Topbar</span>leather-dark in both themes (PUDL's signature chrome).</li>
+      <li><span class="lbl">Topbar</span>its own colours, set by the theme, so that it can stay dark on a light page.</li>
       <li><span class="lbl">Dialogs</span>server-rendered. No native <code>confirm()</code>. Panel one step brighter than the page; backdrop dims gently (40%); large drop shadow does the elevation work, not the backdrop opacity.</li>
       <li><span class="lbl">Time</span>ISO UTC in data; local time display-only.</li>
       <li><span class="lbl">Recolour</span>changing <code>--accent</code> propagates across links, primaries, focus rings, segmented active, chips, badges.</li>

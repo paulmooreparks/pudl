@@ -1,0 +1,42 @@
+/* An example theme that replaces the whole palette. Load it after pudl.css.
+
+   It sets only the palette tokens, for both themes, and PUDL derives the
+   raised and sunken treatments, shadows, focus rings and topbar chrome from
+   them. It also gives the topbar a light colour on the light theme and sets
+   headings in the body's sans-serif face. */
+
+:root {
+  --bg: #eef1f4;
+  --surface: #f8fafc;
+  --surface-alt: #dfe5eb;
+  --text: #16202a;
+  --text-muted: #5b6b7a;
+  --border: #c6d0da;
+  --accent: #0f766e;
+  --accent-hover: #0b5c56;
+  --on-accent: #f8fafc;
+  --light: #ffffff;
+  --shade: #0b1620;
+  --lit: 90%;
+  --depth: 20%;
+  --tb-bg: #dfe5eb;
+  --tb-fg: #16202a;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0f151b;
+  --surface: #16202a;
+  --surface-alt: #1f2b37;
+  --text: #e6edf3;
+  --text-muted: #8fa1b3;
+  --border: #2e3d4c;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --on-accent: #0f151b;
+  --light: #e6f0ff;
+  --shade: #000000;
+  --lit: 7%;
+  --depth: 50%;
+  --tb-bg: #16202a;
+  --tb-fg: #e6edf3;
+}

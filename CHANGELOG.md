@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+- A palette is now nineteen tokens per theme: six for the page and text, seven for the accent and status colours, four for lighting and two for the topbar. The raised and sunken treatments, the input background, the shadows, the focus rings, the dialog panel and the topbar chrome are all derived from them. In 0.1.1 a theme replacing the palette had to set about forty tokens per theme, most of them hand-tuned gradients and shadows.
+- Four lighting tokens are new: `--light`, `--shade`, `--lit` and `--depth`.
+- `--btn-bg`, `--shadow-btn`, `--tb-chrome-bg`, `--tb-chrome-border`, `--tb-chrome-hover-bg`, `--tb-chrome-hover-border`, `--tb-trough` and `--tb-trough-shadow` are gone. Nothing in PUDL used them.
+- The default palette renders as it did in 0.1.1, to within a shade.
+- `examples/slate.css` shows a theme that replaces the whole palette.
+
 ## 0.1.1
 
 - A project may now replace the whole palette, background and topbar included, and the fonts, within restrictions the README sets out. The 0.1.0 README said a project could change only the accent, which was wrong.

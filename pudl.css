@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.1.1.
+   Version 0.2.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -22,91 +22,115 @@
    ========================================================================== */
 
 :root {
-  /* === Light theme: warm parchment register, navy default accent. ======== */
+  /* === The palette ==========================================================
+     These are the values a project theme sets. Everything under "Derived"
+     further down is computed from them, so a new palette is this block and
+     its dark counterpart, and nothing else. Set them on :root and on
+     [data-theme="dark"], because the derived tokens are computed there. */
+
+  /* Page and text. */
   --bg: #f5efe4;
   --surface: #fbf6eb;
   --surface-alt: #ebe2cf;
   --text: #1a1410;
   --text-muted: #7a6f5e;
+  --border: #d8ccb4;
+
+  /* Accent and status. */
   --accent: #1e3a5c;
   --accent-hover: #162a47;
   --on-accent: #fbf6eb;
   --warn: #c47435;
   --danger: #a02424;
   --danger-hover: #7a1a1a;
-  --pr: #2f6b3a;                  /* positive / shipped / Done */
-  --border: #d8ccb4;
-  --input-bg: #fffaf0;
-  --btn-bg: #fbf6eb;
+  --pr: #2f6b3a;                  /* positive: shipped, done */
 
-  /* GTK raised-control treatment, recoloured for parchment:
-     top-lit gradient + defined border + inset highlight + soft shadow.
-     :active flattens. */
-  --raise-grad: linear-gradient(#fffaf0, #ece2cd);
-  --raise-grad-hover: linear-gradient(#fffaf0, #e2d8c2);
-  --raise-active-bg: #d8ccb4;
-  --raise-border: #c2b497;
-  --raise-border-hover: #9a8c70;
-  --raise-shadow:
-      inset 0 1px rgba(255, 250, 240, 0.85),
-      0 1px 2px rgba(40, 25, 10, 0.18);
-  --raise-active-shadow: inset 0 1px 3px rgba(40, 25, 10, 0.22);
-  --entry-shadow: inset 0 1px 2px rgba(40, 25, 10, 0.10);
+  /* Lighting. --light is the colour of the light falling on a raised control
+     and --shade the colour of its shadow. --lit sets how strongly the light
+     shows and --depth how strongly the shadow does. A light theme wants a
+     strong highlight and a soft shadow; a dark theme wants the reverse. */
+  --light: #fffaf0;
+  --shade: #28190a;
+  --lit: 85%;
+  --depth: 18%;
 
-  --shadow-btn: var(--raise-shadow);
-  --shadow-btn-primary:
-      inset 0 1px rgba(255, 255, 255, 0.32),
-      0 1px 2px color-mix(in srgb, var(--accent) 35%, transparent);
-  --shadow-card:
-      0 1px 3px rgba(40, 25, 10, 0.10),
-      0 0 0 1px rgba(40, 25, 10, 0.04);
+  /* Topbar. It keeps its own colours so that it can stay dark on a light
+     page, as the default palette does. */
+  --tb-bg: #4a3f33;
+  --tb-fg: #fbf6eb;
 
-  --radius: 12px;        /* cards (GTK rhythm) */
-  --radius-sm: 7px;      /* buttons, entries (GTK rhythm) */
-  --radius-pill: 999px;
-
+  /* Fonts. A theme may change these within the roles the README sets out. */
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: ui-serif, Georgia, "Times New Roman", "Hoefler Text", serif;
   --mono: "SF Mono", "Cascadia Code", "Consolas", monospace;
 
-  /* Both rings derive from their colour tokens, so a brand override of
-     --accent recolours the focus ring with no further work. */
-  --focus-ring: color-mix(in srgb, var(--accent) 22%, transparent);
-  --focus-ring-danger: color-mix(in srgb, var(--danger) 22%, transparent);
+  /* === Fixed by the language ================================================
+     A theme does not change the radii. */
+  --radius: 12px;        /* cards */
+  --radius-sm: 7px;      /* buttons and entries */
+  --radius-pill: 999px;
 
-  /* The dialog panel is one step brighter than --bg in every theme, so the
-     panel always reads as a lifted card on the page. In light this is
-     the same as --surface (parchment > page). In dark it overrides to
-     --surface-alt because plain --surface is barely lighter than --bg. */
+  /* === Derived ==============================================================
+     Computed from the palette. A theme should not need to set any of these. */
+
+  /* Inputs are sunken, so they take the surface with only a touch of light. */
+  --input-bg: color-mix(in srgb, var(--light) var(--lit), var(--surface));
+
+  /* Raised controls: lit from the top, shading to the recessed tint. */
+  --raise-top: color-mix(in srgb, var(--light) var(--lit), var(--surface-alt));
+  --raise-grad: linear-gradient(var(--raise-top), var(--surface-alt));
+  --raise-grad-hover: linear-gradient(
+      color-mix(in srgb, var(--text) 3%, var(--raise-top)),
+      color-mix(in srgb, var(--text) 6%, var(--surface-alt)));
+  --raise-active-bg: color-mix(in srgb, var(--shade) calc(var(--depth) * 0.45), var(--surface-alt));
+  --raise-border: color-mix(in srgb, var(--shade) calc(var(--depth) * 0.9), var(--surface-alt));
+  --raise-border-hover: color-mix(in srgb, var(--shade) calc(var(--depth) * 1.6), var(--surface-alt));
+  --raise-shadow:
+      inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent),
+      0 1px 2px color-mix(in srgb, var(--shade) var(--depth), transparent);
+  --raise-active-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.2), transparent);
+  --entry-shadow: inset 0 1px 2px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.7), transparent);
+
+  --shadow-btn-primary:
+      inset 0 1px rgb(255 255 255 / 0.25),
+      0 1px 2px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.2), transparent);
+  --shadow-card:
+      0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.6), transparent),
+      0 0 0 1px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.25), transparent);
+
+  /* Both rings derive from their colour tokens, so a theme's accent reaches
+     the focus ring with no further work. */
+  --focus-ring: color-mix(in srgb, var(--accent) 26%, transparent);
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 26%, transparent);
+
+  /* The dialog panel is always one step brighter than the page, so it reads
+     as a card lifted off it. On a light page that is --surface. */
   --dialog-bg: var(--surface);
 
-  /* The topbar is dark leather in both themes. A light bar in the GTK
-     sense would be wrong for this palette, and the leather topbar is
-     PUDL's signature chrome. The on-topbar tokens keep it readable. */
-  --tb-bg: #4a3f33;
-  --tb-grad: linear-gradient(#5a4f43, #4a3f33);
-  --tb-border: #2e2620;
-  --tb-hi: rgba(255, 250, 240, 0.18);
-  --tb-brand: #fbf6eb;
-  --tb-chrome-fg: #d4c5a6;
-  --tb-chrome-bg: rgba(251, 246, 235, 0.06);
-  --tb-chrome-border: rgba(251, 246, 235, 0.28);
-  --tb-chrome-hover-fg: #fbf6eb;
-  --tb-chrome-hover-bg: rgba(251, 246, 235, 0.14);
-  --tb-chrome-hover-border: rgba(251, 246, 235, 0.55);
-  --tb-trough: rgba(0, 0, 0, 0.22);
-  --tb-trough-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.30);
-  --tb-chip: linear-gradient(rgba(255, 250, 240, 0.20), rgba(255, 250, 240, 0.10));
-  --tb-chip-shadow: inset 0 1px rgba(255, 250, 240, 0.22), 0 1px 2px rgba(0, 0, 0, 0.28);
+  /* Topbar chrome. */
+  --tb-grad: linear-gradient(color-mix(in srgb, var(--tb-fg) 8%, var(--tb-bg)), var(--tb-bg));
+  --tb-border: color-mix(in srgb, #000 40%, var(--tb-bg));
+  --tb-hi: color-mix(in srgb, var(--tb-fg) 12%, transparent);
+  --tb-brand: var(--tb-fg);
+  --tb-chrome-fg: color-mix(in srgb, var(--tb-fg) 80%, var(--tb-bg));
+  --tb-chrome-hover-fg: var(--tb-fg);
+  --tb-chip: linear-gradient(
+      color-mix(in srgb, var(--tb-fg) 19%, transparent),
+      color-mix(in srgb, var(--tb-fg) 10%, transparent));
+  --tb-chip-shadow:
+      inset 0 1px color-mix(in srgb, var(--tb-fg) 22%, transparent),
+      0 1px 2px color-mix(in srgb, #000 35%, transparent);
 }
 
 [data-theme="dark"] {
-  /* === Dark theme: leather-bound, after hours. =========================== */
+  /* === The dark palette: leather-bound, after hours. ====================== */
   --bg: #1a1612;
   --surface: #241e18;
   --surface-alt: #2e2620;
   --text: #ede4d4;
   --text-muted: #a89f8d;
+  --border: #4a3f33;
+
   --accent: #5b87bc;
   --accent-hover: #7aa3d4;
   --on-accent: #1a1612;
@@ -114,50 +138,18 @@
   --danger: #d44a4a;
   --danger-hover: #ec6a6a;
   --pr: #6fa370;
-  --border: #4a3f33;
-  --input-bg: #2e2620;
-  --btn-bg: #2e2620;
 
-  --raise-grad: linear-gradient(#3a302a, #2e2620);
-  --raise-grad-hover: linear-gradient(#42372f, #342a23);
-  --raise-active-bg: #261f1a;
-  --raise-border: #1f1813;
-  --raise-border-hover: #15100c;
-  --raise-shadow:
-      inset 0 1px rgba(255, 245, 225, 0.06),
-      0 1px 2px rgba(0, 0, 0, 0.45);
-  --raise-active-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
-  --entry-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.40);
-
-  --shadow-btn-primary:
-      inset 0 1px rgba(255, 255, 255, 0.16),
-      0 1px 2px rgba(0, 0, 0, 0.40);
-  --shadow-card:
-      0 1px 3px rgba(0, 0, 0, 0.50),
-      0 0 0 1px rgba(0, 0, 0, 0.40);
-
-  --focus-ring: color-mix(in srgb, var(--accent) 30%, transparent);
-  --focus-ring-danger: color-mix(in srgb, var(--danger) 32%, transparent);
-
-  /* The dialog panel is one step lighter than --surface, so it reads as
-     visibly lifted on the leather page. */
-  --dialog-bg: var(--surface-alt);
+  --light: #fff5e1;
+  --shade: #000000;
+  --lit: 6%;
+  --depth: 45%;
 
   --tb-bg: #3a302a;
-  --tb-grad: linear-gradient(#42372f, #342a23);
-  --tb-border: #1f1813;
-  --tb-hi: rgba(255, 245, 225, 0.07);
-  --tb-brand: #ede4d4;
-  --tb-chrome-fg: #c8b89c;
-  --tb-chrome-bg: rgba(237, 228, 212, 0.06);
-  --tb-chrome-border: rgba(237, 228, 212, 0.22);
-  --tb-chrome-hover-fg: #ede4d4;
-  --tb-chrome-hover-bg: rgba(237, 228, 212, 0.14);
-  --tb-chrome-hover-border: rgba(237, 228, 212, 0.5);
-  --tb-trough: rgba(0, 0, 0, 0.30);
-  --tb-trough-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.50);
-  --tb-chip: linear-gradient(rgba(255, 245, 225, 0.18), rgba(255, 245, 225, 0.10));
-  --tb-chip-shadow: inset 0 1px rgba(255, 245, 225, 0.22), 0 1px 2px rgba(0, 0, 0, 0.50);
+  --tb-fg: #ede4d4;
+
+  /* On a dark page --surface is barely lighter than --bg, so the dialog
+     takes the next step up to keep reading as lifted. */
+  --dialog-bg: var(--surface-alt);
 }
 
 :root[data-theme="dark"] { color-scheme: dark; }
