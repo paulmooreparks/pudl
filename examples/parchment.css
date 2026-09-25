@@ -1,0 +1,48 @@
+/* An example theme: parchment for the light theme and leather for the dark,
+   with a dark leather topbar in both and serif headings. This was PUDL's
+   default palette up to 0.2.0, and it is the Andoneer look. Load it after
+   pudl.css. */
+
+:root {
+  --bg: #f5efe4;
+  --surface: #fbf6eb;
+  --surface-alt: #ebe2cf;
+  --text: #1a1410;
+  --text-muted: #7a6f5e;
+  --border: #d8ccb4;
+  --accent: #1e3a5c;
+  --accent-hover: #162a47;
+  --on-accent: #fbf6eb;
+  --warn: #c47435;
+  --danger: #a02424;
+  --danger-hover: #7a1a1a;
+  --pr: #2f6b3a;
+  --light: #fffaf0;
+  --shade: #28190a;
+  --lit: 85%;
+  --depth: 18%;
+  --tb-bg: #4a3f33;
+  --tb-fg: #fbf6eb;
+  --font-display: ui-serif, Georgia, "Times New Roman", "Hoefler Text", serif;
+}
+[data-theme="dark"] {
+  --bg: #1a1612;
+  --surface: #241e18;
+  --surface-alt: #2e2620;
+  --text: #ede4d4;
+  --text-muted: #a89f8d;
+  --border: #4a3f33;
+  --accent: #5b87bc;
+  --accent-hover: #7aa3d4;
+  --on-accent: #1a1612;
+  --warn: #d18a4f;
+  --danger: #d44a4a;
+  --danger-hover: #ec6a6a;
+  --pr: #6fa370;
+  --light: #fff5e1;
+  --shade: #000000;
+  --lit: 6%;
+  --depth: 45%;
+  --tb-bg: #3a302a;
+  --tb-fg: #ede4d4;
+}

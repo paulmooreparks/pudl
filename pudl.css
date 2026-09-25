@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.2.0.
+   Version 0.3.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -21,6 +21,24 @@
    (Andoneer repository, mockups/adl-v2-reference.html, commit 097a9c7).
    ========================================================================== */
 
+/* Inter, by Rasmus Andersson, under the SIL Open Font License 1.1
+   (fonts/Inter-LICENSE.txt). One variable file covers weights 400 to 700,
+   and its optical-size axis tightens the face at heading sizes. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/InterVariable-Italic.woff2") format("woff2");
+}
+
 :root {
   /* === The palette ==========================================================
      These are the values a project theme sets. Everything under "Derived"
@@ -29,40 +47,42 @@
      [data-theme="dark"], because the derived tokens are computed there. */
 
   /* Page and text. */
-  --bg: #f5efe4;
-  --surface: #fbf6eb;
-  --surface-alt: #ebe2cf;
-  --text: #1a1410;
-  --text-muted: #7a6f5e;
-  --border: #d8ccb4;
+  --bg: #f3f4f6;
+  --surface: #fbfbfc;
+  --surface-alt: #e4e7eb;
+  --text: #1b1f24;
+  --text-muted: #5f6873;
+  --border: #cfd4da;
 
   /* Accent and status. */
-  --accent: #1e3a5c;
-  --accent-hover: #162a47;
-  --on-accent: #fbf6eb;
-  --warn: #c47435;
-  --danger: #a02424;
-  --danger-hover: #7a1a1a;
-  --pr: #2f6b3a;                  /* positive: shipped, done */
+  --accent: #2c5282;
+  --accent-hover: #1f3d63;
+  --on-accent: #ffffff;
+  --warn: #b86e1c;
+  --danger: #b42318;
+  --danger-hover: #8f1c13;
+  --pr: #2e7d4f;                  /* positive: shipped, done */
 
   /* Lighting. --light is the colour of the light falling on a raised control
      and --shade the colour of its shadow. --lit sets how strongly the light
      shows and --depth how strongly the shadow does. A light theme wants a
      strong highlight and a soft shadow; a dark theme wants the reverse. */
-  --light: #fffaf0;
-  --shade: #28190a;
-  --lit: 85%;
+  --light: #ffffff;
+  --shade: #0e1621;
+  --lit: 90%;
   --depth: 18%;
 
   /* Topbar. It keeps its own colours so that it can stay dark on a light
      page, as the default palette does. */
-  --tb-bg: #4a3f33;
-  --tb-fg: #fbf6eb;
+  --tb-bg: #262b31;
+  --tb-fg: #f3f4f6;
 
-  /* Fonts. A theme may change these within the roles the README sets out. */
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: ui-serif, Georgia, "Times New Roman", "Hoefler Text", serif;
-  --mono: "SF Mono", "Cascadia Code", "Consolas", monospace;
+  /* Fonts. A theme may change these within the roles the README sets out.
+     Inter ships with PUDL in fonts/, so it does not depend on what the
+     reader has installed; the system face stands in until it loads. */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font);
+  --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
 
   /* === Fixed by the language ================================================
      A theme does not change the radii. */
@@ -123,29 +143,29 @@
 }
 
 [data-theme="dark"] {
-  /* === The dark palette: leather-bound, after hours. ====================== */
-  --bg: #1a1612;
-  --surface: #241e18;
-  --surface-alt: #2e2620;
-  --text: #ede4d4;
-  --text-muted: #a89f8d;
-  --border: #4a3f33;
+  /* === The dark palette ==================================================== */
+  --bg: #121417;
+  --surface: #1a1d21;
+  --surface-alt: #23272d;
+  --text: #e6e8eb;
+  --text-muted: #9aa3ad;
+  --border: #353b43;
 
-  --accent: #5b87bc;
-  --accent-hover: #7aa3d4;
-  --on-accent: #1a1612;
-  --warn: #d18a4f;
-  --danger: #d44a4a;
-  --danger-hover: #ec6a6a;
-  --pr: #6fa370;
+  --accent: #6b9bd1;
+  --accent-hover: #8db3e0;
+  --on-accent: #121417;
+  --warn: #d9954a;
+  --danger: #e06156;
+  --danger-hover: #f0857b;
+  --pr: #5fb37f;
 
-  --light: #fff5e1;
+  --light: #e8eef6;
   --shade: #000000;
-  --lit: 6%;
-  --depth: 45%;
+  --lit: 7%;
+  --depth: 48%;
 
-  --tb-bg: #3a302a;
-  --tb-fg: #ede4d4;
+  --tb-bg: #262b31;
+  --tb-fg: #e6e8eb;
 
   /* On a dark page --surface is barely lighter than --bg, so the dialog
      takes the next step up to keep reading as lifted. */
@@ -164,7 +184,16 @@ body {
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  font-variant-numeric: tabular-nums;       /* tabular numerals everywhere: IDs, counts, dates */
+}
+
+/* Tabular numerals wherever numbers are data, so identifiers, counts, money
+   and timestamps line up. Running prose keeps proportional figures, because
+   Inter's tabular feature also widens the hyphen, which spaces out every
+   hyphenated word. <time>, <data> and .num mark data inside prose. */
+table, input, select, textarea, time, data, output, code, kbd, samp, .num,
+.kv-table, .form-input, .badge, .chip, .filter-chip, .seg, .topbar-pill,
+.md-item, .md-row {
+  font-variant-numeric: tabular-nums;
 }
 
 /* === Topbar / brand chrome ============================================== */
@@ -193,7 +222,7 @@ body {
   text-decoration: none;
 }
 .topbar-pill:hover { color: var(--tb-chrome-hover-fg); }
-/* The theme toggle shares the chip styling on the leather chrome. */
+/* The theme toggle shares the chip styling on the topbar chrome. */
 .theme-toggle {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
@@ -461,8 +490,7 @@ button.link {
    The backdrop dims gently, to 40%, because the panel's shadow does the
    elevation work. Padding is generous and the drop shadow is large so the
    panel reads as lifted. The panel is always one step brighter than the
-   page; in dark mode that is what separates them, the page being the
-   leather beneath and the panel a parchment slip laid on top. */
+   page, and in dark mode that brightness step is what separates them. */
 .dialog-backdrop {
   position: fixed; inset: 0; z-index: 100;
   display: flex; align-items: center; justify-content: center; padding: 24px;
