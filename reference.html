@@ -42,13 +42,19 @@
     .ref .win-demo-host { height: 440px; background: var(--bg); }
     .ref .win-demo-list { list-style: none; margin: 0; padding: 16px 20px; display: grid; gap: 10px; }
     .ref .win-demo-list li { display: flex; gap: 10px; align-items: center; }
+    .ref .ref-sub { margin: 22px 0 6px; font-size: 16px; }
+    .ref .md-phones { display: flex; flex-wrap: wrap; gap: 16px; }
+    .ref .md-phone {
+      width: 340px; max-width: 100%; height: 470px;
+      display: flex; flex-direction: column;
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
     .ref ul.todo { font-size: 13px; color: var(--text); }
     @media (max-width: 640px) {
       .ref { padding: 12px 16px 60px; }
       .ref .demo { padding: 14px; }
       .ref .demo-grid { grid-template-columns: minmax(0, 1fr); gap: 4px; }
       .ref .demo-grid .demo-label { margin-top: 10px; }
-      .ref .layout-demo { height: 520px; }
       .ref ul.todo { padding-left: 18px; }
       .ref ul.todo .lbl { display: block; min-width: 0; }
     }
@@ -64,7 +70,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.4.2</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.5.0</a>
     </div>
   </header>
 
@@ -194,11 +200,11 @@
       </div>
     </div>
 
-    <h2>9. Master–detail layout (the new primary layout)</h2>
+    <h2 id="md">9. Master–detail layout (the new primary layout)</h2>
     <p>Resizable sidebar (260 px default) + detail pane. Toolbar pinned to the top of the layout. Filter chips render between the toolbar and the body. Active sidebar row gets the 3 px accent edge facing the detail. The same primitive serves any list-and-detail view.</p>
     <div class="demo">
       <div class="layout-demo">
-        <div class="md-layout">
+        <div class="md-layout" data-md-pane="detail">
           <div class="md-toolbar">
             <input class="md-filter" placeholder="Filter expenses…">
             <div class="seg"><button class="active">Open</button><button>Archived</button></div>
@@ -219,19 +225,72 @@
             <nav class="md-sidebar">
               <div class="md-section-label">Awaiting receipt</div>
               <div class="md-row"><a class="md-item" href="#">Airport transfer<span class="md-meta">PHP 1,200 · billable</span></a></div>
-              <div class="md-row active"><a class="md-item" href="#">Hotel, Makati<span class="md-meta">PHP 21,600 · billable</span></a></div>
+              <div class="md-row active" id="row-exp-12"><a class="md-item" href="#">Hotel, Makati<span class="md-meta">PHP 21,600 · billable</span></a></div>
               <div class="md-section-label">Submitted</div>
               <div class="md-row"><a class="md-item" href="#">Flight SIN to MNL<span class="md-meta">SGD 412 · billable</span></a></div>
               <div class="md-row"><a class="md-item" href="#">Team dinner<span class="md-meta">PHP 6,800 · non-billable</span></a></div>
             </nav>
             <div class="md-resize" role="separator" aria-orientation="vertical"></div>
             <div class="md-detail">
+              <a class="md-back" href="#md">Expenses</a>
               <h3 class="card-title">Hotel, Makati, three nights</h3>
               <p class="card-desc">Receipt attached; charged to the customer's billing account.</p>
               <div class="demo-row" style="margin-bottom: 12px;">
                 <span class="badge pr">done</span>
                 <span class="chip">manila-oct</span>
                 <span class="chip">billable</span>
+              </div>
+              <table class="kv-table">
+                <tr><th>Created</th><td>2026-10-19 07:00 UTC</td></tr>
+                <tr><th>Amount</th><td>PHP 21,600.00</td></tr>
+                <tr><th>Account</th><td>RRP billable</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="ref-sub">One pane at a time</h3>
+    <p>When the layout is 640 px wide or less, on a phone or in a narrow window or panel, it shows either the list or one record, never both. Each is its own URL. The server marks the layout with <code>data-md-pane="detail"</code> when the URL names a record, and the record's pane then opens with a back link to the list, which keeps the filters and names the record's row as its fragment so that the list scrolls back to where the reader left it. The list's toolbar and filter chips belong to the list and step aside while a record is showing. The back link returns to the list the record lives in, and is not a breadcrumb trail. The two layouts below are the same markup at phone width, one on each pane.</p>
+    <div class="demo md-phones">
+      <div class="md-phone">
+        <div class="md-layout" data-md-pane="list">
+          <div class="md-toolbar">
+            <input class="md-filter" placeholder="Filter expenses…">
+            <div class="seg"><button class="active">Open</button><button>Archived</button></div>
+            <div class="md-toolbar-cmds"><button class="btn btn-sm btn-primary">+ Expense</button></div>
+          </div>
+          <div class="md-chips">
+            <span class="filter-chip"><span class="fc-kind">trip</span> manila-oct <a class="filter-chip-x" href="#md">×</a></span>
+          </div>
+          <div class="md-body">
+            <nav class="md-sidebar">
+              <div class="md-section-label">Awaiting receipt</div>
+              <div class="md-row"><a class="md-item" href="#md">Airport transfer<span class="md-meta">PHP 1,200 · billable</span></a></div>
+              <div class="md-row"><a class="md-item" href="#md">Hotel, Makati<span class="md-meta">PHP 21,600 · billable</span></a></div>
+              <div class="md-section-label">Submitted</div>
+              <div class="md-row"><a class="md-item" href="#md">Flight SIN to MNL<span class="md-meta">SGD 412 · billable</span></a></div>
+              <div class="md-row"><a class="md-item" href="#md">Team dinner<span class="md-meta">PHP 6,800 · non-billable</span></a></div>
+            </nav>
+            <div class="md-detail"></div>
+          </div>
+        </div>
+      </div>
+      <div class="md-phone">
+        <div class="md-layout" data-md-pane="detail">
+          <div class="md-toolbar">
+            <input class="md-filter" placeholder="Filter expenses…">
+          </div>
+          <div class="md-body">
+            <nav class="md-sidebar"></nav>
+            <div class="md-detail">
+              <a class="md-back" href="#md">Expenses</a>
+              <h3 class="card-title">Hotel, Makati, three nights</h3>
+              <p class="card-desc">Receipt attached; charged to the customer's billing account.</p>
+              <div class="demo-row" style="margin-bottom: 12px;">
+                <span class="badge pr">done</span>
+                <span class="chip">manila-oct</span>
               </div>
               <table class="kv-table">
                 <tr><th>Created</th><td>2026-10-19 07:00 UTC</td></tr>

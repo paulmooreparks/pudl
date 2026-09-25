@@ -82,6 +82,26 @@ The type scale, the spacing grid and the corner radii belong to the language and
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
+## Master-detail on a narrow screen
+
+The master-detail layout shows a list beside one record. When the layout itself is 640px wide or less, on a phone or in a narrow window or panel, it shows one pane at a time instead: the list, or the record. It measures its own width with a container query, not the screen's, so a layout inside a narrow floating window behaves the same way as one on a phone.
+
+Each pane is its own URL, which the server already has, because selecting a record in the list is a link to that record's URL. The server tells the layout which pane the URL names:
+
+```html
+<div class="md-layout" data-md-pane="detail">
+  …
+  <div class="md-detail">
+    <a class="md-back" href="/expenses?trip=manila-oct#row-exp-12">Expenses</a>
+    …
+  </div>
+</div>
+```
+
+`data-md-pane="detail"` goes on the layout whenever the URL names a record, or shows a form that stands in for one, such as a new record, whether or not a row in the list is highlighted. Otherwise it is `"list"` or absent. On a wide layout the attribute changes nothing.
+
+The detail pane starts with an `.md-back` link, which appears only when one pane shows at a time. Its `href` is the list's URL with the current filters kept, and its fragment names the record's row, whose `.md-row` carries that id, so the list scrolls back to where the reader left it. The link text names the list. It returns to the list the record lives in, and it is not a breadcrumb trail. While the record shows, the list's toolbar and filter chips step aside, since they act on the list, and while the list shows, its rows grow taller because they are touch targets. None of this needs script.
+
 ## Floating windows
 
 A project can open records as windows floating above a list or a board, from two optional files loaded after the core ones:
@@ -169,7 +189,7 @@ With a title bar focused, the arrow keys move the window, Shift with the arrow k
 
 ## Status
 
-This is version 0.4.2 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.5.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 
