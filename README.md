@@ -30,9 +30,21 @@ Copy a tagged release into your project and load three files in this order:
 
 `pudl-theme.js` goes first so that the saved theme is applied before the first paint. It sets `data-theme` on the `<html>` element to `light` or `dark`, and it gives you `pudlToggleTheme()` for a toggle button.
 
-A project brands PUDL by setting `--accent` and `--accent-hover` in its own stylesheet and leaving every other token alone. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values are enough to make a project recognisably its own while the elevation cues stay exactly as a user learned them. `examples/brand.css` shows an override with a separate pair for the dark theme, which most accents need.
+A project themes PUDL with its own stylesheet, loaded after `pudl.css`. It may replace the whole palette, background and topbar included, and it may change the fonts, within the restrictions below. The parchment palette and the leather topbar in `pudl.css` are defaults that a project is free to replace. What stays constant from one project to the next is the grammar: a user who has learned what raised, sunken and flat mean in one application finds the same meanings in every other.
 
-The parchment palette and the dark leather topbar are PUDL's own, and they stay the same in every project. They are what makes an application recognisable as a PUDL application.
+The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme.
+
+## What a project may change
+
+A theme may change any colour token and the font tokens, provided the result keeps these rules.
+
+- **The three surfaces stay distinct.** A raised control must still read as raised against the surface behind it, a sunken field as sunken, and flat content as flat. A new palette therefore retunes the raised-control tokens (`--raise-*`) and the input shadow (`--entry-shadow`) along with the colours, and never removes them.
+- **Contrast meets WCAG 2.2 AA.** Body text needs 4.5:1 against its background. Control boundaries and focus indicators need 3:1 against what surrounds them (WCAG 1.4.11).
+- **Status colours stay apart.** `--warn`, `--danger`, `--pr` and `--accent` must remain distinguishable from one another, and each still carries its glyph.
+- **Both themes exist.** A project supplies light and dark values for every token it changes.
+- **Fonts keep their roles.** Body text uses a legible sans-serif interface face. Identifiers, versions, timestamps and other machine values use a monospace face. The display face for headings and the brand wordmark may be any legible face, serif included. Numerals stay tabular, and weights stay between 400 and 700.
+
+The type scale, the spacing grid and the corner radii belong to the language and do not change per project.
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
@@ -41,7 +53,7 @@ Pin a release rather than tracking the default branch. A change to PUDL reaches 
 - `pudl.css`, the tokens and component classes
 - `pudl-theme.js`, the pre-paint theme loader and toggle
 - `reference.html`, the living reference for every component
-- `examples/brand.css`, an example brand override
+- `examples/brand.css`, an example project theme
 
 ## Status
 
