@@ -43,6 +43,15 @@
     .ref .win-demo-list { list-style: none; margin: 0; padding: 16px 20px; display: grid; gap: 10px; }
     .ref .win-demo-list li { display: flex; gap: 10px; align-items: center; }
     .ref ul.todo { font-size: 13px; color: var(--text); }
+    @media (max-width: 640px) {
+      .ref { padding: 12px 16px 60px; }
+      .ref .demo { padding: 14px; }
+      .ref .demo-grid { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+      .ref .demo-grid .demo-label { margin-top: 10px; }
+      .ref .layout-demo { height: 520px; }
+      .ref ul.todo { padding-left: 18px; }
+      .ref ul.todo .lbl { display: block; min-width: 0; }
+    }
     .ref ul.todo li { margin: 4px 0; }
     .ref ul.todo .lbl { display: inline-block; min-width: 110px; font-weight: 600; color: var(--text-muted); }
   </style>
@@ -55,7 +64,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.4.1</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.4.2</a>
     </div>
   </header>
 
