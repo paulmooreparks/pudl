@@ -20,7 +20,7 @@ It is a stylesheet, a small theme script and a font, with no framework and no bu
 
 ## Using it
 
-Copy a tagged release into your project, keeping the `fonts` folder beside `pudl.css`, and load three files in this order:
+Copy the contents of `dist/` from a tagged release into your project, keeping the `fonts` folder beside `pudl.css`, and load three files in this order:
 
 ```html
 <script src="pudl-theme.js"></script>
@@ -66,7 +66,7 @@ The lighting tokens are what keep the raised and sunken surfaces readable on a n
 
 The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one and gives it a light topbar. `examples/parchment.css` restores the warm parchment and leather palette with serif headings that PUDL used by default up to 0.2.0, which is also the Andoneer look.
 
-PUDL sets text in Inter, which it ships in `fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
+PUDL sets text in Inter, which it ships in `dist/fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
 
 ## What a project may change
 
@@ -177,19 +177,22 @@ With a title bar focused, the arrow keys move the window, Shift with the arrow k
 
 ## What is in the repository
 
-- `pudl.css`, the tokens and component classes
-- `pudl-theme.js`, the pre-paint theme loader and toggle
-- `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
-- `fonts/`, Inter in its upright and italic variable files, with its licence
+Everything a project uses is in `dist/`, and everything else supports it.
+
+- `dist/`, the files a project copies or loads:
+  - `pudl.css`, the tokens and component classes
+  - `pudl-theme.js`, the pre-paint theme loader and toggle
+  - `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
+  - `fonts/`, Inter in its upright and italic variable files, with its licence
+  - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
+- `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `RELEASING.md`, the steps for cutting a release
-- `examples/brand.css`, a theme that changes only the accent
-- `examples/slate.css`, a theme that replaces the whole palette
-- `examples/parchment.css`, the warm palette PUDL used by default up to 0.2.0
+- `CHANGELOG.md`, what changed in each release
 
 ## Status
 
-This is version 0.5.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.6.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 
@@ -197,4 +200,4 @@ PUDL supersedes three earlier design languages. The Tela Design Language came fi
 
 ## Licence
 
-PUDL is released under the Apache License 2.0. See `LICENSE`. Inter, in `fonts/`, is by Rasmus Andersson and the Inter Project Authors and is released under the SIL Open Font License 1.1. See `fonts/Inter-LICENSE.txt`.
+PUDL is released under the Apache License 2.0. See `LICENSE`, which `dist/LICENSE` copies. Inter, in `dist/fonts/`, is by Rasmus Andersson and the Inter Project Authors and is released under the SIL Open Font License 1.1. See `dist/fonts/Inter-LICENSE.txt`.
