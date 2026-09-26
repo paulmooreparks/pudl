@@ -90,6 +90,12 @@ The type scale, the spacing grid and the corner radii belong to the language and
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
+## Toggle buttons and hidden elements
+
+A button that latches, such as a mode switch, is a `.btn` with `aria-pressed`. While the attribute is `"true"` the button stays pressed in, and the same attribute tells assistive technology that it is on. The project's own script flips it; a group of mutually exclusive choices is a segmented control instead.
+
+The `hidden` attribute always hides an element, even a component that sets its own `display`, because `pudl.css` gives it `display: none !important`. The one exception is `hidden="until-found"`, which the browser hides in its own way so that in-page search can still reveal it.
+
 ## Menus
 
 A menu button opens a panel of choices. The button is raised and carries a caret, so it reads as opening something rather than doing something, and it looks pressed while its panel is open. The panel is lifted like a dialog without a backdrop, because it is not modal. The panel is an HTML popover, so opening, closing on Escape or an outside click, and sitting above every other surface all work without script:
@@ -207,6 +213,8 @@ Scripts inside a fetched window do not run. A project wires up a window's conten
 
 With a title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Double-clicking the title bar also maximises or restores it, and dragging it against the left, right or top edge of the layer snaps it to that half or maximises it.
 
+The active window's title bar comes from four tokens a theme may set: `--win-active-bg`, `--win-active-fg`, `--win-active-border` and `--win-active-shadow`. By default the light theme fills the bar with the accent and light text, the classic active window, and the dark theme, whose accent must be bright for its links to read, tints the raised gradient toward the accent, keeps the normal text colour and draws an accent rule along the bar's foot. The active window also takes a stronger shadow and an accent-tinted frame in both themes.
+
 A window's markup may give it a starting mode with `data-win-mode` and no position, and it opens in that mode, with a cascade position to restore to. A reading site opens its articles maximised this way.
 
 ### Child windows
@@ -255,7 +263,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.8.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.9.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 

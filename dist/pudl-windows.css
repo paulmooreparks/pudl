@@ -24,6 +24,30 @@
   --win-shadow-active:
       0 3px 8px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.1), transparent),
       0 18px 48px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.4), transparent);
+
+  /* The active window's title bar. A theme may set these four to tune it.
+     On the light theme the bar is filled with the accent, the classic
+     active window, since a light theme's accent is dark enough to carry
+     light text. */
+  --win-active-bg: linear-gradient(color-mix(in srgb, #fff 10%, var(--accent)), var(--accent));
+  --win-active-fg: var(--on-accent);
+  --win-active-border: var(--accent-hover);
+  --win-active-shadow: inset 0 1px color-mix(in srgb, #fff 18%, transparent);
+}
+
+/* A dark theme needs a bright accent for its links to read, and a bar
+   filled with it glares, so the dark theme's bar is the raised gradient
+   tinted toward the accent, in the normal text colour, with an accent rule
+   along its foot. */
+[data-theme="dark"] {
+  --win-active-bg: linear-gradient(
+      color-mix(in srgb, var(--accent) 24%, var(--raise-top)),
+      color-mix(in srgb, var(--accent) 14%, var(--surface-alt)));
+  --win-active-fg: var(--text);
+  --win-active-border: color-mix(in srgb, var(--accent) 55%, var(--raise-border));
+  --win-active-shadow:
+      inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent),
+      inset 0 -2px var(--accent);
 }
 
 /* The host is the region the windows float over, usually the main area
@@ -53,7 +77,6 @@
   box-shadow: var(--win-shadow);
   pointer-events: auto;
 }
-.win[hidden] { display: none; }
 .win.active {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--raise-border));
   box-shadow: var(--win-shadow-active);
@@ -91,10 +114,12 @@
 }
 .win-head:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .win.active .win-head {
-  background: linear-gradient(color-mix(in srgb, #fff 10%, var(--accent)), var(--accent));
-  border-color: var(--accent-hover);
-  color: var(--on-accent);
+  background: var(--win-active-bg);
+  border-color: var(--win-active-border);
+  box-shadow: var(--win-active-shadow);
+  color: var(--win-active-fg);
 }
+.win.active .win-head:focus-visible { box-shadow: var(--win-active-shadow), 0 0 0 3px var(--focus-ring); }
 /* The title is usually a heading, so it resets what a page's own heading
    styles might give it. */
 .win-title {
@@ -175,7 +200,6 @@
   border: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent);
   border-radius: var(--radius);
 }
-.win-ghost[hidden] { display: none; }
 
 /* Dragging over an iframe or a text selection would lose the pointer, so
    the layer takes every event while a drag is in progress. */

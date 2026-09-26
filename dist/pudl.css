@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.8.0.
+   Version 0.9.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -177,6 +177,12 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+
+/* The hidden attribute always hides, even on a component that sets its own
+   display, which would otherwise beat the browser's rule. hidden="until-found"
+   is left to the browser, which hides it by other means so that in-page
+   search can still reveal it. */
+[hidden]:not([hidden="until-found"]) { display: none !important; }
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -284,6 +290,18 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .btn:focus-visible {
   outline: none;
   box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring);
+}
+/* A toggle button latched on stays pressed in. aria-pressed carries the
+   state to assistive technology as well as to the eye, and the state shows
+   through elevation, not colour. A project flips the attribute. */
+.btn[aria-pressed="true"],
+.btn[aria-pressed="true"]:hover {
+  background: var(--raise-active-bg);
+  border-color: var(--raise-border-hover);
+  box-shadow: var(--raise-active-shadow);
+}
+.btn[aria-pressed="true"]:focus-visible {
+  box-shadow: var(--raise-active-shadow), 0 0 0 3px var(--focus-ring);
 }
 .btn[disabled], .btn.is-disabled {
   opacity: .45; cursor: not-allowed;
@@ -747,7 +765,6 @@ body:has(> .md-layout) {
 .menu-panel .md-filter { display: block; width: calc(100% - 20px); margin: 4px 10px 6px; }
 .menu-panel form { margin: 0; }
 .menu-empty { margin: 0; padding: 6px 14px; font-size: 13px; color: var(--text-muted); }
-.menu-empty[hidden] { display: none; }
 
 .menu-sep { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
 .menu-action {

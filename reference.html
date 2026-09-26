@@ -70,7 +70,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.8.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.9.0</a>
     </div>
   </header>
 
@@ -105,6 +105,11 @@
       <button class="btn" disabled>Disabled</button>
       <button class="icon-btn" title="Drag">≡</button>
       <button class="icon-btn danger" title="Remove">✕</button>
+    </div>
+    <p>A toggle button latches. With <code>aria-pressed="true"</code> it stays pressed in until pressed again, and the same attribute tells assistive technology that it is on. Press these two.</p>
+    <div class="demo demo-row">
+      <button class="btn" type="button" aria-pressed="true" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">Hints</button>
+      <button class="btn btn-sm" type="button" aria-pressed="false" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">Pencil marks</button>
     </div>
 
     <h2>3. Forms</h2>

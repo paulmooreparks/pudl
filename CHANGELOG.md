@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0
+
+- The `hidden` attribute always hides, even on a component that sets its own `display`, such as `.btn`. `hidden="until-found"` is left to the browser. The per-component patches for the same problem in the windows and menu styles are gone.
+- A `.btn` with `aria-pressed="true"` stays pressed in, for toggle buttons that latch.
+- The active window's title bar comes from four new tokens, `--win-active-bg`, `--win-active-fg`, `--win-active-border` and `--win-active-shadow`, so a theme can tune it without overriding the component. The dark theme's default is now quieter: the raised gradient tinted toward the accent, normal text, and an accent rule along the foot, since a dark theme's bright accent made a glaring filled bar. The light theme keeps the filled bar.
+- The active title bar's keyboard focus ring now shows. The accent bar's own styles had hidden it.
+- These three came from adopting PUDL on parkscomputing.com, and `docs/proposals/from-parkscomputing.md` records them.
+
 ## 0.8.0
 
 - Menus. A `.menu-btn` opens a `.menu-panel`, an HTML popover, so opening, closing on Escape or an outside click, and sitting above everything work without script. Places in a panel are master-detail rows under section labels; actions are `.menu-action` buttons below a `.menu-sep`. The button looks pressed while its panel is open. The README sets out the markup.
