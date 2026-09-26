@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="dist/pudl.css">
   <link rel="stylesheet" href="dist/pudl-windows.css">
   <script src="dist/pudl-windows.js" defer></script>
+  <script src="dist/pudl-menu.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -69,7 +70,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.7.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.8.0</a>
     </div>
   </header>
 
@@ -209,8 +210,22 @@
             <div class="seg"><button class="active">Open</button><button>Archived</button></div>
             <span class="md-toolbar-spacer"></span>
             <div class="md-toolbar-cmds">
-              <button class="btn btn-sm">Trip ▾</button>
-              <button class="btn btn-sm">Account ▾</button>
+              <div class="menu">
+                <button class="btn btn-sm menu-btn" popovertarget="md-trip-menu">Trip</button>
+                <nav class="menu-panel" id="md-trip-menu" popover aria-label="Filter by trip">
+                  <div class="md-row"><a class="md-item" href="#md">All trips</a></div>
+                  <div class="md-row active"><a class="md-item" href="#md" aria-current="true">Manila, October</a></div>
+                  <div class="md-row"><a class="md-item" href="#md">Singapore, November</a></div>
+                </nav>
+              </div>
+              <div class="menu">
+                <button class="btn btn-sm menu-btn" popovertarget="md-account-menu">Account</button>
+                <nav class="menu-panel" id="md-account-menu" popover aria-label="Filter by account">
+                  <div class="md-row"><a class="md-item" href="#md">All accounts</a></div>
+                  <div class="md-row active"><a class="md-item" href="#md" aria-current="true">Billable</a></div>
+                  <div class="md-row"><a class="md-item" href="#md">Non-billable</a></div>
+                </nav>
+              </div>
               <span class="md-toolbar-sep"></span>
               <button class="btn btn-sm btn-primary">+ Expense</button>
             </div>
@@ -302,14 +317,43 @@
       </div>
     </div>
 
-    <h2 id="windows">10. Floating windows</h2>
+    <h2 id="menus">10. Menus</h2>
+    <p>A menu button opens a panel of choices. The button is raised and carries a caret, so it reads as opening something rather than doing something, and it looks pressed while its panel is open. The panel is lifted like a dialog but has no backdrop, because it is not modal: Escape, a click outside it or a choice closes it. Places in a panel are list rows grouped under section labels, and actions are rows of their own below a rule, each with a glyph. The panel is an HTML popover, so all of that works without script. The optional <code>pudl-menu.js</code> opens the panel against its button, as a full-width sheet on a phone, lets the arrow keys move between rows, and makes a filter at the top of a panel narrow its rows as you type. An open menu is not part of the URL, because it is momentary; everything in it has an address of its own. The Trip and Account buttons in the master–detail toolbar above are menus too.</p>
+    <div class="demo demo-row">
+      <div class="menu">
+        <button class="btn menu-btn" popovertarget="demo-menu">Expense</button>
+        <nav class="menu-panel" id="demo-menu" popover aria-label="Expense">
+          <div class="md-section-label">Go to</div>
+          <div class="md-row"><a class="md-item" href="#menus">Receipt</a></div>
+          <div class="md-row"><a class="md-item" href="#menus">Approval history</a></div>
+          <div class="md-row"><a class="md-item" href="#menus">Trip: Manila, October</a></div>
+          <hr class="menu-sep">
+          <button class="menu-action" type="button"><span aria-hidden="true">&#x2913;</span> Export as PDF</button>
+          <button class="menu-action" type="button"><span aria-hidden="true">&#x2398;</span> Duplicate</button>
+          <button class="menu-action danger" type="button"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Delete expense</button>
+        </nav>
+      </div>
+    </div>
+    <p>A launcher is a menu button at the start of the row that holds a window dock, with a panel that reaches everything a site offers, grouped by category, with a filter at the top. The windows demo below has one, and so does <a href="samples/article-reader.html">the article reader sample</a>.</p>
+
+    <h2 id="windows">11. Floating windows</h2>
     <p>Records can open as windows floating above a list, from the optional <code>pudl-windows.css</code> and <code>pudl-windows.js</code>. Open a few of the expenses below, then drag a window by its title bar, resize it from any edge or corner, drag it against the left, right or top edge to snap it, and double-click its title bar to maximise it. The dock above the list has one tab per open window. Everything you do is written into this page's URL, so reloading puts every window back where it was, and Back undoes the last window you opened.</p>
     <p>The frame around a window is a band of the raised tint between two hairlines, and the whole band is the resize border. The active window's title bar takes the accent. With the title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Without script, each link opens the record's own page, and the server renders whichever windows the URL names where the URL puts them.</p>
     <p>A window can have children, for content that belongs to a record, such as a receipt, a source listing or an image. Open the hotel expense and follow its receipt link. The receipt opens maximised above the expense, a row for it appears under the expense in the list, and Escape or the close button puts it away. A child has no tab in the dock, travels with its parent when the parent is minimised or brought forward, and closes when its parent closes. The list also marks the row of the window in front. <a href="samples/article-reader.html">The article reader sample</a> puts all of this together as a reading site, with the article list in a sidebar and each article opening maximised.</p>
     <div class="demo">
       <div class="win-demo">
         <div class="md-toolbar">
-          <span class="md-section-label" style="padding: 0;">Open windows</span>
+          <div class="menu">
+            <button class="btn btn-sm menu-btn" popovertarget="demo-launcher"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg> Expenses</button>
+            <nav class="menu-panel" id="demo-launcher" popover aria-label="All expenses">
+              <input class="md-filter" type="search" placeholder="Find an expense" aria-label="Find an expense">
+              <div class="md-section-label">Manila, October</div>
+              <div class="md-row"><a class="md-item" href="#windows" data-win-open="exp-12">Hotel, Makati, three nights</a></div>
+              <div class="md-row"><a class="md-item" href="#windows" data-win-open="exp-13">Airport transfer</a></div>
+              <div class="md-section-label">Team</div>
+              <div class="md-row"><a class="md-item" href="#windows" data-win-open="exp-14">Team dinner</a></div>
+            </nav>
+          </div>
           <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
         </div>
         <div class="win-host win-demo-host">
@@ -418,7 +462,7 @@
       </article>
     </template>
 
-    <h2>11. Invariants</h2>
+    <h2>12. Invariants</h2>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>raised = pressable, sunken = input, flat = display.</li>
       <li><span class="lbl">Buttons</span>one look. Every button is raised. Max one <code>.btn-primary</code> per visible context.</li>

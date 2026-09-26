@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../dist/pudl.css">
   <link rel="stylesheet" href="../dist/pudl-windows.css">
   <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-menu.js" defer></script>
   <style>
     /* === Sample page layout (this page only) ===============================
        The article list is the master-detail sidebar, and the windows are the
@@ -20,7 +21,7 @@
       margin: 0; padding: 48px 24px; text-align: center;
       color: var(--text-muted);
     }
-    .md-toolbar .md-section-label { padding: 0; }
+    .launcher-icon { width: 14px; height: 14px; flex: none; }
 
     /* Article typography inside a window. */
     .article { max-width: 68ch; margin: 0 auto; padding: 8px 8px 32px; }
@@ -51,8 +52,23 @@
   </header>
 
   <div class="md-layout" data-md-pane="list">
-    <div class="md-toolbar">
-      <span class="md-section-label">Open</span>
+    <div class="md-toolbar md-site-tools">
+      <div class="menu">
+        <button class="btn btn-sm menu-btn" popovertarget="launcher"><svg class="launcher-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg> Browse</button>
+        <nav class="menu-panel" id="launcher" popover aria-label="Everything on this site">
+          <input class="md-filter" type="search" placeholder="Find an article" aria-label="Find an article">
+          <div class="md-section-label">Design</div>
+          <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable</a></div>
+          <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen</a></div>
+          <div class="md-section-label">Engineering</div>
+          <div class="md-row"><a class="md-item" href="?open=url-state" data-win-open="url-state">Keeping state in the URL</a></div>
+          <div class="md-section-label">Elsewhere</div>
+          <div class="md-row"><a class="md-item" href="../reference.html">The PUDL reference</a></div>
+          <div class="md-row"><a class="md-item" href="https://github.com/paulmooreparks/pudl">PUDL on GitHub</a></div>
+          <hr class="menu-sep">
+          <button class="menu-action" type="button" onclick="pudlToggleTheme()"><span aria-hidden="true">&#x25D0;</span> Switch light and dark</button>
+        </nav>
+      </div>
       <nav class="win-dock" data-win-dock aria-label="Open articles"></nav>
     </div>
     <div class="md-body">

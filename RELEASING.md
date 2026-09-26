@@ -17,7 +17,7 @@ A release is a tag. Projects copy a tagged release or load one from jsDelivr, wh
 7. Record the integrity hashes. Fetch each file from jsDelivr, confirm it matches the tagged copy, and compute its hash:
 
    ```sh
-   for f in dist/pudl.css dist/pudl-theme.js dist/pudl-windows.css dist/pudl-windows.js; do
+   for f in dist/pudl.css dist/pudl-theme.js dist/pudl-menu.js dist/pudl-windows.css dist/pudl-windows.js; do
      tag=$(git show v0.5.0:$f | openssl dgst -sha384 -binary | openssl base64 -A)
      cdn=$(curl -sSL https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.5.0/$f | openssl dgst -sha384 -binary | openssl base64 -A)
      [ "$tag" = "$cdn" ] && echo "$f sha384-$tag" || echo "$f MISMATCH"

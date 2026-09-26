@@ -325,7 +325,9 @@
       row.classList.toggle('active', current);
       if (current) link.setAttribute('aria-current', 'true');
       else link.removeAttribute('aria-current');
-      if (state.open.indexOf(key) < 0) return;
+      /* A menu panel lists places, and a child window is not one, so a
+         panel's rows are marked but gain no child rows. */
+      if (state.open.indexOf(key) < 0 || row.closest('[popover]')) return;
 
       var after = row;
       childrenOf(state, key).forEach(function (c) {

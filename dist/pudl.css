@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.7.0.
+   Version 0.8.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -639,11 +639,13 @@ body:has(> .md-layout) {
 
   /* The list pane fills the layout, and its rows are touch targets. */
   .md-sidebar { flex: 1; width: auto; border-right: 0; }
-  .md-item { padding-top: 10px; padding-bottom: 10px; }
+  .md-sidebar .md-item { padding-top: 10px; padding-bottom: 10px; }
   .md-detail { display: none; padding: 16px; }
 
-  /* The detail pane: the list, its toolbar and its filters step aside. */
-  .md-layout[data-md-pane="detail"] .md-toolbar,
+  /* The detail pane: the list, its toolbar and its filters step aside. A
+     toolbar of site-wide tools, such as a launcher or a window dock, is
+     marked .md-site-tools and stays in both panes. */
+  .md-layout[data-md-pane="detail"] .md-toolbar:not(.md-site-tools),
   .md-layout[data-md-pane="detail"] .md-chips,
   .md-layout[data-md-pane="detail"] .md-sidebar { display: none; }
   .md-layout[data-md-pane="detail"] .md-detail { display: block; }
@@ -689,3 +691,71 @@ body:has(> .md-layout) {
   flex: none; width: 22px; text-align: center; cursor: grab;
   color: var(--text-muted); font-size: 14px; line-height: 1;
 }
+
+/* === Menus ===============================================================
+   A menu button opens a panel of choices: places to go, and actions. The
+   button is raised and carries a caret, so it reads as opening something
+   rather than doing something, and it shows pressed while its panel is
+   open. The panel is lifted like a dialog, without a backdrop, because it
+   is not modal. It is an HTML popover, so it opens, closes on Escape or an
+   outside click, and sits above everything with no script; pudl-menu.js
+   places it against its button and adds the arrow keys and filtering.
+
+   Places in a panel are list rows, the .md-row and .md-item of the
+   master-detail sidebar, grouped under .md-section-label headings. Actions
+   are .menu-action buttons, set apart by an .menu-sep rule. */
+.menu { display: inline-flex; position: relative; }
+.menu-btn::after {
+  content: "\25BE"; font-size: 11px; line-height: 1; opacity: .75;
+}
+.menu:has(> .menu-panel:popover-open) > .menu-btn {
+  background: var(--raise-active-bg);
+  box-shadow: var(--raise-active-shadow);
+}
+
+.menu-panel {
+  margin: auto; padding: 6px 0;
+  min-width: 14rem; max-width: min(22rem, calc(100vw - 16px));
+  max-height: min(32rem, calc(100vh - 16px));
+  overflow: auto;
+  background: var(--dialog-bg, var(--surface)); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow:
+      var(--shadow-card),
+      0 16px 40px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.6), transparent);
+  font-family: var(--font);
+}
+/* The script hides a panel for the moment between opening and placing it,
+   so it never flashes in the middle of the screen. */
+.menu-panel.placing { visibility: hidden; }
+/* On a narrow screen the script opens the panel as a sheet across the full
+   width, so its rows stay large enough to tap. */
+.menu-panel.sheet {
+  width: 100%; max-width: none;
+  border-width: 0 0 1px; border-radius: 0 0 var(--radius) var(--radius);
+}
+.menu-panel.sheet .md-item { padding-top: 10px; padding-bottom: 10px; }
+
+.menu-panel .md-section-label { padding: 10px 14px 4px; }
+.menu-panel .md-section-label:first-child { padding-top: 6px; }
+.menu-panel .md-row { border-bottom: 0; }
+.menu-panel .md-item:focus-visible,
+.menu-action:focus-visible {
+  outline: none; background: var(--surface-alt);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.menu-panel .md-filter { display: block; width: calc(100% - 20px); margin: 4px 10px 6px; }
+.menu-panel form { margin: 0; }
+.menu-empty { margin: 0; padding: 6px 14px; font-size: 13px; color: var(--text-muted); }
+.menu-empty[hidden] { display: none; }
+
+.menu-sep { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
+.menu-action {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 6px 14px;
+  background: none; border: 0; border-radius: 0;
+  font: 13px/1.5 var(--font); color: var(--text); text-align: left;
+  cursor: pointer;
+}
+.menu-action:hover { background: var(--surface-alt); }
+.menu-action.danger { color: var(--danger); }

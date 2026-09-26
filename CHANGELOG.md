@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.0
+
+- Menus. A `.menu-btn` opens a `.menu-panel`, an HTML popover, so opening, closing on Escape or an outside click, and sitting above everything work without script. Places in a panel are master-detail rows under section labels; actions are `.menu-action` buttons below a `.menu-sep`. The button looks pressed while its panel is open. The README sets out the markup.
+- A new optional `dist/pudl-menu.js` opens a panel against its button, above it when there is more room, and as a full-width sheet on a narrow window; adds Up, Down, Home and End between rows; and makes an `.md-filter` in a panel narrow its rows, with Enter following the first row left.
+- A launcher is a menu button at the start of the row that holds a window dock. The reference page's windows demo and the article reader sample each have one, and the master-detail toolbar's Trip and Account buttons are now real menus.
+- A master-detail toolbar marked `.md-site-tools` stays on screen when a narrow layout shows a record, so a launcher or dock in it is reachable from inside a record on a phone.
+- In a menu panel, rows that open windows are marked while their window is in front, but gain no child-window rows, since a child is not a place.
+- Fixed: on a narrow master-detail layout, the list's rows were meant to grow taller as touch targets from 0.5.0 on, but a later rule of equal weight kept them compact.
+- The design is recorded in `docs/proposals/launcher.md`.
+
 ## 0.7.0
 
 - Child windows. A window whose markup says `data-win-parent="<key>"` is a child of that window: it stacks above its parent, comes forward and hides with it, closes with it, has no dock tab of its own, and closes on Escape when it is in front. Focus returns to the link that opened it. The relation lives in the markup, so the URL grammar is unchanged.
