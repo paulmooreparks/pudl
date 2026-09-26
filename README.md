@@ -35,22 +35,30 @@ Copy the contents of `dist/` from a tagged release into your project, keeping th
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.7.0/dist/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-theme.js"
         integrity="sha384-MVBsHKpekAHr+tn0bTWhvmuChc2GE0LuMgNXVtxFYU2ht0dMVHtSreaYuhhEb2my"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.7.0/dist/pudl.css"
-      integrity="sha384-bazWcqx7oPApj6gsr1waf3Xbz1m43ZAFpQ5+h8PNcTfLArr7bO0qquOmTD9u5CpY"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl.css"
+      integrity="sha384-MR9NRWCXIqtDIjwnyPo5JwPdGTNbIgLkY0r5PsEFSFukFfDmogPjg9ATurfPqCe+"
       crossorigin="anonymous">
+```
+
+With the menu script as well:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-menu.js" defer
+        integrity="sha384-1kO7JKPZoWXqkA1JhKPckGE0mDt0R7aV7lKvDJFRjPdSeODg6bHHTFCNtHD4q6rn"
+        crossorigin="anonymous"></script>
 ```
 
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.7.0/dist/pudl-windows.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-windows.css"
       integrity="sha384-1TjU8WaQn1IyZ1KLCJ/AjiutWKcNSWJbNAKWGDpCFblXiW1G6U0uw6gfBwa2FMjY"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.7.0/dist/pudl-windows.js" defer
-        integrity="sha384-kxzBf1zUFMTR5k6McaVIPih37SFd32DUg2FQBo142oDqARckWYZdEQSEPbE+lTW8"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-windows.js" defer
+        integrity="sha384-IuEWIPb2XuiZssJ6Y/9+6niaNqD6o0nxBx0ukKCNFxAehMfJenf5MHOruFv/a/UU"
         crossorigin="anonymous"></script>
 ```
 
