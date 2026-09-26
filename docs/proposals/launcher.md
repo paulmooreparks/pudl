@@ -1,6 +1,10 @@
 # Proposal: menus and a launcher
 
-Status: proposed, 2026-09-26. Not built.
+Status: accepted 2026-09-26 and built in 0.8.0. Paul chose the general primitive, the one-column panel and the 2024 browser floor, as recommended below.
+
+One detail changed in building it. Panels are placed by `pudl-menu.js` in every browser, not by CSS anchor positioning with a script fallback. One code path on documented APIs is simpler than two, anchor positioning would have needed a unique anchor name for every menu on a page, and it removed the need to track Firefox's support. Without the script a panel opens centred and works.
+
+The build also added `.md-site-tools`, a marker for a master-detail toolbar that holds site-wide tools. A narrow layout showing a record hides the list's toolbar, and without the marker it would have hidden the launcher too, defeating its purpose on a phone.
 
 ## Why PUDL needs this
 

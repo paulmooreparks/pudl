@@ -82,6 +82,30 @@ The type scale, the spacing grid and the corner radii belong to the language and
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
+## Menus
+
+A menu button opens a panel of choices. The button is raised and carries a caret, so it reads as opening something rather than doing something, and it looks pressed while its panel is open. The panel is lifted like a dialog without a backdrop, because it is not modal. The panel is an HTML popover, so opening, closing on Escape or an outside click, and sitting above every other surface all work without script:
+
+```html
+<div class="menu">
+  <button class="btn menu-btn" popovertarget="expense-menu">Expense</button>
+  <nav class="menu-panel" id="expense-menu" popover aria-label="Expense">
+    <div class="md-section-label">Go to</div>
+    <div class="md-row"><a class="md-item" href="/expenses/exp-12/receipt">Receipt</a></div>
+    <hr class="menu-sep">
+    <button class="menu-action" type="submit" form="export"><span aria-hidden="true">⤓</span> Export as PDF</button>
+  </nav>
+</div>
+```
+
+Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar uses, grouped under `.md-section-label` headings, and a row that opens a window is marked while its window is in front. Actions are `.menu-action` buttons below an `.menu-sep` rule, each with a leading glyph; a destructive one adds `danger` and a ⚠. The `.menu` wrapper holds the button and its panel together, and that is how the button knows to look pressed.
+
+The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, above it when there is more room there, and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
+
+An open menu is not part of the URL. It is momentary, like a hover, and everything it leads to has an address of its own.
+
+A **launcher** is a menu button first in the row that holds a window dock, whose panel reaches everything a site offers: one section per category, a filter at the top, and site-wide actions at the foot. Put it in a toolbar marked `.md-site-tools` so that it stays on screen when a narrow master-detail layout shows a record, and the reader can reach everything from inside an article on a phone. `samples/article-reader.html` has one.
+
 ## Master-detail on a narrow screen
 
 The master-detail layout shows a list beside one record. When the layout itself is 640px wide or less, on a phone or in a narrow window or panel, it shows one pane at a time instead: the list, or the record. It measures its own width with a container query, not the screen's, so a layout inside a narrow floating window behaves the same way as one on a phone.
@@ -100,7 +124,7 @@ Each pane is its own URL, which the server already has, because selecting a reco
 
 `data-md-pane="detail"` goes on the layout whenever the URL names a record, or shows a form that stands in for one, such as a new record, whether or not a row in the list is highlighted. Otherwise it is `"list"` or absent. On a wide layout the attribute changes nothing.
 
-The detail pane starts with an `.md-back` link, which appears only when one pane shows at a time. Its `href` is the list's URL with the current filters kept, and its fragment names the record's row, whose `.md-row` carries that id, so the list scrolls back to where the reader left it. The link text names the list. It returns to the list the record lives in, and it is not a breadcrumb trail. While the record shows, the list's toolbar and filter chips step aside, since they act on the list, and while the list shows, its rows grow taller because they are touch targets. None of this needs script.
+The detail pane starts with an `.md-back` link, which appears only when one pane shows at a time. Its `href` is the list's URL with the current filters kept, and its fragment names the record's row, whose `.md-row` carries that id, so the list scrolls back to where the reader left it. The link text names the list. It returns to the list the record lives in, and it is not a breadcrumb trail. While the record shows, the list's toolbar and filter chips step aside, since they act on the list, except a toolbar marked `.md-site-tools`, which holds site-wide tools such as a launcher or a window dock and stays in both panes, and while the list shows, its rows grow taller because they are touch targets. None of this needs script.
 
 ## Floating windows
 
@@ -211,17 +235,19 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl.css`, the tokens and component classes
   - `pudl-theme.js`, the pre-paint theme loader and toggle
   - `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
+  - `pudl-menu.js`, the optional script that places menu panels and adds their keyboard and filter
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
 - `samples/`, working pages built with PUDL, starting with `article-reader.html`, a reading site with articles in windows and listings as child windows, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
+- `docs/proposals/`, design proposals and the decisions taken on them
 - `RELEASING.md`, the steps for cutting a release
 - `CHANGELOG.md`, what changed in each release
 
 ## Status
 
-This is version 0.7.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.8.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 
