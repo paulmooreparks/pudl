@@ -35,18 +35,18 @@ Copy the contents of `dist/` from a tagged release into your project, keeping th
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.10.0/dist/pudl-theme.js"
         integrity="sha384-MVBsHKpekAHr+tn0bTWhvmuChc2GE0LuMgNXVtxFYU2ht0dMVHtSreaYuhhEb2my"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl.css"
-      integrity="sha384-MR9NRWCXIqtDIjwnyPo5JwPdGTNbIgLkY0r5PsEFSFukFfDmogPjg9ATurfPqCe+"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.10.0/dist/pudl.css"
+      integrity="sha384-g8Bt9egBKy+6nu3IsYYyv7P2T+FWg4Ayek/aUrDerwSSw4QBHbNAV07E5JW6Llnb"
       crossorigin="anonymous">
 ```
 
 With the menu script as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-menu.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.10.0/dist/pudl-menu.js" defer
         integrity="sha384-1kO7JKPZoWXqkA1JhKPckGE0mDt0R7aV7lKvDJFRjPdSeODg6bHHTFCNtHD4q6rn"
         crossorigin="anonymous"></script>
 ```
@@ -54,11 +54,19 @@ With the menu script as well:
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-windows.css"
-      integrity="sha384-1TjU8WaQn1IyZ1KLCJ/AjiutWKcNSWJbNAKWGDpCFblXiW1G6U0uw6gfBwa2FMjY"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.10.0/dist/pudl-windows.css"
+      integrity="sha384-7s443j9ph17NXFry338A2M5BGMkpefQiumRzjT5TuH88SaaaSer1zVbmElZo56eK"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.8.0/dist/pudl-windows.js" defer
-        integrity="sha384-IuEWIPb2XuiZssJ6Y/9+6niaNqD6o0nxBx0ukKCNFxAehMfJenf5MHOruFv/a/UU"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.10.0/dist/pudl-windows.js" defer
+        integrity="sha384-DJtxni2A3DhO56CUJtzE1TPJxPbw1cgP3Yy9G47RcehhsGrq9LSdY4jVm5LYmmyP"
+        crossorigin="anonymous"></script>
+```
+
+With applets as well, loaded after the windows script:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.10.0/dist/pudl-applets.js" defer
+        integrity="sha384-4BlbnPHxhT+UBhPRmhtSCdUC8YuxKiKdWi4gW5zOJDraqi8f6LyjTmoH1xS1ODcn"
         crossorigin="anonymous"></script>
 ```
 
