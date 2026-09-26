@@ -11,6 +11,7 @@
      pudl:window-place   on the layer, before a window opens with no placement
                          in the URL. A listener may set event.detail.placement
                          to {mode, x, y, w, h}, for example from saved state.
+                         event.detail.parent names a child window's parent.
      pudl:window-open    on the window element, once it is in the page. Use it
                          to wire up the window's content, because scripts in a
                          fetched fragment do not run.
@@ -122,12 +123,36 @@
     return location.pathname + (parts.length ? '?' + parts.join('&') : '') + location.hash;
   }
 
-  /* The topmost visible window other than the one given, for when the top
+  /* A child window names its parent with data-win-parent. The relation is a
+     fact about the content, so it lives in the markup, not the URL. It
+     holds only while the parent is open and is itself a top-level window;
+     otherwise the window stands on its own. */
+  function parentOf(st, key) {
+    var el = wins[key];
+    var p = el && el.getAttribute('data-win-parent');
+    if (!p || p === key || st.open.indexOf(p) < 0) return null;
+    var pe = wins[p];
+    var grand = pe && pe.getAttribute('data-win-parent');
+    return grand && st.open.indexOf(grand) >= 0 ? null : p;
+  }
+
+  function rootOf(st, key) { return parentOf(st, key) || key; }
+
+  function childrenOf(st, key) {
+    return st.open.filter(function (k) { return parentOf(st, k) === key; });
+  }
+
+  function isHidden(st, key) {
+    var p = parentOf(st, key);
+    return !!(st.min[key] || (p && st.min[p]));
+  }
+
+  /* The topmost visible window outside the given set, for when the top
      window is minimised or closed. */
   function nextTop(st, except) {
     for (var i = zOrder.length - 1; i >= 0; i--) {
       var k = zOrder[i];
-      if (k !== except && st.open.indexOf(k) >= 0 && !st.min[k]) return k;
+      if (except.indexOf(k) < 0 && st.open.indexOf(k) >= 0 && !isHidden(st, k)) return k;
     }
     return null;
   }
@@ -137,14 +162,26 @@
   function raised(st, key) {
     st = copy(st);
     delete st.min[key];
+    delete st.min[rootOf(st, key)];
     st.top = key;
     return st;
   }
 
+  /* Minimising a window hides its children with it. A child has no dock tab
+     to come back from, so a child is never minimised on its own. */
   function minimized(st, key) {
+    if (parentOf(st, key)) return copy(st);
     st = copy(st);
     st.min[key] = true;
-    if (st.top === key) st.top = nextTop(st, key);
+    if (st.top && rootOf(st, st.top) === key) st.top = nextTop(st, [key].concat(childrenOf(st, key)));
+    return st;
+  }
+
+  /* Minimises every top-level window, which shows the page beneath them. */
+  function allMinimized(st) {
+    st = copy(st);
+    st.open.forEach(function (k) { if (!parentOf(st, k)) st.min[k] = true; });
+    st.top = null;
     return st;
   }
 
@@ -155,19 +192,33 @@
     return st;
   }
 
+  /* Closing a window closes its children with it. */
   function closed(st, key) {
+    var gone = [key].concat(childrenOf(st, key));
+    var top = st.top;
     st = copy(st);
-    st.open = st.open.filter(function (k) { return k !== key; });
-    delete st.min[key];
-    delete st.place[key];
-    if (st.top === key) st.top = nextTop(st, key);
+    st.top = gone.indexOf(top) >= 0 ? nextTop(st, gone) : top;
+    st.open = st.open.filter(function (k) { return gone.indexOf(k) < 0; });
+    gone.forEach(function (k) { delete st.min[k]; delete st.place[k]; });
     return st;
   }
 
-  /* A dock tab raises its window, or minimises it if it is already on top,
-     as a taskbar does. */
+  /* The window a top-level window's tab or row brings forward: its topmost
+     child if it has one, since that child covers it, or else itself. */
+  function frontOf(st, key) {
+    var kids = childrenOf(st, key);
+    for (var i = zOrder.length - 1; i >= 0; i--) {
+      if (kids.indexOf(zOrder[i]) >= 0) return zOrder[i];
+    }
+    return key;
+  }
+
+  /* A dock tab raises its window, or minimises it if it is already in
+     front, as a taskbar does. A child's row in a list only raises it. */
   function tabbed(st, key) {
-    return st.top === key && !st.min[key] ? minimized(st, key) : raised(st, key);
+    if (parentOf(st, key)) return raised(st, key);
+    var inFront = st.top && rootOf(st, st.top) === key && !st.min[key];
+    return inFront ? minimized(st, key) : raised(st, frontOf(st, key));
   }
 
   /* === Applying state to the page ======================================== */
@@ -193,16 +244,33 @@
     st.open.forEach(function (k) { if (zOrder.indexOf(k) < 0) zOrder.push(k); });
     if (st.top) { zOrder.splice(zOrder.indexOf(st.top), 1); zOrder.push(st.top); }
 
+    /* Children stack directly above their parent, and the active window's
+       family goes to the top. */
+    var roots = zOrder.filter(function (k) { return !parentOf(st, k); });
+    if (st.top) {
+      var topRoot = rootOf(st, st.top);
+      roots.splice(roots.indexOf(topRoot), 1);
+      roots.push(topRoot);
+    }
+    var ordered = [];
+    roots.forEach(function (r) {
+      ordered.push(r);
+      zOrder.forEach(function (k) { if (parentOf(st, k) === r) ordered.push(k); });
+    });
+    zOrder = ordered;
+
     zOrder.forEach(function (k, i) {
       var el = wins[k];
       setPlacement(el, st.place[k]);
-      el.hidden = !!st.min[k];
+      el.hidden = isHidden(st, k);
       el.classList.toggle('active', k === st.top);
       el.style.zIndex = String(i + 1);
     });
     state = st;
     updateLinks();
     renderDocks();
+    renderRows();
+    syncPane();
   }
 
   /* Every window button and dock tab is a real link to the state it
@@ -224,19 +292,70 @@
 
   function setHref(a, href) { if (a && a.tagName === 'A') a.setAttribute('href', href); }
 
+  /* The dock has a tab for each top-level window only. */
   function renderDocks() {
+    var topRoot = state.top ? rootOf(state, state.top) : null;
     document.querySelectorAll('[data-win-dock]').forEach(function (dock) {
       dock.textContent = '';
       state.open.forEach(function (k) {
+        if (parentOf(state, k)) return;
         var a = document.createElement('a');
         a.className = 'win-tab' + (state.min[k] ? ' minimized' : '');
         a.href = urlFor(tabbed(state, k));
         a.setAttribute('data-win-tab', k);
-        if (k === state.top) a.setAttribute('aria-current', 'true');
+        if (k === topRoot) a.setAttribute('aria-current', 'true');
         a.textContent = titleOf(k);
         a.title = titleOf(k) + (state.min[k] ? ' (minimized)' : '');
         dock.appendChild(a);
       });
+    });
+  }
+
+  /* A list row whose link opens a window follows that window: the row of the
+     window in front is marked current, and each open child gets a row of
+     its own beneath its parent's, which goes when the child closes. */
+  function renderRows() {
+    document.querySelectorAll('.md-row-child[data-win-child]').forEach(function (r) { r.remove(); });
+    var topRoot = state.top ? rootOf(state, state.top) : null;
+    document.querySelectorAll('.md-row').forEach(function (row) {
+      var link = row.querySelector('a[data-win-open]');
+      if (!link) return;
+      var key = link.getAttribute('data-win-open');
+      var current = key === topRoot && !isHidden(state, key);
+      row.classList.toggle('active', current);
+      if (current) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+      if (state.open.indexOf(key) < 0) return;
+
+      var after = row;
+      childrenOf(state, key).forEach(function (c) {
+        var child = document.createElement('div');
+        child.className = 'md-row md-row-child' + (c === state.top ? ' active' : '');
+        child.setAttribute('data-win-child', c);
+        var a = document.createElement('a');
+        a.className = 'md-item';
+        a.href = urlFor(raised(state, c));
+        a.setAttribute('data-win-tab', c);
+        if (c === state.top) a.setAttribute('aria-current', 'true');
+        a.textContent = titleOf(c);
+        child.appendChild(a);
+        after.after(child);
+        after = child;
+      });
+    });
+  }
+
+  /* In a master-detail layout narrow enough to show one pane at a time, the
+     windows are the detail pane: it shows while any window does. A link
+     marked data-win-back minimises them all, which returns to the list. */
+  function syncPane() {
+    var md = layer.closest('.md-layout');
+    if (md) {
+      var any = state.open.some(function (k) { return !isHidden(state, k); });
+      md.setAttribute('data-md-pane', any ? 'detail' : 'list');
+    }
+    document.querySelectorAll('a[data-win-back]').forEach(function (a) {
+      a.setAttribute('href', urlFor(allMinimized(state)));
     });
   }
 
@@ -331,20 +450,25 @@
      pudl:window-place listener supplies, then the server's style attribute,
      then a cascade from the top left. */
   function initialPlacement(key, el, index) {
-    var ev = new CustomEvent('pudl:window-place', { detail: { key: key, placement: null } });
+    var ev = new CustomEvent('pudl:window-place', {
+      detail: { key: key, parent: el.getAttribute('data-win-parent') || null, placement: null }
+    });
     layer.dispatchEvent(ev);
     if (validPlacement(ev.detail.placement)) return Object.assign({}, ev.detail.placement);
 
     var s = el.style;
+    var mode = MODES.indexOf(el.getAttribute('data-win-mode')) >= 0 ? el.getAttribute('data-win-mode') : 'floating';
     var fromStyle = {
-      mode: MODES.indexOf(el.getAttribute('data-win-mode')) >= 0 ? el.getAttribute('data-win-mode') : 'floating',
+      mode: mode,
       x: parseFloat(s.getPropertyValue('--win-x')), y: parseFloat(s.getPropertyValue('--win-y')),
       w: parseFloat(s.getPropertyValue('--win-w')), h: parseFloat(s.getPropertyValue('--win-h'))
     };
     if (validPlacement(fromStyle)) return fromStyle;
 
+    /* The markup's mode still counts without numbers, so a window can open
+       maximised, and the cascade gives it somewhere to restore to. */
     var step = (index % 6) * 0.04;
-    return { mode: 'floating', x: 0.06 + step, y: 0.05 + step, w: 0.55, h: 0.75 };
+    return { mode: mode, x: 0.06 + step, y: 0.05 + step, w: 0.55, h: 0.75 };
   }
 
   function announceOpen(el) {
@@ -560,10 +684,16 @@
     var tab = e.target.closest('[data-win-tab]');
     if (tab) {
       e.preventDefault();
-      var k = tab.getAttribute('data-win-tab');
-      var st = tabbed(state, k);
+      var st = tabbed(state, tab.getAttribute('data-win-tab'));
       commit(st, false);
-      if (!st.min[k]) focusWindow(k);
+      if (st.top) focusWindow(st.top);
+      return;
+    }
+
+    var back = e.target.closest('a[data-win-back]');
+    if (back) {
+      e.preventDefault();
+      commit(allMinimized(state), false);
       return;
     }
 
@@ -613,7 +743,20 @@
     var el = e.target.closest && e.target.closest('.win');
     if (!el || !layer.contains(el)) return;
     var key = el.getAttribute('data-win');
-    if (state.top !== key && !state.min[key]) commit(raised(state, key), false);
+    if (state.top !== key && !isHidden(state, key)) commit(raised(state, key), false);
+  }
+
+  /* Escape closes a child window that is in front, as a lightbox does,
+     unless the key is meant for a field in the page. Escape never closes a
+     top-level window, so a stray key cannot lose a reader's place. */
+  function onEscape(e) {
+    if (e.key !== 'Escape' || e.defaultPrevented) return;
+    var top = state.top;
+    if (!top || !parentOf(state, top) || isHidden(state, top)) return;
+    var t = e.target;
+    if (t && t.closest && t.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
+    e.preventDefault();
+    close(top);
   }
 
   function init() {
@@ -647,6 +790,7 @@
         preventDefault: function () { e.preventDefault(); }
       }, head.closest('.win').getAttribute('data-win'));
     });
+    document.addEventListener('keydown', onEscape);
     window.addEventListener('popstate', function () { sync(false); });
 
     sync(false);

@@ -182,6 +182,21 @@
 .win-layer.dragging { pointer-events: auto; cursor: move; }
 .win-layer.dragging * { user-select: none; }
 
+/* === Child rows ==========================================================
+   A list row whose link opens a window gains a row beneath it for each of
+   that window's open children. The branch glyph marks the row as a child,
+   so the relation does not rest on the indent alone. */
+.md-row-child .md-item {
+  position: relative;
+  padding-left: 32px;
+  font-size: 12.5px;
+}
+.md-row-child .md-item::before {
+  content: "\2514";
+  position: absolute; left: 16px;
+  color: var(--text-muted);
+}
+
 /* === Dock ================================================================
    One tab per open window, in the order they were opened. A tab raises its
    window, and the active window's tab reads as pressed in. The glyph shows

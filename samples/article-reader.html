@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Article Reader, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-windows.js" defer></script>
+  <style>
+    /* === Sample page layout (this page only) ===============================
+       The article list is the master-detail sidebar, and the windows are the
+       detail pane. On a narrow screen PUDL shows one or the other. */
+    .reader-stage { padding: 0; overflow: hidden; }
+    .reader-col { display: flex; flex-direction: column; height: 100%; }
+    .reader-col .md-back { margin: 12px 16px 4px; align-self: flex-start; }
+    .reader-col .win-host { flex: 1; min-height: 0; }
+    .reader-empty {
+      margin: 0; padding: 48px 24px; text-align: center;
+      color: var(--text-muted);
+    }
+    .md-toolbar .md-section-label { padding: 0; }
+
+    /* Article typography inside a window. */
+    .article { max-width: 68ch; margin: 0 auto; padding: 8px 8px 32px; }
+    .article h3 { margin: 0 0 4px; font-size: 22px; line-height: 1.3; }
+    .article .byline { margin: 0 0 20px; font-size: 13px; color: var(--text-muted); }
+    .article p { margin: 0 0 14px; }
+    .article .aside-link { font-weight: 600; }
+    .listing { max-width: 90ch; margin: 0 auto; }
+    .listing p { margin: 0 0 12px; color: var(--text-muted); font-size: 13px; }
+    .listing pre {
+      margin: 0; padding: 14px 16px; overflow: auto;
+      font: 13px/1.55 var(--mono);
+      background: var(--surface-alt); border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="../reference.html">PUDL</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" title="Toggle light / dark"
+              onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">Reference</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
+    </div>
+  </header>
+
+  <div class="md-layout" data-md-pane="list">
+    <div class="md-toolbar">
+      <span class="md-section-label">Open</span>
+      <nav class="win-dock" data-win-dock aria-label="Open articles"></nav>
+    </div>
+    <div class="md-body">
+      <nav class="md-sidebar" aria-label="Articles">
+        <div class="md-section-label">September 2026</div>
+        <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable<span class="md-meta"><time datetime="2026-09-21">21 September 2026</time></span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=url-state" data-win-open="url-state">Keeping state in the URL<span class="md-meta"><time datetime="2026-09-14">14 September 2026</time></span></a></div>
+        <div class="md-section-label">August 2026</div>
+        <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span></a></div>
+      </nav>
+      <div class="md-detail reader-stage">
+        <div class="reader-col">
+          <a class="md-back" href="?" data-win-back>Articles</a>
+          <div class="win-host">
+            <p class="reader-empty">Choose an article from the list.</p>
+            <div class="win-layer" data-win-layer data-win-src="#win-{key}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The windows. A server would render these from the URL and return them
+       from the data-win-src address; this static sample keeps them in
+       templates, which the layer finds when data-win-src starts with #. -->
+
+  <template id="win-elevation">
+    <article class="win" data-win="elevation" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Raised means pressable</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize" title="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="?" aria-label="Restore" title="Restore"></a>
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="article">
+          <h3>Raised means pressable</h3>
+          <p class="byline"><time datetime="2026-09-21">21 September 2026</time></p>
+          <p>Flat design took away the one cue that told a reader what on the screen would respond to a click. A label and a button became the same coloured rectangle, and people learned to hover over everything to find out which was which.</p>
+          <p>PUDL puts the cue back with three surfaces. Anything raised, lit from above with a hairline border, can be pressed. Anything sunken, with a soft inner shadow, takes input. Anything flat is there to be read. The stylesheet derives every raised and sunken treatment from four lighting tokens, so a new palette keeps the grammar without hand-tuning a single shadow.</p>
+          <p>The tokens are short enough to read in one sitting. <a class="aside-link" href="?open=elevation,elevation-tokens" data-win-open="elevation-tokens">Listing 1 shows the lighting tokens and the raised treatment they produce.</a> Open it, then press Escape or the close button to come back here, and notice the new row under this article in the list while the listing is open.</p>
+          <p>The rule has one practical consequence that surprises people: a status badge must never look raised, however tempting it is to make it pop, because a reader will try to press it.</p>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="win-elevation-tokens">
+    <article class="win" data-win="elevation-tokens" data-win-parent="elevation" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Listing 1: the lighting tokens</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="listing">
+          <p>From <code>dist/pudl.css</code>. A theme sets the first four; everything after them is derived.</p>
+<pre><code>--light: #ffffff;
+--shade: #0e1621;
+--lit: 90%;
+--depth: 18%;
+
+--raise-top: color-mix(in srgb, var(--light) var(--lit), var(--surface-alt));
+--raise-grad: linear-gradient(var(--raise-top), var(--surface-alt));
+--raise-border: color-mix(in srgb, var(--shade) calc(var(--depth) * 0.9), var(--surface-alt));
+--raise-shadow:
+    inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent),
+    0 1px 2px color-mix(in srgb, var(--shade) var(--depth), transparent);</code></pre>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="win-url-state">
+    <article class="win" data-win="url-state" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Keeping state in the URL</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize" title="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="?" aria-label="Restore" title="Restore"></a>
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="article">
+          <h3>Keeping state in the URL</h3>
+          <p class="byline"><time datetime="2026-09-14">14 September 2026</time></p>
+          <p>Every window on this page lives in the address bar. Open two articles, restore one to a floating window and drag it somewhere, then reload. Everything comes back where you left it, because there was never anywhere else for it to be.</p>
+          <p>The grammar is small. The <code>open</code> parameter lists the open windows, <code>top</code> names the one in front, <code>min</code> lists the minimised ones, and one <code>p.</code> parameter per window gives its placement as fractions of the space the windows float in.</p>
+          <p>Two listings go with this article. <a class="aside-link" href="?open=url-state,url-state-example" data-win-open="url-state-example">Listing 1 is an address with three windows in it</a>, and <a class="aside-link" href="?open=url-state,url-state-parse" data-win-open="url-state-parse">Listing 2 is the function that reads a placement back</a>. Open both, and the list shows each under this article.</p>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="win-url-state-example">
+    <article class="win" data-win="url-state-example" data-win-parent="url-state" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Listing 1: an address with three windows</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="listing">
+          <p>Split across lines for reading. In the address bar it is one line.</p>
+<pre><code>/articles
+  ?open=url-state,url-state-example,numerals
+  &amp;top=url-state-example
+  &amp;min=numerals
+  &amp;p.url-state=maximized:0.06,0.05,0.55,0.75
+  &amp;p.url-state-example=maximized:0.1,0.09,0.55,0.75
+  &amp;p.numerals=floating:0.3,0.1,0.5,0.7</code></pre>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="win-url-state-parse">
+    <article class="win" data-win="url-state-parse" data-win-parent="url-state" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Listing 2: reading a placement</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="listing">
+          <p>From <code>dist/pudl-windows.js</code>.</p>
+<pre><code>function parsePlacement(value) {
+  var m = /^([a-z]+):([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)$/.exec(value || '');
+  if (!m) return null;
+  var p = { mode: m[1], x: +m[2], y: +m[3], w: +m[4], h: +m[5] };
+  return validPlacement(p) ? p : null;
+}</code></pre>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="win-numerals">
+    <article class="win" data-win="numerals" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Tabular numerals and the hyphen</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize" title="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="?" aria-label="Restore" title="Restore"></a>
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="article">
+          <h3>Tabular numerals and the hyphen</h3>
+          <p class="byline"><time datetime="2026-08-30">30 August 2026</time></p>
+          <p>Tabular numerals give every digit the same width, so a column of amounts or timestamps lines up without any help. PUDL used to switch them on for the whole page.</p>
+          <p>Inter, the face PUDL now ships, widens the hyphen along with the digits when the feature is on, since a hyphen in a table of dates wants to line up too. In running prose it spaced out every hyphenated word, so PUDL now applies tabular numerals where numbers are data: tables, fields, badges, lists and anything marked as a time or a value.</p>
+          <p>This article has no listings, so it never gains rows beneath it in the list.</p>
+        </div>
+      </div>
+    </article>
+  </template>
+
+</body>
+</html>
