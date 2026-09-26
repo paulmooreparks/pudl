@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0
+
+- Child windows. A window whose markup says `data-win-parent="<key>"` is a child of that window: it stacks above its parent, comes forward and hides with it, closes with it, has no dock tab of its own, and closes on Escape when it is in front. Focus returns to the link that opened it. The relation lives in the markup, so the URL grammar is unchanged.
+- A list of master-detail rows follows the windows its links open. The row of the window in front is marked `active` with `aria-current`, and each open child gets an `.md-row-child` row beneath its parent's row, with a branch glyph, which goes when the child closes.
+- A layer inside a master-detail layout makes the windows its detail pane: the script sets `data-md-pane`, so a narrow layout shows the list or the windows, and a `data-win-back` link minimises every window to return to the list.
+- A window whose markup gives `data-win-mode` without a position now opens in that mode. Before, it opened floating unless its position was given too.
+- `pudl:window-place` now carries `event.detail.parent`.
+- The new `samples/` folder starts with `article-reader.html`, a reading site with the article list in a sidebar, articles opening maximised and listings as child windows. The reference page's window demo gains a child window, uses master-detail rows for its list, and links to the sample.
+
 ## 0.6.0
 
 - The files a project uses now live in `dist/`: `pudl.css`, `pudl-theme.js`, `pudl-windows.css`, `pudl-windows.js` and `fonts/`, with a copy of the licence as `dist/LICENSE` so that it travels with them. The reference page, the examples and the documentation stay at the top level. Nothing inside the files changed.

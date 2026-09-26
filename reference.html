@@ -40,8 +40,7 @@
     }
     .ref .win-demo .md-toolbar { min-height: 46px; }
     .ref .win-demo-host { height: 440px; background: var(--bg); }
-    .ref .win-demo-list { list-style: none; margin: 0; padding: 16px 20px; display: grid; gap: 10px; }
-    .ref .win-demo-list li { display: flex; gap: 10px; align-items: center; }
+    .ref .win-demo-list { height: 100%; }
     .ref .ref-sub { margin: 22px 0 6px; font-size: 16px; }
     .ref .md-phones { display: flex; flex-wrap: wrap; gap: 16px; }
     .ref .md-phone {
@@ -70,7 +69,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.6.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.7.0</a>
     </div>
   </header>
 
@@ -306,6 +305,7 @@
     <h2 id="windows">10. Floating windows</h2>
     <p>Records can open as windows floating above a list, from the optional <code>pudl-windows.css</code> and <code>pudl-windows.js</code>. Open a few of the expenses below, then drag a window by its title bar, resize it from any edge or corner, drag it against the left, right or top edge to snap it, and double-click its title bar to maximise it. The dock above the list has one tab per open window. Everything you do is written into this page's URL, so reloading puts every window back where it was, and Back undoes the last window you opened.</p>
     <p>The frame around a window is a band of the raised tint between two hairlines, and the whole band is the resize border. The active window's title bar takes the accent. With the title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Without script, each link opens the record's own page, and the server renders whichever windows the URL names where the URL puts them.</p>
+    <p>A window can have children, for content that belongs to a record, such as a receipt, a source listing or an image. Open the hotel expense and follow its receipt link. The receipt opens maximised above the expense, a row for it appears under the expense in the list, and Escape or the close button puts it away. A child has no tab in the dock, travels with its parent when the parent is minimised or brought forward, and closes when its parent closes. The list also marks the row of the window in front. <a href="samples/article-reader.html">The article reader sample</a> puts all of this together as a reading site, with the article list in a sidebar and each article opening maximised.</p>
     <div class="demo">
       <div class="win-demo">
         <div class="md-toolbar">
@@ -313,11 +313,12 @@
           <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
         </div>
         <div class="win-host win-demo-host">
-          <ul class="win-demo-list">
-            <li><a href="#windows" data-win-open="exp-12">Hotel, Makati, three nights</a> <span class="badge pr">done</span></li>
-            <li><a href="#windows" data-win-open="exp-13">Airport transfer</a> <span class="badge warn">approaching</span></li>
-            <li><a href="#windows" data-win-open="exp-14">Team dinner</a> <span class="badge">ready</span></li>
-          </ul>
+          <nav class="md-sidebar win-demo-list" aria-label="Expenses">
+            <div class="md-section-label">Expenses</div>
+            <div class="md-row"><a class="md-item" href="#windows" data-win-open="exp-12">Hotel, Makati, three nights<span class="md-meta">PHP 21,600 · done</span></a></div>
+            <div class="md-row"><a class="md-item" href="#windows" data-win-open="exp-13">Airport transfer<span class="md-meta">PHP 1,200 · receipt due</span></a></div>
+            <div class="md-row"><a class="md-item" href="#windows" data-win-open="exp-14">Team dinner<span class="md-meta">PHP 6,800 · ready</span></a></div>
+          </nav>
           <div class="win-layer" data-win-layer data-win-src="#win-demo-{key}"></div>
         </div>
       </div>
@@ -335,12 +336,31 @@
           </nav>
         </header>
         <div class="win-body">
-          <p class="card-desc">Receipt attached; charged to the customer's billing account.</p>
+          <p class="card-desc">Receipt attached; charged to the customer's billing account. <a href="#windows" data-win-open="exp-12-receipt">View the receipt</a>.</p>
           <table class="kv-table">
             <tr><th>Created</th><td>2026-10-19 07:00 UTC</td></tr>
             <tr><th>Amount</th><td>PHP 21,600.00</td></tr>
             <tr><th>Account</th><td>RRP billable</td></tr>
           </table>
+        </div>
+      </article>
+    </template>
+    <template id="win-demo-exp-12-receipt">
+      <article class="win" data-win="exp-12-receipt" data-win-parent="exp-12" data-win-mode="maximized">
+        <header class="win-head">
+          <h2 class="win-title">Receipt: Hotel, Makati</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="close" href="#windows" aria-label="Close" title="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body">
+          <table class="kv-table">
+            <tr><th>Merchant</th><td>Makati Garden Hotel</td></tr>
+            <tr><th>Nights</th><td>3, from 2026-10-16</td></tr>
+            <tr><th>Room</th><td>PHP 7,200.00 per night</td></tr>
+            <tr><th>Total</th><td>PHP 21,600.00</td></tr>
+          </table>
+          <p class="card-desc" style="margin-top: 14px;">A child window. Press Escape or the close button to return to the expense.</p>
         </div>
       </article>
     </template>
@@ -372,6 +392,7 @@
         var layer = document.querySelector('[data-win-layer]');
         var n = 0;
         layer.addEventListener('pudl:window-place', function (e) {
+          if (e.detail.parent) return;        // a child keeps its own placement
           var step = (n++ % 4) * 0.04;
           e.detail.placement = { mode: 'floating', x: 0.36 + step, y: 0.04 + step, w: 0.5, h: 0.72 };
         });

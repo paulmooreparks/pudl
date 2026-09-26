@@ -175,6 +175,34 @@ Scripts inside a fetched window do not run. A project wires up a window's conten
 
 With a title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Double-clicking the title bar also maximises or restores it, and dragging it against the left, right or top edge of the layer snaps it to that half or maximises it.
 
+A window's markup may give it a starting mode with `data-win-mode` and no position, and it opens in that mode, with a cascade position to restore to. A reading site opens its articles maximised this way.
+
+### Child windows
+
+A window can open children for content that belongs to it, such as a source listing, an image or a receipt. A child's markup names its parent:
+
+```html
+<article class="win" data-win="art-12-listing-1" data-win-parent="art-12" data-win-mode="maximized">
+```
+
+The relation belongs to the content, so it lives in the markup and the URL does not repeat it: the child appears in `open` like any other window. A link inside the parent with `data-win-open` opens the child. A child has no minimise button, because it has no dock tab to come back from, and usually has only close.
+
+- A child stacks directly above its parent, and bringing the parent forward brings its children with it.
+- Minimising the parent hides its children, and closing the parent closes them.
+- The dock has tabs for top-level windows only. A parent's tab brings forward its topmost child, since that child covers it.
+- Escape closes a child that is in front, as a lightbox does, unless the key is meant for a form field. Escape never closes a top-level window. Focus returns to the link that opened the child.
+- Children nest one level. A child of a child stands on its own.
+
+`pudl:window-place` carries the parent's key in `event.detail.parent`, so a listener that places windows can leave children alone.
+
+### Windows and a list
+
+A list built from master-detail rows follows the windows its links open. The script finds each `.md-row` holding a link with `data-win-open`, marks the row of the window in front with `active` and `aria-current`, and adds an `.md-row-child` row beneath it for each open child, titled with the child's title and linking to it. The row goes when the child closes. A server rendering the page for a URL renders the same rows.
+
+When the layer sits inside a master-detail layout, in place of `.md-detail` or inside it, the windows are the detail pane. The script sets `data-md-pane` to `detail` while any window shows and to `list` otherwise, so a narrow layout shows the list or the windows. A link with `data-win-back`, usually an `.md-back` above the layer, minimises every window, which returns to the list with the windows kept in the URL.
+
+`samples/article-reader.html` puts all of this together as a reading site: an article list in the sidebar, each article opening maximised, and listings as child windows.
+
 ## What is in the repository
 
 Everything a project uses is in `dist/`, and everything else supports it.
@@ -186,13 +214,14 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
+- `samples/`, working pages built with PUDL, starting with `article-reader.html`, a reading site with articles in windows and listings as child windows, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `RELEASING.md`, the steps for cutting a release
 - `CHANGELOG.md`, what changed in each release
 
 ## Status
 
-This is version 0.6.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.7.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 
