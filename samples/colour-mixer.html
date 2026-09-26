@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Colour Mixer, a PUDL Applet</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-applets.js" defer></script>
+  <style>
+    .page { max-width: 44rem; margin: 0 auto; padding: 24px 16px 60px; }
+    .page h1 { margin: 12px 0 4px; font-size: 26px; }
+    .page .card { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="../reference.html">PUDL</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" title="Toggle light / dark"
+              onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="article-reader.html?open=mixing">In a window</a>
+      <a class="topbar-pill" href="../reference.html">Reference</a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Colour mixer</h1>
+    <p>This is a PUDL applet in a page of its own. The same applet runs in a window in <a href="article-reader.html?open=mixing">the article reader</a>, from the same script. Here it owns the page's address: change a colour and the address changes with it, and Back undoes the change.</p>
+    <div class="card">
+      <div data-applet="mixer" data-applet-src="applets/mixer.js" data-applet-css="applets/mixer.css"
+           data-applet-page="colour-mixer.html">
+        <p class="card-desc">The mixer needs script to run.</p>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
