@@ -1,6 +1,6 @@
 # Proposal: what parkscomputing.com found missing
 
-Status: proposed, 2026-09-26. Not built.
+Status: accepted 2026-09-26. Items 1 to 3 shipped in 0.9.0 and items 4 to 7 in 0.10.0, as recommended below. The sample applet is a colour mixer, in `samples/colour-mixer.html` and in the article reader. The per-window state parameter at the end of item 7 remains open.
 
 Adopting PUDL on parkscomputing.com turned up gaps that belong in PUDL rather than in the site. The site's architecture document (`Architecture/pudl-adoption.md` in that repository) lists four under "Proposed upstream to PUDL". Reading the site's `desktop.js` and `applets.js` turned up three more, each a workaround for something PUDL should provide. This document takes them in order of size and recommends a disposition for each.
 

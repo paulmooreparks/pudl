@@ -235,6 +235,14 @@ The relation belongs to the content, so it lives in the markup and the URL does 
 
 `pudl:window-place` carries the parent's key in `event.detail.parent`, so a listener that places windows can leave children alone.
 
+### Moving between windows, and scripting them
+
+A link inside a window marked `data-win-replace`, as well as `data-win-open`, opens its target in place of the window it sits in, the way a link works in a browser tab. The new window takes the old one's place in the dock and its placement, the old one closes, and the move is one history entry, so Back returns to the old window. If the target is already open it comes forward and the old window closes. A reading site uses this for a "Next" link at the foot of an article.
+
+`pudl:window-close` fires on each window just before it leaves the page, however it was closed: by its button, with its parent, by Back or by a replacement. Content that set something up on `pudl:window-open` tears it down there.
+
+`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script.
+
 ### Windows and a list
 
 A list built from master-detail rows follows the windows its links open. The script finds each `.md-row` holding a link with `data-win-open`, marks the row of the window in front with `active` and `aria-current`, and adds an `.md-row-child` row beneath it for each open child, titled with the child's title and linking to it. The row goes when the child closes. A server rendering the page for a URL renders the same rows.
@@ -242,6 +250,34 @@ A list built from master-detail rows follows the windows its links open. The scr
 When the layer sits inside a master-detail layout, in place of `.md-detail` or inside it, the windows are the detail pane. The script sets `data-md-pane` to `detail` while any window shows and to `list` otherwise, so a narrow layout shows the list or the windows. A link with `data-win-back`, usually an `.md-back` above the layer, minimises every window, which returns to the list with the windows kept in the URL.
 
 `samples/article-reader.html` puts all of this together as a reading site: an article list in the sidebar, each article opening maximised, and listings as child windows.
+
+## Applets
+
+An applet is interactive content, such as a game, a calculator or a tool, that runs unchanged in a page of its own or inside a window, from one script. PUDL does not build or manage applets. The optional `pudl-applets.js` is only the handshake between an applet and whichever host it lands in, and it is needed because scripts inside a fetched window do not run.
+
+The page marks where an applet goes, naming its script, its stylesheet and its own page:
+
+```html
+<div data-applet="mixer" data-applet-src="/js/mixer.js"
+     data-applet-css="/css/mixer.css" data-applet-page="/apps/mixer"></div>
+```
+
+The applet's script registers it, with `pudl-applets.js` loaded first:
+
+```js
+pudlApplets.register('mixer', {
+  init: function (root, opts) {
+    // build inside root, find and listen only within root
+    return { destroy: function () { /* undo everything init set up */ } };
+  }
+});
+```
+
+`opts.host` is `"page"` or `"window"`. `opts.ownsUrl` is true only in a page: there the applet may keep its state in the URL, and inside a window it must leave the URL to the windows. `opts.pageUrl` is the applet's own page, for a link that reaches the current state from anywhere. An applet that listens on `window` or `document`, or starts a timer, must undo that in `destroy()`; an `AbortController` passed to every `addEventListener` makes that one call.
+
+The runtime loads each stylesheet and script once, however many mounts name it. It starts the applets in the page when the page loads, starts those in each window as the window opens, and destroys them as the window closes, so a page that loads both `pudl-windows.js` and `pudl-applets.js` needs no wiring. `pudlApplets.boot(scope)` and `pudlApplets.destroy(scope)` are there for content a project adds or removes some other way. A mount's `data-applet-state` reads `loading`, `running` or `error`.
+
+`samples/colour-mixer.html` is an applet in a page of its own, and the article reader runs the same applet in a window.
 
 ## What is in the repository
 
@@ -252,10 +288,11 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-theme.js`, the pre-paint theme loader and toggle
   - `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
   - `pudl-menu.js`, the optional script that places menu panels and adds their keyboard and filter
+  - `pudl-applets.js`, the optional applet runtime
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
-- `samples/`, working pages built with PUDL, starting with `article-reader.html`, a reading site with articles in windows and listings as child windows, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html
+- `samples/`, working pages built with PUDL: `article-reader.html`, a reading site with articles in windows, listings as child windows, a launcher and an applet, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html, and `colour-mixer.html`, the same applet in a page of its own
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/proposals/`, design proposals and the decisions taken on them
 - `RELEASING.md`, the steps for cutting a release
@@ -263,7 +300,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.9.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.10.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 

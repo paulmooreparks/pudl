@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../dist/pudl-windows.css">
   <script src="../dist/pudl-windows.js" defer></script>
   <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
   <style>
     /* === Sample page layout (this page only) ===============================
        The article list is the master-detail sidebar, and the windows are the
@@ -29,6 +30,7 @@
     .article .byline { margin: 0 0 20px; font-size: 13px; color: var(--text-muted); }
     .article p { margin: 0 0 14px; }
     .article .aside-link { font-weight: 600; }
+    .article .next-link { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 14px; }
     .listing { max-width: 90ch; margin: 0 auto; }
     .listing p { margin: 0 0 12px; color: var(--text-muted); font-size: 13px; }
     .listing pre {
@@ -60,6 +62,7 @@
           <div class="md-section-label">Design</div>
           <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable</a></div>
           <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen</a></div>
+          <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours</a></div>
           <div class="md-section-label">Engineering</div>
           <div class="md-row"><a class="md-item" href="?open=url-state" data-win-open="url-state">Keeping state in the URL</a></div>
           <div class="md-section-label">Elsewhere</div>
@@ -76,6 +79,7 @@
         <div class="md-section-label">September 2026</div>
         <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable<span class="md-meta"><time datetime="2026-09-21">21 September 2026</time></span></a></div>
         <div class="md-row"><a class="md-item" href="?open=url-state" data-win-open="url-state">Keeping state in the URL<span class="md-meta"><time datetime="2026-09-14">14 September 2026</time></span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours<span class="md-meta"><time datetime="2026-09-07">7 September 2026</time></span></a></div>
         <div class="md-section-label">August 2026</div>
         <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span></a></div>
       </nav>
@@ -113,6 +117,7 @@
           <p>PUDL puts the cue back with three surfaces. Anything raised, lit from above with a hairline border, can be pressed. Anything sunken, with a soft inner shadow, takes input. Anything flat is there to be read. The stylesheet derives every raised and sunken treatment from four lighting tokens, so a new palette keeps the grammar without hand-tuning a single shadow.</p>
           <p>The tokens are short enough to read in one sitting. <a class="aside-link" href="?open=elevation,elevation-tokens" data-win-open="elevation-tokens">Listing 1 shows the lighting tokens and the raised treatment they produce.</a> Open it, then press Escape or the close button to come back here, and notice the new row under this article in the list while the listing is open.</p>
           <p>The rule has one practical consequence that surprises people: a status badge must never look raised, however tempting it is to make it pop, because a reader will try to press it.</p>
+          <p class="next-link">Next: <a href="?open=url-state" data-win-open="url-state" data-win-replace>Keeping state in the URL</a></p>
         </div>
       </div>
     </article>
@@ -162,6 +167,7 @@
           <p>Every window on this page lives in the address bar. Open two articles, restore one to a floating window and drag it somewhere, then reload. Everything comes back where you left it, because there was never anywhere else for it to be.</p>
           <p>The grammar is small. The <code>open</code> parameter lists the open windows, <code>top</code> names the one in front, <code>min</code> lists the minimised ones, and one <code>p.</code> parameter per window gives its placement as fractions of the space the windows float in.</p>
           <p>Two listings go with this article. <a class="aside-link" href="?open=url-state,url-state-example" data-win-open="url-state-example">Listing 1 is an address with three windows in it</a>, and <a class="aside-link" href="?open=url-state,url-state-parse" data-win-open="url-state-parse">Listing 2 is the function that reads a placement back</a>. Open both, and the list shows each under this article.</p>
+          <p class="next-link">Next: <a href="?open=mixing" data-win-open="mixing" data-win-replace>Mixing two colours</a></p>
         </div>
       </div>
     </article>
@@ -207,6 +213,31 @@
   var p = { mode: m[1], x: +m[2], y: +m[3], w: +m[4], h: +m[5] };
   return validPlacement(p) ? p : null;
 }</code></pre>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <template id="win-mixing">
+    <article class="win" data-win="mixing" data-win-mode="maximized">
+      <header class="win-head">
+        <h2 class="win-title">Mixing two colours</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="page" href="colour-mixer.html" aria-label="Open as a page" title="Open as a page"></a>
+          <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize" title="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="?" aria-label="Restore" title="Restore"></a>
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div class="article">
+          <h3>Mixing two colours</h3>
+          <p class="byline"><time datetime="2026-09-07">7 September 2026</time></p>
+          <p>PUDL never asks a theme for a shadow or a highlight. It asks for a light colour, a shade colour and two strengths, and mixes each raised and sunken surface from them with <code>color-mix()</code>. The mixer below is the same operation, so you can see what a given strength does.</p>
+          <div data-applet="mixer" data-applet-src="applets/mixer.js" data-applet-css="applets/mixer.css"
+               data-applet-page="colour-mixer.html" data-mix="a=6b9bd1&amp;b=121417&amp;p=24"></div>
+          <p>The mixer is an applet. The same script runs it here, in a window, and <a href="colour-mixer.html">in a page of its own</a>. In its own page it keeps the colours in the address and Back undoes each change. Here the windows own the address, so it leaves the address alone and links to its own page instead. Close this window and the applet is taken down with it.</p>
+          <p class="next-link">Next: <a href="?open=numerals" data-win-open="numerals" data-win-replace>Tabular numerals and the hyphen</a></p>
         </div>
       </div>
     </article>

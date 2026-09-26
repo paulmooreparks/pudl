@@ -1,0 +1,26 @@
+/* The colour mixer applet. Everything is scoped to .mixer, the class the
+   applet puts on its mount, so the applet looks the same in a page and in a
+   window. */
+.mixer { display: grid; gap: 16px; max-width: 34rem; }
+.mixer-inputs {
+  display: grid; grid-template-columns: max-content 1fr; gap: 10px 16px; align-items: center;
+}
+.mixer-inputs input[type="color"] {
+  width: 56px; height: 32px; padding: 2px;
+  background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--entry-shadow);
+  cursor: pointer;
+}
+.mixer-range { display: flex; align-items: center; gap: 10px; }
+.mixer-range input { flex: 1; accent-color: var(--accent); }
+.mixer-pct { min-width: 3.5em; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.mixer-swatch {
+  height: 96px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.mixer .kv-table code { font-family: var(--mono); font-size: 12.5px; }
+.mixer-foot { margin: 0; font-size: 13px; color: var(--text-muted); }
+@media (max-width: 480px) {
+  .mixer-inputs { grid-template-columns: 1fr; gap: 6px; }
+}

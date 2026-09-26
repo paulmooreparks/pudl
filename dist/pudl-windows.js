@@ -15,8 +15,14 @@
      pudl:window-open    on the window element, once it is in the page. Use it
                          to wire up the window's content, because scripts in a
                          fetched fragment do not run.
+     pudl:window-close   on the window element, just before it leaves the
+                         page by any route. Use it to tear down what
+                         pudl:window-open set up.
      pudl:windows-change on the layer, after every change, with the state in
-                         event.detail. Use it to persist placements. */
+                         event.detail. Use it to persist placements.
+
+   window.pudlWindows offers open, replace, raise, minimize, close and state
+   to scripts, each doing what the matching link or button does. */
 (function () {
   'use strict';
 
@@ -237,8 +243,14 @@
   }
 
   function apply(st) {
+    /* A window leaving the page says so first, however it was closed, so
+       its content can tear down what it set up. */
     Object.keys(wins).forEach(function (k) {
-      if (st.open.indexOf(k) < 0) { wins[k].remove(); delete wins[k]; }
+      if (st.open.indexOf(k) >= 0) return;
+      var gone = wins[k];
+      delete wins[k];
+      gone.dispatchEvent(new CustomEvent('pudl:window-close', { bubbles: true, detail: { key: k } }));
+      gone.remove();
     });
     zOrder = zOrder.filter(function (k) { return st.open.indexOf(k) >= 0; });
     st.open.forEach(function (k) { if (zOrder.indexOf(k) < 0) zOrder.push(k); });
@@ -511,6 +523,46 @@
     });
   }
 
+  /* Opens a window in place of another, as a link does in a browser tab:
+     the new window takes the old one's place in the dock and its placement,
+     the old one closes, and the whole move is one history entry, so Back
+     returns to the old window. If the new window is already open it is
+     brought forward and the old one closes. */
+  function replaceWith(oldKey, key, from) {
+    if (!wins[oldKey] || oldKey === key) { open(key, from); return; }
+    if (wins[key]) {
+      commit(closed(raised(state, key), oldKey), true);
+      focusWindow(key);
+      return;
+    }
+    if (pending[key]) return;
+    pending[key] = true;
+    load(key).then(function (el) {
+      delete pending[key];
+      if (wins[key]) return;
+      adopt(el);
+      var st = copy(state);
+      if (!wins[oldKey] || st.open.indexOf(oldKey) < 0) {
+        st.open.push(key);
+        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), layer.clientWidth, layer.clientHeight);
+      } else {
+        st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
+        st.place[key] = Object.assign({}, st.place[oldKey]);
+        delete st.min[key];
+        st = closed(st, oldKey);
+      }
+      st.top = key;
+      openers[key] = null;
+      commit(st, true);
+      announceOpen(el);
+      focusWindow(key);
+    }, function (err) {
+      delete pending[key];
+      if (window.console) console.warn('pudl-windows:', err.message);
+      if (from && from.href) location.href = from.href;
+    });
+  }
+
   function close(key) {
     var back = openers[key];
     delete openers[key];
@@ -679,7 +731,11 @@
     var opener = e.target.closest('a[data-win-open]');
     if (opener) {
       var key = opener.getAttribute('data-win-open');
-      if (KEY_RE.test(key)) { e.preventDefault(); open(key, opener); }
+      if (!KEY_RE.test(key)) return;
+      e.preventDefault();
+      var host = opener.hasAttribute('data-win-replace') && opener.closest('.win');
+      if (host && layer.contains(host)) replaceWith(host.getAttribute('data-win'), key, opener);
+      else open(key, opener);
       return;
     }
 
@@ -794,6 +850,22 @@
     });
     document.addEventListener('keydown', onEscape);
     window.addEventListener('popstate', function () { sync(false); });
+
+    /* The script interface. Each function does exactly what the matching
+       link or button does, the URL and history included, so a project never
+       has to click PUDL's own buttons from script. */
+    window.pudlWindows = {
+      open: function (key, opener) { if (KEY_RE.test(key)) open(key, opener || null); },
+      replace: function (oldKey, key) { if (KEY_RE.test(key)) replaceWith(oldKey, key, null); },
+      raise: function (key) {
+        if (!wins[key]) return;
+        commit(raised(state, key), false);
+        focusWindow(key);
+      },
+      minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
+      close: function (key) { if (wins[key]) close(key); },
+      state: function () { return copy(state); }
+    };
 
     sync(false);
   }

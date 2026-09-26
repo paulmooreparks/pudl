@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0
+
+- Applets. The new optional `dist/pudl-applets.js` lets interactive content run unchanged in a page of its own or inside a window. A mount names the applet's script, stylesheet and page; the script registers `init(root, opts)` returning an instance with `destroy()`; and `opts` says whether the applet is in a page or a window and so whether it owns the URL. The runtime loads assets once and starts and destroys applets as windows open and close. The README sets out the contract.
+- `pudl:window-close` fires on each window just before it leaves the page, by any route.
+- A link inside a window marked `data-win-replace` opens its target in place of that window, keeping its dock position and placement, as one history entry that Back undoes.
+- `window.pudlWindows` gives scripts `open`, `replace`, `raise`, `minimize`, `close` and `state`, each doing what the matching link or button does.
+- The article reader sample gains an article hosting an applet and "Next" links between articles, and `samples/colour-mixer.html` runs the same applet in a page of its own.
+- All four came from adopting PUDL on parkscomputing.com; `docs/proposals/from-parkscomputing.md` records them.
+
 ## 0.9.0
 
 - The `hidden` attribute always hides, even on a component that sets its own `display`, such as `.btn`. `hidden="until-found"` is left to the browser. The per-component patches for the same problem in the windows and menu styles are gone.
