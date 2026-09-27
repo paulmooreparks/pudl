@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Design, Article Reader, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <link rel="stylesheet" href="article-reader.css">
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="../dist/pudl-regions.js" defer></script>
+</head>
+<body>
+  <!-- The Design category. See article-reader.html. -->
+
+  <header class="topbar">
+    <a class="brand" href="../reference.html">PUDL</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" title="Toggle light / dark"
+              onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">Reference</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
+    </div>
+  </header>
+
+  <nav class="app-section-bar" data-region="sections" aria-label="Categories">
+    <a class="section-tab" href="article-reader.html">All</a>
+    <a class="section-tab active" href="article-reader-design.html" aria-current="page">Design</a>
+    <a class="section-tab" href="article-reader-engineering.html">Engineering</a>
+  </nav>
+
+  <div class="md-layout" data-md-pane="list">
+    <div class="md-toolbar md-site-tools">
+      <div class="menu">
+        <button class="btn btn-sm menu-btn" popovertarget="launcher"><svg class="launcher-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg> Browse</button>
+        <nav class="menu-panel" id="launcher" popover aria-label="Everything on this site">
+          <input class="md-filter" type="search" placeholder="Find an article" aria-label="Find an article">
+          <div class="md-section-label">Design</div>
+          <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable</a></div>
+          <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen</a></div>
+          <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours</a></div>
+          <div class="md-section-label">Engineering</div>
+          <div class="md-row"><a class="md-item" href="?open=url-state" data-win-open="url-state">Keeping state in the URL</a></div>
+          <div class="md-section-label">Elsewhere</div>
+          <div class="md-row"><a class="md-item" href="../reference.html">The PUDL reference</a></div>
+          <div class="md-row"><a class="md-item" href="https://github.com/paulmooreparks/pudl">PUDL on GitHub</a></div>
+          <hr class="menu-sep">
+          <button class="menu-action" type="button" onclick="pudlToggleTheme()"><span aria-hidden="true">&#x25D0;</span> Switch light and dark</button>
+        </nav>
+      </div>
+      <nav class="win-dock" data-win-dock aria-label="Open articles"></nav>
+    </div>
+    <div class="md-body">
+      <nav class="md-sidebar" data-region="list" aria-label="Design articles">
+        <div class="md-section-label">Design</div>
+        <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable<span class="md-meta"><time datetime="2026-09-21">21 September 2026</time></span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours<span class="md-meta"><time datetime="2026-09-07">7 September 2026</time></span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span></a></div>
+      </nav>
+      <div class="md-detail reader-stage">
+        <div class="reader-col">
+          <a class="md-back" href="?" data-win-back>Articles</a>
+          <div class="win-host">
+            <p class="reader-empty">Choose an article from the list.</p>
+            <div class="win-layer" data-win-layer data-win-src="windows/{key}.html"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

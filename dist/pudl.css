@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.11.0.
+   Version 0.12.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -275,6 +275,11 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   border-bottom-color: var(--surface);
   box-shadow: inset 0 1px var(--border), 1px 0 var(--border), -1px 0 var(--border);
 }
+.app-section-bar { flex: none; overflow-x: auto; }
+
+/* A region that pudl-regions.js is replacing dims a little while the new
+   content is on its way, after a moment, so a fast answer never flickers. */
+[data-region][aria-busy="true"] { opacity: .6; transition: opacity .15s .12s; cursor: progress; }
 
 /* === Buttons (raised; one look) ========================================= */
 /* Every button is raised. There is no flat. Disabled is dimmed.

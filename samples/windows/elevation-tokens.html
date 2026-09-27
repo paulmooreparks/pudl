@@ -1,0 +1,25 @@
+<article class="win" data-win="elevation-tokens" data-win-parent="elevation" data-win-mode="maximized">
+  <header class="win-head">
+    <h2 class="win-title">Listing 1: the lighting tokens</h2>
+    <nav class="win-chrome" aria-label="Window">
+      <a class="win-btn" data-win-action="maximize" href="?" aria-label="Restore" title="Restore"></a>
+      <a class="win-btn" data-win-action="close" href="?" aria-label="Close" title="Close"></a>
+    </nav>
+  </header>
+  <div class="win-body">
+    <div class="listing">
+      <p>From <code>dist/pudl.css</code>. A theme sets the first four; everything after them is derived.</p>
+<pre><code>--light: #ffffff;
+--shade: #0e1621;
+--lit: 90%;
+--depth: 18%;
+
+--raise-top: color-mix(in srgb, var(--light) var(--lit), var(--surface-alt));
+--raise-grad: linear-gradient(var(--raise-top), var(--surface-alt));
+--raise-border: color-mix(in srgb, var(--shade) calc(var(--depth) * 0.9), var(--surface-alt));
+--raise-shadow:
+    inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent),
+    0 1px 2px color-mix(in srgb, var(--shade) var(--depth), transparent);</code></pre>
+    </div>
+  </div>
+</article>
