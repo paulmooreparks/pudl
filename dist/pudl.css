@@ -355,10 +355,15 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
    The bar's baseline is drawn as part of the bar's own background, and the
    current tab paints over it from inside the bar. Nothing reaches past the
    bar's edge, which matters because the bar scrolls sideways on a narrow
-   screen, and a box that scrolls clips whatever reaches past its edges. */
+   screen, and a box that scrolls clips whatever reaches past its edges.
+
+   The bar is always as tall as it is with a current tab. Its top padding
+   holds the 4px the current tab stands above the others, and the current
+   tab rises into it with a negative margin, so a page with no current tab
+   has a bar of the same height and the content below does not jump. */
 .app-section-bar, .tablist {
   display: flex; flex: none; align-items: flex-end; gap: var(--space-1);
-  padding: 6px var(--space-4) 0;
+  padding: 10px var(--space-4) 0;
   overflow-x: auto;
   background: var(--recess-bg);
   box-shadow: inset 0 -1px var(--border), var(--recess-shadow);
@@ -380,6 +385,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .section-tab.active,
 .tablist > [role="tab"][aria-selected="true"] {
   padding: 7px 14px 6px;
+  margin-top: -4px;
   color: var(--text);
   background: var(--section-current-bg);
   border-color: var(--border);
