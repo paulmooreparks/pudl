@@ -44,6 +44,10 @@
 
   function width(p) { return Math.round(p.side.getBoundingClientRect().width); }
 
+  /* In a right-to-left layout the sidebar is on the right, so the divider
+     widens it by moving left, and the arrow keys follow what they point at. */
+  function rtl(p) { return getComputedStyle(p.body).direction === 'rtl'; }
+
   function sync(p) {
     var l = limits(p);
     var h = p.handle;
@@ -56,7 +60,7 @@
     h.setAttribute('aria-valuemin', String(Math.round(l.min)));
     h.setAttribute('aria-valuemax', String(Math.round(l.max)));
     h.setAttribute('aria-valuenow', String(width(p)));
-    h.setAttribute('aria-valuetext', width(p) + ' pixels wide');
+    h.setAttribute('aria-valuetext', (h.getAttribute('data-md-valuetext') || '{n} pixels wide').split('{n}').join(String(width(p))));
   }
 
   function set(p, w) {
@@ -85,13 +89,14 @@
     e.preventDefault();
     var startX = e.clientX;
     var startW = width(p);
+    var sign = rtl(p) ? -1 : 1;
     var moved = false;
     p.handle.setPointerCapture(e.pointerId);
     p.handle.classList.add('dragging');
 
     function move(ev) {
       moved = true;
-      set(p, startW + (ev.clientX - startX));
+      set(p, startW + sign * (ev.clientX - startX));
     }
     function end() {
       p.handle.removeEventListener('pointermove', move);
@@ -119,7 +124,7 @@
     if (!p || e.target !== p.handle) return;
     var l = limits(p);
     var w = width(p);
-    var step = e.shiftKey ? STEP_BIG : STEP;
+    var step = (e.shiftKey ? STEP_BIG : STEP) * (rtl(p) ? -1 : 1);
     if (e.key === 'ArrowLeft') w -= step;
     else if (e.key === 'ArrowRight') w += step;
     else if (e.key === 'Home') w = l.min;

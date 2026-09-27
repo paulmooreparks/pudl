@@ -376,6 +376,27 @@ The runtime loads each stylesheet and script once, however many mounts name it. 
 
 `samples/colour-mixer.html` is an applet in a page of its own, and the article reader runs the same applet in a window.
 
+## Accessibility, languages and print
+
+**High contrast.** In Windows' high-contrast mode the browser replaces the page's colours and removes every shadow, which is how PUDL draws its focus rings and much of its raised and sunken treatment. In that mode PUDL draws focus as a real outline, keeps a border on every control, and marks selected and pressed states, the active window's title bar and the current dock tab with the system's highlight colours.
+
+**Less motion.** A reader whose system asks for reduced motion gets none: every PUDL transition and animation completes at once.
+
+**Right to left.** On a page or element with `dir="rtl"`, PUDL's layout mirrors: the master-detail sidebar sits on the right, a selected row marks the edge facing the detail, the divider widens the sidebar by moving left and the arrow keys follow suit, a menu lines up with its button's right edge, the back link's arrow and the child rows' branch glyph turn round, and a switch that is on slides left. Window positions stay measured from the left of their area, because they are coordinates in the URL, not reading order.
+
+**The page's own words.** The scripts write a few words into the page, and each can come from the page instead, so a server can render them in the reader's language. English is the default.
+
+| Words | Where to set them |
+|---|---|
+| The maximise and restore buttons' labels | `data-win-text-maximize` and `data-win-text-restore` on the window layer |
+| A minimised window's dock tab tooltip | `data-win-text-minimized` on the layer, with `{title}` for the window's title |
+| The label on a window's title bar | `data-win-text-head` on the layer, with `{title}` |
+| A menu filter's "nothing matches" | `data-menu-empty` on the `.menu-panel`, or render the `.menu-empty` element yourself |
+| The sidebar divider's label | `aria-label` on the `.md-resize` |
+| The divider's spoken width | `data-md-valuetext` on the `.md-resize`, with `{n}` for the width in pixels |
+
+**Print.** A printed page carries the content without the chrome: no topbar, tab bar, toolbars, filter chips or divider, black on white even from the dark theme. A master-detail layout showing a record prints the record alone, and with windows open, the window in front prints as the page's content, title and body, without its frame or buttons; the other windows, and whatever lies under them, do not print.
+
 ## What is in the repository
 
 Everything a project uses is in `dist/`, and everything else supports it.
@@ -399,7 +420,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.14.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.15.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

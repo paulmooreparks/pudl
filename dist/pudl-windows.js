@@ -237,6 +237,13 @@
     el.style.setProperty('--win-h', fmt(p.h));
   }
 
+  /* The words this script writes into the page, in English unless the layer
+     carries a data-win-text-<name> attribute with the page's own. {title}
+     stands for the window's title. */
+  function text(name, fallback) {
+    return (layer && layer.getAttribute('data-win-text-' + name)) || fallback;
+  }
+
   function titleOf(key) {
     var t = wins[key] && wins[key].querySelector('.win-title');
     return t ? t.textContent.trim() : key;
@@ -295,7 +302,7 @@
       var max = el.querySelector('[data-win-action="maximize"]');
       setHref(max, urlFor(maximizeToggled(state, k)));
       if (max) {
-        var label = state.place[k].mode === 'floating' ? 'Maximize' : 'Restore';
+        var label = state.place[k].mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore');
         max.setAttribute('aria-label', label);
         max.setAttribute('title', label);
       }
@@ -317,7 +324,7 @@
         a.setAttribute('data-win-tab', k);
         if (k === topRoot) a.setAttribute('aria-current', 'true');
         a.textContent = titleOf(k);
-        a.title = titleOf(k) + (state.min[k] ? ' (minimized)' : '');
+        a.title = state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(titleOf(k)) : titleOf(k);
         dock.appendChild(a);
       });
     });
@@ -454,8 +461,9 @@
       /* A link's native drag would take the pointer away from a title-bar drag. */
       head.querySelectorAll('a').forEach(function (a) { a.draggable = false; });
       head.tabIndex = 0;
-      head.setAttribute('aria-label', 'Window: ' + titleOf(key) +
-        '. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.');
+      head.setAttribute('aria-label', text('head',
+        'Window: {title}. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.')
+        .split('{title}').join(titleOf(key)));
     }
     return el;
   }

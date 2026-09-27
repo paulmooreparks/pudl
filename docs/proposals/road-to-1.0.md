@@ -1,6 +1,6 @@
 # Proposal: the road to 1.0
 
-Status: proposed, 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. Nothing here is built.
+Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0, with the emoji-risk glyphs fixed; unifying all chrome glyphs as SVG masks remains in the consistency pass.
 
 ## What 1.0 means
 
