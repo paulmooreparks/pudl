@@ -4,7 +4,15 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-It is a stylesheet, a small theme script and a font, with no framework and no build step. Every project that uses it carries a copy.
+It is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions, and no framework and no build step. Every project that uses it carries a copy.
+
+## See it
+
+- **[The reference](https://paulmooreparks.github.io/pudl/reference.html)** shows every component in both themes, with a live demo of floating windows and menus.
+- **[The article reader](https://paulmooreparks.github.io/pudl/samples/article-reader.html)** is a working reading site built with PUDL: articles in windows, listings as child windows, a launcher, category tabs that change only the list, and an applet.
+- **[The colour mixer](https://paulmooreparks.github.io/pudl/samples/colour-mixer.html)** is that applet in a page of its own.
+
+The article reader fetches its windows from the server, so to run it from a copy of this repository, serve the folder, for example with `python -m http.server`, rather than opening the file directly. The reference works either way.
 
 ## The rules
 
