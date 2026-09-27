@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.1
+
+- Fixed: the active section tab showed the bar's baseline under it, so the tab no longer read as joined to the content below. 0.12.0 let the section bar scroll sideways on a narrow screen, and a box that scrolls clips anything reaching past its edge, including the pixel by which the active tab covered the bar's bottom border. The bar now draws its baseline as part of its own background, and the active tab paints over it from inside the bar.
+
 ## 0.13.0
 
 - A reader can choose to follow the operating system's theme. `pudl-theme.js` remembers light, dark or system; system is resolved before the first paint and follows the system's setting live. It adds `pudlSetTheme()`, `pudlThemePreference()`, `data-theme-pref` on the `<html>` element and a `pudl:theme-change` event, and a choice made in one tab reaches the others. `pudlToggleTheme()` is unchanged, and a reader with nothing saved still starts dark. The reference page has a working Light / Dark / System setting.
