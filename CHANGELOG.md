@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.17.0
+
+- Data tables. `.data-table` in a `.data-table-wrap` lists many records: a sticky header, sortable columns whose raised headers carry `aria-sort` and a direction glyph and link to the other order, `.num` columns aligned to the end, row selection by checkbox or `aria-selected` with a tint and an edge, a `.data-table-empty` row, and with `.stack`, rows as labelled cards when the table is narrow.
+- Notices and toasts. A `.notice` stays until dealt with; a `.toast` confirms and leaves. Both come in information, `.positive`, `.warn` and `.danger`, each with its own drawn glyph and a coloured edge. The new optional `dist/pudl-toast.js` provides `pudlToast()`, timing that pauses while the reader is on a toast, dismiss buttons, and the re-insertion that makes a server's toast heard by screen readers.
+- Menus summoned by a key. A `.menu-panel` with `data-menu-key` opens on that key outside editable fields, with focus in its filter; a panel with no button opens as a palette near the top of the window; and Enter with no match left submits the filter's form. This is PUDL's answer to parkscomputing.com's go palette, recorded in `docs/proposals/go-palette.md`.
+- New glyphs for sorting and for the kinds of notice.
+- The reference page gains sections for data tables and for notices and toasts, and its launcher opens with <kbd>/</kbd>, as do the article reader's.
+
 ## 0.16.0
 
 The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps working; the README's "Names that changed" lists them.

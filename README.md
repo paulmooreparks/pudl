@@ -158,6 +158,52 @@ A section's own page marks its tab `aria-current="page"`, and a page inside the 
 - A **chip** (`.chip`) names an attribute the thing carries, a tag or a trip, and is a plain neutral label.
 - A **filter chip** (`.filter-chip`) is a filter in force. It is outlined, it may lead with a `.filter-chip-kind` label (formerly `.fc-kind`), and its `.filter-chip-x` is a small raised button that removes the filter.
 
+## Data tables
+
+A data table lists many records, one per row, inside a `.data-table-wrap` that scrolls sideways when the columns outrun the space and keeps the header in view.
+
+```html
+<div class="data-table-wrap">
+  <table class="data-table stack">
+    <thead><tr>
+      <th aria-sort="none"><a href="?sort=name">Expense</a></th>
+      <th aria-sort="descending"><a href="?sort=date&dir=asc">Date</a></th>
+      <th class="num" aria-sort="none"><a href="?sort=amount">Amount</a></th>
+    </tr></thead>
+    <tbody><tr>
+      <td data-label="Expense"><a href="/expenses/12">Hotel, Makati</a></td>
+      <td data-label="Date"><time datetime="2026-10-19">2026-10-19</time></td>
+      <td class="num" data-label="Amount">21,600.00</td>
+    </tr></tbody>
+  </table>
+</div>
+```
+
+- A column the reader can sort by has `aria-sort` on its header, and a link inside it to the address of the other order. The header is raised, since pressing it re-sorts, and shows two small arrows while the column is not the sort and one arrow for its direction when it is. Sorting is an address, so it works without script and can be shared.
+- Columns of numbers carry `.num` and align to the end.
+- A row is selected by a checked checkbox in a `.data-table-check` cell, or by `aria-selected="true"`, and shows a tint and an accent edge at its start.
+- A `.data-table-empty` row, with one cell spanning the columns, says there is nothing to show.
+- With `.stack`, a wrap 560px wide or less shows each row as a small card of labelled values, the labels from each cell's `data-label`; without it, a narrow table scrolls sideways.
+
+## Notices and toasts
+
+A **notice** is a message that stays on the page until it is dealt with. A **toast** is a passing confirmation that leaves by itself. Both come in four kinds, information by default and `.positive`, `.warn` and `.danger`, and each kind leads with its own glyph and a coloured edge.
+
+```html
+<div class="notice danger" role="alert">
+  <div class="notice-content">
+    <p class="notice-title">The expense could not be saved</p>
+    <p class="notice-body">The amount must be a number greater than zero.</p>
+    <div class="notice-actions"><a class="btn btn-sm" href="#amount">Edit the amount</a></div>
+  </div>
+  <button class="notice-close" type="button" aria-label="Dismiss"></button>
+</div>
+```
+
+The close button is optional. An error the reader must act on is always a notice, never a toast, because a toast goes away.
+
+Toasts gather in a `.toast-region` at the foot of the window, a live region, so screen readers announce each one. With the optional `pudl-toast.js`, a script raises one with `pudlToast('Expense saved.', { kind: 'positive' })`, and a server renders one as `<div class="toast positive"><p class="toast-text">Expense saved.</p></div>` inside the region, typically after a form posts and redirects. A toast leaves after five seconds, or `data-toast-ms`, and waits while the pointer or focus is on it; `data-toast-sticky` keeps it until dismissed. A live region does not announce what was on the page when it loaded, so the script re-inserts the server's toasts a moment after load, which makes them heard.
+
 ## Dialogs
 
 A dialog is a native `<dialog class="dialog">` that the server renders into the page, opened with `showModal()`, or by a button carrying `command="show-modal"` and `commandfor` naming it. The browser keeps focus inside it, closes it on Escape and draws its backdrop, which PUDL dims to 40% while the panel's shadow does the lifting. A `<form method="dialog">` inside it closes it on submission, with the pressed button's value as the dialog's `returnValue`, and needs no script.
@@ -217,6 +263,8 @@ Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar 
 The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, above it when there is more room there, and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
 
 An open menu is not part of the URL. It is momentary, like a hover, and everything it leads to has an address of its own.
+
+A menu can also be **summoned by a key**. A `.menu-panel` carrying `data-menu-key`, a single printable key such as `/`, opens when that key is pressed anywhere outside an editable field, with focus in its filter; inside any field the key types as usual. Its button, if it has one, gets a matching `aria-keyshortcuts`. A panel with no button, kept only for its key, opens as a palette near the top centre of the window. If the filter sits in a GET form and the reader presses Enter with no row left, the form submits, so a server can take the typed text to a page of its own, such as a "go to" endpoint that redirects by slug; with a row left, Enter follows it. That makes a launcher summoned by `/` a go-to palette with completion that always ends in an address.
 
 A **launcher** is a menu button first in the row that holds a window dock, whose panel reaches everything a site offers: one section per category, a filter at the top, and site-wide actions at the foot. Put it in a toolbar marked `.md-site-tools` so that it stays on screen when a narrow master-detail layout shows a record, and the reader can reach everything from inside an article on a phone. `samples/article-reader.html` has one.
 
@@ -476,6 +524,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-regions.js`, the optional script that swaps only the regions a navigation changes
   - `pudl-md.js`, the optional script that resizes the master-detail sidebar
   - `pudl-dialog.js`, the optional script that supplies the dialog command buttons in browsers that lack them
+  - `pudl-toast.js`, the optional script that raises and dismisses toasts and dismisses notices
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -487,7 +536,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.16.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.17.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

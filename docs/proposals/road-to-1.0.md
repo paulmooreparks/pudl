@@ -77,7 +77,8 @@ These are the gaps an application built on PUDL will hit first, roughly in order
 
 1. **0.15**: the accessibility fixes (forced colours, reduced motion, print, glyphs, localisable words), since they are bugs today.
 2. **0.16**: the consistency pass (state attributes, pills, switch, names, type and spacing tokens, native dialog), with aliases for everything renamed.
-3. **0.17 and 0.18**: the missing components, data table and notices first, and the application sample that shows them.
+3. **0.17**: the data table, notices and toasts, and menus summoned by a key, which is how PUDL answers parkscomputing.com's go palette (`docs/proposals/go-palette.md`).
+   **0.18**: form states, tabs within a page, empty and loading states, tooltips and pagination, and the application sample that shows them all.
 4. **0.19**: the contract document, the tests in the repository with CI across three engines, and the reference page in one register.
 5. **1.0**: a release candidate adopted by parkscomputing.com and one application, then the tag.
 

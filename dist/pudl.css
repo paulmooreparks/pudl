@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.16.0.
+   Version 0.17.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -137,6 +137,12 @@
   --glyph-restore: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2.5' y='5.5' width='8' height='8' rx='1.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M5.5 5.5V3.6a1.1 1.1 0 0 1 1.1-1.1h5.8a1.1 1.1 0 0 1 1.1 1.1v5.8a1.1 1.1 0 0 1-1.1 1.1h-1.9' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
   --glyph-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   --glyph-branch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 1.5V9h8' fill='none' stroke='black' stroke-width='1.4'/%3E%3C/svg%3E");
+  --glyph-sort: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6.5L8 3l3.5 3.5zM4.5 9.5L8 13l3.5-3.5z'/%3E%3C/svg%3E");
+  --glyph-sort-up: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 10L8 4.5l4.5 5.5z'/%3E%3C/svg%3E");
+  --glyph-sort-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 6L8 11.5 12.5 6z'/%3E%3C/svg%3E");
+  --glyph-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Ccircle cx='8' cy='5' r='1'/%3E%3Cpath d='M8 7.4v4.2' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
+  --glyph-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M5.2 8.2l2 2 3.8-4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --glyph-stop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.4 1.8h5.2l3.6 3.6v5.2l-3.6 3.6H5.4l-3.6-3.6V5.4z' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M8 4.8v4' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='11' r='1'/%3E%3C/svg%3E");
 
   /* === Derived ==============================================================
      Computed from the palette. A theme should not need to set any of these. */
@@ -283,7 +289,9 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
    the size of the text, filled with the element's colour through an SVG
    mask named by --glyph. Each component below sets which glyph, and its
    size where the text's own size is not right. */
-.badge::before, .form-error::before, .menu-btn::after, .md-back::before {
+.badge::before, .form-error::before, .menu-btn::after, .md-back::before,
+.notice::before, .toast::before, .data-table th[aria-sort] > :is(a, button)::after,
+.notice-close::before, .toast-close::before {
   content: ""; flex: none;
   width: var(--glyph-size, 1em); height: var(--glyph-size, 1em);
   background: currentColor;
@@ -965,6 +973,181 @@ body:has(> .md-layout) {
 .menu-action:hover { background: var(--surface-alt); }
 .menu-action.danger { color: var(--danger); }
 
+/* === Data tables =========================================================
+   A table of many records, one per row. It sits in a .data-table-wrap,
+   which scrolls sideways when the columns outrun the space and keeps the
+   header in view as the rows scroll under it.
+
+   A column the reader can sort by has a header whose link, or button, is
+   raised, because pressing it re-sorts, and it carries a glyph: two small
+   arrows while the column is not the sort, one arrow for the direction it
+   is. The header's aria-sort says which, and the link is an ordinary
+   address such as ?sort=amount&dir=desc, so sorting works without script
+   and a sorted list can be shared. Columns of numbers carry .num and align
+   to the end. A selected row is marked aria-selected="true", or holds a
+   checked checkbox, and carries an accent edge at its start as well as a
+   tint. A .data-table-empty row says there is nothing to show.
+
+   With .stack on the table, a wrap 560px wide or less shows each row as a
+   small card of label and value pairs, the labels coming from each cell's
+   data-label. */
+.data-table-wrap {
+  overflow: auto; max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  container: dt / inline-size;
+}
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: var(--text-md); font-variant-numeric: tabular-nums;
+}
+.data-table caption {
+  caption-side: top; text-align: start;
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-muted);
+}
+.data-table th, .data-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: start; vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.data-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface-alt);
+  font-size: var(--text-sm); font-weight: 600; color: var(--text-muted);
+  white-space: nowrap;
+}
+.data-table tbody tr:last-child > * { border-bottom: 0; }
+.data-table tbody tr:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+.data-table .num { text-align: end; }
+.data-table .data-table-check { width: 1%; }
+.data-table .data-table-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
+.data-table tr[aria-selected="true"],
+.data-table tr:has(> .data-table-check input:checked) {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 3px 0 var(--accent);
+}
+.data-table tr[aria-selected="true"]:dir(rtl),
+.data-table tr:has(> .data-table-check input:checked):dir(rtl) { box-shadow: inset -3px 0 var(--accent); }
+
+/* A sortable column's header is a raised control filling its cell. */
+.data-table th[aria-sort] { padding: 0; }
+.data-table th[aria-sort] > :is(a, button) {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--raise-grad);
+  border: 0; border-inline-end: 1px solid var(--raise-border);
+  box-shadow: inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent);
+  font: inherit; color: var(--text); text-decoration: none; cursor: pointer;
+  --glyph: var(--glyph-sort); --glyph-size: 12px;
+}
+.data-table th[aria-sort].num > :is(a, button) { justify-content: flex-end; }
+.data-table th[aria-sort] > :is(a, button):hover { background: var(--raise-grad-hover); }
+.data-table th[aria-sort] > :is(a, button):active { background: var(--raise-active-bg); }
+.data-table th[aria-sort] > :is(a, button):focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
+.data-table th[aria-sort] > :is(a, button)::after { opacity: .55; }
+.data-table th[aria-sort="ascending"] > :is(a, button)::after { --glyph: var(--glyph-sort-up); opacity: 1; }
+.data-table th[aria-sort="descending"] > :is(a, button)::after { --glyph: var(--glyph-sort-down); opacity: 1; }
+.data-table th[aria-sort="ascending"] > :is(a, button),
+.data-table th[aria-sort="descending"] > :is(a, button) { font-weight: 700; }
+
+.data-table .data-table-empty td {
+  padding: var(--space-6) var(--space-4);
+  text-align: center; color: var(--text-muted);
+}
+
+@container dt (max-width: 560px) {
+  .data-table.stack thead {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+  }
+  .data-table.stack, .data-table.stack tbody, .data-table.stack tr, .data-table.stack td { display: block; }
+  .data-table.stack tr { padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
+  .data-table.stack tbody tr:last-child { border-bottom: 0; }
+  .data-table.stack td {
+    display: flex; justify-content: space-between; gap: var(--space-4);
+    padding: var(--space-1) var(--space-4); border-bottom: 0; text-align: end;
+  }
+  .data-table.stack td[data-label]::before {
+    content: attr(data-label);
+    font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); text-align: start;
+  }
+}
+
+/* === Notices and toasts ==================================================
+   A notice is a message that stays on the page until it is dealt with: an
+   error on submission, a warning about the record in view, a note of what
+   has changed. A toast is a passing confirmation, "Saved", that leaves by
+   itself. Both lead with the glyph of their kind (information, positive,
+   warning, danger) and a coloured edge, so neither rests on colour alone.
+   An error the reader must act on is a notice, never a toast, because a
+   toast goes away. */
+.notice {
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--notice-color) 45%, var(--border));
+  border-inline-start: 4px solid var(--notice-color);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--notice-color) 9%, var(--surface));
+  color: var(--text);
+  font-size: var(--text-md);
+  --notice-color: var(--accent);
+  --glyph: var(--glyph-info); --glyph-size: 18px;
+}
+.notice::before { margin-top: 1px; color: var(--notice-color); background: var(--notice-color); }
+.notice.positive { --notice-color: var(--positive); --glyph: var(--glyph-check); }
+.notice.warn { --notice-color: var(--warn); --glyph: var(--glyph-warning); }
+.notice.danger { --notice-color: var(--danger); --glyph: var(--glyph-stop); }
+.notice-content { flex: 1; min-width: 0; }
+.notice-title { margin: 0 0 2px; font-size: var(--text-md); font-weight: 700; }
+.notice-body { margin: 0; }
+.notice-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+
+/* The small raised button that dismisses a notice or a toast. */
+.notice-close, .toast-close {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; padding: 0; margin-inline-start: auto;
+  border-radius: 50%;
+  background: var(--raise-grad); border: 1px solid var(--raise-border);
+  box-shadow: var(--raise-shadow);
+  color: var(--text-muted); cursor: pointer;
+  --glyph: var(--glyph-close); --glyph-size: 12px;
+}
+.notice-close:hover, .toast-close:hover { color: var(--text); background: var(--raise-grad-hover); }
+.notice-close:focus-visible, .toast-close:focus-visible { outline: none; box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); }
+
+/* Toasts gather in a live region at the foot of the window, which
+   pudl-toast.js creates if the page has not rendered one. */
+.toast-region {
+  position: fixed; z-index: 1000;
+  inset-block-end: var(--space-4); inset-inline-end: var(--space-4);
+  display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2);
+  width: min(24rem, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  background: var(--dialog-bg, var(--surface)); color: var(--text);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--notice-color);
+  border-radius: var(--radius-sm);
+  box-shadow:
+      var(--shadow-card),
+      0 10px 28px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.4), transparent);
+  font-size: var(--text-md);
+  transition: opacity .2s, transform .2s;
+  --notice-color: var(--accent);
+  --glyph: var(--glyph-info); --glyph-size: 18px;
+}
+.toast::before { margin-top: 1px; background: var(--notice-color); }
+.toast.positive { --notice-color: var(--positive); --glyph: var(--glyph-check); }
+.toast.warn { --notice-color: var(--warn); --glyph: var(--glyph-warning); }
+.toast.danger { --notice-color: var(--danger); --glyph: var(--glyph-stop); }
+.toast-text { flex: 1; min-width: 0; margin: 2px 0 0; }
+.toast.leaving { opacity: 0; transform: translateY(8px); }
+
 /* === Reduced motion ======================================================
    A reader who has asked their system for less motion gets none: every
    transition and animation completes at once. */
@@ -1009,6 +1192,16 @@ body:has(> .md-layout) {
   .badge::before, .form-error::before, .menu-btn::after, .md-back::before,
   .md-filter-go::before { forced-color-adjust: none; background: CanvasText; }
   .md-filter-go::before, .menu-btn::after { background: ButtonText; }
+  .notice::before, .toast::before { forced-color-adjust: none; background: CanvasText; }
+  .notice-close::before, .toast-close::before, .data-table th[aria-sort] > :is(a, button)::after {
+    forced-color-adjust: none; background: ButtonText;
+  }
+  .notice, .toast, .notice-close, .toast-close, .data-table-wrap { border: 1px solid CanvasText; }
+  .notice, .toast { border-inline-start-width: 4px; }
+  .data-table th[aria-sort] > :is(a, button) { border: 1px solid ButtonText; }
+  .data-table tr[aria-selected="true"], .data-table tr:has(> .data-table-check input:checked) {
+    forced-color-adjust: none; background: Highlight; color: HighlightText;
+  }
   .menu:has(> .menu-panel:popover-open) > .menu-btn::after { background: HighlightText; }
   .md-resize::before { background: CanvasText; inset: 0 2.5px; }
   .md-resize:hover::before, .md-resize.dragging::before, .md-resize:focus-visible::before { background: Highlight; }
@@ -1027,7 +1220,11 @@ body:has(> .md-layout) {
     --accent: #1a3d6b; --accent-hover: #1a3d6b;
   }
   .topbar, .app-section-bar, .md-toolbar, .md-chips, .md-resize, .md-back,
-  .menu, .menu-panel, .dialog-backdrop, .theme-toggle { display: none !important; }
+  .menu, .menu-panel, .dialog-backdrop, .theme-toggle,
+  .toast-region, .notice-close { display: none !important; }
+  .data-table-wrap { overflow: visible; border: 0; }
+  .data-table thead th { position: static; }
+  .data-table th[aria-sort] > :is(a, button) { background: none; box-shadow: none; border: 0; }
   body:has(> .md-layout) { height: auto; overflow: visible; display: block; }
   .md-layout, .md-body { display: block; height: auto; }
   .md-sidebar, .md-detail { width: auto; overflow: visible; border: 0; }
