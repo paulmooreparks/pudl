@@ -36,7 +36,7 @@ Copy the contents of `dist/` from a tagged release into your project, keeping th
 <link rel="stylesheet" href="brand.css">
 ```
 
-`pudl-theme.js` goes first so that the saved theme is applied before the first paint. It sets `data-theme` on the `<html>` element to `light` or `dark`, and it gives you `pudlToggleTheme()` for a toggle button.
+`pudl-theme.js` goes first so that the reader's theme is applied before the first paint. A reader's preference is light, dark or system, remembered in local storage; system follows the operating system's setting and keeps following it if that changes with the page open, and with nothing saved the page starts dark. The script sets `data-theme` on the `<html>` element to the theme in force, `light` or `dark`, which the stylesheet reads, and `data-theme-pref` to the preference, which a settings control can read. It gives you `pudlSetTheme('light' | 'dark' | 'system')` and `pudlThemePreference()` for a settings control, `pudlToggleTheme()` for a single toggle button, and a `pudl:theme-change` event on the document after every change, including one made in another tab. The reference page's segmented control section has a working Light / Dark / System setting.
 
 ### From a CDN
 
@@ -303,6 +303,8 @@ A navigation that changes only part of a page, such as a category tab or a filte
 
 A plain click on a same-origin link inside a region, or a GET form submitted inside one, fetches the target page, which may be the same path with other parameters or another path, such as a page per category. If that page has a region of every name the current page has, and the same window layer, the script replaces each region with its counterpart and pushes the address, carrying the open windows, which stay exactly as they were. If it does not, or the fetch fails, the browser navigates as it always would, so the worst case is an ordinary page load. A link to what the regions already show does nothing. Back and Forward swap the regions again when the part of the address they depend on changed; when only the windows changed, the windows module handles it alone.
 
+Because a swap needs a counterpart for every region, a region that is sometimes empty must still be rendered when it has nothing in it. A chips row with no active filters is the usual case: render the empty `.md-chips` element anyway, and PUDL hides it, or every navigation away from a filtered view falls back to a full page load. PUDL tells an empty chips row by the absence of chips, not by `:empty`, so the whitespace a template leaves inside it does no harm.
+
 The script asks the server for nothing special. It fetches the same address a bookmark would, so the server renders what the address names, as it always does, and the swap reads the regions out of that page.
 
 Same-page links inside regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
@@ -359,7 +361,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.12.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.13.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 

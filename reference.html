@@ -70,7 +70,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.12.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.13.0</a>
     </div>
   </header>
 
@@ -152,6 +152,34 @@
       <div class="seg sm"><button>S1</button><button class="active">S2</button><button>S3</button><button>S4</button><button>S5</button></div>
       <div class="seg pill"><button class="active">Today</button><button>Week</button><button>Month</button></div>
     </div>
+    <p>This one is live. It is a theme setting built on <code>pudl-theme.js</code>, which remembers light, dark or system, and follows the operating system's setting while System is chosen, even when it changes with the page open.</p>
+    <div class="demo demo-row">
+      <span class="demo-label">Theme</span>
+      <div class="seg" id="theme-pref" role="group" aria-label="Theme">
+        <button type="button" data-pref="light">Light</button>
+        <button type="button" data-pref="dark">Dark</button>
+        <button type="button" data-pref="system">System</button>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var group = document.getElementById('theme-pref');
+        function show() {
+          var pref = pudlThemePreference();
+          group.querySelectorAll('button').forEach(function (b) {
+            var on = b.getAttribute('data-pref') === pref;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          });
+        }
+        group.addEventListener('click', function (e) {
+          var b = e.target.closest('button[data-pref]');
+          if (b) pudlSetTheme(b.getAttribute('data-pref'));
+        });
+        document.addEventListener('pudl:theme-change', show);
+        show();
+      })();
+    </script>
 
     <h2>5. Badges &amp; chips</h2>
     <p>Badge = state pill, color + glyph (an entity's state). Chip = flat metadata pill (an attribute a thing carries).</p>

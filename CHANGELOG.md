@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.0
+
+- A reader can choose to follow the operating system's theme. `pudl-theme.js` remembers light, dark or system; system is resolved before the first paint and follows the system's setting live. It adds `pudlSetTheme()`, `pudlThemePreference()`, `data-theme-pref` on the `<html>` element and a `pudl:theme-change` event, and a choice made in one tab reaches the others. `pudlToggleTheme()` is unchanged, and a reader with nothing saved still starts dark. The reference page has a working Light / Dark / System setting.
+- An empty window dock is no longer removed from the layout. It still draws nothing, but a toolbar that uses it as its elastic middle keeps its shape when the last window closes.
+- An empty chips row is hidden by the absence of chips rather than by `:empty`, which a template's whitespace defeated, leaving a thin empty bar.
+- The README says that a region that is sometimes empty must still be rendered, since a swap needs a counterpart for every region.
+- From parkscomputing.com (`Architecture/pudl-proposal-empty-structure.md` in that repository).
+
 ## 0.12.0
 
 - Regions. The new optional `dist/pudl-regions.js` makes a navigation that changes only part of a page replace only that part. A page marks the parts with `data-region`. A same-origin link or GET form inside a region fetches the target page, the same address a bookmark would fetch; if it has the same regions and window layer, the regions are swapped and the address pushed with the open windows, which stay as they were, scroll positions and running applets included. Otherwise the browser navigates normally. Back and Forward swap the regions when their part of the address changed. Same-page links and window fields in regions are kept current with the open windows.

@@ -225,8 +225,10 @@
    One tab per open window, in the order they were opened. A tab raises its
    window, and the active window's tab reads as pressed in. The glyph shows
    whether the window is visible (filled) or minimised (hollow). */
-.win-dock { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.win-dock:empty { display: none; }
+/* An empty dock draws nothing and takes no height, but it stays in the
+   layout, so a toolbar that uses it as its elastic middle keeps its shape
+   when the last window closes. */
+.win-dock { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
 .win-tab {
   display: inline-flex; align-items: center; gap: 6px;
   max-width: 220px; padding: 3px 10px;
