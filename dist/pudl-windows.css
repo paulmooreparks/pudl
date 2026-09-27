@@ -37,17 +37,16 @@
 
 /* A dark theme needs a bright accent for its links to read, and a bar
    filled with it glares, so the dark theme's bar is the raised gradient
-   tinted toward the accent, in the normal text colour, with an accent rule
-   along its foot. */
+   tinted toward the accent, in the normal text colour. With the tinted
+   frame and the stronger shadow, that is enough to mark the active window
+   without a rule under the bar, which read as a divider. */
 [data-theme="dark"] {
   --win-active-bg: linear-gradient(
-      color-mix(in srgb, var(--accent) 24%, var(--raise-top)),
-      color-mix(in srgb, var(--accent) 14%, var(--surface-alt)));
+      color-mix(in srgb, var(--accent) 32%, var(--raise-top)),
+      color-mix(in srgb, var(--accent) 20%, var(--surface-alt)));
   --win-active-fg: var(--text);
   --win-active-border: color-mix(in srgb, var(--accent) 55%, var(--raise-border));
-  --win-active-shadow:
-      inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent),
-      inset 0 -2px var(--accent);
+  --win-active-shadow: inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent);
 }
 
 /* The host is the region the windows float over, usually the main area
