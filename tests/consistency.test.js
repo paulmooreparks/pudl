@@ -38,6 +38,21 @@ function check(name, ok, extra) {
   check('tabs: the current tab is taller and stands on the same baseline', tabs.curTaller && tabs.sameFoot && tabs.curBottom === tabs.barBottom, JSON.stringify(tabs));
   await p.locator('.tabs-demo').screenshot({ path: out('tabs16.png') });
 
+  /* The bar keeps its height when no tab is current, so the page below it
+     does not jump between a section page and a page outside every section. */
+  const heights = await p.evaluate(() => {
+    const bar = document.querySelector('.tabs-demo .app-section-bar');
+    const cur = bar.querySelector('[aria-current]');
+    const h = () => bar.getBoundingClientRect().height;
+    const withCurrent = h();
+    const value = cur.getAttribute('aria-current');
+    cur.removeAttribute('aria-current');
+    const without = h();
+    cur.setAttribute('aria-current', value);
+    return { withCurrent, without };
+  });
+  check('tabs: the bar is the same height with no current tab', Math.abs(heights.withCurrent - heights.without) < 0.5, JSON.stringify(heights));
+
   /* State by attribute, and the old class. */
   const state = await p.evaluate(() => {
     const on = document.querySelector('.seg button[aria-pressed="true"]');
