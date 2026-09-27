@@ -1,6 +1,6 @@
 # Proposal: the road to 1.0
 
-Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0, with the emoji-risk glyphs fixed; unifying all chrome glyphs as SVG masks remains in the consistency pass.
+Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0. The consistency pass shipped in 0.16.0, all ten items except the Architectural Principles document, which is left for 1.0, and it added notebook section tabs, since the flat tab bar broke the elevation rule too.
 
 ## What 1.0 means
 

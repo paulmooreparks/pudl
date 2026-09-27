@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.16.0
+
+The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps working; the README's "Names that changed" lists them.
+
+- Section tabs are a notebook. The bar is a recessed band, each tab the reader can go to is raised, and the tab for where they are, marked `aria-current`, is flat and opens into the content below. `aria-current="true"` marks the section a page belongs to. The current tab takes `--section-current-bg`, which a page on the page background sets to `var(--bg)`. Before, every tab was flat text, so by PUDL's own rules none of them looked pressable.
+- State is marked with ARIA attributes everywhere: `aria-current` on section tabs, list rows and view links in a segmented control, and `aria-pressed` or `aria-checked` on segmented buttons. `.active` remains an alias.
+- Badges, chips and filter chips look distinct. A chip is now a neutral label rather than accent-tinted; a filter chip is outlined, and its × is a small raised button.
+- The switch is a raised thumb in a sunken track.
+- Every chrome glyph is an SVG mask from the stylesheet: badge glyphs, the form error's warning, the menu caret, the back link, the window buttons, the dock's dots and the child-row branch. None can turn into a colour emoji, and all follow the theme. In high-contrast mode they paint in the system's colours.
+- A type scale, `--text-2xs` to `--text-3xl`, which every size in PUDL now uses, and base sizes for `h1` to `h4` that any class overrides. A few sizes moved by a pixel to land on the scale.
+- A spacing grid, `--space-1` to `--space-6`, used for spacing between and around components. Cards and dialogs have 16px and 24px of padding, on the grid.
+- Dialogs are native `<dialog class="dialog">` elements with a 40% `::backdrop`, opened by `command="show-modal"` buttons, and the new optional `dist/pudl-dialog.js` supplies those buttons in browsers that lack them.
+- Renamed: `--pr` is `--positive`, `.badge.pr` is `.badge.positive`, and `.fc-kind` is `.filter-chip-kind`.
+- The reference page reads as one document, in prose throughout, with a section for section tabs and a rewritten list of invariants.
+
 ## 0.15.0
 
 - High contrast. In Windows' high-contrast mode, which removes every shadow, focus is drawn as a real outline, controls keep visible borders, and selected and pressed states, the active window's title bar and the current dock tab take the system's highlight colours. Before, focus did not show at all in that mode.

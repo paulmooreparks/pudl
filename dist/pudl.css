@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.15.0.
+   Version 0.16.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -11,6 +11,11 @@
      - Flat is display only (.kv-table cells, .form-input[readonly]).
    Colour is never the only signal: every meaningful state carries a glyph.
    One .btn-primary per visible context.
+
+   State is marked with the ARIA attribute that states it, so the eye and
+   assistive technology are told the same thing: aria-current for where the
+   reader is, aria-pressed and aria-checked for toggles, aria-selected for
+   the tab of a tab panel. The older .active class still works as an alias.
 
    A project themes PUDL with a stylesheet loaded after this one. It may
    change any colour token, including the background and the topbar, and
@@ -54,14 +59,16 @@
   --text-muted: #5f6873;
   --border: #cfd4da;
 
-  /* Accent and status. */
+  /* Accent and status. --pr is the old name for --positive; a theme that
+     sets --pr still reaches --positive, and new themes set --positive. */
   --accent: #2c5282;
   --accent-hover: #1f3d63;
   --on-accent: #ffffff;
   --warn: #b86e1c;
   --danger: #b42318;
   --danger-hover: #8f1c13;
-  --pr: #2e7d4f;                  /* positive: shipped, done */
+  --pr: #2e7d4f;
+  --positive: var(--pr);          /* done, shipped, healthy */
 
   /* Lighting. --light is the colour of the light falling on a raised control
      and --shade the colour of its shadow. --lit sets how strongly the light
@@ -85,13 +92,51 @@
   --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
 
   /* === Fixed by the language ================================================
-     A theme does not change the radii. */
-  --radius: 12px;        /* cards */
-  --radius-sm: 7px;      /* buttons and entries */
+     A theme does not change these. */
+
+  /* The type scale. Every size PUDL uses is one of these. */
+  --text-2xs: 11px;      /* section labels, meta lines, badges */
+  --text-xs: 12px;       /* chips, small buttons, dock tabs */
+  --text-sm: 13px;       /* labels, tabs, list rows, secondary text */
+  --text-md: 14px;       /* controls, table values, dialog text */
+  --text-base: 15px;     /* body text */
+  --text-lg: 17px;       /* card and dialog titles, the brand, h4 */
+  --text-xl: 20px;       /* h3 */
+  --text-2xl: 24px;      /* h2 */
+  --text-3xl: 30px;      /* h1 */
+
+  /* The spacing grid, on a 4px base. Layout spacing, between and around
+     components, comes from these. A control's own padding is part of the
+     control's metrics and is fixed with the control. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius: 12px;        /* cards, panels, windows */
+  --radius-sm: 7px;      /* buttons, entries, tabs */
   --radius-pill: 999px;
 
-  /* Glyphs the stylesheet draws, as SVG masks filled with currentColor. */
+  /* Glyphs. Every glyph PUDL draws in its chrome is one of these SVG masks,
+     filled with the element's own colour, so it looks the same on every
+     platform, can never turn into a colour emoji, and follows the theme. */
   --glyph-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='6.5' cy='6.5' r='4.75' fill='none' stroke='black' stroke-width='2'/%3E%3Cpath d='M10.2 10.2L14.5 14.5' stroke='black' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --glyph-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 5.5h9L8 11z'/%3E%3C/svg%3E");
+  --glyph-back: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10 3L5 8l5 5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --glyph-triangle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 2l7 12H1z'/%3E%3C/svg%3E");
+  --glyph-square: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3' y='3' width='10' height='10' rx='1'/%3E%3C/svg%3E");
+  --glyph-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='5'/%3E%3C/svg%3E");
+  --glyph-ring: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='4.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
+  --glyph-diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 2l6 6-6 6-6-6z'/%3E%3C/svg%3E");
+  --glyph-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.8l6.6 12H1.4z' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M8 6.2v3.6' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='11.9' r='1'/%3E%3C/svg%3E");
+  --glyph-open: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3.5h6.5V10M12.5 3.5L4 12' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --glyph-minimize: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5h9' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --glyph-maximize: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3.2' y='3.2' width='9.6' height='9.6' rx='1.5' fill='none' stroke='black' stroke-width='1.8'/%3E%3C/svg%3E");
+  --glyph-restore: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2.5' y='5.5' width='8' height='8' rx='1.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M5.5 5.5V3.6a1.1 1.1 0 0 1 1.1-1.1h5.8a1.1 1.1 0 0 1 1.1 1.1v5.8a1.1 1.1 0 0 1-1.1 1.1h-1.9' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
+  --glyph-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --glyph-branch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5 1.5V9h8' fill='none' stroke='black' stroke-width='1.4'/%3E%3C/svg%3E");
 
   /* === Derived ==============================================================
      Computed from the palette. A theme should not need to set any of these. */
@@ -114,6 +159,11 @@
   --raise-active-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.2), transparent);
   --entry-shadow: inset 0 1px 2px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.7), transparent);
 
+  /* A recessed band, such as the tab bar or a switch's track: darker than
+     the surface around it and shaded from above. */
+  --recess-bg: color-mix(in srgb, var(--shade) calc(var(--depth) * 0.35), var(--surface-alt));
+  --recess-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.6), transparent);
+
   --shadow-btn-primary:
       inset 0 1px rgb(255 255 255 / 0.25),
       0 1px 2px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.2), transparent);
@@ -129,6 +179,12 @@
   /* The dialog panel is always one step brighter than the page, so it reads
      as a card lifted off it. On a light page that is --surface. */
   --dialog-bg: var(--surface);
+
+  /* The current section tab opens into what lies below the tab bar, so it
+     takes that colour. Under a master-detail layout's toolbar that is
+     --surface, the default; a page whose content sits on --bg sets this to
+     var(--bg) on the bar or above it. */
+  --section-current-bg: var(--surface);
 
   /* Topbar chrome. */
   --tb-grad: linear-gradient(color-mix(in srgb, var(--tb-fg) 8%, var(--tb-bg)), var(--tb-bg));
@@ -165,6 +221,7 @@
   --danger: #e06156;
   --danger-hover: #f0857b;
   --pr: #5fb37f;
+  --positive: var(--pr);
 
   --light: #e8eef6;
   --shade: #000000;
@@ -194,10 +251,22 @@ body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  font-size: 15px;
+  font-size: var(--text-base);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Headings, from the type scale. :where() gives these no weight at all, so
+   any class a component or project puts on a heading wins over them. */
+:where(h1, h2, h3, h4) {
+  font-family: var(--font-display); font-weight: 700;
+  line-height: 1.25; letter-spacing: -0.01em;
+  margin: 0 0 var(--space-3);
+}
+:where(h1) { font-size: var(--text-3xl); }
+:where(h2) { font-size: var(--text-2xl); }
+:where(h3) { font-size: var(--text-xl); }
+:where(h4) { font-size: var(--text-lg); }
 
 /* Tabular numerals wherever numbers are data, so identifiers, counts, money
    and timestamps line up. Running prose keeps proportional figures, because
@@ -209,6 +278,19 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   font-variant-numeric: tabular-nums;
 }
 
+/* === Glyphs ==============================================================
+   Every chrome glyph is a pseudo-element drawn by this one rule: a square
+   the size of the text, filled with the element's colour through an SVG
+   mask named by --glyph. Each component below sets which glyph, and its
+   size where the text's own size is not right. */
+.badge::before, .form-error::before, .menu-btn::after, .md-back::before {
+  content: ""; flex: none;
+  width: var(--glyph-size, 1em); height: var(--glyph-size, 1em);
+  background: currentColor;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+  mask: var(--glyph) center / contain no-repeat;
+}
+
 /* === Topbar / brand chrome ============================================== */
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
@@ -218,9 +300,9 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   box-shadow: inset 0 1px var(--tb-hi);
 }
 .brand {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: var(--space-2);
   font-family: var(--font-display);
-  font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
+  font-size: var(--text-lg); font-weight: 700; letter-spacing: -0.01em;
   color: var(--tb-brand); text-decoration: none;
 }
 /* The page's link colours are made for the page, not for the topbar, so a
@@ -229,13 +311,13 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .topbar a:not([class]) { color: var(--tb-chrome-fg); }
 .brand:hover, .topbar a:not([class]):hover { color: var(--tb-link-hover); }
 .topbar-chrome {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: var(--space-2);
 }
 /* A topbar pill is raised, so it is always a link or a button, never a label. */
 .topbar-pill {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 12px; border-radius: var(--radius-sm);
-  font-size: 13px; font-weight: 600;
+  font-size: var(--text-sm); font-weight: 600;
   color: var(--tb-chrome-fg);
   background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
   text-decoration: none;
@@ -246,41 +328,54 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px;
   padding: 0; border-radius: var(--radius-sm);
-  font-size: 14px; line-height: 1; font-family: var(--font);
+  font-size: var(--text-md); line-height: 1; font-family: var(--font);
   color: var(--tb-chrome-fg);
   background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
   border: 0; cursor: pointer;
 }
 .theme-toggle:hover { color: var(--tb-chrome-hover-fg); }
 
-/* === Sub-nav / notebook tab strip ======================================= */
-/* After the notebook widget in desktop toolkits: a recessed band of inactive tabs; the active tab "punches
-   through" the baseline so it visually merges with the content below.
-   Use it for section navigation within a page. */
-/* The bar's baseline is drawn as part of its own background, not as a
-   border, so the active tab, which sits inside the bar, paints over it. The
-   tab never has to reach outside the bar to cover the line, which matters
-   because the bar scrolls sideways on a narrow screen, and a box that
-   scrolls clips whatever reaches past its edges. */
+/* === Section tabs: a notebook ============================================
+   After the notebook widget of desktop toolkits. The bar is a recessed
+   band. Each tab the reader can go to is a raised tab standing on the
+   band's baseline, because it can be pressed. The tab for where the reader
+   is, marked aria-current, is flat and lit, a little taller, and open at
+   the bottom into the content below, so the page visibly hangs from it.
+
+   The bar's baseline is drawn as part of the bar's own background, and the
+   current tab paints over it from inside the bar. Nothing reaches past the
+   bar's edge, which matters because the bar scrolls sideways on a narrow
+   screen, and a box that scrolls clips whatever reaches past its edges. */
 .app-section-bar {
-  display: flex; flex: none; padding: 0 16px;
+  display: flex; flex: none; align-items: flex-end; gap: var(--space-1);
+  padding: 6px var(--space-4) 0;
   overflow-x: auto;
-  background: var(--surface-alt);
-  box-shadow: inset 0 -1px var(--border);
+  background: var(--recess-bg);
+  box-shadow: inset 0 -1px var(--border), var(--recess-shadow);
 }
 .section-tab {
-  padding: 9px 14px 8px;
-  font-size: 13px; font-weight: 600;
-  color: var(--text-muted); text-decoration: none;
-  border-bottom: 2px solid transparent;
+  padding: 5px 14px 4px;
+  font-size: var(--text-sm); font-weight: 600;
+  color: var(--text); text-decoration: none;
   white-space: nowrap;
+  background: var(--raise-grad);
+  border: 1px solid var(--raise-border); border-bottom: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  box-shadow: inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent);
 }
-.section-tab:hover { color: var(--text); }
+.section-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.section-tab:active { background: var(--raise-active-bg); }
+.section-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.section-tab[aria-current]:not([aria-current="false"]),
 .section-tab.active {
-  color: var(--text); background: var(--surface);
-  border-bottom-color: var(--surface);
-  box-shadow: inset 0 1px var(--border), inset 1px 0 var(--border), inset -1px 0 var(--border);
+  padding: 7px 14px 6px;
+  color: var(--text);
+  background: var(--section-current-bg);
+  border-color: var(--border);
+  box-shadow: none;
 }
+.section-tab[aria-current]:not([aria-current="false"]):focus-visible,
+.section-tab.active:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
 
 /* A region that pudl-regions.js is replacing dims a little while the new
    content is on its way, after a moment, so a fast answer never flickers. */
@@ -292,7 +387,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   padding: 7px 14px; border-radius: var(--radius-sm);
-  font-size: 14px; font-weight: 600; font-family: var(--font);
+  font-size: var(--text-md); font-weight: 600; font-family: var(--font);
   color: var(--text); cursor: pointer; text-decoration: none;
   white-space: nowrap;
   border: 1px solid var(--raise-border);
@@ -330,7 +425,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   box-shadow: var(--raise-shadow);
   background: var(--raise-grad);
 }
-.btn-sm { padding: 4px 10px; font-size: 12.5px; }
+.btn-sm { padding: 4px 10px; font-size: var(--text-xs); }
 .btn-primary {
   color: var(--on-accent);
   border-color: color-mix(in srgb, var(--accent) 62%, #000);
@@ -363,6 +458,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   color: var(--text-muted); cursor: pointer;
 }
 .icon-btn:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.icon-btn:focus-visible { outline: none; box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); }
 .icon-btn.danger:hover { color: var(--danger); }
 
 /* === Links ============================================================== */
@@ -385,10 +481,10 @@ button.link {
 }
 
 /* === Forms ============================================================== */
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-.form-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-4); }
+.form-label { font-size: var(--text-sm); font-weight: 600; color: var(--text); }
 .form-input, .form-select, .form-textarea {
-  padding: 8px 11px; font-size: 14px; font-family: var(--font);
+  padding: 8px 11px; font-size: var(--text-md); font-family: var(--font);
   background: var(--input-bg); color: var(--text);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   width: 100%;
@@ -408,12 +504,16 @@ button.link {
 
 /* Checkbox + label as one inline control. */
 .check {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 14px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-md); cursor: pointer;
 }
 .check input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); }
 
-/* Toggle switch (boolean preference). Submit button styled as a slider. */
+/* Toggle switch (a boolean preference). The track is sunken, since it is
+   the slot the thumb runs in, and the thumb is raised, since it is what the
+   reader presses. When the switch is on the track fills with the accent
+   and the thumb slides to the far end, so position says it as well as
+   colour. */
 .switch {
   display: inline-flex; align-items: center; gap: 10px;
   background: none; border: 0; padding: 0; margin: 0;
@@ -422,150 +522,167 @@ button.link {
 .switch-track {
   position: relative; flex: none;
   width: 40px; height: 22px; border-radius: var(--radius-pill);
-  background: var(--surface-alt); border: 1px solid var(--border);
+  background: var(--recess-bg); border: 1px solid var(--border);
+  box-shadow: var(--entry-shadow);
   transition: background .15s, border-color .15s;
 }
 .switch-thumb {
   position: absolute; top: 2px; inset-inline-start: 2px;
   width: 16px; height: 16px; border-radius: 50%;
-  background: var(--text-muted);
-  transition: transform .15s, background .15s;
+  background: var(--raise-grad);
+  border: 1px solid var(--raise-border);
+  box-shadow: var(--raise-shadow);
+  transition: transform .15s;
 }
 .switch[aria-checked="true"] .switch-track {
   background: var(--accent); border-color: var(--accent-hover);
 }
-.switch[aria-checked="true"] .switch-thumb {
-  transform: translateX(18px); background: var(--on-accent);
-}
+.switch[aria-checked="true"] .switch-thumb { transform: translateX(18px); }
 .switch:dir(rtl)[aria-checked="true"] .switch-thumb { transform: translateX(-18px); }
+.switch:hover .switch-thumb { border-color: var(--raise-border-hover); }
+.switch:focus-visible { outline: none; }
 .switch:focus-visible .switch-track {
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring);
 }
 
 .form-error {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 13px; color: var(--danger); margin: 4px 0 12px;
+  font-size: var(--text-sm); color: var(--danger); margin: var(--space-1) 0 var(--space-3);
 }
-/* U+FE0E asks for the text form of the glyph, which some platforms would
-   otherwise draw as a colour emoji. */
-.form-error::before { content: "\26A0\FE0E"; }
+.form-error::before { --glyph: var(--glyph-warning); }
 
 /* === Segmented control / view switcher ================================== */
-/* Inset trough with raised active segment. Use for boolean / few-option
-   choices (a small scale, kg|lbs, Read|Edit). */
+/* An inset trough of choices, the chosen one raised in it. Use it for two
+   to four options: a small scale, kg|lbs, Read|Edit. Its items are buttons,
+   marked aria-pressed or aria-checked, or links to views, marked
+   aria-current. */
 .seg {
   display: inline-flex; padding: 3px; gap: 2px;
-  background: var(--surface-alt);
+  background: var(--recess-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--entry-shadow);
 }
-.seg button {
+.seg button, .seg a {
+  display: inline-flex; align-items: center;
   padding: 4px 12px; border-radius: 4px;
-  background: transparent; border: 0; cursor: pointer;
-  font: 600 13px var(--font); color: var(--text-muted);
+  background: transparent; border: 1px solid transparent; cursor: pointer;
+  font: 600 var(--text-sm) var(--font); color: var(--text-muted);
+  text-decoration: none;
 }
-.seg button:hover { color: var(--text); }
+.seg button:hover, .seg a:hover { color: var(--text); }
+.seg button:focus-visible, .seg a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.seg button[aria-pressed="true"], .seg button[aria-checked="true"],
+.seg [aria-current]:not([aria-current="false"]),
 .seg button.active {
   color: var(--text);
   background: var(--raise-grad);
-  border: 1px solid var(--raise-border);
+  border-color: var(--raise-border);
   box-shadow: var(--raise-shadow);
 }
 .seg.pill { border-radius: var(--radius-pill); }
-.seg.pill button { border-radius: var(--radius-pill); }
-.seg.sm button { padding: 2px 9px; font-size: 12px; }
+.seg.pill button, .seg.pill a { border-radius: var(--radius-pill); }
+.seg.sm button, .seg.sm a { padding: 2px 9px; font-size: var(--text-xs); }
 
-/* === Badges + chips ===================================================== */
-/* Badge: a state pill carrying a glyph + label (color + glyph redundancy).
-   Use it for the state of an entity: open, overdue, done, and so on. */
+/* === Badges, chips and filter chips =====================================
+   Three small labels, each looking like what it is:
+     - a badge states an entity's state, and always leads with its glyph;
+     - a chip names an attribute the thing carries, a tag or a category,
+       and is a plain neutral label;
+     - a filter chip is a filter in force, outlined, with a raised × that
+       removes it. */
 .badge {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: var(--space-1);
   padding: 1px 8px; border-radius: var(--radius-pill);
-  font-size: 11.5px; font-weight: 700; line-height: 1.55;
+  font-size: var(--text-2xs); font-weight: 700; line-height: 1.55;
   background: color-mix(in srgb, var(--text-muted) 18%, transparent);
   color: var(--text);
+  --glyph-size: 9px;
 }
 .badge.warn { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
 .badge.danger { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
-.badge.pr { background: color-mix(in srgb, var(--pr) 22%, transparent); color: var(--pr); }
+.badge.positive, .badge.pr { background: color-mix(in srgb, var(--positive) 22%, transparent); color: var(--positive); }
 .badge.accent { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-.badge::before {
-  font-size: 9px; line-height: 1;
-}
-.badge.warn::before { content: "▲"; }
-.badge.danger::before { content: "■"; }
-.badge.pr::before { content: "●"; }
-.badge.accent::before { content: "◆"; }
+.badge::before { content: none; }
+.badge.warn::before { content: ""; --glyph: var(--glyph-triangle); }
+.badge.danger::before { content: ""; --glyph: var(--glyph-square); }
+.badge.positive::before, .badge.pr::before { content: ""; --glyph: var(--glyph-circle); }
+.badge.accent::before { content: ""; --glyph: var(--glyph-diamond); }
 
-/* Chip: a flat, accent-tinted metadata pill for an attribute a thing
-   carries, such as a tag or a category. It has no border and no shadow.
-   A badge says "this is the state"; a chip says "this has the attribute". */
 .chip {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: var(--space-1);
   padding: 1px 8px; border-radius: var(--radius-sm);
-  font-size: 11.5px; font-weight: 600;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent);
+  font-size: var(--text-xs); font-weight: 600;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
 }
 
 /* === Cards ============================================================== */
 .card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 18px;
+  border-radius: var(--radius); padding: var(--space-4);
   box-shadow: var(--shadow-card);
 }
-.card-title { margin: 0 0 6px; font-size: 16px; font-weight: 700; }
-.card-subtitle { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
-.card-desc { margin: 0 0 14px; font-size: 13px; color: var(--text-muted); }
+.card-title { margin: 0 0 6px; font-size: var(--text-lg); font-weight: 700; }
+.card-subtitle { margin: 0 0 6px; font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); }
+.card-desc { margin: 0 0 var(--space-3); font-size: var(--text-sm); color: var(--text-muted); }
 
 /* === Key/value table for read-only record fields ======================== */
 /* Detail panes use this for displayed-only fields, not fake input boxes
    (elevation = interactivity). */
-.kv-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.kv-table { width: 100%; border-collapse: collapse; font-size: var(--text-md); }
 .kv-table th {
-  text-align: start; font-weight: 600; color: var(--text-muted); font-size: 13px;
-  padding-block: 8px; padding-inline: 0 16px; white-space: nowrap; vertical-align: top; width: 1%;
+  text-align: start; font-weight: 600; color: var(--text-muted); font-size: var(--text-sm);
+  padding-block: var(--space-2); padding-inline: 0 var(--space-4); white-space: nowrap; vertical-align: top; width: 1%;
 }
-.kv-table td { padding: 8px 0; color: var(--text); vertical-align: top; overflow-wrap: anywhere; }
+.kv-table td { padding: var(--space-2) 0; color: var(--text); vertical-align: top; overflow-wrap: anywhere; }
 .kv-table tr + tr th, .kv-table tr + tr td { border-top: 1px solid var(--border); }
 
-/* === Server-rendered dialogs ============================================
-   The backdrop dims gently, to 40%, because the panel's shadow does the
-   elevation work. Padding is generous and the drop shadow is large so the
-   panel reads as lifted. The panel is always one step brighter than the
-   page, and in dark mode that brightness step is what separates them. */
-.dialog-backdrop {
-  position: fixed; inset: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: center; padding: 24px;
-  background: color-mix(in srgb, #000 40%, transparent);
-}
-.dialog-backdrop[hidden] { display: none; }
+/* === Dialogs ==============================================================
+   A dialog is a native <dialog class="dialog">, rendered by the server and
+   shown with showModal(), or with a button carrying command="show-modal"
+   and commandfor naming it. The browser then keeps focus inside it, closes
+   it on Escape and draws its backdrop. The backdrop dims gently, to 40%,
+   because the panel's shadow does the elevation work, and the panel is
+   always one step brighter than the page. pudl-dialog.js adds the command
+   buttons in browsers that lack them.
+
+   The older markup, a .dialog panel inside a .dialog-backdrop shown by a
+   project's own script, still works. */
 .dialog {
   width: 100%; max-width: 480px;
   background: var(--dialog-bg, var(--surface));
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow:
       var(--shadow-card),
       0 24px 64px rgba(0, 0, 0, 0.32);
-  padding: 24px 26px;
+  padding: var(--space-5);
+}
+dialog.dialog { margin: auto; max-height: calc(100vh - 2 * var(--space-5)); overflow: auto; }
+dialog.dialog:not([open]) { display: none; }
+dialog.dialog::backdrop { background: color-mix(in srgb, #000 40%, transparent); }
+.dialog-backdrop {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: var(--space-5);
+  background: color-mix(in srgb, #000 40%, transparent);
 }
 .dialog-title {
-  margin: 0 0 8px;
-  font-size: 17px; font-weight: 700;
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-lg); font-weight: 700;
   color: var(--text);
 }
 .dialog-body {
-  margin: 0 0 22px;
+  margin: 0 0 var(--space-5);
   color: var(--text-muted);
-  font-size: 14px; line-height: 1.55;
+  font-size: var(--text-md); line-height: 1.55;
 }
 .dialog-actions {
-  display: flex; justify-content: flex-end; gap: 8px;
+  display: flex; justify-content: flex-end; gap: var(--space-2);
 }
 
-/* === Master–detail layout (the new primary layout primitive) ============ */
+/* === Master-detail layout ================================================ */
 /* body:has(> .md-layout) is full-viewport flex; the toolbar + chip row +
    body fill the page. Scoped to a DIRECT child so a reference demo or any
    other embedded .md-layout doesn't accidentally kill page scrolling. */
@@ -577,7 +694,7 @@ body:has(> .md-layout) {
 }
 .md-toolbar {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 16px; background: var(--surface);
+  padding: var(--space-2) var(--space-4); background: var(--surface);
   border-bottom: 1px solid var(--border); flex: none;
   --ctl-h: 30px;
 }
@@ -590,7 +707,7 @@ body:has(> .md-layout) {
 .md-toolbar .md-filter { padding: 4px 12px; }
 .md-filter {
   box-sizing: border-box; flex: none; width: 220px;
-  padding: 6px 11px; font-size: 13px;
+  padding: 6px 11px; font-size: var(--text-sm);
   background: var(--input-bg); color: var(--text);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   box-shadow: var(--entry-shadow);
@@ -602,9 +719,7 @@ body:has(> .md-layout) {
 
 /* A filter that applies on submission pairs the input with a raised apply
    button, so the action that can be pressed looks pressable. The two are
-   drawn joined, the sunken input meeting the raised button. The glyph is a
-   mask over an inline SVG, since the Unicode magnifying glass is an emoji
-   on some platforms. */
+   drawn joined, the sunken input meeting the raised button. */
 .md-filter-group { display: inline-flex; align-items: stretch; margin: 0; }
 .md-filter-group .md-filter {
   flex: 1; min-width: 0;
@@ -630,13 +745,13 @@ body:has(> .md-layout) {
 }
 .md-toolbar-sep {
   width: 1px; height: var(--ctl-h);
-  background: var(--border); align-self: center; margin: 0 4px;
+  background: var(--border); align-self: center; margin: 0 var(--space-1);
 }
 
 /* Active-filter chips, below the toolbar. */
 .md-chips {
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-  padding: 8px 16px; background: var(--surface);
+  padding: var(--space-2) var(--space-4); background: var(--surface);
   border-bottom: 1px solid var(--border); flex: none;
 }
 /* A chips row with no chips is hidden. It is tested by what it holds, not
@@ -646,27 +761,31 @@ body:has(> .md-layout) {
 .md-chips:not(:has(.filter-chip)) { display: none; }
 .filter-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 3px 6px 3px 10px;
+  padding: 2px 3px 2px 10px;
   border-radius: var(--radius-pill);
-  font-size: 12px; font-weight: 600;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  font-size: var(--text-xs); font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   color: var(--accent);
 }
-.fc-kind {
-  opacity: .65; font-weight: 500; font-size: 10px;
+/* .fc-kind is the old name for .filter-chip-kind. */
+.filter-chip-kind, .fc-kind {
+  opacity: .7; font-weight: 500; font-size: var(--text-2xs);
   text-transform: uppercase; letter-spacing: .04em;
 }
+/* The × removes the filter, so it is a small raised button. */
 .filter-chip-x {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: none; color: inherit; text-decoration: none;
-  font-size: 14px; line-height: 1; opacity: .7;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--raise-grad); border: 1px solid var(--raise-border);
+  box-shadow: var(--raise-shadow);
+  color: var(--text-muted); text-decoration: none;
+  font-size: var(--text-sm); line-height: 1;
 }
-.filter-chip-x:hover {
-  opacity: 1; background: color-mix(in srgb, var(--accent) 28%, transparent);
-}
+.filter-chip-x:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.filter-chip-x:focus-visible { outline: none; box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); }
 .md-chips-clear {
-  font-size: 12px; color: var(--accent); text-decoration: underline; cursor: pointer;
+  font-size: var(--text-xs); color: var(--accent); text-decoration: underline; cursor: pointer;
 }
 
 /* Body row: sidebar + resize + detail. */
@@ -695,7 +814,7 @@ body:has(> .md-layout) {
 .md-resize:focus-visible { outline: none; }
 .md-resize:focus-visible::before { background: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
 .md-detail {
-  flex: 1; overflow-y: auto; padding: 24px; min-width: 0;
+  flex: 1; overflow-y: auto; padding: var(--space-5); min-width: 0;
   background: var(--bg);
 }
 
@@ -713,7 +832,7 @@ body:has(> .md-layout) {
 .md-layout { container: md / inline-size; }
 
 @container md (max-width: 640px) {
-  .md-toolbar { flex-wrap: wrap; padding: 8px 12px; }
+  .md-toolbar { flex-wrap: wrap; padding: var(--space-2) var(--space-3); }
   .md-toolbar .md-filter { flex: 1 1 100%; width: auto; }
   .md-toolbar .md-filter-group { flex: 1 1 100%; }
   .md-toolbar-spacer { display: none; }
@@ -723,7 +842,7 @@ body:has(> .md-layout) {
   /* The list pane fills the layout, and its rows are touch targets. */
   .md-sidebar { flex: 1; width: auto; border-inline-end: 0; }
   .md-sidebar .md-item { padding-top: 10px; padding-bottom: 10px; }
-  .md-detail { display: none; padding: 16px; }
+  .md-detail { display: none; padding: var(--space-4); }
 
   /* The detail pane: the list, its toolbar and its filters step aside. A
      toolbar of site-wide tools, such as a launcher or a window dock, is
@@ -734,19 +853,20 @@ body:has(> .md-layout) {
   .md-layout[data-md-pane="detail"] .md-detail { display: block; }
 
   .md-back {
-    display: inline-flex; align-items: center; gap: 4px;
-    margin-bottom: 12px;
-    font-size: 14px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: var(--space-1);
+    margin-bottom: var(--space-3);
+    font-size: var(--text-md); font-weight: 600;
   }
-  .md-back::before { content: "\2039"; font-size: 18px; line-height: 1; text-decoration: none; }
-  .md-back:dir(rtl)::before { content: "\203A"; }
 }
+.md-back::before { --glyph: var(--glyph-back); --glyph-size: 14px; }
+.md-back:dir(rtl)::before { transform: scaleX(-1); }
 
-/* Sidebar rows: compact text list (not big touch targets); 3px accent edge
-   on the side facing the detail pane for the active row. */
+/* Sidebar rows: a compact list, not big touch targets except on a narrow
+   layout. The current row, marked aria-current on its link, carries a 3px
+   accent edge on the side facing the detail pane and a bold title. */
 .md-section-label {
-  padding: 14px 14px 4px;
-  font-size: 11px; font-weight: 700; letter-spacing: .06em;
+  padding: 14px 14px var(--space-1);
+  font-size: var(--text-2xs); font-weight: 700; letter-spacing: .06em;
   text-transform: uppercase; color: var(--text-muted);
 }
 .md-row {
@@ -755,25 +875,27 @@ body:has(> .md-layout) {
   border-bottom: 1px solid var(--surface-alt);
 }
 .md-row:hover { background: var(--surface-alt); }
+.md-row:has(> [aria-current]:not([aria-current="false"])),
 .md-row.active {
   background: var(--surface-alt);
   border-inline-end-color: var(--accent);
 }
+.md-row:has(> [aria-current]:not([aria-current="false"])) .md-item,
 .md-row.active .md-item { font-weight: 700; color: var(--text); }
 .md-item {
   flex: 1; min-width: 0;
   padding: 5px 14px;
-  font-size: 13px; line-height: 1.5;
+  font-size: var(--text-sm); line-height: 1.5;
   color: var(--text); text-decoration: none;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   cursor: pointer;
 }
 .md-item .md-meta {
-  display: block; font-size: 11px; font-weight: 500; color: var(--text-muted);
+  display: block; font-size: var(--text-2xs); font-weight: 500; color: var(--text-muted);
 }
 .md-grip {
   flex: none; width: 22px; text-align: center; cursor: grab;
-  color: var(--text-muted); font-size: 14px; line-height: 1;
+  color: var(--text-muted); font-size: var(--text-md); line-height: 1;
 }
 
 /* === Menus ===============================================================
@@ -789,9 +911,7 @@ body:has(> .md-layout) {
    master-detail sidebar, grouped under .md-section-label headings. Actions
    are .menu-action buttons, set apart by an .menu-sep rule. */
 .menu { display: inline-flex; position: relative; }
-.menu-btn::after {
-  content: "\25BE"; font-size: 11px; line-height: 1; opacity: .75;
-}
+.menu-btn::after { --glyph: var(--glyph-caret); --glyph-size: 12px; opacity: .75; }
 .menu:has(> .menu-panel:popover-open) > .menu-btn {
   background: var(--raise-active-bg);
   box-shadow: var(--raise-active-shadow);
@@ -820,7 +940,7 @@ body:has(> .md-layout) {
 }
 .menu-panel.sheet .md-item { padding-top: 10px; padding-bottom: 10px; }
 
-.menu-panel .md-section-label { padding: 10px 14px 4px; }
+.menu-panel .md-section-label { padding: 10px 14px var(--space-1); }
 .menu-panel .md-section-label:first-child { padding-top: 6px; }
 .menu-panel .md-row { border-bottom: 0; }
 .menu-panel .md-item:focus-visible,
@@ -830,16 +950,16 @@ body:has(> .md-layout) {
 }
 .menu-panel .md-item:dir(rtl):focus-visible,
 .menu-action:dir(rtl):focus-visible { box-shadow: inset -3px 0 var(--accent); }
-.menu-panel .md-filter { display: block; width: calc(100% - 20px); margin: 4px 10px 6px; }
+.menu-panel .md-filter { display: block; width: calc(100% - 20px); margin: var(--space-1) 10px 6px; }
 .menu-panel form { margin: 0; }
-.menu-empty { margin: 0; padding: 6px 14px; font-size: 13px; color: var(--text-muted); }
+.menu-empty { margin: 0; padding: 6px 14px; font-size: var(--text-sm); color: var(--text-muted); }
 
 .menu-sep { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
 .menu-action {
-  display: flex; align-items: center; gap: 8px; width: 100%;
+  display: flex; align-items: center; gap: var(--space-2); width: 100%;
   padding: 6px 14px;
   background: none; border: 0; border-radius: 0;
-  font: 13px/1.5 var(--font); color: var(--text); text-align: start;
+  font: var(--text-sm)/1.5 var(--font); color: var(--text); text-align: start;
   cursor: pointer;
 }
 .menu-action:hover { background: var(--surface-alt); }
@@ -868,18 +988,28 @@ body:has(> .md-layout) {
 @media (forced-colors: active) {
   :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px !important; }
   .btn, .icon-btn, .seg, .form-input, .form-select, .form-textarea, .md-filter,
-  .switch-track, .menu-panel, .dialog, .card { border: 1px solid CanvasText; }
-  .seg button.active, .section-tab.active, .md-row.active,
+  .switch-track, .switch-thumb, .menu-panel, .dialog, .card, .section-tab,
+  .filter-chip, .filter-chip-x { border: 1px solid CanvasText; }
+  .seg button[aria-pressed="true"], .seg button[aria-checked="true"],
+  .seg [aria-current]:not([aria-current="false"]), .seg button.active,
+  .section-tab[aria-current]:not([aria-current="false"]), .section-tab.active,
+  .md-row:has(> [aria-current]:not([aria-current="false"])), .md-row.active,
   .btn[aria-pressed="true"], .menu:has(> .menu-panel:popover-open) > .menu-btn {
     forced-color-adjust: none;
     background: Highlight; color: HighlightText; border-color: Highlight;
   }
+  .md-row:has(> [aria-current]:not([aria-current="false"])) .md-item,
+  .md-row:has(> [aria-current]:not([aria-current="false"])) .md-meta,
   .md-row.active .md-item, .md-row.active .md-meta { color: HighlightText; }
-  .md-row:not(.active) { border-inline-end-color: Canvas; }
+  .md-row:not(.active):not(:has(> [aria-current]:not([aria-current="false"]))) { border-inline-end-color: Canvas; }
   .switch[aria-checked="true"] .switch-track { forced-color-adjust: none; background: Highlight; border-color: Highlight; }
-  .switch[aria-checked="true"] .switch-thumb { forced-color-adjust: none; background: HighlightText; }
-  .switch-thumb { forced-color-adjust: none; background: CanvasText; }
-  .md-filter-go::before { forced-color-adjust: none; background: ButtonText; }
+  .switch-thumb { forced-color-adjust: none; background: Canvas; }
+  /* Glyphs are masks, exempt from the system's recolouring so that they
+     still paint, so they are painted in the system's own colours here. */
+  .badge::before, .form-error::before, .menu-btn::after, .md-back::before,
+  .md-filter-go::before { forced-color-adjust: none; background: CanvasText; }
+  .md-filter-go::before, .menu-btn::after { background: ButtonText; }
+  .menu:has(> .menu-panel:popover-open) > .menu-btn::after { background: HighlightText; }
   .md-resize::before { background: CanvasText; inset: 0 2.5px; }
   .md-resize:hover::before, .md-resize.dragging::before, .md-resize:focus-visible::before { background: Highlight; }
   .badge { border: 1px solid CanvasText; }
