@@ -82,6 +82,8 @@ The lighting tokens are what keep the raised and sunken surfaces readable on a n
 
 The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one and gives it a light topbar. `examples/parchment.css` restores the warm parchment and leather palette with serif headings that PUDL used by default up to 0.2.0, which is also the Andoneer look.
 
+The topbar keeps its own colours so that it can stay dark on a light page, and the links on it follow the topbar, not the page. The brand and any plain link on the topbar hover in `--tb-link-hover`, which PUDL derives by mixing the accent into the topbar's foreground, so that it reads on a dark bar and on a light one. A theme may set it.
+
 PUDL sets text in Inter, which it ships in `dist/fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
 
 ## What a project may change
@@ -127,6 +129,19 @@ The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its butt
 An open menu is not part of the URL. It is momentary, like a hover, and everything it leads to has an address of its own.
 
 A **launcher** is a menu button first in the row that holds a window dock, whose panel reaches everything a site offers: one section per category, a filter at the top, and site-wide actions at the foot. Put it in a toolbar marked `.md-site-tools` so that it stays on screen when a narrow master-detail layout shows a record, and the reader can reach everything from inside an article on a phone. `samples/article-reader.html` has one.
+
+## Filtering a list
+
+A master-detail toolbar's filter that applies on submission pairs its input with a raised apply button, since an action that can be pressed must look pressable. The two are drawn joined, and the button's magnifying glass comes from the stylesheet:
+
+```html
+<form class="md-filter-group" action="/expenses" method="get" role="search">
+  <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
+  <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter"></button>
+</form>
+```
+
+Enter applies the filter as well. On a narrow layout the pair takes a row of the toolbar to itself. A filter that narrows as the reader types, such as the one at the top of a launcher, needs no button, because there is nothing to apply.
 
 ## Master-detail on a narrow screen
 
@@ -225,6 +240,8 @@ The active window's title bar comes from four tokens a theme may set: `--win-act
 
 A window's markup may give it a starting mode with `data-win-mode` and no position, and it opens in that mode, with a cascade position to restore to. A reading site opens its articles maximised this way.
 
+A window opened by a link inside another window opens in that window's state instead, so following a link never overturns the reader's arrangement: maximised from a maximised window, the same half from a snapped one, and from a floating window, floating one step down and to the right so the opener stays in sight, starting again near the top left when the step would run past the edge. A window opened from outside any window, from a list, a menu or the dock, keeps its markup's default. In full, a new window's placement comes from the URL if it names one, then from a `pudl:window-place` listener, then from its opener, then from a position in its markup, then from its markup's mode. The event's `detail.opener` names the opening window's key, or is null.
+
 ### Child windows
 
 A window can open children for content that belongs to it, such as a source listing, an image or a receipt. A child's markup names its parent:
@@ -233,7 +250,7 @@ A window can open children for content that belongs to it, such as a source list
 <article class="win" data-win="art-12-listing-1" data-win-parent="art-12" data-win-mode="maximized">
 ```
 
-The relation belongs to the content, so it lives in the markup and the URL does not repeat it: the child appears in `open` like any other window. A link inside the parent with `data-win-open` opens the child. A child has no minimise button, because it has no dock tab to come back from, and usually has only close.
+The relation belongs to the content, so it lives in the markup and the URL does not repeat it: the child appears in `open` like any other window. A link inside the parent with `data-win-open` opens the child. A child's buttons are maximise, which also restores, and close. It has no minimise button, because it has no dock tab to come back from. A child opened from a floating parent floats, and the reader may want to maximise it and restore it again.
 
 - A child stacks directly above its parent, and bringing the parent forward brings its children with it.
 - Minimising the parent hides its children, and closing the parent closes them.
@@ -308,7 +325,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.10.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.11.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 

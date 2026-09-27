@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.10.0.
+   Version 0.11.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -90,6 +90,9 @@
   --radius-sm: 7px;      /* buttons and entries */
   --radius-pill: 999px;
 
+  /* Glyphs the stylesheet draws, as SVG masks filled with currentColor. */
+  --glyph-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='6.5' cy='6.5' r='4.75' fill='none' stroke='black' stroke-width='2'/%3E%3Cpath d='M10.2 10.2L14.5 14.5' stroke='black' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+
   /* === Derived ==============================================================
      Computed from the palette. A theme should not need to set any of these. */
 
@@ -134,6 +137,10 @@
   --tb-brand: var(--tb-fg);
   --tb-chrome-fg: color-mix(in srgb, var(--tb-fg) 80%, var(--tb-bg));
   --tb-chrome-hover-fg: var(--tb-fg);
+  /* Links on the topbar, the brand among them, hover in the accent mixed
+     into the topbar's own foreground, which reads on a dark bar and on a
+     light one alike. A theme may set it. */
+  --tb-link-hover: color-mix(in srgb, var(--accent) 45%, var(--tb-fg));
   --tb-chip: linear-gradient(
       color-mix(in srgb, var(--tb-fg) 19%, transparent),
       color-mix(in srgb, var(--tb-fg) 10%, transparent));
@@ -216,6 +223,11 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
   color: var(--tb-brand); text-decoration: none;
 }
+/* The page's link colours are made for the page, not for the topbar, so a
+   plain link on the topbar takes the topbar's colours instead, and the
+   brand, like it, hovers in --tb-link-hover. */
+.topbar a:not([class]) { color: var(--tb-chrome-fg); }
+.brand:hover, .topbar a:not([class]):hover { color: var(--tb-link-hover); }
 .topbar-chrome {
   display: inline-flex; align-items: center; gap: 8px;
 }
@@ -574,6 +586,31 @@ body:has(> .md-layout) {
   border-color: var(--accent); outline: none;
   box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring);
 }
+
+/* A filter that applies on submission pairs the input with a raised apply
+   button, so the action that can be pressed looks pressable. The two are
+   drawn joined, the sunken input meeting the raised button. The glyph is a
+   mask over an inline SVG, since the Unicode magnifying glass is an emoji
+   on some platforms. */
+.md-filter-group { display: inline-flex; align-items: stretch; margin: 0; }
+.md-filter-group .md-filter {
+  flex: 1; min-width: 0;
+  border-top-right-radius: 0; border-bottom-right-radius: 0;
+}
+.md-filter-go {
+  flex: none; width: 32px; height: auto;
+  margin-left: -1px;
+  border-top-left-radius: 0; border-bottom-left-radius: 0;
+  color: var(--text-muted);
+}
+.md-filter-go::before {
+  content: ""; width: 14px; height: 14px;
+  background: currentColor;
+  -webkit-mask: var(--glyph-search) center / contain no-repeat;
+  mask: var(--glyph-search) center / contain no-repeat;
+}
+.md-filter-go:focus-visible { outline: none; box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); position: relative; }
+.md-toolbar .md-filter-group { height: var(--ctl-h); }
 .md-toolbar-spacer { flex: 1; }
 .md-toolbar-cmds {
   flex: none; display: flex; align-items: center; gap: 6px;
@@ -651,6 +688,7 @@ body:has(> .md-layout) {
 @container md (max-width: 640px) {
   .md-toolbar { flex-wrap: wrap; padding: 8px 12px; }
   .md-toolbar .md-filter { flex: 1 1 100%; width: auto; }
+  .md-toolbar .md-filter-group { flex: 1 1 100%; }
   .md-toolbar-spacer { display: none; }
   .md-toolbar-cmds { flex-wrap: wrap; }
   .md-resize { display: none; }

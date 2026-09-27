@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.0
+
+- A window opened by a link inside another window opens in that window's state: maximised from maximised, the same half from a snapped half, and from a floating window, floating one step down and to the right, wrapping to the top left at the edge. Opens from outside any window keep the markup's default. `pudl:window-place` gains `detail.opener`.
+- A child window's buttons are now maximise, which also restores, and close. The samples' child windows carry both.
+- The filter's apply button: a `form.md-filter-group` joins the `.md-filter` input to an `.icon-btn.md-filter-go` submit button, whose magnifying glass is drawn by the stylesheet. The reference page's master-detail demos use it.
+- `--tb-link-hover`, a hover colour for links on the topbar, derived from the accent and the topbar's foreground. The brand used the page's link hover, which on a light theme was a dark colour on the dark bar; it now uses this token, and plain links on the topbar take the topbar's colours.
+- The reference page's receipt child now opens floating, because the expense it is opened from floats.
+- These came from parkscomputing.com; `docs/proposals/window-workspace.md` records them.
+
 ## 0.10.0
 
 - Applets. The new optional `dist/pudl-applets.js` lets interactive content run unchanged in a page of its own or inside a window. A mount names the applet's script, stylesheet and page; the script registers `init(root, opts)` returning an instance with `destroy()`; and `opts` says whether the applet is in a page or a window and so whether it owns the URL. The runtime loads assets once and starts and destroys applets as windows open and close. The README sets out the contract.
