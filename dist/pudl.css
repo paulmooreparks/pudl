@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.17.0.
+   Version 0.18.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -142,6 +142,7 @@
   --glyph-sort-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 6L8 11.5 12.5 6z'/%3E%3C/svg%3E");
   --glyph-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Ccircle cx='8' cy='5' r='1'/%3E%3Cpath d='M8 7.4v4.2' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
   --glyph-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M5.2 8.2l2 2 3.8-4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --glyph-empty: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1.8 9.2l2-5.4h8.4l2 5.4v3.6a.8.8 0 0 1-.8.8H2.6a.8.8 0 0 1-.8-.8z' fill='none' stroke='black' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M1.8 9.2h3.6l.9 1.6h3.4l.9-1.6h3.6' fill='none' stroke='black' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E");
   --glyph-stop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.4 1.8h5.2l3.6 3.6v5.2l-3.6 3.6H5.4l-3.6-3.6V5.4z' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M8 4.8v4' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='11' r='1'/%3E%3C/svg%3E");
 
   /* === Derived ==============================================================
@@ -291,7 +292,8 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
    size where the text's own size is not right. */
 .badge::before, .form-error::before, .menu-btn::after, .md-back::before,
 .notice::before, .toast::before, .data-table th[aria-sort] > :is(a, button)::after,
-.notice-close::before, .toast-close::before {
+.notice-close::before, .toast-close::before, .empty-state::before,
+.page-link[rel="prev"]::before, .page-link[rel="next"]::after {
   content: ""; flex: none;
   width: var(--glyph-size, 1em); height: var(--glyph-size, 1em);
   background: currentColor;
@@ -354,28 +356,29 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
    current tab paints over it from inside the bar. Nothing reaches past the
    bar's edge, which matters because the bar scrolls sideways on a narrow
    screen, and a box that scrolls clips whatever reaches past its edges. */
-.app-section-bar {
+.app-section-bar, .tablist {
   display: flex; flex: none; align-items: flex-end; gap: var(--space-1);
   padding: 6px var(--space-4) 0;
   overflow-x: auto;
   background: var(--recess-bg);
   box-shadow: inset 0 -1px var(--border), var(--recess-shadow);
 }
-.section-tab {
+.section-tab, .tablist > [role="tab"] {
   padding: 5px 14px 4px;
-  font-size: var(--text-sm); font-weight: 600;
+  font: 600 var(--text-sm) var(--font);
   color: var(--text); text-decoration: none;
-  white-space: nowrap;
+  white-space: nowrap; cursor: pointer;
   background: var(--raise-grad);
   border: 1px solid var(--raise-border); border-bottom: 0;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   box-shadow: inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent);
 }
-.section-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
-.section-tab:active { background: var(--raise-active-bg); }
-.section-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.section-tab:hover, .tablist > [role="tab"]:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.section-tab:active, .tablist > [role="tab"]:active { background: var(--raise-active-bg); }
+.section-tab:focus-visible, .tablist > [role="tab"]:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .section-tab[aria-current]:not([aria-current="false"]),
-.section-tab.active {
+.section-tab.active,
+.tablist > [role="tab"][aria-selected="true"] {
   padding: 7px 14px 6px;
   color: var(--text);
   background: var(--section-current-bg);
@@ -383,7 +386,27 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   box-shadow: none;
 }
 .section-tab[aria-current]:not([aria-current="false"]):focus-visible,
-.section-tab.active:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+.section-tab.active:focus-visible,
+.tablist > [role="tab"][aria-selected="true"]:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+
+/* === Tabs within a page ==================================================
+   The ARIA tab pattern: a .tablist of role="tab" buttons over role="tabpanel"
+   panels, inside a .tabs wrapper. They look like section tabs, since to the
+   reader both are tabs; the difference is that section tabs go to other
+   addresses and these switch panels in place. pudl-tabs.js shows the chosen
+   panel, moves between tabs with the arrow keys, and keeps the chosen
+   panel in the address's fragment, so it can be linked to and survives a
+   reload. Without the script the tab list is hidden and every panel shows,
+   one after another. */
+.tabs { --section-current-bg: var(--surface); }
+.tabs:not(.tabs-ready) > .tablist { display: none; }
+.tabs > [role="tabpanel"] {
+  padding: var(--space-4);
+  background: var(--section-current-bg);
+  border: 1px solid var(--border); border-top: 0;
+}
+.tabs:not(.tabs-ready) > [role="tabpanel"] { border-top: 1px solid var(--border); margin-bottom: var(--space-3); }
+.tabs > [role="tabpanel"]:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
 
 /* A region that pudl-regions.js is replacing dims a little while the new
    content is on its way, after a moment, so a fast answer never flickers. */
@@ -558,6 +581,49 @@ button.link {
   font-size: var(--text-sm); color: var(--danger); margin: var(--space-1) 0 var(--space-3);
 }
 .form-error::before { --glyph: var(--glyph-warning); }
+
+/* A field whose value the server refused is marked aria-invalid="true",
+   with its .form-error tied to it by aria-describedby. It takes a danger
+   border and a danger focus ring, and the message beside it carries the
+   glyph, so the state never rests on the border's colour alone. */
+.form-input[aria-invalid="true"], .form-select[aria-invalid="true"], .form-textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.form-input[aria-invalid="true"]:focus, .form-select[aria-invalid="true"]:focus, .form-textarea[aria-invalid="true"]:focus {
+  border-color: var(--danger);
+  box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring-danger);
+}
+.form-input:disabled, .form-select:disabled, .form-textarea:disabled { opacity: .55; cursor: not-allowed; }
+
+/* A required field's label carries an asterisk, drawn by the stylesheet
+   from the field's own required attribute and hidden from assistive
+   technology, which hears "required" from the field itself. */
+.form-group:has(:required) > .form-label::after {
+  content: "*" / "";
+  margin-inline-start: 3px; color: var(--danger);
+}
+.form-help { margin: 0; font-size: var(--text-sm); color: var(--text-muted); }
+.form-group > .form-error { margin: 0; }
+
+.form-fieldset {
+  margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.form-fieldset > legend { padding: 0 var(--space-1); font-size: var(--text-sm); font-weight: 600; }
+.form-options { display: flex; flex-direction: column; gap: var(--space-2); }
+.form-options.inline { flex-direction: row; flex-wrap: wrap; gap: var(--space-2) var(--space-5); }
+
+/* A file field: its button is a raised button, the file name flat text. */
+.form-file { font: inherit; font-size: var(--text-sm); color: var(--text-muted); max-width: 100%; }
+.form-file::file-selector-button {
+  margin-inline-end: var(--space-3);
+  padding: 6px 12px; border-radius: var(--radius-sm);
+  font: 600 var(--text-sm) var(--font); color: var(--text);
+  border: 1px solid var(--raise-border);
+  background: var(--raise-grad); box-shadow: var(--raise-shadow);
+  cursor: pointer;
+}
+.form-file::file-selector-button:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 
 /* === Segmented control / view switcher ================================== */
 /* An inset trough of choices, the chosen one raised in it. Use it for two
@@ -1148,6 +1214,85 @@ body:has(> .md-layout) {
 .toast-text { flex: 1; min-width: 0; margin: 2px 0 0; }
 .toast.leaving { opacity: 0; transform: translateY(8px); }
 
+/* === Empty and loading states ============================================
+   An empty state says there is nothing here yet, and what to do about it:
+   a drawn glyph, a title, a line of text and perhaps an action. A loading
+   state is a spinner with words beside it, in a role="status" element, so
+   it is announced and never rests on the animation alone. A region being
+   refreshed by pudl-regions.js dims as well. */
+.empty-state {
+  display: grid; justify-items: center; gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  text-align: center; color: var(--text-muted);
+  --glyph: var(--glyph-empty); --glyph-size: 36px;
+}
+.empty-state::before { opacity: .7; margin-bottom: var(--space-1); }
+.empty-state-title { margin: 0; font-size: var(--text-lg); font-weight: 700; color: var(--text); }
+.empty-state-body { margin: 0; max-width: 42ch; font-size: var(--text-md); }
+.empty-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-2); margin-top: var(--space-2); }
+
+.spinner {
+  display: inline-block; flex: none; vertical-align: middle;
+  width: 1.2em; height: 1.2em; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-top-color: currentColor;
+  animation: pudl-spin .8s linear infinite;
+}
+@keyframes pudl-spin { to { transform: rotate(360deg); } }
+.loading {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  font-size: var(--text-sm); color: var(--text-muted);
+}
+
+/* === Tooltips ============================================================
+   A tooltip names a control that shows only a glyph, such as an icon
+   button, a window button or a filter's apply button. pudl-tooltip.js
+   shows one for any element with data-tooltip, or with an aria-label on a
+   glyph-only control, after a moment of hover or at once on keyboard
+   focus. It stays while the pointer moves onto it, and Escape dismisses
+   it, as WCAG 1.4.13 asks. */
+.tooltip {
+  margin: 0; padding: 4px 8px;
+  max-width: 18rem;
+  border: 0; border-radius: 5px;
+  background: var(--text); color: var(--bg);
+  font: 600 var(--text-xs)/1.4 var(--font);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--shade) calc(var(--depth) * 1.4), transparent);
+  pointer-events: auto;
+}
+.tooltip.placing { visibility: hidden; }
+
+/* === Pagination ==========================================================
+   Pages of a long list, each an address such as ?page=3, so paging works
+   without script and a page can be shared. The page links are raised
+   small buttons; the current page, marked aria-current="page", is pressed
+   in, because the reader is already there. Previous and next carry rel
+   and a glyph, and at either end are marked aria-disabled with no href. */
+.pagination { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
+.pagination-summary { margin-inline-end: var(--space-3); font-size: var(--text-sm); color: var(--text-muted); }
+.page-link {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1);
+  min-width: 32px; height: 32px; padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--raise-border);
+  background: var(--raise-grad); box-shadow: var(--raise-shadow);
+  font: 600 var(--text-sm) var(--font); color: var(--text);
+  text-decoration: none; font-variant-numeric: tabular-nums;
+  --glyph: var(--glyph-back); --glyph-size: 12px;
+}
+.page-link:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.page-link:focus-visible { outline: none; box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); }
+.page-link[aria-current]:not([aria-current="false"]) {
+  background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow);
+  border-color: var(--raise-border-hover);
+}
+.page-link[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.page-link[rel="next"]::after { transform: scaleX(-1); }
+.page-link[rel="prev"]:dir(rtl)::before { transform: scaleX(-1); }
+.page-link[rel="next"]:dir(rtl)::after { transform: none; }
+.page-gap { padding: 0 var(--space-1); color: var(--text-muted); }
+
 /* === Reduced motion ======================================================
    A reader who has asked their system for less motion gets none: every
    transition and animation completes at once. */
@@ -1197,6 +1342,13 @@ body:has(> .md-layout) {
     forced-color-adjust: none; background: ButtonText;
   }
   .notice, .toast, .notice-close, .toast-close, .data-table-wrap { border: 1px solid CanvasText; }
+  .tablist > [role="tab"], .page-link, .tabs > [role="tabpanel"], .tooltip { border: 1px solid CanvasText; }
+  .tablist > [role="tab"][aria-selected="true"], .page-link[aria-current]:not([aria-current="false"]) {
+    forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight;
+  }
+  .empty-state::before { forced-color-adjust: none; background: CanvasText; }
+  .page-link[rel="prev"]::before, .page-link[rel="next"]::after { forced-color-adjust: none; background: ButtonText; }
+  .spinner { border-color: GrayText; border-top-color: CanvasText; }
   .notice, .toast { border-inline-start-width: 4px; }
   .data-table th[aria-sort] > :is(a, button) { border: 1px solid ButtonText; }
   .data-table tr[aria-selected="true"], .data-table tr:has(> .data-table-check input:checked) {
@@ -1221,7 +1373,8 @@ body:has(> .md-layout) {
   }
   .topbar, .app-section-bar, .md-toolbar, .md-chips, .md-resize, .md-back,
   .menu, .menu-panel, .dialog-backdrop, .theme-toggle,
-  .toast-region, .notice-close { display: none !important; }
+  .toast-region, .notice-close, .tablist, .pagination, .tooltip { display: none !important; }
+  .tabs > [role="tabpanel"] { display: block !important; border: 0; padding: 0 0 var(--space-4); }
   .data-table-wrap { overflow: visible; border: 0; }
   .data-table thead th { position: static; }
   .data-table th[aria-sort] > :is(a, button) { background: none; box-shadow: none; border: 0; }

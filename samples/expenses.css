@@ -1,0 +1,30 @@
+/* === Expenses sample (these pages only) ====================================
+   A small application page: a topbar, the section tabs, and content on the
+   page background, so the current tab takes --bg to open into it. */
+.app-section-bar { --section-current-bg: var(--bg); }
+.app-main { max-width: 64rem; margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-6); }
+.app-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.app-head h1 { margin: 0; flex: 1; font-size: var(--text-2xl); }
+.app-tools {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.app-tools .md-filter-group { height: 32px; }
+.app-tools .md-filter { width: 16rem; }
+.app-tools .spacer { flex: 1; }
+.app-stack { display: grid; gap: var(--space-4); }
+.app-foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.record-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin: 0 0 var(--space-4); }
+.receipt-thumb {
+  display: grid; place-items: center; width: 12rem; height: 15rem;
+  border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  color: var(--text-muted); font-size: var(--text-sm); background: var(--surface-alt);
+}
+.history { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); font-size: var(--text-md); }
+.history time { color: var(--text-muted); font-size: var(--text-sm); margin-inline-end: var(--space-2); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } .app-tools .md-filter { width: 100%; } }
+.sample-note { font-size: var(--text-sm); color: var(--text-muted); }

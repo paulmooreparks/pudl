@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expenses, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="expenses.css">
+  <script src="../dist/pudl-toast.js" defer></script>
+  <script src="../dist/pudl-tooltip.js" defer></script>
+</head>
+<body>
+  <!-- A small expense tracker. A server would render this list from the
+       address: its filter, sort order and page all live in the query. This
+       static sample shows one rendering of it. -->
+
+  <header class="topbar">
+    <a class="brand" href="expenses.html">Expenses</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark" onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">PUDL reference</a>
+    </div>
+  </header>
+
+  <nav class="app-section-bar" aria-label="Sections">
+    <a class="section-tab" href="expenses.html" aria-current="page">Expenses</a>
+    <a class="section-tab" href="expenses.html">Trips</a>
+    <a class="section-tab" href="expenses.html">Reports</a>
+  </nav>
+
+  <main class="app-main">
+    <div class="app-head">
+      <h1>Expenses</h1>
+      <a class="btn btn-primary" href="expense-edit.html">New expense</a>
+    </div>
+
+    <div class="app-stack">
+      <div class="notice warn" role="status">
+        <div class="notice-content">
+          <p class="notice-title">Two receipts are due by Friday</p>
+          <p class="notice-body">The airport transfer and the taxi from the airport have no receipt yet.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="app-tools">
+          <form class="md-filter-group" action="expenses.html" method="get" role="search">
+            <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
+            <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter"></button>
+          </form>
+          <div class="seg" aria-label="Which expenses">
+            <a href="expenses.html" aria-current="page">Open</a>
+            <a href="expenses-archived.html">Archived</a>
+          </div>
+          <span class="spacer"></span>
+          <span class="chip">Trip: Manila, October</span>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table stack">
+            <caption>Open expenses, sorted by date, newest first</caption>
+            <thead>
+              <tr>
+                <th aria-sort="none"><a href="expenses.html?sort=merchant">Expense</a></th>
+                <th aria-sort="descending"><a href="expenses.html?sort=date&amp;dir=asc">Date</a></th>
+                <th>Account</th>
+                <th>State</th>
+                <th class="num" aria-sort="none"><a href="expenses.html?sort=amount">Amount (PHP)</a></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Expense"><a href="expense.html">Hotel, Makati, three nights</a></td>
+                <td data-label="Date"><time datetime="2026-10-19">2026-10-19</time></td>
+                <td data-label="Account">Billable</td>
+                <td data-label="State"><span class="badge positive">approved</span></td>
+                <td class="num" data-label="Amount">21,600.00</td>
+              </tr>
+              <tr>
+                <td data-label="Expense"><a href="expense.html">Client dinner, Poblacion</a></td>
+                <td data-label="Date"><time datetime="2026-10-18">2026-10-18</time></td>
+                <td data-label="Account">Billable</td>
+                <td data-label="State"><span class="badge accent">submitted</span></td>
+                <td class="num" data-label="Amount">8,450.00</td>
+              </tr>
+              <tr>
+                <td data-label="Expense"><a href="expense.html">Airport transfer</a></td>
+                <td data-label="Date"><time datetime="2026-10-16">2026-10-16</time></td>
+                <td data-label="Account">Billable</td>
+                <td data-label="State"><span class="badge warn">receipt due</span></td>
+                <td class="num" data-label="Amount">1,200.00</td>
+              </tr>
+              <tr>
+                <td data-label="Expense"><a href="expense.html">Taxi from the airport</a></td>
+                <td data-label="Date"><time datetime="2026-10-16">2026-10-16</time></td>
+                <td data-label="Account">Billable</td>
+                <td data-label="State"><span class="badge warn">receipt due</span></td>
+                <td class="num" data-label="Amount">640.00</td>
+              </tr>
+              <tr>
+                <td data-label="Expense"><a href="expense.html">Team dinner</a></td>
+                <td data-label="Date"><time datetime="2026-10-15">2026-10-15</time></td>
+                <td data-label="Account">Non-billable</td>
+                <td data-label="State"><span class="badge">draft</span></td>
+                <td class="num" data-label="Amount">6,800.00</td>
+              </tr>
+              <tr>
+                <td data-label="Expense"><a href="expense.html">SIM card and data</a></td>
+                <td data-label="Date"><time datetime="2026-10-15">2026-10-15</time></td>
+                <td data-label="Account">Internal</td>
+                <td data-label="State"><span class="badge danger">rejected</span></td>
+                <td class="num" data-label="Amount">1,450.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="app-foot">
+        <nav class="pagination" aria-label="Pages of expenses">
+          <span class="pagination-summary">Showing 1 to 6 of 14</span>
+          <a class="page-link" rel="prev" aria-disabled="true">Previous</a>
+          <a class="page-link" href="expenses.html?page=1" aria-current="page">1</a>
+          <a class="page-link" href="expenses.html?page=2">2</a>
+          <a class="page-link" href="expenses.html?page=3">3</a>
+          <a class="page-link" href="expenses.html?page=2" rel="next">Next</a>
+        </nav>
+        <span class="sample-note">A sample: every page of this list is the same page here.</span>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-region" role="status" aria-live="polite"></div>
+  <script>
+    /* Standing in for the server: after a save or a delete, the server
+       would render this toast into the region above. */
+    (function () {
+      var q = new URLSearchParams(location.search);
+      document.addEventListener('DOMContentLoaded', function () {
+        if (q.get('saved')) pudlToast('Expense saved.', { kind: 'positive' });
+        if (q.get('deleted')) pudlToast('Expense deleted.', { kind: 'positive' });
+      });
+    })();
+  </script>
+</body>
+</html>
