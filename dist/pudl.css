@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.13.0.
+   Version 0.13.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -257,25 +257,30 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 /* After the notebook widget in desktop toolkits: a recessed band of inactive tabs; the active tab "punches
    through" the baseline so it visually merges with the content below.
    Use it for section navigation within a page. */
+/* The bar's baseline is drawn as part of its own background, not as a
+   border, so the active tab, which sits inside the bar, paints over it. The
+   tab never has to reach outside the bar to cover the line, which matters
+   because the bar scrolls sideways on a narrow screen, and a box that
+   scrolls clips whatever reaches past its edges. */
 .app-section-bar {
-  display: flex; padding: 0 16px;
+  display: flex; flex: none; padding: 0 16px;
+  overflow-x: auto;
   background: var(--surface-alt);
-  border-bottom: 1px solid var(--border);
+  box-shadow: inset 0 -1px var(--border);
 }
 .section-tab {
   padding: 9px 14px 8px;
   font-size: 13px; font-weight: 600;
   color: var(--text-muted); text-decoration: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  white-space: nowrap;
 }
 .section-tab:hover { color: var(--text); }
 .section-tab.active {
   color: var(--text); background: var(--surface);
   border-bottom-color: var(--surface);
-  box-shadow: inset 0 1px var(--border), 1px 0 var(--border), -1px 0 var(--border);
+  box-shadow: inset 0 1px var(--border), inset 1px 0 var(--border), inset -1px 0 var(--border);
 }
-.app-section-bar { flex: none; overflow-x: auto; }
 
 /* A region that pudl-regions.js is replacing dims a little while the new
    content is on its way, after a moment, so a fast answer never flickers. */
