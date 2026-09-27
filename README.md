@@ -43,18 +43,18 @@ Copy the contents of `dist/` from a tagged release into your project, keeping th
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl-theme.js"
-        integrity="sha384-MVBsHKpekAHr+tn0bTWhvmuChc2GE0LuMgNXVtxFYU2ht0dMVHtSreaYuhhEb2my"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl-theme.js"
+        integrity="sha384-kd6cwrRNLEIY/49jBdC7mBi1fiFbf9DSlyMfmX61QgrtAc8YnUTEKkrBjKoBMgnY"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl.css"
-      integrity="sha384-0KDuj/W+9nsMs647kprASYGczzEENeZkp0YGc9WGa183u1g1tEBl6EANzEPAbgQG"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl.css"
+      integrity="sha384-4OdMMoWO1HYvt0yjCpiTy7OPpOipccFbllA/irdb3rHFKqmHp2Kkep6S3JXJ8kFm"
       crossorigin="anonymous">
 ```
 
 With the menu script as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl-menu.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl-menu.js" defer
         integrity="sha384-1kO7JKPZoWXqkA1JhKPckGE0mDt0R7aV7lKvDJFRjPdSeODg6bHHTFCNtHD4q6rn"
         crossorigin="anonymous"></script>
 ```
@@ -62,10 +62,10 @@ With the menu script as well:
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl-windows.css"
-      integrity="sha384-7s443j9ph17NXFry338A2M5BGMkpefQiumRzjT5TuH88SaaaSer1zVbmElZo56eK"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl-windows.css"
+      integrity="sha384-xej2kqljDGG8NIe7OJTv4DJWuYfD1NnKN1TLjBkff1qWg0UhixngnaMwYt60tHx5"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl-windows.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl-windows.js" defer
         integrity="sha384-qrKqTMti3yaMOXPNqQOqPIco3XT5Jng2QWeW3F7C05IO4nmzccxyGt0ReXN5CAeE"
         crossorigin="anonymous"></script>
 ```
@@ -73,7 +73,7 @@ With floating windows as well:
 With applets as well, loaded after the windows script:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl-applets.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl-applets.js" defer
         integrity="sha384-4BlbnPHxhT+UBhPRmhtSCdUC8YuxKiKdWi4gW5zOJDraqi8f6LyjTmoH1xS1ODcn"
         crossorigin="anonymous"></script>
 ```
@@ -81,7 +81,7 @@ With applets as well, loaded after the windows script:
 With regions as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.12.0/dist/pudl-regions.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.13.0/dist/pudl-regions.js" defer
         integrity="sha384-BELTFXSuVOfP/PtduWHssp4lZivGsDQRxf0ZgxA9I1F+H0qLk5pAAmuunQt1pQCm"
         crossorigin="anonymous"></script>
 ```
