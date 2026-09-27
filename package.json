@@ -1,0 +1,12 @@
+{
+  "name": "pudl-tests",
+  "private": true,
+  "description": "Browser tests for PUDL. PUDL itself has no build and no dependencies; this file exists only to run the tests.",
+  "scripts": {
+    "test": "node tests/run.js chromium",
+    "test:all": "node tests/run.js chromium firefox webkit"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

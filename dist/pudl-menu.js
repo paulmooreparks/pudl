@@ -130,7 +130,13 @@
   document.addEventListener('beforetoggle', function (e) {
     var panel = e.target;
     if (!panel.classList || !panel.classList.contains('menu-panel')) return;
-    if (e.newState === 'open') panel.classList.add('placing');
+    /* The filter starts empty every time the panel opens. beforetoggle
+       fires for every opening, whereas the toggle events of a quick close
+       and reopen can be merged into one, so the clearing belongs here. */
+    if (e.newState === 'open') {
+      panel.classList.add('placing');
+      resetFilter(panel);
+    }
   }, true);
 
   document.addEventListener('toggle', function (e) {
