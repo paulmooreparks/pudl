@@ -12,6 +12,7 @@
   <script src="../dist/pudl-menu.js" defer></script>
   <script src="../dist/pudl-applets.js" defer></script>
   <script src="../dist/pudl-regions.js" defer></script>
+  <script src="../dist/pudl-md.js" defer></script>
 </head>
 <body>
   <!-- One page per category, as a server would render for each tab. Only the
@@ -37,6 +38,21 @@
   </nav>
 
   <div class="md-layout" data-md-pane="list">
+    <script>
+      /* The list's width is the reader's to choose. It is applied here, as
+         the layout is parsed, so the page never draws at the default first,
+         and saved whenever pudl-md.js reports a change. */
+      (function (layout) {
+        try {
+          var w = localStorage.getItem('reader-sidebar-w');
+          if (w) layout.style.setProperty('--md-sidebar-w', w);
+          layout.addEventListener('pudl:md-resize', function (e) {
+            if (e.detail.reset) localStorage.removeItem('reader-sidebar-w');
+            else localStorage.setItem('reader-sidebar-w', e.detail.width + 'px');
+          });
+        } catch (e) { /* storage blocked: the default width serves */ }
+      })(document.currentScript.parentElement);
+    </script>
     <div class="md-toolbar md-site-tools">
       <div class="menu">
         <button class="btn btn-sm menu-btn" popovertarget="launcher"><svg class="launcher-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg> Browse</button>
@@ -66,6 +82,7 @@
         <div class="md-section-label">August 2026</div>
         <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span></a></div>
       </nav>
+      <div class="md-resize" role="separator" aria-orientation="vertical" aria-label="Resize the article list"></div>
       <div class="md-detail reader-stage">
         <div class="reader-col">
           <a class="md-back" href="?" data-win-back>Articles</a>
