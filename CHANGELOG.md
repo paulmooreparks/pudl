@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.2
+
+- The dark theme's active title bar no longer draws an accent rule along its foot, which read as a divider and pulled the eye. Its accent tint is a little stronger instead, so the active bar still stands apart from the others, and the active window keeps its accent frame and stronger shadow. A theme that wants the rule back can set it in `--win-active-shadow`.
+
 ## 0.13.1
 
 - Fixed: the active section tab showed the bar's baseline under it, so the tab no longer read as joined to the content below. 0.12.0 let the section bar scroll sideways on a narrow screen, and a box that scrolls clips anything reaching past its edge, including the pixel by which the active tab covered the bar's bottom border. The bar now draws its baseline as part of its own background, and the active tab paints over it from inside the bar.
