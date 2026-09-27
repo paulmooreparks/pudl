@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.13.2.
+   Version 0.14.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -668,19 +668,29 @@ body:has(> .md-layout) {
 
 /* Body row: sidebar + resize + detail. */
 .md-body { display: flex; flex: 1; min-height: 0; }
+/* The sidebar's width is --md-sidebar-w, which pudl-md.js sets as the
+   divider is dragged and a project may set from a stored preference. The
+   stylesheet holds it between --md-sidebar-min and half the layout, so the
+   limits apply however the width was set, and still apply when the layout
+   narrows after a drag. */
 .md-sidebar {
-  width: var(--md-sidebar-w, 260px); flex: none; min-height: 0; overflow-y: auto;
+  width: clamp(var(--md-sidebar-min, 180px), var(--md-sidebar-w, 260px), 50%);
+  flex: none; min-height: 0; overflow-y: auto;
   background: var(--surface); border-right: 1px solid var(--border);
 }
 .md-resize {
   flex: none; width: 6px; margin: 0 -3px; z-index: 3; cursor: col-resize;
   background: transparent; position: relative;
+  touch-action: none;
 }
 .md-resize::before {
   content: ""; position: absolute; inset: 0 2px; border-radius: 2px;
   background: transparent; transition: background .12s;
 }
-.md-resize:hover::before { background: var(--accent); }
+.md-resize:hover::before,
+.md-resize.dragging::before { background: var(--accent); }
+.md-resize:focus-visible { outline: none; }
+.md-resize:focus-visible::before { background: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
 .md-detail {
   flex: 1; overflow-y: auto; padding: 24px; min-width: 0;
   background: var(--bg);

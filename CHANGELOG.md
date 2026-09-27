@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.14.0
+
+- The master-detail sidebar resizes. The new optional `dist/pudl-md.js` makes the `.md-resize` divider move by pointer and by keyboard (Left and Right, Shift for a larger step, Home and End to the limits, double-click to reset), following the ARIA window-splitter pattern. It sets `--md-sidebar-w` on the layout and fires `pudl:md-resize` when a change ends; PUDL keeps no state, and the README shows how to remember the width without a jump on load.
+- The stylesheet holds the sidebar between `--md-sidebar-min` (180px) and half the layout, whether the width came from a drag, a stored preference or a theme.
+- Fixed: windows could rise over what surrounded their host, such as the half of a master-detail divider that overlaps the detail pane, which a maximised window then covered. `.win-host` now keeps its windows' stacking to itself.
+- The reference page's master-detail demo and the article reader sample have working dividers, and the sample remembers the reader's width.
+- From parkscomputing.com (`Architecture/pudl-proposal-sidebar-resize.md` in that repository).
+
 ## 0.13.2
 
 - The dark theme's active title bar no longer draws an accent rule along its foot, which read as a divider and pulled the eye. Its accent tint is a little stronger instead, so the active bar still stands apart from the others, and the active window keeps its accent frame and stronger shadow. A theme that wants the rule back can set it in `--win-active-shadow`.

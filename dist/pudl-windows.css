@@ -51,7 +51,10 @@
 
 /* The host is the region the windows float over, usually the main area
    below the topbar. It does not scroll; the content inside it does. */
-.win-host { position: relative; }
+.win-host { position: relative; isolation: isolate; }
+/* isolation keeps the windows' stacking inside the host, so a window never
+   rises over what surrounds the host, such as a master-detail divider that
+   straddles the host's edge. */
 
 .win-layer {
   position: absolute; inset: 0; z-index: 50;

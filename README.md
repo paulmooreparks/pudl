@@ -159,6 +159,35 @@ A master-detail toolbar's filter that applies on submission pairs its input with
 
 Enter applies the filter as well. On a narrow layout the pair takes a row of the toolbar to itself. A filter that narrows as the reader types, such as the one at the top of a launcher, needs no button, because there is nothing to apply.
 
+## Resizing the master-detail sidebar
+
+The optional `pudl-md.js` makes the `.md-resize` divider between the sidebar and the detail pane move. Dragging it sets `--md-sidebar-w` on the `.md-layout`, and the stylesheet holds the sidebar between `--md-sidebar-min`, 180px by default, and half the layout, so the limits apply however the width was set and still apply when the layout narrows later. With the divider focused, Left and Right move it 16px, Shift with them 64px, and Home and End go to the limits; a double-click returns it to the default 260px. The divider follows the ARIA window-splitter pattern, and the script gives it a tab stop and keeps its `aria-valuenow`, `aria-valuemin` and `aria-valuemax` current.
+
+```html
+<div class="md-resize" role="separator" aria-orientation="vertical" aria-label="Resize the list"></div>
+```
+
+A sidebar's width is the reader's convenience, not something to link to, so it is not part of the URL, and PUDL keeps no state for it. When a change ends, at the end of a drag or once the arrow keys go quiet, `pudl:md-resize` fires on the layout with `detail.width` in pixels, or `detail.reset` true after a double-click. A project that remembers the width stores it and applies it before the page is first drawn, so the reader never sees the default width jump to theirs: render it into the layout's `style` on the server, or set it from a line of inline script placed first inside the layout, as the article reader sample does:
+
+```html
+<div class="md-layout">
+  <script>
+    (function (layout) {
+      try {
+        var w = localStorage.getItem('sidebar-w');
+        if (w) layout.style.setProperty('--md-sidebar-w', w);
+        layout.addEventListener('pudl:md-resize', function (e) {
+          if (e.detail.reset) localStorage.removeItem('sidebar-w');
+          else localStorage.setItem('sidebar-w', e.detail.width + 'px');
+        });
+      } catch (e) { /* the default width serves */ }
+    })(document.currentScript.parentElement);
+  </script>
+  …
+```
+
+Windows in the detail pane are sized as fractions of their area, so they follow the divider as it moves. On a layout narrow enough to show one pane at a time the divider is hidden.
+
 ## Master-detail on a narrow screen
 
 The master-detail layout shows a list beside one record. When the layout itself is 640px wide or less, on a phone or in a narrow window or panel, it shows one pane at a time instead: the list, or the record. It measures its own width with a container query, not the screen's, so a layout inside a narrow floating window behaves the same way as one on a phone.
@@ -350,6 +379,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-menu.js`, the optional script that places menu panels and adds their keyboard and filter
   - `pudl-applets.js`, the optional applet runtime
   - `pudl-regions.js`, the optional script that swaps only the regions a navigation changes
+  - `pudl-md.js`, the optional script that resizes the master-detail sidebar
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -361,7 +391,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.13.2 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.14.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
