@@ -460,15 +460,40 @@
     return el;
   }
 
+  /* The key of the window an element sits in, or null. */
+  function hostOf(elm) {
+    var w = elm && elm.closest && elm.closest('.win');
+    return w && layer.contains(w) && wins[w.getAttribute('data-win')] ? w.getAttribute('data-win') : null;
+  }
+
+  /* A window opened from a link inside another window opens in that
+     window's state: maximised from maximised, the same half from a snapped
+     half, and from a floating window, floating one step down and to the
+     right, so the opener stays in sight behind it. A step that would run
+     past the edge starts again near the top left. */
+  var OPENER_STEP = 0.03;
+  function fromOpener(host) {
+    var p = state.place[host];
+    if (!p) return null;
+    var x = p.x + OPENER_STEP, y = p.y + OPENER_STEP;
+    if (x + p.w > 1) x = OPENER_STEP;
+    if (y + p.h > 1) y = OPENER_STEP;
+    return { mode: p.mode, x: x, y: y, w: p.w, h: p.h };
+  }
+
   /* The placement a window opens with when the URL gives none: whatever a
-     pudl:window-place listener supplies, then the server's style attribute,
-     then a cascade from the top left. */
-  function initialPlacement(key, el, index) {
+     pudl:window-place listener supplies, then its opener's state when a link
+     inside a window opened it, then the server's style attribute, then the
+     markup's mode with a cascade from the top left. */
+  function initialPlacement(key, el, index, host) {
     var ev = new CustomEvent('pudl:window-place', {
-      detail: { key: key, parent: el.getAttribute('data-win-parent') || null, placement: null }
+      detail: { key: key, parent: el.getAttribute('data-win-parent') || null, opener: host || null, placement: null }
     });
     layer.dispatchEvent(ev);
     if (validPlacement(ev.detail.placement)) return Object.assign({}, ev.detail.placement);
+
+    var inherited = host && fromOpener(host);
+    if (inherited) return inherited;
 
     var s = el.style;
     var mode = MODES.indexOf(el.getAttribute('data-win-mode')) >= 0 ? el.getAttribute('data-win-mode') : 'floating';
@@ -502,13 +527,15 @@
     }
     if (pending[key]) return;
     pending[key] = true;
+    var host = hostOf(from);              // read now: the opener may close while this loads
     load(key).then(function (el) {
       delete pending[key];
       if (wins[key]) return;            // opened meanwhile, by Back or Forward
       adopt(el);
       var st = copy(state);
       st.open.push(key);
-      st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), layer.clientWidth, layer.clientHeight);
+      st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, host && wins[host] ? host : null),
+                                     layer.clientWidth, layer.clientHeight);
       st.top = key;
       openers[key] = from || null;
       commit(st, true);

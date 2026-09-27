@@ -70,7 +70,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.10.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.11.0</a>
     </div>
   </header>
 
@@ -211,7 +211,10 @@
       <div class="layout-demo">
         <div class="md-layout" data-md-pane="detail">
           <div class="md-toolbar">
-            <input class="md-filter" placeholder="Filter expenses…">
+            <form class="md-filter-group" action="#md" method="get" role="search">
+              <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
+              <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter" title="Apply the filter"></button>
+            </form>
             <div class="seg"><button class="active">Open</button><button>Archived</button></div>
             <span class="md-toolbar-spacer"></span>
             <div class="md-toolbar-cmds">
@@ -276,7 +279,10 @@
       <div class="md-phone">
         <div class="md-layout" data-md-pane="list">
           <div class="md-toolbar">
-            <input class="md-filter" placeholder="Filter expenses…">
+            <form class="md-filter-group" action="#md" method="get" role="search">
+              <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
+              <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter" title="Apply the filter"></button>
+            </form>
             <div class="seg"><button class="active">Open</button><button>Archived</button></div>
             <div class="md-toolbar-cmds"><button class="btn btn-sm btn-primary">+ Expense</button></div>
           </div>
@@ -299,7 +305,10 @@
       <div class="md-phone">
         <div class="md-layout" data-md-pane="detail">
           <div class="md-toolbar">
-            <input class="md-filter" placeholder="Filter expenses…">
+            <form class="md-filter-group" action="#md" method="get" role="search">
+              <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
+              <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter" title="Apply the filter"></button>
+            </form>
           </div>
           <div class="md-body">
             <nav class="md-sidebar"></nav>
@@ -400,6 +409,7 @@
         <header class="win-head">
           <h2 class="win-title">Receipt: Hotel, Makati</h2>
           <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="maximize" href="#windows" aria-label="Maximize" title="Maximize"></a>
             <a class="win-btn" data-win-action="close" href="#windows" aria-label="Close" title="Close"></a>
           </nav>
         </header>
