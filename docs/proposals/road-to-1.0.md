@@ -1,6 +1,6 @@
 # Proposal: the road to 1.0
 
-Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0. The consistency pass shipped in 0.16.0, all ten items except the Architectural Principles document, which is left for 1.0, and it added notebook section tabs, since the flat tab bar broke the elevation rule too. The missing components shipped in 0.17.0 and 0.18.0, with the expense tracker sample. What remains before 1.0 is 0.19.0: the contract document, the tests in the repository with CI across three engines, and the Architectural Principles brought into line.
+Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0. The consistency pass shipped in 0.16.0, all ten items except the Architectural Principles document, which is left for 1.0, and it added notebook section tabs, since the flat tab bar broke the elevation rule too. The missing components shipped in 0.17.0 and 0.18.0, with the expense tracker sample. 0.19.0 shipped the contract (`docs/CONTRACT.md`), the tests in the repository with CI across Chromium, Firefox and WebKit, and the Architectural Principles brought into line. What remains is 1.0 itself: a release candidate adopted by parkscomputing.com and one application, then the tag.
 
 ## What 1.0 means
 
@@ -79,7 +79,7 @@ These are the gaps an application built on PUDL will hit first, roughly in order
 2. **0.16**: the consistency pass (state attributes, pills, switch, names, type and spacing tokens, native dialog), with aliases for everything renamed.
 3. **0.17**: the data table, notices and toasts, and menus summoned by a key, which is how PUDL answers parkscomputing.com's go palette (`docs/proposals/go-palette.md`).
    **0.18**: form states, tabs within a page, empty and loading states, tooltips and pagination, and the application sample that shows them all.
-4. **0.19**: the contract document, the tests in the repository with CI across three engines, and the reference page in one register.
+4. **0.19**: the contract document, the tests in the repository with CI across three engines, and the Architectural Principles brought into line.
 5. **1.0**: a release candidate adopted by parkscomputing.com and one application, then the tag.
 
 **For 1.0, at Paul's suggestion (2026-09-28):** the expense-tracking sample that 0.18 introduces as static pages grows into a fully fledged demo application, with a real server rendering what each URL names, so that it shows the whole contract working end to end: windows and regions against a live server, validation from the server, sorting and paging as addresses, dialogs and toasts after real posts. It is also the natural first user of the server helpers suggested above.

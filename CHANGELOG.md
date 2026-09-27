@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.19.0
+
+- The contract. `docs/CONTRACT.md` lists everything a project may rely on: the files, the tokens a theme may set or read, the classes, data attributes, events, functions and address grammar, and what is internal. From 1.0 it changes only in a major release, and anything removed from it is deprecated first.
+- The tests are in the repository. `npm test` runs fourteen suites against the samples and the reference page in Chromium, `npm run test:all` runs them in Firefox and WebKit too, and GitHub Actions runs all three engines on every push and pull request.
+- A window that arrives after the reader has moved on no longer takes focus. Opening a window and pressing <kbd>/</kbd> before its content arrived left focus on the window rather than the launcher's filter, so what the reader typed went nowhere. A window now takes focus only if focus has not moved since it was asked for. Reported from parkscomputing.com.
+- A menu's filter is cleared every time its panel opens. When a browser merged the toggle events of a quick close and reopen, the old filter text stayed.
 ## 0.18.0
 
 - Form states. A field marked `aria-invalid="true"` takes a danger border and focus ring beside its `.form-error`; a required field's label carries an asterisk drawn from its `required` attribute; and there are `.form-help`, `.form-fieldset` with its legend, `.form-options` for radio and checkbox groups, `.form-file` with a raised button, and a disabled state.

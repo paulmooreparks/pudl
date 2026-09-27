@@ -27,7 +27,7 @@ The article reader fetches its windows from the server, so to run it from a copy
 - **Dialogs are native dialog elements rendered by the server**, and a page never falls back on the browser's own `confirm()`.
 - **Glyphs are drawn, not typed.** Every glyph in PUDL's chrome is an SVG mask from the stylesheet, so it looks the same everywhere and never turns into a colour emoji.
 
-`reference.html` shows every component in both themes and lists the rest of the invariants.
+`reference.html` shows every component in both themes and lists the rest of the invariants. [`docs/CONTRACT.md`](docs/CONTRACT.md) lists every class, token, attribute, event and function a project may rely on, and what is internal.
 
 ## Using it
 
@@ -614,13 +614,19 @@ Everything a project uses is in `dist/`, and everything else supports it.
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
 - `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; and `expenses.html` with `expense.html`, `expense-edit.html` and `expenses-archived.html`, the expense tracker, static pages standing in for what a server would render. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
+- `docs/CONTRACT.md`, everything a project may rely on
 - `docs/proposals/`, design proposals and the decisions taken on them
+- `tests/`, the browser tests, with `package.json` to install Playwright
 - `RELEASING.md`, the steps for cutting a release
 - `CHANGELOG.md`, what changed in each release
 
+## Tests
+
+The tests drive the samples and the reference page in real browsers through Playwright. `npm ci` installs it, `npx playwright install` fetches the browsers, `npm test` runs every suite in Chromium, and `npm run test:all` runs them in Chromium, Firefox and WebKit. `node tests/run.js firefox windows` runs one engine and only the suites whose names contain `windows`. The runner serves the repository itself on port 8765. GitHub Actions runs all three engines on every push and pull request.
+
 ## Status
 
-This is version 0.18.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.19.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
