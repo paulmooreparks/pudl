@@ -152,7 +152,7 @@
 
 /* The glyphs come from here, so the server renders each button empty with
    an aria-label, and the maximise button's glyph follows the window's mode. */
-.win-btn[data-win-action="page"]::before { content: "\2197"; }
+.win-btn[data-win-action="page"]::before { content: "\2197\FE0E"; }
 .win-btn[data-win-action="minimize"]::before { content: "\2013"; }
 .win-btn[data-win-action="maximize"]::before { content: "\25A1"; font-size: 14px; }
 .win-btn[data-win-action="close"]::before { content: "\00D7"; font-size: 16px; }
@@ -214,14 +214,15 @@
    so the relation does not rest on the indent alone. */
 .md-row-child .md-item {
   position: relative;
-  padding-left: 32px;
+  padding-inline-start: 32px;
   font-size: 12.5px;
 }
 .md-row-child .md-item::before {
   content: "\2514";
-  position: absolute; left: 16px;
+  position: absolute; inset-inline-start: 16px;
   color: var(--text-muted);
 }
+.md-row-child .md-item:dir(rtl)::before { content: "\2518"; }
 
 /* === Dock ================================================================
    One tab per open window, in the order they were opened. A tab raises its
@@ -248,3 +249,38 @@
 .win-tab[aria-current="true"] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 .win-tab.minimized { color: var(--text-muted); }
 .win-tab.minimized::before { content: "\25CB"; color: var(--text-muted); }
+
+/* === Forced colours ======================================================
+   The frame and buttons keep visible borders, and the active window's
+   title bar and the dock's current tab take the system's highlight, since
+   the shadows and tints that mark them otherwise are removed. */
+@media (forced-colors: active) {
+  .win, .win-head, .win-body, .win-btn, .win-tab { border: 1px solid CanvasText; }
+  .win.active { border: 2px solid Highlight; }
+  .win.active .win-head, .win-tab[aria-current="true"] {
+    forced-color-adjust: none;
+    background: Highlight; color: HighlightText; border-color: Highlight;
+  }
+  .win.active .win-head .win-btn { forced-color-adjust: none; background: Canvas; color: CanvasText; }
+  .win-ghost { border-color: Highlight; }
+}
+
+/* === Print ===============================================================
+   The window in front prints as the page's content, title and body,
+   without its frame, buttons or the dock; the others do not print. */
+@media print {
+  .win-host { height: auto !important; }
+  .win-layer { position: static; overflow: visible; }
+  .win-dock, .win-ghost, .win-rh, .win-chrome,
+  .win:not(.active), .win[hidden] { display: none !important; }
+  .win.active {
+    position: static; width: auto; height: auto;
+    padding: 0; border: 0; box-shadow: none; background: none;
+  }
+  /* What lies under the windows on screen is covered by them, so it does
+     not print while a window does. */
+  .win-host:has(.win.active) > :not(.win-layer) { display: none !important; }
+  .win.active .win-head { background: none; border: 0; box-shadow: none; padding: 0 0 8px; color: #000000; }
+  .win.active .win-title { font-size: 18px; white-space: normal; }
+  .win.active .win-body { overflow: visible; border: 0; padding: 0; }
+}

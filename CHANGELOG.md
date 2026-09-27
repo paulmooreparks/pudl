@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.15.0
+
+- High contrast. In Windows' high-contrast mode, which removes every shadow, focus is drawn as a real outline, controls keep visible borders, and selected and pressed states, the active window's title bar and the current dock tab take the system's highlight colours. Before, focus did not show at all in that mode.
+- Reduced motion. A reader who asks their system for less motion gets no transitions or animations.
+- Right to left. The stylesheet uses logical properties where the reading direction matters, and on a right-to-left page the master-detail sidebar, its divider (pointer and keys), the selected-row marker, menu placement, the back link and child-row glyphs, and the switch all mirror. Window positions stay physical, since they are coordinates in the URL.
+- The words the scripts write into the page can come from the page: `data-win-text-maximize`, `-restore`, `-minimized` and `-head` on the window layer, `data-menu-empty` on a menu panel, and `data-md-valuetext` on the sidebar divider. English remains the default.
+- Print. Chrome does not print, pages print black on white from either theme, a master-detail layout showing a record prints the record alone, and the window in front prints as the page's content while other windows, and what lies under them, do not.
+- The form error's ⚠ and the window's ↗ ask for their text form, so they cannot render as colour emoji.
+- The first release on the road to 1.0; `docs/proposals/road-to-1.0.md` sets out the rest.
+
 ## 0.14.0
 
 - The master-detail sidebar resizes. The new optional `dist/pudl-md.js` makes the `.md-resize` divider move by pointer and by keyboard (Left and Right, Shift for a larger step, Home and End to the limits, double-click to reset), following the ARIA window-splitter pattern. It sets `--md-sidebar-w` on the layout and fires `pudl:md-resize` when a change ends; PUDL keeps no state, and the README shows how to remember the width without a jump on load.

@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.14.0.
+   Version 0.15.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -402,7 +402,7 @@ button.link {
 /* Read-only fields render as flat display, not input chrome. */
 .form-input[readonly], .form-select[disabled] {
   background: transparent; border-color: transparent; box-shadow: none;
-  padding-left: 0; padding-right: 0; cursor: default;
+  padding-inline: 0; cursor: default;
 }
 ::placeholder { color: var(--text-muted); opacity: .5; }
 
@@ -426,7 +426,7 @@ button.link {
   transition: background .15s, border-color .15s;
 }
 .switch-thumb {
-  position: absolute; top: 2px; left: 2px;
+  position: absolute; top: 2px; inset-inline-start: 2px;
   width: 16px; height: 16px; border-radius: 50%;
   background: var(--text-muted);
   transition: transform .15s, background .15s;
@@ -437,6 +437,7 @@ button.link {
 .switch[aria-checked="true"] .switch-thumb {
   transform: translateX(18px); background: var(--on-accent);
 }
+.switch:dir(rtl)[aria-checked="true"] .switch-thumb { transform: translateX(-18px); }
 .switch:focus-visible .switch-track {
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
@@ -445,7 +446,9 @@ button.link {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 13px; color: var(--danger); margin: 4px 0 12px;
 }
-.form-error::before { content: "⚠"; }
+/* U+FE0E asks for the text form of the glyph, which some platforms would
+   otherwise draw as a colour emoji. */
+.form-error::before { content: "\26A0\FE0E"; }
 
 /* === Segmented control / view switcher ================================== */
 /* Inset trough with raised active segment. Use for boolean / few-option
@@ -521,8 +524,8 @@ button.link {
    (elevation = interactivity). */
 .kv-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .kv-table th {
-  text-align: left; font-weight: 600; color: var(--text-muted); font-size: 13px;
-  padding: 8px 16px 8px 0; white-space: nowrap; vertical-align: top; width: 1%;
+  text-align: start; font-weight: 600; color: var(--text-muted); font-size: 13px;
+  padding-block: 8px; padding-inline: 0 16px; white-space: nowrap; vertical-align: top; width: 1%;
 }
 .kv-table td { padding: 8px 0; color: var(--text); vertical-align: top; overflow-wrap: anywhere; }
 .kv-table tr + tr th, .kv-table tr + tr td { border-top: 1px solid var(--border); }
@@ -605,12 +608,12 @@ body:has(> .md-layout) {
 .md-filter-group { display: inline-flex; align-items: stretch; margin: 0; }
 .md-filter-group .md-filter {
   flex: 1; min-width: 0;
-  border-top-right-radius: 0; border-bottom-right-radius: 0;
+  border-start-end-radius: 0; border-end-end-radius: 0;
 }
 .md-filter-go {
   flex: none; width: 32px; height: auto;
-  margin-left: -1px;
-  border-top-left-radius: 0; border-bottom-left-radius: 0;
+  margin-inline-start: -1px;
+  border-start-start-radius: 0; border-end-start-radius: 0;
   color: var(--text-muted);
 }
 .md-filter-go::before {
@@ -676,7 +679,7 @@ body:has(> .md-layout) {
 .md-sidebar {
   width: clamp(var(--md-sidebar-min, 180px), var(--md-sidebar-w, 260px), 50%);
   flex: none; min-height: 0; overflow-y: auto;
-  background: var(--surface); border-right: 1px solid var(--border);
+  background: var(--surface); border-inline-end: 1px solid var(--border);
 }
 .md-resize {
   flex: none; width: 6px; margin: 0 -3px; z-index: 3; cursor: col-resize;
@@ -718,7 +721,7 @@ body:has(> .md-layout) {
   .md-resize { display: none; }
 
   /* The list pane fills the layout, and its rows are touch targets. */
-  .md-sidebar { flex: 1; width: auto; border-right: 0; }
+  .md-sidebar { flex: 1; width: auto; border-inline-end: 0; }
   .md-sidebar .md-item { padding-top: 10px; padding-bottom: 10px; }
   .md-detail { display: none; padding: 16px; }
 
@@ -736,6 +739,7 @@ body:has(> .md-layout) {
     font-size: 14px; font-weight: 600;
   }
   .md-back::before { content: "\2039"; font-size: 18px; line-height: 1; text-decoration: none; }
+  .md-back:dir(rtl)::before { content: "\203A"; }
 }
 
 /* Sidebar rows: compact text list (not big touch targets); 3px accent edge
@@ -747,13 +751,13 @@ body:has(> .md-layout) {
 }
 .md-row {
   display: flex; align-items: center;
-  border-right: 3px solid transparent;
+  border-inline-end: 3px solid transparent;
   border-bottom: 1px solid var(--surface-alt);
 }
 .md-row:hover { background: var(--surface-alt); }
 .md-row.active {
   background: var(--surface-alt);
-  border-right-color: var(--accent);
+  border-inline-end-color: var(--accent);
 }
 .md-row.active .md-item { font-weight: 700; color: var(--text); }
 .md-item {
@@ -824,6 +828,8 @@ body:has(> .md-layout) {
   outline: none; background: var(--surface-alt);
   box-shadow: inset 3px 0 var(--accent);
 }
+.menu-panel .md-item:dir(rtl):focus-visible,
+.menu-action:dir(rtl):focus-visible { box-shadow: inset -3px 0 var(--accent); }
 .menu-panel .md-filter { display: block; width: calc(100% - 20px); margin: 4px 10px 6px; }
 .menu-panel form { margin: 0; }
 .menu-empty { margin: 0; padding: 6px 14px; font-size: 13px; color: var(--text-muted); }
@@ -833,8 +839,69 @@ body:has(> .md-layout) {
   display: flex; align-items: center; gap: 8px; width: 100%;
   padding: 6px 14px;
   background: none; border: 0; border-radius: 0;
-  font: 13px/1.5 var(--font); color: var(--text); text-align: left;
+  font: 13px/1.5 var(--font); color: var(--text); text-align: start;
   cursor: pointer;
 }
 .menu-action:hover { background: var(--surface-alt); }
 .menu-action.danger { color: var(--danger); }
+
+/* === Reduced motion ======================================================
+   A reader who has asked their system for less motion gets none: every
+   transition and animation completes at once. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* === Forced colours ======================================================
+   In Windows' high-contrast mode the browser replaces the page's colours
+   with the reader's and removes every box-shadow. PUDL draws its focus
+   rings, and much of its raised and sunken treatment, with shadows, so
+   here focus becomes a real outline, controls keep visible borders, and
+   selected and pressed states take the system's highlight colours, since
+   an elevation change alone would not show. */
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid Highlight !important; outline-offset: 2px !important; }
+  .btn, .icon-btn, .seg, .form-input, .form-select, .form-textarea, .md-filter,
+  .switch-track, .menu-panel, .dialog, .card { border: 1px solid CanvasText; }
+  .seg button.active, .section-tab.active, .md-row.active,
+  .btn[aria-pressed="true"], .menu:has(> .menu-panel:popover-open) > .menu-btn {
+    forced-color-adjust: none;
+    background: Highlight; color: HighlightText; border-color: Highlight;
+  }
+  .md-row.active .md-item, .md-row.active .md-meta { color: HighlightText; }
+  .md-row:not(.active) { border-inline-end-color: Canvas; }
+  .switch[aria-checked="true"] .switch-track { forced-color-adjust: none; background: Highlight; border-color: Highlight; }
+  .switch[aria-checked="true"] .switch-thumb { forced-color-adjust: none; background: HighlightText; }
+  .switch-thumb { forced-color-adjust: none; background: CanvasText; }
+  .md-filter-go::before { forced-color-adjust: none; background: ButtonText; }
+  .md-resize::before { background: CanvasText; inset: 0 2.5px; }
+  .md-resize:hover::before, .md-resize.dragging::before, .md-resize:focus-visible::before { background: Highlight; }
+  .badge { border: 1px solid CanvasText; }
+}
+
+/* === Print ===============================================================
+   A printed page carries the content, on white, without the chrome: the
+   topbar, the tab bar, the toolbars, the filter chips and the divider.
+   A master-detail layout showing a record prints the record alone. */
+@media print {
+  :root, [data-theme="dark"] {
+    color-scheme: light;
+    --bg: #ffffff; --surface: #ffffff; --surface-alt: #f2f2f2;
+    --text: #000000; --text-muted: #444444; --border: #999999;
+    --accent: #1a3d6b; --accent-hover: #1a3d6b;
+  }
+  .topbar, .app-section-bar, .md-toolbar, .md-chips, .md-resize, .md-back,
+  .menu, .menu-panel, .dialog-backdrop, .theme-toggle { display: none !important; }
+  body:has(> .md-layout) { height: auto; overflow: visible; display: block; }
+  .md-layout, .md-body { display: block; height: auto; }
+  .md-sidebar, .md-detail { width: auto; overflow: visible; border: 0; }
+  .md-layout[data-md-pane="detail"] .md-sidebar { display: none; }
+  .btn, .icon-btn, .card, .dialog { box-shadow: none; }
+  a { color: #000000; }
+}

@@ -49,8 +49,11 @@
     panel.style.maxHeight = Math.max(120, Math.min(natural, down ? below : above)) + 'px';
 
     if (!narrow) {
+      /* The panel lines up with the button's start edge: its left in a
+         left-to-right page, its right in a right-to-left one. */
       var w = panel.offsetWidth;
-      panel.style.left = Math.max(EDGE, Math.min(r.left, vw - w - EDGE)) + 'px';
+      var start = getComputedStyle(btn).direction === 'rtl' ? r.right - w : r.left;
+      panel.style.left = Math.max(EDGE, Math.min(start, vw - w - EDGE)) + 'px';
     }
     panel.style.top = (down ? r.bottom + GAP : Math.max(EDGE, r.top - GAP - panel.offsetHeight)) + 'px';
   }
@@ -87,7 +90,7 @@
     if (!empty) {
       empty = document.createElement('p');
       empty.className = 'menu-empty';
-      empty.textContent = 'Nothing matches.';
+      empty.textContent = panel.getAttribute('data-menu-empty') || 'Nothing matches.';
       input.parentNode.insertBefore(empty, input.nextSibling);
     }
     empty.hidden = !(q && shown === 0);
