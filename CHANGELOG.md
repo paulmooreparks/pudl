@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.19.1
+
+- The section tab bar keeps its height when no tab is current. The current tab stands 4px taller than the others, so the bar used to grow on a page inside a section and shrink on a page outside every section, and the content below jumped. The bar now always reserves that space.
+
 ## 0.19.0
 
 - The contract. `docs/CONTRACT.md` lists everything a project may rely on: the files, the tokens a theme may set or read, the classes, data attributes, events, functions and address grammar, and what is internal. From 1.0 it changes only in a major release, and anything removed from it is deprecated first.
