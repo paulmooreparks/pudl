@@ -527,6 +527,16 @@
     if (head) head.focus({ preventScroll: true });
   }
 
+  /* A window that has to be fetched arrives some time after the reader
+     asked for it, and by then they may have moved on, to a menu, a field
+     or another window. It takes focus only if focus is still where it was
+     when they asked, or has fallen back to the page, so it never pulls the
+     reader away from something they chose in the meantime. */
+  function focusUnmoved(asked) {
+    var now = document.activeElement;
+    return now === asked || !now || now === document.body || now === document.documentElement;
+  }
+
   function open(key, from) {
     if (wins[key]) {
       commit(raised(state, key), false);
@@ -536,9 +546,11 @@
     if (pending[key]) return;
     pending[key] = true;
     var host = hostOf(from);              // read now: the opener may close while this loads
+    var asked = document.activeElement;
     load(key).then(function (el) {
       delete pending[key];
       if (wins[key]) return;            // opened meanwhile, by Back or Forward
+      var take = focusUnmoved(asked);
       adopt(el);
       var st = copy(state);
       st.open.push(key);
@@ -548,7 +560,7 @@
       openers[key] = from || null;
       commit(st, true);
       announceOpen(el);
-      focusWindow(key);
+      if (take) focusWindow(key);
     }, function (err) {
       delete pending[key];
       /* The window could not be built, so fall back on the item's own page,
@@ -572,9 +584,13 @@
     }
     if (pending[key]) return;
     pending[key] = true;
+    var asked = document.activeElement;
     load(key).then(function (el) {
       delete pending[key];
       if (wins[key]) return;
+      /* Judged before the old window closes, since closing it would drop
+         focus to the page if focus was inside it. */
+      var take = focusUnmoved(asked);
       adopt(el);
       var st = copy(state);
       if (!wins[oldKey] || st.open.indexOf(oldKey) < 0) {
@@ -590,7 +606,7 @@
       openers[key] = null;
       commit(st, true);
       announceOpen(el);
-      focusWindow(key);
+      if (take) focusWindow(key);
     }, function (err) {
       delete pending[key];
       if (window.console) console.warn('pudl-windows:', err.message);
