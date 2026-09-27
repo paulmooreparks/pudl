@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.18.0
+
+- Form states. A field marked `aria-invalid="true"` takes a danger border and focus ring beside its `.form-error`; a required field's label carries an asterisk drawn from its `required` attribute; and there are `.form-help`, `.form-fieldset` with its legend, `.form-options` for radio and checkbox groups, `.form-file` with a raised button, and a disabled state.
+- Tabs within a page, in the ARIA tab pattern, styled like section tabs. The new optional `dist/pudl-tabs.js` shows one panel at a time, adds the arrow keys and a single tab stop, and keeps the chosen panel in the address's fragment; without it every panel shows.
+- Empty and loading states: `.empty-state` with a drawn glyph, title, text and actions, and `.loading` with a `.spinner` in a status element.
+- Tooltips. The new optional `dist/pudl-tooltip.js` names glyph-only controls from their `aria-label`, or any element from `data-tooltip`, on hover or keyboard focus, hoverable and dismissible with Escape.
+- Pagination, with raised page links, the current page pressed in, and previous and next glyphs that mirror on right-to-left pages.
+- The expense tracker sample, `samples/expenses.html` and three pages beside it, shows the components of 0.17.0 and 0.18.0 working together. It is to grow into a full demonstration application with a server for 1.0.
+- The reference page gains the new form states and sections for tabs within a page, empty and loading states, and pagination, and its icon buttons carry proper names.
+
 ## 0.17.0
 
 - Data tables. `.data-table` in a `.data-table-wrap` lists many records: a sticky header, sortable columns whose raised headers carry `aria-sort` and a direction glyph and link to the other order, `.num` columns aligned to the end, row selection by checkbox or `aria-selected` with a tint and an edge, a `.data-table-empty` row, and with `.stack`, rows as labelled cards when the table is narrow.

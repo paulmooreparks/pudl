@@ -11,6 +11,7 @@ It is a stylesheet, a small theme script and a font, with optional scripts for m
 - **[The reference](https://paulmooreparks.github.io/pudl/reference.html)** shows every component in both themes, with a live demo of floating windows and menus.
 - **[The article reader](https://paulmooreparks.github.io/pudl/samples/article-reader.html)** is a working reading site built with PUDL: articles in windows, listings as child windows, a launcher, category tabs that change only the list, and an applet.
 - **[The colour mixer](https://paulmooreparks.github.io/pudl/samples/colour-mixer.html)** is that applet in a page of its own.
+- **[The expense tracker](https://paulmooreparks.github.io/pudl/samples/expenses.html)** is a small application: a sortable, paged data table with filters and a notice, a record with tabs and a delete dialog, a form the server has refused, an empty archive, and toasts after saving and deleting.
 
 The article reader fetches its windows from the server, so to run it from a copy of this repository, serve the folder, for example with `python -m http.server`, rather than opening the file directly. The reference works either way.
 
@@ -165,6 +166,68 @@ A section's own page marks its tab `aria-current="page"`, and a page inside the 
 - A **badge** (`.badge` with `warn`, `danger`, `positive` or `accent`) states an entity's state, and always leads with its glyph. `.badge.pr` is the old name for `.badge.positive`.
 - A **chip** (`.chip`) names an attribute the thing carries, a tag or a trip, and is a plain neutral label.
 - A **filter chip** (`.filter-chip`) is a filter in force. It is outlined, it may lead with a `.filter-chip-kind` label (formerly `.fc-kind`), and its `.filter-chip-x` is a small raised button that removes the filter.
+
+## Form states
+
+A form the server has refused comes back with every value the reader typed, a notice at the top saying what went wrong, and each wrong field marked:
+
+```html
+<div class="form-group">
+  <label class="form-label" for="amount">Amount</label>
+  <input class="form-input" id="amount" name="amount" value="-150" required
+         aria-invalid="true" aria-describedby="amount-error amount-help">
+  <p class="form-help" id="amount-help">As printed on the receipt.</p>
+  <p class="form-error" id="amount-error">The amount must be a number greater than zero.</p>
+</div>
+```
+
+- A field with `aria-invalid="true"` takes a danger border and a danger focus ring, and its `.form-error`, tied by `aria-describedby`, leads with the warning glyph, so the state never rests on the border's colour.
+- A field with `required` gives its group's label an asterisk, drawn by the stylesheet and hidden from assistive technology, which hears "required" from the field itself.
+- `.form-help` is muted text under a field.
+- `.form-fieldset` with a `legend` groups related choices, and `.form-options`, or `.form-options.inline`, lays out their `.check` labels, radio buttons included.
+- `.form-file` on a file input makes its button raised like any other.
+
+## Tabs within a page
+
+Tabs within a page switch between panels of one thing in place, where section tabs go to other addresses. They follow the ARIA tab pattern and look like section tabs, since to the reader both are tabs.
+
+```html
+<div class="tabs">
+  <div class="tablist" role="tablist" aria-label="Expense">
+    <button role="tab" id="tab-details" aria-controls="details" aria-selected="true">Details</button>
+    <button role="tab" id="tab-receipt" aria-controls="receipt">Receipt</button>
+  </div>
+  <section role="tabpanel" id="details" aria-labelledby="tab-details">…</section>
+  <section role="tabpanel" id="receipt" aria-labelledby="tab-receipt">…</section>
+</div>
+```
+
+With the optional `pudl-tabs.js`, one panel shows at a time; a tab is chosen by pressing it, or with the arrow keys, Home and End once the list has focus; the list is one stop in the Tab order; and the chosen panel's id is the address's fragment, so `…#receipt` opens that panel and a reload keeps it. The fragment is replaced, not pushed, so switching panels does not fill the history. Without the script the tab list is hidden and every panel shows, one after another.
+
+## Empty and loading states
+
+An `.empty-state` says there is nothing here and what to do about it, with a drawn glyph, an `.empty-state-title`, an `.empty-state-body` and perhaps `.empty-state-actions`. A `.loading` element with `role="status"` pairs a `.spinner` with words, so it is announced and never rests on the animation alone; with reduced motion the spinner stops. A data table with no rows uses its own `.data-table-empty` row instead.
+
+## Tooltips
+
+The optional `pudl-tooltip.js` shows a tooltip naming a control that shows only a glyph: any element with `data-tooltip`, and PUDL's own glyph-only controls (icon buttons, window buttons, dismiss buttons, a filter's apply button and a filter chip's ×) from their `aria-label`. It appears after a moment of hover, or at once on keyboard focus; it stays while the pointer moves onto it; Escape dismisses it; and it sits above the control, or below when there is no room. A `title` on the same control is moved into `data-tooltip` so the browser does not show a second one. A tooltip only names or briefly describes; anything the reader must read belongs on the page.
+
+## Pagination
+
+A long list comes in pages, each an address such as `?page=3`:
+
+```html
+<nav class="pagination" aria-label="Pages of expenses">
+  <span class="pagination-summary">Showing 21 to 40 of 132</span>
+  <a class="page-link" href="?page=1" rel="prev">Previous</a>
+  <a class="page-link" href="?page=1">1</a>
+  <a class="page-link" href="?page=2" aria-current="page">2</a>
+  <a class="page-link" href="?page=3">3</a>
+  <a class="page-link" href="?page=3" rel="next">Next</a>
+</nav>
+```
+
+Page links are raised small buttons, and the current page is pressed in, since the reader is already there. Previous and next carry glyphs, mirrored on a right-to-left page, and at either end are marked `aria-disabled="true"` with no `href`. With `pudl-regions.js`, a pagination inside a region pages the list without disturbing anything else.
 
 ## Data tables
 
@@ -533,10 +596,12 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-md.js`, the optional script that resizes the master-detail sidebar
   - `pudl-dialog.js`, the optional script that supplies the dialog command buttons in browsers that lack them
   - `pudl-toast.js`, the optional script that raises and dismisses toasts and dismisses notices
+  - `pudl-tabs.js`, the optional script for tabs within a page
+  - `pudl-tooltip.js`, the optional script that shows tooltips on glyph-only controls
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
-- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; and `colour-mixer.html`, the applet in a page of its own. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
+- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; and `expenses.html` with `expense.html`, `expense-edit.html` and `expenses-archived.html`, the expense tracker, static pages standing in for what a server would render. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/proposals/`, design proposals and the decisions taken on them
 - `RELEASING.md`, the steps for cutting a release
@@ -544,7 +609,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.17.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.18.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

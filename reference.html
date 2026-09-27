@@ -12,6 +12,8 @@
   <script src="dist/pudl-md.js" defer></script>
   <script src="dist/pudl-dialog.js" defer></script>
   <script src="dist/pudl-toast.js" defer></script>
+  <script src="dist/pudl-tabs.js" defer></script>
+  <script src="dist/pudl-tooltip.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -75,7 +77,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.17.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.18.0</a>
     </div>
   </header>
 
@@ -108,8 +110,8 @@
       <button class="btn btn-danger">Danger</button>
       <button class="btn btn-sm">Small</button>
       <button class="btn" disabled>Disabled</button>
-      <button class="icon-btn" title="Drag">≡</button>
-      <button class="icon-btn danger" title="Remove">✕</button>
+      <button class="icon-btn" aria-label="Drag to reorder">≡</button>
+      <button class="icon-btn danger" aria-label="Remove">✕</button>
     </div>
     <p>A toggle button latches. With <code>aria-pressed="true"</code> it stays pressed in until pressed again, and the same attribute tells assistive technology that it is on. Press these two.</p>
     <div class="demo demo-row">
@@ -149,6 +151,31 @@
 
       <span class="demo-label">Error</span>
       <div><div class="form-error">Destination cannot be empty</div></div>
+    </div>
+    <p>A form the server has refused comes back with each wrong field marked <code>aria-invalid="true"</code>, drawn with a danger border and tied by <code>aria-describedby</code> to the error beneath it, which carries its glyph. A required field's label carries an asterisk drawn from the field's own <code>required</code> attribute. Help text sits under a field in muted type. Related choices, such as radio buttons, sit in a fieldset with a legend, and a file field's button is raised like any other.</p>
+    <div class="demo" style="max-width: 560px;">
+      <div class="form-group">
+        <label class="form-label" for="f-amount">Amount</label>
+        <input class="form-input" id="f-amount" value="-150" required aria-invalid="true" aria-describedby="f-amount-error f-amount-help">
+        <p class="form-help" id="f-amount-help">In the currency of the receipt.</p>
+        <p class="form-error" id="f-amount-error">The amount must be a number greater than zero.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-merchant">Merchant</label>
+        <input class="form-input" id="f-merchant" value="Makati Garden Hotel" required>
+      </div>
+      <fieldset class="form-fieldset">
+        <legend>Account</legend>
+        <div class="form-options inline">
+          <label class="check"><input type="radio" name="f-acct" checked> Billable</label>
+          <label class="check"><input type="radio" name="f-acct"> Non-billable</label>
+          <label class="check"><input type="radio" name="f-acct"> Internal</label>
+        </div>
+      </fieldset>
+      <div class="form-group">
+        <label class="form-label" for="f-receipt">Receipt</label>
+        <input class="form-file" id="f-receipt" type="file" accept="image/*,application/pdf">
+      </div>
     </div>
 
     <h2>4. Segmented control</h2>
@@ -318,7 +345,57 @@
       <button class="btn" type="button" onclick="pudlToast('The receipt is larger than 10 MB and was not attached.', { kind: 'warn' })">Raise a warning toast</button>
     </div>
 
-    <h2 id="dialogs">11. Dialogs</h2>
+    <h2 id="panels">11. Tabs within a page</h2>
+    <p>Tabs within a page switch between panels of one record in place, where section tabs go to other addresses. They look alike, because to the reader both are tabs. With <code>pudl-tabs.js</code>, a tab is chosen by pressing it or with the arrow keys once the tab list has focus, the tab list is a single stop in the Tab order, and the chosen panel's id becomes the address's fragment, so a link can open a particular panel and a reload keeps it. Without the script, every panel shows one after another.</p>
+    <div class="demo">
+      <div class="tabs">
+        <div class="tablist" role="tablist" aria-label="Expense">
+          <button role="tab" id="tab-details" aria-controls="panel-details" aria-selected="true">Details</button>
+          <button role="tab" id="tab-receipt" aria-controls="panel-receipt">Receipt</button>
+          <button role="tab" id="tab-history" aria-controls="panel-history">History</button>
+        </div>
+        <section role="tabpanel" id="panel-details" aria-labelledby="tab-details">
+          <table class="kv-table">
+            <tr><th>Merchant</th><td>Makati Garden Hotel</td></tr>
+            <tr><th>Amount</th><td>PHP 21,600.00</td></tr>
+          </table>
+        </section>
+        <section role="tabpanel" id="panel-receipt" aria-labelledby="tab-receipt">
+          <p class="card-desc" style="margin: 0;">receipt-makati-garden.pdf, 212 KB, attached 19 October.</p>
+        </section>
+        <section role="tabpanel" id="panel-history" aria-labelledby="tab-history">
+          <p class="card-desc" style="margin: 0;">Submitted 19 October by Paul; approved 21 October by accounts.</p>
+        </section>
+      </div>
+    </div>
+
+    <h2 id="empty">12. Empty and loading states</h2>
+    <p>An empty state tells the reader there is nothing here yet and what to do about it. A loading state pairs a spinner with words, in an element with <code>role="status"</code>, so it is announced and never rests on the animation alone. The icon buttons on this page, the window buttons and the filter's apply button show a tooltip with their name on hover or keyboard focus, through <code>pudl-tooltip.js</code>.</p>
+    <div class="demo" style="display: grid; gap: 12px;">
+      <div class="empty-state">
+        <p class="empty-state-title">No expenses on this trip yet</p>
+        <p class="empty-state-body">Add one as you spend, and attach its receipt, so the report builds itself.</p>
+        <div class="empty-state-actions"><a class="btn btn-primary" href="#empty">Add an expense</a></div>
+      </div>
+      <div class="loading" role="status"><span class="spinner" aria-hidden="true"></span> Loading expenses…</div>
+    </div>
+
+    <h2 id="pages">13. Pagination</h2>
+    <p>A long list comes in pages, each an address such as <code>?page=3</code>, so paging works without script and a page can be shared. The page links are raised; the current page is pressed in, because the reader is already there; and previous and next carry their glyphs and are disabled at either end.</p>
+    <div class="demo">
+      <nav class="pagination" aria-label="Pages of expenses">
+        <span class="pagination-summary">Showing 21 to 40 of 132</span>
+        <a class="page-link" href="#pages" rel="prev">Previous</a>
+        <a class="page-link" href="#pages">1</a>
+        <a class="page-link" href="#pages" aria-current="page">2</a>
+        <a class="page-link" href="#pages">3</a>
+        <span class="page-gap" aria-hidden="true">…</span>
+        <a class="page-link" href="#pages">7</a>
+        <a class="page-link" href="#pages" rel="next">Next</a>
+      </nav>
+    </div>
+
+    <h2 id="dialogs">14. Dialogs</h2>
     <p>A dialog is a native <code>&lt;dialog class="dialog"&gt;</code> that the server renders into the page, never the browser's own <code>confirm()</code>. A button opens it with <code>command="show-modal"</code>, and the browser keeps focus inside it, closes it on Escape and draws the backdrop, which dims the page gently while the panel's shadow does the lifting. The panel is one step brighter than the page. It offers two actions, the safe one first and the committing one last, and a destructive commit carries its warning glyph. The optional <code>pudl-dialog.js</code> provides the command buttons in browsers that do not have them yet.</p>
     <div class="demo demo-row">
       <button class="btn btn-danger" type="button" commandfor="demo-dialog" command="show-modal"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Discard changes…</button>
@@ -332,7 +409,7 @@
       </form>
     </dialog>
 
-    <h2 id="md">12. Master–detail layout</h2>
+    <h2 id="md">15. Master–detail layout</h2>
     <p>The master–detail layout serves any list beside one of its records. A toolbar runs across the top, the filters in force sit below it as filter chips, and under them the list and the record share the width. The record in view has its row marked, by <code>aria-current</code> on the row's link, with an accent edge on the side facing the record. The list is 260px wide to begin with; with <code>pudl-md.js</code> the reader can drag the divider, or focus it and use the arrow keys.</p>
     <div class="demo">
       <div class="layout-demo">
@@ -458,7 +535,7 @@
       </div>
     </div>
 
-    <h2 id="menus">13. Menus</h2>
+    <h2 id="menus">16. Menus</h2>
     <p>A menu button opens a panel of choices. The button is raised and carries a caret, so it reads as opening something rather than doing something, and it looks pressed while its panel is open. The panel is lifted like a dialog but has no backdrop, because it is not modal: Escape, a click outside it or a choice closes it. Places in a panel are list rows grouped under section labels, and actions are rows of their own below a rule, each with a glyph. The panel is an HTML popover, so all of that works without script. The optional <code>pudl-menu.js</code> opens the panel against its button, as a full-width sheet on a phone, lets the arrow keys move between rows, and makes a filter at the top of a panel narrow its rows as you type. An open menu is not part of the URL, because it is momentary; everything in it has an address of its own. The Trip and Account buttons in the master–detail toolbar above are menus too.</p>
     <div class="demo demo-row">
       <div class="menu">
@@ -478,7 +555,7 @@
     <p>A launcher is a menu button at the start of the row that holds a window dock, with a panel that reaches everything a site offers, grouped by category, with a filter at the top. The windows demo below has one, and so does <a href="samples/article-reader.html">the article reader sample</a>.</p>
     <p>A menu can also be summoned from the keyboard. A panel carrying <code>data-menu-key="/"</code> opens when <kbd>/</kbd> is pressed anywhere outside a text field, with focus in its filter, so the reader can type part of a name and press Enter to go there. On this page, <kbd>/</kbd> opens the expenses launcher. If nothing matches and the filter sits in a form, Enter submits the form, so a server can take the typed text to a page of its own, which makes the menu a "go to" palette that still ends in an ordinary address. A panel with no button of its own opens near the top of the window, as a palette.</p>
 
-    <h2 id="windows">14. Floating windows</h2>
+    <h2 id="windows">17. Floating windows</h2>
     <p>Records can open as windows floating above a list, from the optional <code>pudl-windows.css</code> and <code>pudl-windows.js</code>. Open a few of the expenses below, then drag a window by its title bar, resize it from any edge or corner, drag it against the left, right or top edge to snap it, and double-click its title bar to maximise it. The dock above the list has one tab per open window. Everything you do is written into this page's URL, so reloading puts every window back where it was, and Back undoes the last window you opened.</p>
     <p>The frame around a window is a band of the raised tint between two hairlines, and the whole band is the resize border. The active window's title bar takes the accent. With the title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Without script, each link opens the record's own page, and the server renders whichever windows the URL names where the URL puts them.</p>
     <p>A window can have children, for content that belongs to a record, such as a receipt, a source listing or an image. Open the hotel expense and follow its receipt link. The receipt opens maximised above the expense, a row for it appears under the expense in the list, and Escape or the close button puts it away. A child has no tab in the dock, travels with its parent when the parent is minimised or brought forward, and closes when its parent closes. The list also marks the row of the window in front. <a href="samples/article-reader.html">The article reader sample</a> puts all of this together as a reading site, with the article list in a sidebar and each article opening maximised.</p>
@@ -607,7 +684,7 @@
       </article>
     </template>
 
-    <h2>15. Invariants</h2>
+    <h2>18. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>

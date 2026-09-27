@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archived expenses, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="expenses.css">
+  <script src="../dist/pudl-tooltip.js" defer></script>
+</head>
+<body>
+  <!-- The archive is empty, which shows the empty state. -->
+
+  <header class="topbar">
+    <a class="brand" href="expenses.html">Expenses</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark" onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">PUDL reference</a>
+    </div>
+  </header>
+
+  <nav class="app-section-bar" aria-label="Sections">
+    <a class="section-tab" href="expenses.html" aria-current="page">Expenses</a>
+    <a class="section-tab" href="expenses.html">Trips</a>
+    <a class="section-tab" href="expenses.html">Reports</a>
+  </nav>
+
+  <main class="app-main">
+    <div class="app-head">
+      <h1>Expenses</h1>
+      <a class="btn btn-primary" href="expense-edit.html">New expense</a>
+    </div>
+
+    <div class="app-tools">
+      <form class="md-filter-group" action="expenses-archived.html" method="get" role="search">
+        <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
+        <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter"></button>
+      </form>
+      <div class="seg" aria-label="Which expenses">
+        <a href="expenses.html">Open</a>
+        <a href="expenses-archived.html" aria-current="page">Archived</a>
+      </div>
+    </div>
+
+    <div class="data-table-wrap">
+      <div class="empty-state">
+        <p class="empty-state-title">Nothing archived yet</p>
+        <p class="empty-state-body">Expenses move here once their report has been paid, so the open list only holds what still needs doing.</p>
+        <div class="empty-state-actions"><a class="btn" href="expenses.html">Back to open expenses</a></div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
