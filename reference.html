@@ -10,6 +10,7 @@
   <script src="dist/pudl-windows.js" defer></script>
   <script src="dist/pudl-menu.js" defer></script>
   <script src="dist/pudl-md.js" defer></script>
+  <script src="dist/pudl-dialog.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -45,6 +46,8 @@
     .ref .win-demo-list { height: 100%; }
     .ref .ref-sub { margin: 22px 0 6px; font-size: 16px; }
     .ref .md-phones { display: flex; flex-wrap: wrap; gap: 16px; }
+    .ref .tabs-demo { padding: 0; overflow: hidden; }
+    .ref .tabs-demo-page { padding: 16px 18px; background: var(--surface); font-size: 14px; color: var(--text-muted); }
     .ref .md-phone {
       width: 340px; max-width: 100%; height: 470px;
       display: flex; flex-direction: column;
@@ -71,7 +74,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.15.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.16.0</a>
     </div>
   </header>
 
@@ -97,7 +100,7 @@
     </div>
 
     <h2>2. Buttons</h2>
-    <p>One look. Every button is raised. Disabled = dimmed (still raised, no false flatness). At most one <code>.btn-primary</code> per visible context.</p>
+    <p>Every button is raised, because a button can be pressed, and there is no flat button. A disabled button is dimmed but stays raised, since it is still a button, only one that does nothing yet. A visible context has at most one <code>.btn-primary</code>; a view that seems to need two has a secondary or destructive action hiding in one of them.</p>
     <div class="demo demo-row">
       <button class="btn">Secondary</button>
       <button class="btn btn-primary">Primary</button>
@@ -114,6 +117,7 @@
     </div>
 
     <h2>3. Forms</h2>
+    <p>A field that takes input is sunken. A read-only value is flat, with no field around it, so it never pretends to be editable. A switch is a raised thumb in a sunken track, and when it is on, the track fills with the accent and the thumb sits at the far end, so its position says so as well as its colour. An error leads with its warning glyph.</p>
     <div class="demo demo-grid">
       <span class="demo-label">Text input</span>
       <div><input class="form-input" placeholder="Trip name or destination"></div>
@@ -147,11 +151,11 @@
     </div>
 
     <h2>4. Segmented control</h2>
-    <p>For boolean or 2–4 option toggles (severity scale, kg|lbs, read|edit). Inset trough, raised active.</p>
+    <p>A segmented control offers two to four choices in a sunken trough, with the chosen one raised in it: a small scale, kg or lbs, Read or Edit. Its choices are buttons marked with <code>aria-pressed</code>, or links to views marked with <code>aria-current</code>.</p>
     <div class="demo demo-row">
-      <div class="seg"><button class="active">Read</button><button>Edit</button></div>
-      <div class="seg sm"><button>S1</button><button class="active">S2</button><button>S3</button><button>S4</button><button>S5</button></div>
-      <div class="seg pill"><button class="active">Today</button><button>Week</button><button>Month</button></div>
+      <div class="seg"><button aria-pressed="true">Read</button><button aria-pressed="false">Edit</button></div>
+      <div class="seg sm"><button aria-pressed="false">S1</button><button aria-pressed="true">S2</button><button aria-pressed="false">S3</button><button aria-pressed="false">S4</button><button aria-pressed="false">S5</button></div>
+      <div class="seg pill"><a href="#seg" aria-current="page">Today</a><a href="#seg">Week</a><a href="#seg">Month</a></div>
     </div>
     <p>This one is live. It is a theme setting built on <code>pudl-theme.js</code>, which remembers light, dark or system, and follows the operating system's setting while System is chosen, even when it changes with the page open.</p>
     <div class="demo demo-row">
@@ -168,9 +172,7 @@
         function show() {
           var pref = pudlThemePreference();
           group.querySelectorAll('button').forEach(function (b) {
-            var on = b.getAttribute('data-pref') === pref;
-            b.classList.toggle('active', on);
-            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            b.setAttribute('aria-pressed', b.getAttribute('data-pref') === pref ? 'true' : 'false');
           });
         }
         group.addEventListener('click', function (e) {
@@ -182,34 +184,49 @@
       })();
     </script>
 
-    <h2>5. Badges &amp; chips</h2>
-    <p>Badge = state pill, color + glyph (an entity's state). Chip = flat metadata pill (an attribute a thing carries).</p>
+    <h2 id="tabs">5. Section tabs</h2>
+    <p>Section tabs are a notebook, after the widget of the same name in desktop toolkits. The bar is a recessed band. Each tab the reader can go to is a raised tab standing on the band, because it can be pressed. The tab for where the reader is, marked with <code>aria-current</code>, is flat, a little taller, and open at the bottom into the content below, so the page visibly hangs from it. A page inside a section marks that section's tab with <code>aria-current="true"</code>, and the section's own page with <code>aria-current="page"</code>. The current tab takes <code>--section-current-bg</code>, which a page whose content sits on the page background sets to <code>var(--bg)</code>.</p>
+    <div class="demo tabs-demo">
+      <nav class="app-section-bar" aria-label="Sections">
+        <a class="section-tab" href="#tabs">All</a>
+        <a class="section-tab" href="#tabs" aria-current="true">Articles</a>
+        <a class="section-tab" href="#tabs">Applications</a>
+        <a class="section-tab" href="#tabs">Projects</a>
+        <a class="section-tab" href="#tabs">Links</a>
+      </nav>
+      <div class="tabs-demo-page">The content of the Articles section sits here, joined to its tab.</div>
+    </div>
+
+    <h2>6. Badges and chips</h2>
+    <p>Three small labels each look like what they are. A badge states an entity's state, done or overdue, and always leads with its glyph as well as its colour. A chip names an attribute the thing carries, such as a tag or a trip, and is a plain neutral label. A filter chip, shown with the master–detail layout below, is a filter in force: it is outlined, and its × is a small raised button that removes it.</p>
     <div class="demo demo-row">
       <span class="badge">ready</span>
       <span class="badge accent">active</span>
       <span class="badge warn">approaching</span>
       <span class="badge danger">overdue</span>
-      <span class="badge pr">done</span>
+      <span class="badge positive">done</span>
       <span class="chip">manila-oct</span>
       <span class="chip">billable</span>
       <span class="chip">RRP</span>
+      <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#tabs" aria-label="Remove the trip filter">×</a></span>
     </div>
 
-    <h2>6. Cards</h2>
+    <h2>7. Cards</h2>
+    <p>A card groups what belongs to one thing on a surface lifted slightly off the page.</p>
     <div class="demo">
       <div class="card">
         <h3 class="card-title">Hotel, Makati, three nights</h3>
         <p class="card-desc">Receipt attached; charged to the customer's billing account.</p>
         <div class="demo-row">
-          <span class="badge pr">done</span>
+          <span class="badge positive">done</span>
           <span class="chip">manila-oct</span>
           <span class="chip">billable</span>
         </div>
       </div>
     </div>
 
-    <h2>7. Key/value table</h2>
-    <p>Read-only record fields in a detail pane render as a label/value table, NOT as fake input boxes. Honesty: flat = display, not interactive.</p>
+    <h2>8. Key/value table</h2>
+    <p>A record's read-only fields render as a table of labels and values, not as input boxes that cannot be typed into. Flat means display, and the table says so honestly.</p>
     <div class="demo">
       <table class="kv-table">
         <tr><th>Expense</th><td>Hotel, Makati, three nights</td></tr>
@@ -219,23 +236,22 @@
       </table>
     </div>
 
-    <h2>8. Dialogs</h2>
-    <p>Server-rendered, shown by JS, <strong>never</strong> a native <code>confirm()</code>. Backdrop dims gently; the panel is an elevated surface (one step brighter than the page, large drop shadow). Two actions: cancel left, commit right (danger commit carries ⚠).</p>
-    <div class="demo" style="position: relative; height: 240px; overflow: hidden; background: var(--bg);">
-      <div class="dialog-backdrop" style="position: absolute;">
-        <div class="dialog">
-          <h3 class="dialog-title">Discard unsaved changes?</h3>
-          <p class="dialog-body">You've edited this entry but haven't saved. Leaving now will lose those changes.</p>
-          <div class="dialog-actions">
-            <button class="btn">Stay</button>
-            <button class="btn btn-danger">⚠ Discard changes</button>
-          </div>
-        </div>
-      </div>
+    <h2 id="dialogs">9. Dialogs</h2>
+    <p>A dialog is a native <code>&lt;dialog class="dialog"&gt;</code> that the server renders into the page, never the browser's own <code>confirm()</code>. A button opens it with <code>command="show-modal"</code>, and the browser keeps focus inside it, closes it on Escape and draws the backdrop, which dims the page gently while the panel's shadow does the lifting. The panel is one step brighter than the page. It offers two actions, the safe one first and the committing one last, and a destructive commit carries its warning glyph. The optional <code>pudl-dialog.js</code> provides the command buttons in browsers that do not have them yet.</p>
+    <div class="demo demo-row">
+      <button class="btn btn-danger" type="button" commandfor="demo-dialog" command="show-modal"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Discard changes…</button>
     </div>
+    <dialog class="dialog" id="demo-dialog" aria-labelledby="demo-dialog-title">
+      <h3 class="dialog-title" id="demo-dialog-title">Discard unsaved changes?</h3>
+      <p class="dialog-body">You've edited this entry but haven't saved. Leaving now will lose those changes.</p>
+      <form class="dialog-actions" method="dialog">
+        <button class="btn" value="stay" autofocus>Stay</button>
+        <button class="btn btn-danger" value="discard"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Discard changes</button>
+      </form>
+    </dialog>
 
-    <h2 id="md">9. Master–detail layout (the new primary layout)</h2>
-    <p>Resizable sidebar (260 px default; drag the divider, or focus it and use the arrow keys, with <code>pudl-md.js</code>) + detail pane. Toolbar pinned to the top of the layout. Filter chips render between the toolbar and the body. Active sidebar row gets the 3 px accent edge facing the detail. The same primitive serves any list-and-detail view.</p>
+    <h2 id="md">10. Master–detail layout</h2>
+    <p>The master–detail layout serves any list beside one of its records. A toolbar runs across the top, the filters in force sit below it as filter chips, and under them the list and the record share the width. The record in view has its row marked, by <code>aria-current</code> on the row's link, with an accent edge on the side facing the record. The list is 260px wide to begin with; with <code>pudl-md.js</code> the reader can drag the divider, or focus it and use the arrow keys.</p>
     <div class="demo">
       <div class="layout-demo">
         <div class="md-layout" data-md-pane="detail">
@@ -244,14 +260,14 @@
               <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
               <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter" title="Apply the filter"></button>
             </form>
-            <div class="seg"><button class="active">Open</button><button>Archived</button></div>
+            <div class="seg"><button aria-pressed="true">Open</button><button aria-pressed="false">Archived</button></div>
             <span class="md-toolbar-spacer"></span>
             <div class="md-toolbar-cmds">
               <div class="menu">
                 <button class="btn btn-sm menu-btn" popovertarget="md-trip-menu">Trip</button>
                 <nav class="menu-panel" id="md-trip-menu" popover aria-label="Filter by trip">
                   <div class="md-row"><a class="md-item" href="#md">All trips</a></div>
-                  <div class="md-row active"><a class="md-item" href="#md" aria-current="true">Manila, October</a></div>
+                  <div class="md-row"><a class="md-item" href="#md" aria-current="true">Manila, October</a></div>
                   <div class="md-row"><a class="md-item" href="#md">Singapore, November</a></div>
                 </nav>
               </div>
@@ -259,7 +275,7 @@
                 <button class="btn btn-sm menu-btn" popovertarget="md-account-menu">Account</button>
                 <nav class="menu-panel" id="md-account-menu" popover aria-label="Filter by account">
                   <div class="md-row"><a class="md-item" href="#md">All accounts</a></div>
-                  <div class="md-row active"><a class="md-item" href="#md" aria-current="true">Billable</a></div>
+                  <div class="md-row"><a class="md-item" href="#md" aria-current="true">Billable</a></div>
                   <div class="md-row"><a class="md-item" href="#md">Non-billable</a></div>
                 </nav>
               </div>
@@ -268,15 +284,15 @@
             </div>
           </div>
           <div class="md-chips">
-            <span class="filter-chip"><span class="fc-kind">trip</span> manila-oct <a class="filter-chip-x" href="#">×</a></span>
-            <span class="filter-chip"><span class="fc-kind">account</span> billable <a class="filter-chip-x" href="#">×</a></span>
+            <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#">×</a></span>
+            <span class="filter-chip"><span class="filter-chip-kind">account</span> billable <a class="filter-chip-x" href="#">×</a></span>
             <a class="md-chips-clear" href="#">clear</a>
           </div>
           <div class="md-body">
             <nav class="md-sidebar">
               <div class="md-section-label">Awaiting receipt</div>
               <div class="md-row"><a class="md-item" href="#">Airport transfer<span class="md-meta">PHP 1,200 · billable</span></a></div>
-              <div class="md-row active" id="row-exp-12"><a class="md-item" href="#">Hotel, Makati<span class="md-meta">PHP 21,600 · billable</span></a></div>
+              <div class="md-row" id="row-exp-12"><a class="md-item" href="#" aria-current="page">Hotel, Makati<span class="md-meta">PHP 21,600 · billable</span></a></div>
               <div class="md-section-label">Submitted</div>
               <div class="md-row"><a class="md-item" href="#">Flight SIN to MNL<span class="md-meta">SGD 412 · billable</span></a></div>
               <div class="md-row"><a class="md-item" href="#">Team dinner<span class="md-meta">PHP 6,800 · non-billable</span></a></div>
@@ -312,11 +328,11 @@
               <input class="md-filter" type="search" name="q" placeholder="Filter expenses…" aria-label="Filter expenses">
               <button class="icon-btn md-filter-go" type="submit" aria-label="Apply the filter" title="Apply the filter"></button>
             </form>
-            <div class="seg"><button class="active">Open</button><button>Archived</button></div>
+            <div class="seg"><button aria-pressed="true">Open</button><button aria-pressed="false">Archived</button></div>
             <div class="md-toolbar-cmds"><button class="btn btn-sm btn-primary">+ Expense</button></div>
           </div>
           <div class="md-chips">
-            <span class="filter-chip"><span class="fc-kind">trip</span> manila-oct <a class="filter-chip-x" href="#md">×</a></span>
+            <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#md">×</a></span>
           </div>
           <div class="md-body">
             <nav class="md-sidebar">
@@ -360,7 +376,7 @@
       </div>
     </div>
 
-    <h2 id="menus">10. Menus</h2>
+    <h2 id="menus">11. Menus</h2>
     <p>A menu button opens a panel of choices. The button is raised and carries a caret, so it reads as opening something rather than doing something, and it looks pressed while its panel is open. The panel is lifted like a dialog but has no backdrop, because it is not modal: Escape, a click outside it or a choice closes it. Places in a panel are list rows grouped under section labels, and actions are rows of their own below a rule, each with a glyph. The panel is an HTML popover, so all of that works without script. The optional <code>pudl-menu.js</code> opens the panel against its button, as a full-width sheet on a phone, lets the arrow keys move between rows, and makes a filter at the top of a panel narrow its rows as you type. An open menu is not part of the URL, because it is momentary; everything in it has an address of its own. The Trip and Account buttons in the master–detail toolbar above are menus too.</p>
     <div class="demo demo-row">
       <div class="menu">
@@ -379,7 +395,7 @@
     </div>
     <p>A launcher is a menu button at the start of the row that holds a window dock, with a panel that reaches everything a site offers, grouped by category, with a filter at the top. The windows demo below has one, and so does <a href="samples/article-reader.html">the article reader sample</a>.</p>
 
-    <h2 id="windows">11. Floating windows</h2>
+    <h2 id="windows">12. Floating windows</h2>
     <p>Records can open as windows floating above a list, from the optional <code>pudl-windows.css</code> and <code>pudl-windows.js</code>. Open a few of the expenses below, then drag a window by its title bar, resize it from any edge or corner, drag it against the left, right or top edge to snap it, and double-click its title bar to maximise it. The dock above the list has one tab per open window. Everything you do is written into this page's URL, so reloading puts every window back where it was, and Back undoes the last window you opened.</p>
     <p>The frame around a window is a band of the raised tint between two hairlines, and the whole band is the resize border. The active window's title bar takes the accent. With the title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Without script, each link opens the record's own page, and the server renders whichever windows the URL names where the URL puts them.</p>
     <p>A window can have children, for content that belongs to a record, such as a receipt, a source listing or an image. Open the hotel expense and follow its receipt link. The receipt opens maximised above the expense, a row for it appears under the expense in the list, and Escape or the close button puts it away. A child has no tab in the dock, travels with its parent when the parent is minimised or brought forward, and closes when its parent closes. The list also marks the row of the window in front. <a href="samples/article-reader.html">The article reader sample</a> puts all of this together as a reading site, with the article list in a sidebar and each article opening maximised.</p>
@@ -508,19 +524,23 @@
       </article>
     </template>
 
-    <h2>12. Invariants</h2>
+    <h2>13. Invariants</h2>
+    <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
-      <li><span class="lbl">Elevation</span>raised = pressable, sunken = input, flat = display.</li>
-      <li><span class="lbl">Buttons</span>one look. Every button is raised. Max one <code>.btn-primary</code> per visible context.</li>
-      <li><span class="lbl">Colour</span>never alone. Every meaningful state carries a glyph.</li>
-      <li><span class="lbl">Links</span>underlined. Brand wordmark is the only exception.</li>
-      <li><span class="lbl">Numerals</span>tabular wherever numbers are data: identifiers, counts, money, timestamps. Prose keeps proportional figures.</li>
-      <li><span class="lbl">Tabs</span>active notebook tab merges with content (baseline punch-through).</li>
-      <li><span class="lbl">No breadcrumbs.</span>Every full-screen page anchors to a tab bar somewhere in the hierarchy (topbar mode tabs or the section bar below them). If a page wants to live <em>below</em> the deepest tab strip, it's either a dialog or a one-off that merits a redesign of the page structure. When in doubt, expand the tab structure rather than growing a breadcrumb trail.</li>
-      <li><span class="lbl">Topbar</span>its own colours, set by the theme, so that it can stay dark on a light page.</li>
-      <li><span class="lbl">Dialogs</span>server-rendered. No native <code>confirm()</code>. Panel one step brighter than the page; backdrop dims gently (40%); large drop shadow does the elevation work, not the backdrop opacity.</li>
-      <li><span class="lbl">Time</span>ISO UTC in data; local time display-only.</li>
-      <li><span class="lbl">Recolour</span>changing <code>--accent</code> propagates across links, primaries, focus rings, segmented active, chips, badges.</li>
+      <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>
+      <li><span class="lbl">Buttons</span>Every button is raised, and a visible context has at most one primary button.</li>
+      <li><span class="lbl">Colour</span>Colour is never the only signal; every meaningful state carries a glyph, a position or an elevation as well.</li>
+      <li><span class="lbl">State</span>State is marked with the ARIA attribute that states it, <code>aria-current</code>, <code>aria-pressed</code>, <code>aria-checked</code> or <code>aria-selected</code>, so the eye and assistive technology are told the same thing.</li>
+      <li><span class="lbl">Links</span>Links in text are underlined; the brand wordmark, tabs and list rows are navigation of their own kinds and look like themselves.</li>
+      <li><span class="lbl">Numerals</span>Numerals are tabular wherever numbers are data, and running prose keeps proportional figures.</li>
+      <li><span class="lbl">Tabs</span>The tab for where the reader is opens into the content below it, and every other tab is raised.</li>
+      <li><span class="lbl">No breadcrumbs</span>Every full-screen page anchors to a tab somewhere in its hierarchy, marked current. A page that wants to live below the deepest tab strip is either a dialog or a sign that the tabs need another level, not a breadcrumb trail.</li>
+      <li><span class="lbl">Topbar</span>The topbar keeps its own colours, set by the theme, so that it can stay dark on a light page.</li>
+      <li><span class="lbl">Dialogs</span>Dialogs are native dialog elements rendered by the server, never the browser's own <code>confirm()</code>.</li>
+      <li><span class="lbl">The URL</span>The URL holds everything worth sharing, from a record in view to the arrangement of open windows, and the server renders what it names, so a page works without script and a link shows what its sender saw.</li>
+      <li><span class="lbl">Glyphs</span>Every glyph in PUDL's chrome is drawn from the stylesheet's own masks, so it looks the same on every platform and never turns into a colour emoji.</li>
+      <li><span class="lbl">Time</span>Times are ISO UTC in data and local only on display.</li>
+      <li><span class="lbl">Recolour</span>Changing <code>--accent</code> reaches links, primary buttons, focus rings, filter chips, the current dock tab and the active window.</li>
     </ul>
   </div>
 </body>

@@ -126,7 +126,7 @@
    styles might give it. */
 .win-title {
   flex: 1; min-width: 0; margin: 0; padding: 0; border: 0;
-  font: 700 14px/1.3 var(--font);
+  font: 700 var(--text-md)/1.3 var(--font);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .win-chrome { flex: none; display: inline-flex; gap: 5px; align-items: center; }
@@ -141,7 +141,7 @@
   background: var(--raise-grad);
   box-shadow: var(--raise-shadow);
   color: var(--text-muted);
-  font: 600 13px/1 var(--font);
+  font: 600 var(--text-sm)/1 var(--font);
   text-decoration: none;
   cursor: pointer;
 }
@@ -150,13 +150,20 @@
 .win-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .win-btn[data-win-action="close"]:hover { color: var(--danger); }
 
-/* The glyphs come from here, so the server renders each button empty with
-   an aria-label, and the maximise button's glyph follows the window's mode. */
-.win-btn[data-win-action="page"]::before { content: "\2197\FE0E"; }
-.win-btn[data-win-action="minimize"]::before { content: "\2013"; }
-.win-btn[data-win-action="maximize"]::before { content: "\25A1"; font-size: 14px; }
-.win-btn[data-win-action="close"]::before { content: "\00D7"; font-size: 16px; }
-.win:not([data-win-mode="floating"]) .win-btn[data-win-action="maximize"]::before { content: "\2750"; }
+/* The glyphs come from here, drawn from pudl.css's glyph masks, so the
+   server renders each button empty with an aria-label, and the maximise
+   button's glyph follows the window's mode. */
+.win-btn[data-win-action]::before {
+  content: ""; width: 12px; height: 12px;
+  background: currentColor;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+  mask: var(--glyph) center / contain no-repeat;
+}
+.win-btn[data-win-action="page"]::before { --glyph: var(--glyph-open); }
+.win-btn[data-win-action="minimize"]::before { --glyph: var(--glyph-minimize); }
+.win-btn[data-win-action="maximize"]::before { --glyph: var(--glyph-maximize); }
+.win-btn[data-win-action="close"]::before { --glyph: var(--glyph-close); }
+.win:not([data-win-mode="floating"]) .win-btn[data-win-action="maximize"]::before { --glyph: var(--glyph-restore); }
 
 .win[data-win-mode="maximized"] .win-head,
 .win[data-win-mode="left"] .win-head,
@@ -215,14 +222,17 @@
 .md-row-child .md-item {
   position: relative;
   padding-inline-start: 32px;
-  font-size: 12.5px;
+  font-size: var(--text-xs);
 }
 .md-row-child .md-item::before {
-  content: "\2514";
-  position: absolute; inset-inline-start: 16px;
-  color: var(--text-muted);
+  content: "";
+  position: absolute; inset-inline-start: 14px; top: 50%;
+  width: 12px; height: 12px; margin-top: -8px;
+  background: var(--text-muted);
+  -webkit-mask: var(--glyph-branch) center / contain no-repeat;
+  mask: var(--glyph-branch) center / contain no-repeat;
 }
-.md-row-child .md-item:dir(rtl)::before { content: "\2518"; }
+.md-row-child .md-item:dir(rtl)::before { transform: scaleX(-1); }
 
 /* === Dock ================================================================
    One tab per open window, in the order they were opened. A tab raises its
@@ -239,16 +249,25 @@
   border: 1px solid var(--raise-border);
   background: var(--raise-grad);
   box-shadow: var(--raise-shadow);
-  font-size: 12.5px; font-weight: 600;
+  font-size: var(--text-xs); font-weight: 600;
   color: var(--text); text-decoration: none;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.win-tab::before { content: "\25CF"; font-size: 9px; color: var(--accent); flex: none; }
+.win-tab::before {
+  content: ""; flex: none; width: 9px; height: 9px;
+  background: var(--accent);
+  -webkit-mask: var(--glyph-circle) center / contain no-repeat;
+  mask: var(--glyph-circle) center / contain no-repeat;
+}
 .win-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 .win-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .win-tab[aria-current="true"] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 .win-tab.minimized { color: var(--text-muted); }
-.win-tab.minimized::before { content: "\25CB"; color: var(--text-muted); }
+.win-tab.minimized::before {
+  background: var(--text-muted);
+  -webkit-mask-image: var(--glyph-ring);
+  mask-image: var(--glyph-ring);
+}
 
 /* === Forced colours ======================================================
    The frame and buttons keep visible borders, and the active window's
@@ -263,6 +282,10 @@
   }
   .win.active .win-head .win-btn { forced-color-adjust: none; background: Canvas; color: CanvasText; }
   .win-ghost { border-color: Highlight; }
+  /* The glyphs are masks, painted in the colour the system has set. */
+  .win-btn[data-win-action]::before { forced-color-adjust: none; background: ButtonText; }
+  .win-tab::before, .md-row-child .md-item::before { forced-color-adjust: none; background: CanvasText; }
+  .win-tab[aria-current="true"]::before { background: HighlightText; }
 }
 
 /* === Print ===============================================================
@@ -281,6 +304,6 @@
      not print while a window does. */
   .win-host:has(.win.active) > :not(.win-layer) { display: none !important; }
   .win.active .win-head { background: none; border: 0; box-shadow: none; padding: 0 0 8px; color: #000000; }
-  .win.active .win-title { font-size: 18px; white-space: normal; }
+  .win.active .win-title { font-size: var(--text-lg); white-space: normal; }
   .win.active .win-body { overflow: visible; border: 0; padding: 0; }
 }

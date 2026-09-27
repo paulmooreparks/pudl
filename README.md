@@ -17,12 +17,14 @@ The article reader fetches its windows from the server, so to run it from a copy
 ## The rules
 
 - **Elevation signals interactivity.** A raised control, with a hairline border and an inset highlight, can be pressed. A sunken field, with an inset shadow, takes input. Anything flat is there to be read.
-- **Categories stay separate.** Buttons, links, status badges and chips each look like themselves, and none of them borrows another's appearance.
-- **Colour is never the only signal.** Every meaningful state carries a glyph as well as a colour, so the interface still reads for somebody with red-green colour blindness (WCAG 1.4.1).
+- **Categories stay separate.** Buttons, links, tabs, status badges, chips and filter chips each look like themselves, and none of them borrows another's appearance.
+- **Colour is never the only signal.** Every meaningful state carries a glyph, a position or an elevation as well as a colour, so the interface still reads for somebody with red-green colour blindness (WCAG 1.4.1).
+- **State is marked with the ARIA attribute that states it.** `aria-current` says where the reader is, `aria-pressed` and `aria-checked` say a toggle is on, and `aria-selected` marks the tab of a tab panel, so the eye and assistive technology are told the same thing. The older `.active` class still works as an alias.
 - **Each visible context has at most one primary button.** A view that seems to need two has a secondary or destructive action hiding in one of them.
 - **Links are underlined.** The brand wordmark in the topbar is the only exception.
 - **Numerals are tabular wherever numbers are data**, so identifiers, counts, money and timestamps line up in tables, fields, badges, chips and lists. Running prose keeps proportional figures, and a `<time>`, a `<data>` or the `.num` class makes a number inside prose tabular.
-- **Dialogs are rendered by the server** and shown by script, and a page never falls back on the browser's own `confirm()`.
+- **Dialogs are native dialog elements rendered by the server**, and a page never falls back on the browser's own `confirm()`.
+- **Glyphs are drawn, not typed.** Every glyph in PUDL's chrome is an SVG mask from the stylesheet, so it looks the same everywhere and never turns into a colour emoji.
 
 `reference.html` shows every component in both themes and lists the rest of the invariants.
 
@@ -116,11 +118,67 @@ A theme may change any colour token and the font tokens, provided the result kee
 
 - **The three surfaces stay distinct.** A raised control must still read as raised against the surface behind it, a sunken field as sunken, and flat content as flat. A theme tunes this with the four lighting tokens and leaves the derived raised and sunken tokens alone.
 - **Contrast meets WCAG 2.2 AA.** Body text needs 4.5:1 against its background. Control boundaries and focus indicators need 3:1 against what surrounds them (WCAG 1.4.11).
-- **Status colours stay apart.** `--warn`, `--danger`, `--pr` and `--accent` must remain distinguishable from one another, and each still carries its glyph.
+- **Status colours stay apart.** `--warn`, `--danger`, `--positive` and `--accent` must remain distinguishable from one another, and each still carries its glyph. `--positive` was called `--pr` before 0.16.0; a theme that sets `--pr` still reaches it.
 - **Both themes exist.** A project supplies light and dark values for every token it changes.
 - **Fonts keep their roles.** Body text uses a legible sans-serif interface face. Identifiers, versions, timestamps and other machine values use a monospace face. The display face for headings and the brand wordmark may be any legible face, serif included. Numerals stay tabular where numbers are data, and weights stay between 400 and 700.
 
 The type scale, the spacing grid and the corner radii belong to the language and do not change per project.
+
+## Type, spacing and headings
+
+Every size PUDL sets comes from its type scale: `--text-2xs` (11px), `--text-xs` (12px), `--text-sm` (13px), `--text-md` (14px), `--text-base` (15px, body text), `--text-lg` (17px), `--text-xl` (20px), `--text-2xl` (24px) and `--text-3xl` (30px). PUDL gives `h1` to `h4` their sizes from the scale, in the display face, through `:where()`, which carries no weight, so any class a project or a component puts on a heading wins over it.
+
+Spacing between and around components comes from the grid, `--space-1` to `--space-6`: 4, 8, 12, 16, 24 and 32 pixels. A control's own padding, such as a button's, is part of that control's fixed metrics rather than the grid.
+
+## Section tabs
+
+The section bar is a notebook, after the widget of the same name in desktop toolkits. The bar is a recessed band. Each tab the reader can go to is a raised tab standing on the band, because it can be pressed, and the tab for where the reader is, marked `aria-current`, is flat, a little taller and open at the bottom into the content below.
+
+```html
+<nav class="app-section-bar" aria-label="Sections">
+  <a class="section-tab" href="/">All</a>
+  <a class="section-tab" href="/articles" aria-current="true">Articles</a>
+  <a class="section-tab" href="/links">Links</a>
+</nav>
+```
+
+A section's own page marks its tab `aria-current="page"`, and a page inside the section, such as one article, marks it `aria-current="true"`, so every page shows which section it belongs to. The current tab takes `--section-current-bg`, which defaults to `--surface`, the colour of a master-detail toolbar; a page whose content sits directly on the page background sets it to `var(--bg)`, so that the tab still opens into what lies below it.
+
+## Badges, chips and filter chips
+
+- A **badge** (`.badge` with `warn`, `danger`, `positive` or `accent`) states an entity's state, and always leads with its glyph. `.badge.pr` is the old name for `.badge.positive`.
+- A **chip** (`.chip`) names an attribute the thing carries, a tag or a trip, and is a plain neutral label.
+- A **filter chip** (`.filter-chip`) is a filter in force. It is outlined, it may lead with a `.filter-chip-kind` label (formerly `.fc-kind`), and its `.filter-chip-x` is a small raised button that removes the filter.
+
+## Dialogs
+
+A dialog is a native `<dialog class="dialog">` that the server renders into the page, opened with `showModal()`, or by a button carrying `command="show-modal"` and `commandfor` naming it. The browser keeps focus inside it, closes it on Escape and draws its backdrop, which PUDL dims to 40% while the panel's shadow does the lifting. A `<form method="dialog">` inside it closes it on submission, with the pressed button's value as the dialog's `returnValue`, and needs no script.
+
+```html
+<button class="btn btn-danger" commandfor="discard" command="show-modal">Discard changes…</button>
+<dialog class="dialog" id="discard" aria-labelledby="discard-title">
+  <h3 class="dialog-title" id="discard-title">Discard unsaved changes?</h3>
+  <p class="dialog-body">Leaving now will lose your changes.</p>
+  <form class="dialog-actions" method="dialog">
+    <button class="btn" value="stay" autofocus>Stay</button>
+    <button class="btn btn-danger" value="discard">Discard changes</button>
+  </form>
+</dialog>
+```
+
+The command attributes are newer than PUDL's 2024 browser floor, so the optional `pudl-dialog.js` supplies them where a browser lacks them. The older markup, a `.dialog` panel inside a `.dialog-backdrop` that a project's script shows, still works.
+
+## Names that changed
+
+These old names keep working until 2.0, and new work should use the new ones.
+
+| Old | New |
+|---|---|
+| `--pr` | `--positive` |
+| `.badge.pr` | `.badge.positive` |
+| `.fc-kind` | `.filter-chip-kind` |
+| `.active` on a tab, segment or row | `aria-current`, `aria-pressed` or `aria-checked` |
+| `.dialog-backdrop` with a script | `<dialog class="dialog">` |
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
@@ -409,6 +467,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-applets.js`, the optional applet runtime
   - `pudl-regions.js`, the optional script that swaps only the regions a navigation changes
   - `pudl-md.js`, the optional script that resizes the master-detail sidebar
+  - `pudl-dialog.js`, the optional script that supplies the dialog command buttons in browsers that lack them
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -420,7 +479,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.15.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.16.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
