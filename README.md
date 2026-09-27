@@ -276,6 +276,23 @@ When the layer sits inside a master-detail layout, in place of `.md-detail` or i
 
 `samples/article-reader.html` puts all of this together as a reading site: an article list in the sidebar, each article opening maximised, and listings as child windows.
 
+## Regions
+
+A navigation that changes only part of a page, such as a category tab or a filter, should replace only that part. Otherwise the reload re-fetches every open window, loses their scroll positions and restarts their applets. The optional `pudl-regions.js` does that for the parts a page marks with `data-region`:
+
+```html
+<nav class="app-section-bar" data-region="sections">…</nav>
+<nav class="md-sidebar" data-region="list">…</nav>
+```
+
+A plain click on a same-origin link inside a region, or a GET form submitted inside one, fetches the target page, which may be the same path with other parameters or another path, such as a page per category. If that page has a region of every name the current page has, and the same window layer, the script replaces each region with its counterpart and pushes the address, carrying the open windows, which stay exactly as they were. If it does not, or the fetch fails, the browser navigates as it always would, so the worst case is an ordinary page load. A link to what the regions already show does nothing. Back and Forward swap the regions again when the part of the address they depend on changed; when only the windows changed, the windows module handles it alone.
+
+The script asks the server for nothing special. It fetches the same address a bookmark would, so the server renders what the address names, as it always does, and the swap reads the regions out of that page.
+
+Same-page links inside regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
+
+`samples/article-reader.html` and its two category pages use regions for their category tabs and article list. Open an article, restore it, scroll it, set the colour mixer, and move between categories: only the list changes.
+
 ## Applets
 
 An applet is interactive content, such as a game, a calculator or a tool, that runs unchanged in a page of its own or inside a window, from one script. PUDL does not build or manage applets. The optional `pudl-applets.js` is only the handshake between an applet and whichever host it lands in, and it is needed because scripts inside a fetched window do not run.
@@ -314,10 +331,11 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-windows.css` and `pudl-windows.js`, the optional floating windows
   - `pudl-menu.js`, the optional script that places menu panels and adds their keyboard and filter
   - `pudl-applets.js`, the optional applet runtime
+  - `pudl-regions.js`, the optional script that swaps only the regions a navigation changes
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
-- `samples/`, working pages built with PUDL: `article-reader.html`, a reading site with articles in windows, listings as child windows, a launcher and an applet, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html, and `colour-mixer.html`, the same applet in a page of its own
+- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; and `colour-mixer.html`, the applet in a page of its own. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/proposals/`, design proposals and the decisions taken on them
 - `RELEASING.md`, the steps for cutting a release
@@ -325,7 +343,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Status
 
-This is version 0.11.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
+This is version 0.12.0 and it is incomplete. The stylesheet was extracted from the Andoneer Design Language v2 reference page, which is the fullest statement of these ideas so far, and it has not yet been used on its own in a project. The floating windows are a rewrite of Andoneer's card windows as a general module. PUDL ships no script yet for resizing the master-detail sidebar.
 
 ## Lineage
 

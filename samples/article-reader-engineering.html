@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Article Reader, a PUDL Sample</title>
+  <title>Engineering, Article Reader, a PUDL Sample</title>
   <script src="../dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="../dist/pudl.css">
   <link rel="stylesheet" href="../dist/pudl-windows.css">
@@ -14,11 +14,7 @@
   <script src="../dist/pudl-regions.js" defer></script>
 </head>
 <body>
-  <!-- One page per category, as a server would render for each tab. Only the
-       category tabs and the article list differ between them, and those are
-       the regions pudl-regions.js swaps, so moving between categories leaves
-       the open windows alone. Each window's markup is in windows/, the
-       address data-win-src names; a server would answer those addresses. -->
+  <!-- The Engineering category. See article-reader.html. -->
 
   <header class="topbar">
     <a class="brand" href="../reference.html">PUDL</a>
@@ -31,9 +27,9 @@
   </header>
 
   <nav class="app-section-bar" data-region="sections" aria-label="Categories">
-    <a class="section-tab active" href="article-reader.html" aria-current="page">All</a>
+    <a class="section-tab" href="article-reader.html">All</a>
     <a class="section-tab" href="article-reader-design.html">Design</a>
-    <a class="section-tab" href="article-reader-engineering.html">Engineering</a>
+    <a class="section-tab active" href="article-reader-engineering.html" aria-current="page">Engineering</a>
   </nav>
 
   <div class="md-layout" data-md-pane="list">
@@ -58,13 +54,9 @@
       <nav class="win-dock" data-win-dock aria-label="Open articles"></nav>
     </div>
     <div class="md-body">
-      <nav class="md-sidebar" data-region="list" aria-label="Articles">
-        <div class="md-section-label">September 2026</div>
-        <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable<span class="md-meta"><time datetime="2026-09-21">21 September 2026</time></span></a></div>
+      <nav class="md-sidebar" data-region="list" aria-label="Engineering articles">
+        <div class="md-section-label">Engineering</div>
         <div class="md-row"><a class="md-item" href="?open=url-state" data-win-open="url-state">Keeping state in the URL<span class="md-meta"><time datetime="2026-09-14">14 September 2026</time></span></a></div>
-        <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours<span class="md-meta"><time datetime="2026-09-07">7 September 2026</time></span></a></div>
-        <div class="md-section-label">August 2026</div>
-        <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span></a></div>
       </nav>
       <div class="md-detail reader-stage">
         <div class="reader-col">

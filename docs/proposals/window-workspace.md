@@ -1,6 +1,8 @@
 # Response: the windows are a workspace
 
-Status: assessed 2026-09-27, planned, not built. Answers `Architecture/pudl-proposal-window-workspace.md` in the parkscomputing repository.
+Status: accepted and built, 2026-09-27. Proposals 1, 3 and 4 shipped in 0.11.0 and proposal 2 in 0.12.0.
+
+One change from the design below: a soft navigation may go to another path, not only the same one, when the page it fetches has the same regions and the same window layer. That lets a site with a page per category, such as the article reader sample, keep its windows between categories, and the compatibility check is what makes it safe. The windows travel into the pushed address because they stay on screen. Answers `Architecture/pudl-proposal-window-workspace.md` in the parkscomputing repository.
 
 I agree with all four proposals and with the principle behind them: once windows hold scroll positions, arrangements and running applets, nothing should repaint them unless the reader asked for it. Two of the four need a change of shape on the way into PUDL, and the second is large enough that its design is set out here before any code.
 

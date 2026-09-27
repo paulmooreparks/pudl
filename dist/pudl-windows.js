@@ -382,7 +382,7 @@
     if (url !== location.pathname + location.search + location.hash) {
       history[push ? 'pushState' : 'replaceState'](history.state, '', url);
     }
-    layer.dispatchEvent(new CustomEvent('pudl:windows-change', { detail: copy(st) }));
+    layer.dispatchEvent(new CustomEvent('pudl:windows-change', { bubbles: true, detail: copy(st) }));
   }
 
   /* For keyboard moves: the page follows each key at once, and the URL is
@@ -877,6 +877,10 @@
     });
     document.addEventListener('keydown', onEscape);
     window.addEventListener('popstate', function () { sync(false); });
+
+    /* When pudl-regions.js swaps parts of the page, the new list rows and
+       dock need marking and linking as the old ones were. */
+    document.addEventListener('pudl:regions-swap', function () { apply(state); });
 
     /* The script interface. Each function does exactly what the matching
        link or button does, the URL and history included, so a project never

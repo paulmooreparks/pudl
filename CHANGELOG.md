@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0
+
+- Regions. The new optional `dist/pudl-regions.js` makes a navigation that changes only part of a page replace only that part. A page marks the parts with `data-region`. A same-origin link or GET form inside a region fetches the target page, the same address a bookmark would fetch; if it has the same regions and window layer, the regions are swapped and the address pushed with the open windows, which stay as they were, scroll positions and running applets included. Otherwise the browser navigates normally. Back and Forward swap the regions when their part of the address changed. Same-page links and window fields in regions are kept current with the open windows.
+- `pudl:regions-swap` fires after a swap, and the windows module marks the new list's rows on it.
+- `pudl:windows-change` now bubbles, so a listener on the document hears it.
+- The section bar no longer shrinks in a full-height layout, and scrolls sideways when its tabs outrun a narrow screen.
+- The article reader sample gains category tabs, with a page per category, and its windows now come from `samples/windows/`, fetched as a server would answer them. It therefore needs a web server to run.
+- From parkscomputing.com; `docs/proposals/window-workspace.md` records the design.
+
 ## 0.11.0
 
 - A window opened by a link inside another window opens in that window's state: maximised from maximised, the same half from a snapped half, and from a floating window, floating one step down and to the right, wrapping to the top left at the edge. Opens from outside any window keep the markup's default. `pudl:window-place` gains `detail.opener`.
