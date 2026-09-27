@@ -9,7 +9,11 @@
        opens the panel and moves into it;
      - an .md-filter input in a panel narrows its rows as the reader types,
        hides a section whose rows all go, and Enter follows the first row
-       that is left. Without script the filter is whatever form holds it. */
+       that is left, or, with none left, submits the form the filter sits
+       in. Without script the filter is whatever form holds it;
+     - a panel carrying data-menu-key, such as "/", opens when that key is
+       pressed outside an editable field, with focus in its filter, and a
+       panel with no button opens as a palette near the top of the window. */
 (function () {
   'use strict';
 
@@ -29,7 +33,7 @@
      rectangle is all that is needed. */
   function place(panel) {
     var btn = invokerOf(panel);
-    if (!btn) return;
+    if (!btn) { placeAsPalette(panel); return; }
     var r = btn.getBoundingClientRect();
     var vw = document.documentElement.clientWidth;
     var vh = window.innerHeight;
@@ -56,6 +60,23 @@
       panel.style.left = Math.max(EDGE, Math.min(start, vw - w - EDGE)) + 'px';
     }
     panel.style.top = (down ? r.bottom + GAP : Math.max(EDGE, r.top - GAP - panel.offsetHeight)) + 'px';
+  }
+
+  /* A panel with no button, summoned only by its key, opens where keyboard
+     palettes conventionally sit: centred, a little below the top of the
+     window. */
+  function placeAsPalette(panel) {
+    var vw = document.documentElement.clientWidth;
+    var vh = window.innerHeight;
+    var narrow = vw <= NARROW;
+    panel.classList.toggle('sheet', narrow);
+    panel.style.margin = '0';
+    panel.style.inset = 'auto';
+    panel.style.width = narrow ? vw + 'px' : '';
+    var top = narrow ? 0 : Math.round(vh * 0.15);
+    panel.style.maxHeight = Math.max(160, vh - top - EDGE) + 'px';
+    panel.style.left = narrow ? '0px' : Math.max(EDGE, Math.round((vw - panel.offsetWidth) / 2)) + 'px';
+    panel.style.top = top + 'px';
   }
 
   function items(panel) {
@@ -180,6 +201,42 @@
       if (b) b.focus();
     }
   });
+
+  /* A panel carrying data-menu-key opens when that key is pressed anywhere
+     outside an editable field, with focus in its filter, or on its first
+     row if it has no filter. Inside a field the key types as usual. */
+  function editable(el) {
+    return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
+  }
+
+  function summon(panel) {
+    if (!isOpen(panel)) panel.showPopover();
+    place(panel);
+    panel.classList.remove('placing');
+    var target = panel.querySelector('.md-filter') || items(panel)[0];
+    if (target) target.focus();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+    if (!e.key || e.key.length !== 1 || editable(document.activeElement)) return;
+    var panel = Array.prototype.find.call(document.querySelectorAll('.menu-panel[data-menu-key]'), function (p) {
+      return p.getAttribute('data-menu-key') === e.key;
+    });
+    if (!panel) return;
+    e.preventDefault();
+    summon(panel);
+  });
+
+  /* A menu's button announces the key that also opens it. */
+  function markShortcuts() {
+    document.querySelectorAll('.menu-panel[data-menu-key]').forEach(function (p) {
+      var btn = invokerOf(p);
+      if (btn && !btn.hasAttribute('aria-keyshortcuts')) btn.setAttribute('aria-keyshortcuts', p.getAttribute('data-menu-key'));
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', markShortcuts);
+  else markShortcuts();
 
   /* Choosing a row or an action closes the panel. A row that leaves the page
      would close it anyway, but a row that opens a window, or an action that
