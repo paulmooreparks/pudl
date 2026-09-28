@@ -58,27 +58,37 @@ function check(name, ok, extra) {
   const got = await Promise.race([warned, new Promise(res => setTimeout(() => res(false), 3000))]);
   check('a window whose markup is not HTML is refused', got && await q.locator('.win[data-win="numerals"]').count() === 0);
 
-  /* A mount may not name a script or stylesheet on another origin. */
+  /* A mount cannot name a script or stylesheet at all; only define() can. */
   await q.goto(ROOT + '/samples/colour-mixer.html');
   await q.waitForFunction(() => window.pudlApplets);
+  const warned2 = [];
+  q.on('console', m => { if (/no longer read/.test(m.text())) warned2.push(m.text()); });
   const mount = await q.evaluate(() => {
     const m = document.createElement('div');
     m.setAttribute('data-applet', 'elsewhere');
-    m.setAttribute('data-applet-src', 'https://example.com/applet.js');
+    m.setAttribute('data-applet-src', 'applets/mixer.js?from-mount');
+    m.setAttribute('data-applet-css', 'applets/mixer.css?from-mount');
     document.body.append(m);
     pudlApplets.boot(m);
-    return { state: m.getAttribute('data-applet-state'), loaded: !!document.querySelector('script[src="https://example.com/applet.js"]') };
+    return { state: m.getAttribute('data-applet-state'),
+             loaded: !!document.querySelector('script[src*="from-mount"], link[href*="from-mount"]') };
   });
-  check('a mount naming another origin fails and loads nothing', mount.state === 'error' && !mount.loaded, JSON.stringify(mount));
-  const css = await q.evaluate(() => {
+  await q.waitForTimeout(200);
+  check('a mount naming its own files loads nothing, even from this origin, and warns',
+        mount.state === 'loading' && !mount.loaded && warned2.length === 1, JSON.stringify(mount) + ' ' + warned2.length);
+  /* The mixer puts its page in a share link, so a javascript: page would
+     become a link that runs script. */
+  const page = await q.evaluate(() => new Promise(res => {
     const m = document.createElement('div');
-    m.setAttribute('data-applet', 'elsewhere-css');
-    m.setAttribute('data-applet-css', 'https://example.com/applet.css');
+    m.setAttribute('data-applet', 'mixer');
+    m.setAttribute('data-applet-page', 'javascript:alert(1)');
     document.body.append(m);
     pudlApplets.boot(m);
-    return { state: m.getAttribute('data-applet-state'), loaded: !!document.querySelector('link[href="https://example.com/applet.css"]') };
-  });
-  check('a mount naming a stylesheet on another origin fails and loads nothing', css.state === 'error' && !css.loaded, JSON.stringify(css));
+    setTimeout(() => res({ state: m.getAttribute('data-applet-state'),
+                           hrefs: Array.from(m.querySelectorAll('a[href]'), a => a.getAttribute('href')) }), 500);
+  }));
+  check('a mount page on another origin is ignored, and the applet still runs',
+        page.state === 'running' && page.hrefs.length > 0 && page.hrefs.every(h => !/^javascript:/i.test(h)), JSON.stringify(page));
 
   /* A toast's kind is one of the kinds, never an arbitrary class. */
   await q.goto(ROOT + '/reference.html');
