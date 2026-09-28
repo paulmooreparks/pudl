@@ -69,7 +69,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Menu | `.menu` holding `.menu-btn[popovertarget]` and `.menu-panel[popover]`, whose content is `.md-section-label`, `.md-row` with `.md-item`, `.menu-sep`, `button.menu-action` (with `.danger`), an `.md-filter` and a `.menu-empty` | `data-menu-key`, `data-menu-empty` |
 | Master-detail | `.md-layout` holding `.md-toolbar` (with `.md-site-tools`), `.md-chips`, `.md-body` holding `.md-sidebar`, `.md-resize`, `.md-detail`; toolbar parts `.md-filter`, `.md-filter-group`, `.md-filter-go`, `.md-toolbar-spacer`, `.md-toolbar-cmds`, `.md-toolbar-sep`, `.md-chips-clear`; list parts `.md-section-label`, `.md-row` holding `a.md-item` with `.md-meta`, `.md-grip`; `a.md-back` in the detail | `data-md-pane="detail"` or `"list"`; aria-current on a row's link |
 | Windows | `.win-host` holding `.win-layer[data-win-layer][data-win-src]`; `article.win[data-win]` holding `header.win-head` with `.win-title` and `.win-chrome` of `.win-btn[data-win-action]`, then `.win-body`; `nav.win-dock[data-win-dock]`; a list row `.md-row-child[data-win-child]` | `data-win-mode`, `hidden` for minimised, the four `--win-` position properties |
-| Applets | an element with `data-applet`, `data-applet-src`, `data-applet-css`, `data-applet-page` | `data-applet-state` |
+| Applets | an element with `data-applet`, and optionally `data-applet-src`, `data-applet-css`, `data-applet-page`, `data-applet-fit`, `data-applet-param` | `data-applet-state`; `data-applet-fit` |
 | Regions | any element with `data-region` | `aria-busy` while replaced |
 | Numbers and time | `.num`, `time`, `data` in prose take tabular figures | |
 
@@ -90,7 +90,9 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-md-pane` | `.md-layout` | the stylesheet, `pudl-windows.js` | Which pane a narrow layout shows |
 | `data-md-valuetext` | `.md-resize` | `pudl-md.js` | The divider's spoken width, with `{n}` |
 | `data-region` | any element | `pudl-regions.js` | A region's name |
-| `data-applet`, `-src`, `-css`, `-page` | an applet mount | `pudl-applets.js` | The applet's name, script, stylesheet and page |
+| `data-applet`, `-src`, `-css`, `-page` | an applet mount | `pudl-applets.js` | The applet's name, and its script, stylesheet and page, each overriding the registry |
+| `data-applet-fit` | an applet mount | `pudl-applets.js`, the applet's stylesheet | `fill` or `flow`; the runtime sets it when absent |
+| `data-applet-param` | an applet mount outside a window | `pudl-applets.js`, `pudl-regions.js` | The page query parameter that keeps the applet's state |
 | `data-toast-ms`, `data-toast-sticky`, `data-toast-close-label` | a toast, the region | `pudl-toast.js` | How long, whether to stay, the dismiss label |
 | `data-tooltip` | any element | `pudl-tooltip.js` | A tooltip's text |
 | `data-label` | a data table cell | the stylesheet | The label shown when rows stack |
@@ -108,6 +110,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
+| `pudl:applet-change` | the applet's mount, bubbles | `state`, a string or null | When the applet calls `opts.changed()` |
 
 ## Script functions
 
@@ -115,7 +118,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 |---|---|---|
 | `pudlSetTheme(p)`, `pudlThemePreference()`, `pudlToggleTheme()` | `pudl-theme.js` | Set, read and toggle the reader's theme |
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
-| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }`, with `opts.host`, `opts.ownsUrl`, `opts.pageUrl` |
+| `pudlApplets.define(name, { src, css, page, ver })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name |
+| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()` and `setState(s)`, with `opts.host`, `opts.fit`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 
@@ -124,6 +128,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 **Windows.** The parameters `open` (keys, comma-separated, in opening order), `top` (one key), `min` (keys) and `p.<key>=<mode>:<x>,<y>,<w>,<h>` describe the windows, alongside the page's own parameters. A key is letters, digits, `-` and `_`. The mode is `floating`, `maximized`, `left` or `right`; the four numbers are fractions of the layer from 0 to 1, with at most three decimal places, and are the floating geometry to restore to. A server renders the windows these name, and ignores what it cannot parse.
 
 **Regions.** A soft navigation fetches the same address a bookmark would. It swaps when the answering page has a region of every name the current page has, and the same window layer source; otherwise the browser navigates. A region that is sometimes empty must still be rendered.
+
+**Applets.** A mount outside a window with `data-applet-param="name"` has its applet's state under `name` in the page's query, replaced rather than pushed as it changes. Regions carry that parameter from address to address like the windows' parameters, and a change in it alone fetches nothing. The applet owns the address itself only on its own page: `ownsUrl` is true when the mount is outside a window, has no `data-applet-param`, and its page, from `data-applet-page` or the registry, is this page's path, ignoring an index file, an `.html` extension and a trailing slash.
 
 **Everything else.** Sorting, filtering, paging, the record in view and the panel chosen in a set of tabs are addresses: query parameters for the first four, the fragment for the last. What is momentary, such as an open menu or a tooltip, is not.
 

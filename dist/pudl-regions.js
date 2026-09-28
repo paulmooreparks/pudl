@@ -37,7 +37,19 @@
     return name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0;
   }
 
-  /* The raw window parameters in the current address. pudl-windows.js writes
+  /* The parameters that belong to what stays on screen rather than to what
+     the regions show: the windows', and those of applets outside windows
+     that keep their state in the page's query with data-applet-param. They
+     are carried from address to address as they stand, and a change in
+     them alone is no reason to fetch regions. */
+  function isLive(name) {
+    if (isWinParam(name)) return true;
+    return Array.prototype.some.call(document.querySelectorAll('[data-applet-param]'), function (el) {
+      return el.getAttribute('data-applet-param') === name && !el.closest('.win');
+    });
+  }
+
+  /* The raw live parameters in the current address. pudl-windows.js writes
      them unescaped, and they are copied as written so addresses stay
      readable. */
   function liveWindowParams() {
@@ -45,14 +57,14 @@
       if (!seg) return false;
       var name = seg.split('=')[0];
       try { name = decodeURIComponent(name); } catch (e) { /* leave as is */ }
-      return isWinParam(name);
+      return isLive(name);
     });
   }
 
-  /* An address with its own window parameters replaced by the live ones. */
+  /* An address with its own live parameters replaced by the current ones. */
   function withLiveWindows(url) {
     var q = new URLSearchParams(url.search);
-    Array.from(q.keys()).forEach(function (k) { if (isWinParam(k)) q.delete(k); });
+    Array.from(q.keys()).forEach(function (k) { if (isLive(k)) q.delete(k); });
     var parts = [];
     var rest = q.toString();
     if (rest) parts.push(rest);
@@ -62,7 +74,7 @@
 
   function withoutWindows(url) {
     var q = new URLSearchParams(url.search);
-    Array.from(q.keys()).forEach(function (k) { if (isWinParam(k)) q.delete(k); });
+    Array.from(q.keys()).forEach(function (k) { if (isLive(k)) q.delete(k); });
     q.sort();
     return url.pathname + '?' + q.toString();
   }
@@ -171,7 +183,7 @@
     document.querySelectorAll('[data-region] form').forEach(function (f) {
       if ((f.getAttribute('method') || 'get').toLowerCase() !== 'get') return;
       var hidden = Array.prototype.filter.call(f.querySelectorAll('input[type="hidden"]'), function (i) {
-        return isWinParam(i.name);
+        return isLive(i.name);
       });
       if (!hidden.length) return;
       hidden.forEach(function (i) { i.remove(); });
@@ -220,7 +232,7 @@
     if (url.origin !== location.origin) return;
     var data = new FormData(f, e.submitter || null);
     var q = new URLSearchParams();
-    data.forEach(function (v, k) { if (typeof v === 'string' && !isWinParam(k)) q.append(k, v); });
+    data.forEach(function (v, k) { if (typeof v === 'string' && !isLive(k)) q.append(k, v); });
     url.search = q.toString();
     e.preventDefault();
     swap(url.pathname + url.search, true);

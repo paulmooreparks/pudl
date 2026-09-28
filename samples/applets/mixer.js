@@ -2,9 +2,11 @@
    its raised and sunken surfaces, with CSS color-mix() in sRGB.
 
    In a page of its own it keeps the mix in the page's URL, and every change
-   is a history entry, so Back undoes it. In a window the windows own the
-   URL, so it leaves the URL alone, and its link points at its own page with
-   the current mix, which works from anywhere. */
+   is a history entry, so Back undoes it. Anywhere else it leaves the URL
+   alone, and its link points at its own page with the current mix, which
+   works from anywhere. It reports each settled mix through opts.changed,
+   and takes one back through setState, so a host can keep it: an article
+   whose mount has data-applet-param keeps it in the article's address. */
 (function () {
   'use strict';
 
@@ -46,7 +48,8 @@
 
   function init(root, opts) {
     var id = 'mixer-' + Math.random().toString(36).slice(2, 8);
-    var state = read(opts.ownsUrl ? new URLSearchParams(location.search) : new URLSearchParams(root.getAttribute('data-mix') || ''));
+    var state = read(new URLSearchParams(opts.state != null ? opts.state
+      : opts.ownsUrl ? location.search : root.getAttribute('data-mix') || ''));
     var off = new AbortController();
 
     root.textContent = '';
@@ -72,7 +75,7 @@
 
     var foot = el('p', { class: 'mixer-foot' });
     var share = el('a', {}, opts.ownsUrl ? 'Link to this mix' : 'Open this mix in its own page');
-    var note = el('span', {}, opts.ownsUrl ? ' Back undoes each change.' : '');
+    var note = el('span', {}, opts.ownsUrl ? ' Back undoes each change.' : opts.host === 'page' && root.hasAttribute('data-applet-param') ? ' The page\'s address keeps the mix.' : '');
     foot.append(share, note);
 
     root.append(inputs, swatch, table, foot);
@@ -95,6 +98,7 @@
         var url = location.pathname + '?' + query(state) + location.hash;
         if (url !== location.pathname + location.search + location.hash) history.pushState(null, '', url);
       }
+      if (push && opts.changed) opts.changed(query(state));
     }
 
     /* Every listener goes through one AbortController, so destroy() removes
@@ -116,6 +120,8 @@
 
     show();
     return {
+      state: function () { return query(state); },
+      setState: function (s) { state = read(new URLSearchParams(s || '')); show(); },
       destroy: function () {
         off.abort();
         root.textContent = '';
