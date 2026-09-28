@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.20.0
+
+Applets and their hosts, from parkscomputing.com's `Architecture/pudl-proposal-applet-hosts.md`; `docs/proposals/applet-hosts.md` records the response.
+
+- A registry. `pudlApplets.define(name, { src, css, page, ver })` names an applet's files once, and a mount then needs only `data-applet="name"`. `ver` is added to the script and stylesheet as `?v=`, so a new version is one edit. A mount's own `data-applet-src`, `-css` and `-page` still work, and each wins over the registry separately. `define()` may run before or after `pudl-applets.js` has started the page's mounts.
+- `opts.fit`, `"fill"` or `"flow"`, tells the applet how to size itself: fill the definite box a window or a bare page gives it, or flow with an article's column and let the page scroll. A window fills and anything else flows, unless the mount's `data-applet-fit` says otherwise, and the mount's `data-applet-fit` reads the answer for the applet's stylesheet.
+- **Changed:** `opts.ownsUrl` is true only on the applet's own page, the one `data-applet-page` or the registry names. Before, any applet outside a window was told it owned the address, so one embedded in an article could rewrite the article's. A mount with no page named still counts as on its own page, as before. **A project must** name the page of any applet it embeds in another page, or the applet will still write that page's address.
+- Applet state. An instance may offer `state()` and `setState(s)`, `opts.state` hands it the state its host kept, and `opts.changed(s)` fires `pudl:applet-change` on the mount. PUDL keeps no state, with one opt-in: a mount outside a window with `data-applet-param="name"` keeps its state in the page's query under that name, replaced rather than pushed, and Back and Forward hand a changed value to `setState()`.
+- Fixed: an applet inside a region swapped by `pudl-regions.js` was never destroyed, and one arriving with a new region never started. The runtime now does both on every swap.
+- `pudl-regions.js` carries an applet's `data-applet-param` from address to address as it carries the windows' parameters, and a change in it alone no longer fetches regions on Back or Forward.
+- The README's applet section documents the fill and flow sizing patterns: the measuring wrapper for a square board, why a size container's box must come from its layout, and `svh` rather than `dvh` on phones.
+- The colour mixer sample offers `state()` and `setState()`, and `samples/applet-article.html` embeds it in an article, named through `samples/applets/registry.js`, with its mix in the article's address.
+
 ## 0.19.2
 
 Fixes found by making the expense tracker a working application. Nothing a project relies on changes.
