@@ -92,7 +92,9 @@ function check(name, ok, extra) {
   await page.mouse.down();
   await page.mouse.move(layerBox.x + 30, b.y + 40, { steps: 6 });
   await page.mouse.move(layerBox.x + 4, b.y + 40, { steps: 4 });
-  check('ghost shows while snapping', await page.locator('.win-ghost').isVisible());
+  /* The window follows the pointer once a frame, so the ghost appears on
+     the frame after the move. */
+  check('ghost shows while snapping', await page.locator('.win-ghost').waitFor({ state: 'visible', timeout: 2000 }).then(() => true, () => false));
   await page.mouse.up();
   s = await q();
   check('snap left', /p\.exp-13=left:/.test(s), s);

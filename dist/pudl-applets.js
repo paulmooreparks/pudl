@@ -16,7 +16,8 @@
 
    ver is added to src and css as ?v=, so a new version is one edit. A mount
    may still carry data-applet-src, -css and -page, and each one it carries
-   wins over the registry. The order of loading does not matter: a mount
+   wins over the registry, but a mount's src and css must be on the page's
+   own origin; only define() may name another. The order of loading does not matter: a mount
    that meets an undefined name waits for its define().
 
    The applet's script registers it:
@@ -91,16 +92,33 @@
     return u.href;
   }
 
+  function sameOrigin(url) {
+    try { return new URL(url, document.baseURI).origin === location.origin; } catch (e) { return false; }
+  }
+
   /* Where a mount's files are: each attribute it carries, else the
-     registry's entry, with the registry's version on the registry's URLs. */
+     registry's entry, with the registry's version on the registry's URLs.
+
+     A mount's own attributes may name files on the page's own origin only.
+     Markup can come from people other than the site's authors, a comment
+     or an article that a sanitiser let data attributes through, and a
+     mount naming a script elsewhere would run it with the page's
+     authority. define() is called by the site's own script, so the
+     registry may name any origin. A refused attribute is reported in
+     refused, and the mount fails rather than falling back. */
   function config(root) {
     var name = root.getAttribute('data-applet');
     var d = defs[name] || {};
+    var refused = null;
     function pick(attr, key) {
-      return root.hasAttribute(attr) ? root.getAttribute(attr) : versioned(d[key], d.ver);
+      if (!root.hasAttribute(attr)) return versioned(d[key], d.ver);
+      var v = root.getAttribute(attr);
+      if (sameOrigin(v)) return v;
+      refused = attr;
+      return null;
     }
     return { name: name, src: pick('data-applet-src', 'src'), css: pick('data-applet-css', 'css'),
-             page: root.getAttribute('data-applet-page') || d.page || null };
+             page: root.getAttribute('data-applet-page') || d.page || null, refused: refused };
   }
 
   function ensureCss(href) {
@@ -162,6 +180,7 @@
     roots.forEach(function (root) {
       if (!root.isConnected || root.getAttribute('data-applet-state') !== 'loading') return;
       var c = config(root);
+      if (c.refused) { fail(root, new Error(c.refused + ' on a mount must name this origin; use define() for another')); return; }
       ensureCss(c.css);
       if (c.src && !registry[name]) loaded(name, c.src).catch(function (err) { fail(root, err); });
     });
@@ -241,6 +260,7 @@
   function start(root) {
     root.setAttribute('data-applet-state', 'loading');
     var c = config(root);
+    if (c.refused) { fail(root, new Error(c.refused + ' on a mount must name this origin; use define() for another')); return; }
     ensureCss(c.css);
     if (!c.src && !registry[c.name]) (unresolved[c.name] = unresolved[c.name] || []).push(root);
     definition(c.name, c.src).then(function (def) {

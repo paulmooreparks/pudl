@@ -151,8 +151,17 @@
     }
   }, true);
 
-  function placeOpen() {
-    document.querySelectorAll('.menu-panel').forEach(function (p) { if (isOpen(p)) place(p); });
+  /* An open panel follows its button when the page scrolls or the window
+     resizes, once a frame however many events arrive. Scrolling the
+     panel's own rows moves nothing, so it is ignored. */
+  var placing = 0;
+  function placeOpen(e) {
+    if (e && e.type === 'scroll' && e.target.closest && e.target.closest('.menu-panel')) return;
+    if (placing) return;
+    placing = requestAnimationFrame(function () {
+      placing = 0;
+      document.querySelectorAll('.menu-panel').forEach(function (p) { if (isOpen(p)) place(p); });
+    });
   }
   window.addEventListener('resize', placeOpen);
   window.addEventListener('scroll', placeOpen, true);

@@ -13,6 +13,16 @@
    the whole band is the resize border.
    ========================================================================== */
 
+/* The four fractions are registered as numbers that do not inherit. An
+   ordinary custom property is inherited by everything inside the window,
+   so changing it restyles the window's whole content, which grows with the
+   content and made moving and resizing a full window slow, in WebKit and
+   Firefox above all. Registered, a change restyles the window alone. */
+@property --win-x { syntax: "<number>"; inherits: false; initial-value: 0.06; }
+@property --win-y { syntax: "<number>"; inherits: false; initial-value: 0.05; }
+@property --win-w { syntax: "<number>"; inherits: false; initial-value: 0.55; }
+@property --win-h { syntax: "<number>"; inherits: false; initial-value: 0.75; }
+
 :root {
   --win-band: 5px;            /* width of the frame between the two hairlines */
   --win-hit: 10px;            /* resize hit area, wider than the band */
@@ -83,6 +93,10 @@
   border-color: color-mix(in srgb, var(--accent) 45%, var(--raise-border));
   box-shadow: var(--win-shadow-active);
 }
+/* While its title bar is dragged, a window moves by transform on a layer of
+   its own, so each step is composited rather than laid out and repainted
+   with its shadow. The script sets the transform and clears it on release. */
+.win.win-moving { will-change: transform; }
 
 /* Maximised and snapped windows fill their slot and lose the frame, since
    they cannot be resized from it. */

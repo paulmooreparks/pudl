@@ -157,7 +157,7 @@
     const d = cur === 'JPY' ? 0 : 2;
     return n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
   }
-  const money = (n, cur) => cur + ' ' + num(n, cur);
+  const money = (n, cur) => esc(cur) + ' ' + num(n, cur);
   function longDate(iso) {
     const [y, m, d] = iso.split('-').map(Number);
     return d + ' ' + MONTHS[m - 1] + ' ' + y;
@@ -206,7 +206,7 @@
     return `<div class="data-table-wrap"><div class="empty-state">
       <p class="empty-state-title">There is no such ${what}</p>
       <p class="empty-state-body">It may have been deleted, or the sample data may have been reset.</p>
-      <div class="empty-state-actions"><a class="btn" href="${back}">${backText}</a></div>
+      <div class="empty-state-actions"><a class="btn" href="${esc(back)}">${esc(backText)}</a></div>
     </div></div>`;
   }
 
@@ -268,11 +268,11 @@
       view: archived ? 'paid' : '',
       q: (params.get('q') || '').trim(),
       trip: tripOf(params.get('trip')) ? params.get('trip') : '',
-      account: ACCOUNTS[params.get('account')] ? params.get('account') : '',
-      state: !archived && STATES[params.get('state')] && params.get('state') !== 'paid' ? params.get('state') : '',
+      account: Object.hasOwn(ACCOUNTS, params.get('account')) ? params.get('account') : '',
+      state: !archived && Object.hasOwn(STATES, params.get('state')) && params.get('state') !== 'paid' ? params.get('state') : '',
       receipt: !archived && params.get('receipt') === 'missing' ? 'missing' : ''
     };
-    const key = EXPENSE_SORTS[params.get('sort')] ? params.get('sort') : 'date';
+    const key = Object.hasOwn(EXPENSE_SORTS, params.get('sort')) ? params.get('sort') : 'date';
     const sort = { key, dir: params.get('dir') === 'asc' || params.get('dir') === 'desc' ? params.get('dir') : EXPENSE_SORTS[key].dir };
     const withSort = Object.assign({}, f, { sort: key === 'date' ? '' : key, dir: sort.dir === EXPENSE_SORTS[key].dir ? '' : sort.dir });
     const link = over => href('expenses.html', Object.assign({}, withSort, { page: '' }, over));
@@ -565,7 +565,8 @@
   function expenseForm(v, errors, editing) {
     const err = (name, id) => errors[name] ? ` aria-invalid="true" aria-describedby="${id}-error${id === 'amount' ? ' amount-help' : ''}"` : (id === 'amount' ? ' aria-describedby="amount-help"' : '');
     const msg = (name, id) => errors[name] ? `<p class="form-error" id="${id}-error">${esc(errors[name])}</p>` : '';
-    const names = { title: 'the description', merchant: 'the merchant', date: 'the date', trip: 'the trip', amount: 'the amount' };
+    const names = { title: 'the description', merchant: 'the merchant', date: 'the date', trip: 'the trip', amount: 'the amount',
+                    category: 'the category', currency: 'the currency', account: 'the account' };
     const wrong = Object.keys(errors);
     const notice = wrong.length ? `
       <div class="notice danger" role="alert" tabindex="-1" id="form-notice" style="margin-bottom: var(--space-4);">
@@ -677,6 +678,12 @@
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v.date) || isNaN(Date.parse(v.date))) e.date = 'Give the date on the receipt.';
     else if (trip && v.date > trip.end) e.date = 'The date is after the trip ended on ' + longDate(trip.end) + '.';
     else if (trip && v.date < addDays(trip.start, -30)) e.date = 'The date is more than 30 days before the trip began on ' + longDate(trip.start) + '.';
+    /* The three lists are fixed, and a value outside them, which only a
+       tampered form can send, is refused rather than stored, since the
+       stored value is later written into the page. */
+    if (!Object.hasOwn(CATEGORIES, v.category)) e.category = 'Choose a category from the list.';
+    if (!Object.hasOwn(RATES, v.currency)) e.currency = 'Choose a currency from the list.';
+    if (!Object.hasOwn(ACCOUNTS, v.account)) e.account = 'Choose an account from the list.';
     const raw = String(v.amount).replace(/,/g, '').trim();
     const n = Number(raw);
     const places = v.currency === 'JPY' ? 0 : 2;
@@ -706,7 +713,7 @@
 
   function renderTrips() {
     document.title = 'Trips, a PUDL Sample';
-    const key = TRIP_SORTS[params.get('sort')] ? params.get('sort') : 'start';
+    const key = Object.hasOwn(TRIP_SORTS, params.get('sort')) ? params.get('sort') : 'start';
     const sort = { key, dir: params.get('dir') === 'asc' || params.get('dir') === 'desc' ? params.get('dir') : TRIP_SORTS[key].dir };
     const rows = db.trips.slice().sort((a, b) => {
       const va = TRIP_SORTS[key].get(a), vb = TRIP_SORTS[key].get(b);
@@ -829,7 +836,7 @@
     document.title = (t ? 'Edit trip' : 'New trip') + ', a PUDL Sample';
     errors = errors || {};
     const v = values || t || { name: '', destination: '', start: today(), end: addDays(today(), 3), purpose: '', customer: '', currency: 'USD' };
-    const names = { name: 'the name', destination: 'the destination', start: 'the first day', end: 'the last day' };
+    const names = { name: 'the name', destination: 'the destination', start: 'the first day', end: 'the last day', currency: 'the currency' };
     const wrong = Object.keys(errors);
     const err = (k) => errors[k] ? ` aria-invalid="true" aria-describedby="${k}-error"` : '';
     const msg = (k) => errors[k] ? `<p class="form-error" id="${k}-error">${esc(errors[k])}</p>` : '';
@@ -871,6 +878,7 @@
     if (!ok(v.start)) e.start = 'Give the day the trip begins.';
     if (!ok(v.end)) e.end = 'Give the day the trip ends.';
     else if (ok(v.start) && v.end < v.start) e.end = 'The trip cannot end before it begins.';
+    if (!Object.hasOwn(RATES, v.currency)) e.currency = 'Choose a currency from the list.';
     return e;
   }
 
@@ -933,7 +941,14 @@
   function csv() {
     const trip = tripOf(params.get('trip'));
     const xs = db.expenses.filter(x => !trip || x.trip === trip.id).sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
-    const cell = v => /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v);
+    /* A cell a spreadsheet would read as a formula, one starting with =, +,
+       - or @, is written as text by a leading apostrophe, so an expense's
+       title can never run in the reader's spreadsheet. */
+    const cell = v => {
+      let s = String(v);
+      if (/^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s)) s = "'" + s;
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
     const lines = [['id', 'date', 'description', 'merchant', 'trip', 'category', 'account', 'state', 'currency', 'amount', 'amount_usd', 'receipt']]
       .concat(xs.map(x => [x.id, x.date, x.title, x.merchant, tripName(x.trip), CATEGORIES[x.category], ACCOUNTS[x.account], x.state,
         x.currency, x.amount, usd(x).toFixed(2), x.receipt ? x.receipt.name : '']));
