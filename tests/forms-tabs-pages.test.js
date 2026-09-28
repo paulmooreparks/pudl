@@ -116,29 +116,30 @@ function check(name, ok, extra) {
   watch(s);
   await s.goto(ROOT + '/samples/expenses.html');
   await s.screenshot({ path: out('expenses18.png') });
-  await s.click('.data-table a[href="expense.html"] >> nth=0');
+  await s.evaluate(() => localStorage.clear());
+  await s.goto(ROOT + '/samples/expenses.html');
+  await s.click('.data-table a[href^="expense.html"] >> nth=0');
   await s.waitForURL(/expense\.html/);
   await s.waitForFunction(() => document.querySelector('.tabs.tabs-ready'));
   await s.screenshot({ path: out('expense18.png') });
+  await s.click('.menu-btn[popovertarget="more"]');
   await s.click('[commandfor="delete"][command="show-modal"]');
   check('sample: Delete asks in a modal dialog', await s.evaluate(() => document.getElementById('delete').matches(':modal')));
-  await Promise.all([s.waitForURL(/expenses\.html\?deleted=1/), s.click('#delete button[type="submit"]')]);
+  await Promise.all([s.waitForURL(/expenses\.html/), s.click('#delete button[type="submit"]')]);
   await s.waitForSelector('.toast', { timeout: 3000 });
   check('sample: deleting returns to the list with a toast', (await s.textContent('.toast .toast-text')) === 'Expense deleted.');
-  await s.goto(ROOT + '/samples/expense.html#history');
+  await s.goto(ROOT + '/samples/expense.html?id=1#history');
   await s.waitForFunction(() => document.querySelector('.tabs.tabs-ready'));
   check('sample: #history opens the history panel', await s.evaluate(() => !document.getElementById('history').hidden && document.getElementById('details').hidden));
-  await s.goto(ROOT + '/samples/expense-edit.html');
+  await s.goto(ROOT + '/samples/expense-edit.html?id=3');
   await s.screenshot({ path: out('edit18.png'), fullPage: true });
-  await Promise.all([s.waitForURL(/saved=1/), s.click('button[type="submit"].btn-primary')]);
+  await Promise.all([s.waitForURL(/expense\.html\?id=3/), s.click('button[type="submit"].btn-primary')]);
   await s.waitForSelector('.toast', { timeout: 3000 });
-  check('sample: saving returns to the list with a toast', (await s.textContent('.toast .toast-text')) === 'Expense saved.');
-  await s.goto(ROOT + '/samples/expenses-archived.html');
-  check('sample: the archive shows its empty state', await s.locator('.empty-state').isVisible());
+  check('sample: saving returns to the expense with a toast', (await s.textContent('.toast .toast-text')) === 'Expense saved.');
 
   const ph = await b.newPage({ viewport: { width: 393, height: 851 }, isMobile: true });
   watch(ph);
-  for (const pg of ['expenses.html', 'expense.html', 'expense-edit.html', 'expenses-archived.html']) {
+  for (const pg of ['expenses.html', 'expense.html?id=1', 'expense-edit.html', 'expenses.html?view=paid']) {
     await ph.goto(ROOT + '/samples/' + pg);
     const over = await ph.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     check('phone: ' + pg + ' fits', !over);
