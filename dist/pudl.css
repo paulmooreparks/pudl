@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.21.0.
+   Version 0.22.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -745,7 +745,7 @@ button.link {
       0 24px 64px rgba(0, 0, 0, 0.32);
   padding: var(--space-5);
 }
-dialog.dialog { margin: auto; max-height: calc(100vh - 2 * var(--space-5)); overflow: auto; }
+dialog.dialog { margin: auto; max-height: calc(100svh - 2 * var(--space-5)); overflow: auto; }
 dialog.dialog:not([open]) { display: none; }
 dialog.dialog::backdrop { background: color-mix(in srgb, #000 40%, transparent); }
 .dialog-backdrop {
@@ -772,7 +772,7 @@ dialog.dialog::backdrop { background: color-mix(in srgb, #000 40%, transparent);
    body fill the page. Scoped to a DIRECT child so a reference demo or any
    other embedded .md-layout doesn't accidentally kill page scrolling. */
 body:has(> .md-layout) {
-  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  height: 100svh; display: flex; flex-direction: column; overflow: hidden;
 }
 .md-layout {
   display: flex; flex-direction: column; flex: 1; min-height: 0;
@@ -879,7 +879,12 @@ body:has(> .md-layout) {
    divider is dragged and a project may set from a stored preference. The
    stylesheet holds it between --md-sidebar-min and half the layout, so the
    limits apply however the width was set, and still apply when the layout
-   narrows after a drag. */
+   narrows after a drag.
+
+   --md-sidebar-min is registered as a length, so however a theme writes it,
+   12rem say, its computed value is in pixels, which is what pudl-md.js
+   reads to keep the divider's limits the same as the stylesheet's. */
+@property --md-sidebar-min { syntax: "<length>"; inherits: true; initial-value: 180px; }
 .md-sidebar {
   width: clamp(var(--md-sidebar-min, 180px), var(--md-sidebar-w, 260px), 50%);
   flex: none; min-height: 0; overflow-y: auto;
@@ -1005,7 +1010,7 @@ body:has(> .md-layout) {
 .menu-panel {
   margin: auto; padding: 6px 0;
   min-width: 14rem; max-width: min(22rem, calc(100vw - 16px));
-  max-height: min(32rem, calc(100vh - 16px));
+  max-height: min(32rem, calc(100svh - 16px));
   overflow: auto;
   background: var(--dialog-bg, var(--surface)); color: var(--text);
   border: 1px solid var(--border); border-radius: var(--radius);

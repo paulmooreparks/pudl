@@ -22,6 +22,7 @@
 
   var DURATION = 5000;
   var LEAVE = 200;
+  var KINDS = ['positive', 'warn', 'danger'];
 
   function reduced() {
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -84,7 +85,8 @@
     opts = opts || {};
     var r = region();
     var t = document.createElement('div');
-    t.className = 'toast' + (opts.kind ? ' ' + opts.kind : '');
+    t.className = 'toast';
+    if (KINDS.indexOf(opts.kind) >= 0) t.classList.add(opts.kind);
     if (opts.sticky) t.setAttribute('data-toast-sticky', '');
     if (opts.ms) t.setAttribute('data-toast-ms', String(opts.ms));
     var p = document.createElement('p');

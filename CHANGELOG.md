@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.22.0
+
+A review of the whole implementation for performance, clarity and security.
+
+**Performance**
+
+- Dragging a window does much less work, in Firefox and Safari above all. The window now moves by transform on a layer of its own, so each step is composited instead of laid out and repainted with its shadow, and it follows the pointer once a frame however many pointer events arrive. The four placement properties are registered as non-inherited numbers, so changing them restyles the window alone rather than everything inside it, which had made moving and resizing a full window slower the more it held. With a thousand elements in a window, the main-thread work of a drag fell by about half in Firefox and by about seven times in Chromium, and one step of moving the window no longer grows with its content in any engine.
+- Dragging the master-detail divider no longer forces the page to be laid out on every pointer event. It measures once at the start and follows once a frame.
+- A window change no longer makes the regions script search the whole document once for every parameter of every link in every region. It finds what it needs once per pass.
+- An open menu is placed again once a frame while the page scrolls, and not at all while its own rows scroll.
+
+**Security**
+
+- Window markup and swapped regions must be `text/html` from the page's own origin. Both fetches refuse another origin, a redirect to one included, so an open redirect on a site can no longer bring another site's markup into its pages. Regions fall back to an ordinary navigation, and windows to the link's own page.
+- An applet mount's `data-applet-src` and `data-applet-css` must name the page's own origin. A site that shows markup from its readers, with a sanitiser that lets data attributes through as DOMPurify does by default, could otherwise have had a reader's comment load a script from anywhere. `define()` may still name any origin. A mount that names another origin fails and loads nothing.
+- `pudlToast()` takes only the kinds it knows as a class.
+- The expense tracker sample refuses a category, currency or account outside its lists, escapes every stored value it writes into the page, ignores sort and filter names that are not its own, and writes a CSV cell that a spreadsheet would read as a formula as text.
+
+**Correctness**
+
+- `--md-sidebar-min` may be written in any length, such as `12rem`; the divider's limits and the stylesheet's now agree.
+- The stylesheet sizes the full-height master-detail page, dialogs and menus with `svh`, as the README advises, so on a phone they never run under the browser's bars.
+- `command="request-close"` asks a dialog to close, which its cancel handler may refuse, in browsers that have `requestClose()`.
+- When a browser refuses to change the address because a page has changed it too often, as Firefox and Safari do after quick clicking between windows, the windows keep working and the address is written once things are quiet.
+
 ## 0.21.0
 
 Follow-ups from parkscomputing.com's second applet, `Architecture/pudl-proposal-applet-followups.md`; `docs/proposals/applet-followups.md` records the response.

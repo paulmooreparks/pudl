@@ -60,11 +60,20 @@
     });
   }
 
-  function clampPlacement(p, layerW, layerH) {
-    var minW = Math.min(1, pxMin('--win-min-w', 320) / (layerW || 1));
-    var minH = Math.min(1, pxMin('--win-min-h', 200) / (layerH || 1));
-    var w = Math.min(1, Math.max(minW, p.w));
-    var h = Math.min(1, Math.max(minH, p.h));
+  /* The smallest a window may be, as fractions of a layer of that size. */
+  function minFractions(layerW, layerH) {
+    return {
+      w: Math.min(1, pxMin('--win-min-w', 320) / (layerW || 1)),
+      h: Math.min(1, pxMin('--win-min-h', 200) / (layerH || 1))
+    };
+  }
+
+  /* min, from minFractions(), may be passed in by a caller that clamps many
+     times over, since finding it reads the layer's computed style. */
+  function clampPlacement(p, layerW, layerH, min) {
+    min = min || minFractions(layerW, layerH);
+    var w = Math.min(1, Math.max(min.w, p.w));
+    var h = Math.min(1, Math.max(min.h, p.h));
     return {
       mode: p.mode, w: w, h: h,
       x: Math.min(1 - w, Math.max(0, p.x)),
@@ -387,7 +396,12 @@
     apply(st);
     var url = urlFor(st);
     if (url !== location.pathname + location.search + location.hash) {
-      history[push ? 'pushState' : 'replaceState'](history.state, '', url);
+      /* Firefox and Safari throw once a page changes its address too often
+         in a short time, which quick clicking between windows can reach.
+         The page is already right, so the address is written again once
+         things are quiet. */
+      try { history[push ? 'pushState' : 'replaceState'](history.state, '', url); }
+      catch (err) { urlTimer = setTimeout(function () { commit(state, false); }, URL_DELAY * 10); }
     }
     layer.dispatchEvent(new CustomEvent('pudl:windows-change', { bubbles: true, detail: copy(st) }));
   }
@@ -409,7 +423,9 @@
 
   /* Finds a window's markup: in a <template> when the source starts with #,
      otherwise fetched from the server, which returns the same markup it
-     renders into the page. */
+     renders into the page. The markup joins the page with the page's own
+     authority, so it must come from the page's own origin as HTML: the
+     fetch refuses another origin, a redirect to one included. */
   function load(key) {
     var src = srcFor(key);
     if (!src) return Promise.reject(new Error('no data-win-src on the layer'));
@@ -418,9 +434,10 @@
       var t = document.getElementById(src.slice(1));
       got = t ? Promise.resolve(t.content.cloneNode(true)) : Promise.reject(new Error('no template ' + src));
     } else {
-      got = fetch(src, { credentials: 'same-origin', headers: { Accept: 'text/html' } })
+      got = fetch(src, { mode: 'same-origin', credentials: 'same-origin', headers: { Accept: 'text/html' } })
         .then(function (r) {
           if (!r.ok) throw new Error(src + ' returned ' + r.status);
+          if ((r.headers.get('content-type') || '').indexOf('text/html') < 0) throw new Error(src + ' is not HTML');
           return r.text();
         })
         .then(function (html) {
@@ -666,54 +683,80 @@
   }
 
   /* One pointer gesture on a window: a drag of the title bar or a resize
-     from an edge. The window follows the pointer directly, and the state is
-     committed once, when the pointer lifts. */
+     from an edge. Pointer events can arrive several times a frame, so each
+     one only notes where the pointer is, and the window follows once a
+     frame. A dragged window moves by transform, which the compositor
+     handles without laying the window out or repainting it; a resized one
+     has to be laid out, but only once a frame. The state is committed
+     once, when the pointer lifts. */
   function gesture(e, key, edge) {
     var el = wins[key];
     var target = e.currentTarget;
     var r = layer.getBoundingClientRect();
+    var min = minFractions(r.width, r.height);
     var start = Object.assign({}, state.place[key]);
     var base = start, baseX = e.clientX, baseY = e.clientY;
-    var cur = start, snap = null, moved = false;
+    var lastX = baseX, lastY = baseY;
+    var cur = start, snap = null, moved = false, frame = 0;
 
     target.setPointerCapture(e.pointerId);
+
+    function begin() {
+      moved = true;
+      layer.classList.add('dragging');
+      if (edge) return;
+      /* Dragging a maximised or snapped window lifts it back to its
+         floating size, under the pointer, at the same point along the
+         title bar. */
+      if (start.mode !== 'floating') {
+        var er = el.getBoundingClientRect();
+        var along = (baseX - er.left) / (er.width || 1);
+        base = {
+          mode: 'floating', w: start.w, h: start.h,
+          x: (baseX - r.left) / r.width - along * start.w,
+          y: (er.top - r.top) / r.height
+        };
+        setPlacement(el, base);
+      }
+      el.classList.add('win-moving');
+    }
+
+    function step() {
+      frame = 0;
+      var dx = (lastX - baseX) / r.width;
+      var dy = (lastY - baseY) / r.height;
+      if (edge) {
+        cur = resizeFrom(base, edge, dx, dy, min);
+        setPlacement(el, cur);
+        return;
+      }
+      cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h }, r.width, r.height, min);
+      el.style.transform = 'translate(' + (cur.x - base.x) * r.width + 'px, ' + (cur.y - base.y) * r.height + 'px)';
+      var s = snapAt(lastX, lastY, r);
+      if (s !== snap) { snap = s; showGhost(s); }
+    }
 
     function move(ev) {
       if (!moved) {
         if (Math.abs(ev.clientX - baseX) + Math.abs(ev.clientY - baseY) < CLICK_PX) return;
-        moved = true;
-        layer.classList.add('dragging');
-        /* Dragging a maximised or snapped window lifts it back to its
-           floating size, under the pointer, at the same point along the
-           title bar. */
-        if (!edge && start.mode !== 'floating') {
-          var er = el.getBoundingClientRect();
-          var along = (baseX - er.left) / (er.width || 1);
-          base = {
-            mode: 'floating', w: start.w, h: start.h,
-            x: (baseX - r.left) / r.width - along * start.w,
-            y: (er.top - r.top) / r.height
-          };
-        }
+        begin();
       }
-      var dx = (ev.clientX - baseX) / r.width;
-      var dy = (ev.clientY - baseY) / r.height;
-      if (edge) {
-        cur = resizeFrom(base, edge, dx, dy, r);
-      } else {
-        cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h }, r.width, r.height);
-        snap = snapAt(ev.clientX, ev.clientY, r);
-        showGhost(snap);
-      }
-      setPlacement(el, cur);
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      if (!frame) frame = requestAnimationFrame(step);
     }
 
     function end(ev) {
       target.removeEventListener('pointermove', move);
       target.removeEventListener('pointerup', end);
       target.removeEventListener('pointercancel', end);
+      /* The pointer may lift before the frame that would have followed its
+         last move, so that move is taken now. */
+      if (frame) { cancelAnimationFrame(frame); step(); }
       layer.classList.remove('dragging');
       showGhost(null);
+      el.classList.remove('win-moving');
+      el.style.transform = '';
       if (!moved) return;
       /* The click that follows a drag must not follow the title link. */
       suppressClick = true;
@@ -732,9 +775,8 @@
     target.addEventListener('pointercancel', end);
   }
 
-  function resizeFrom(p, edge, dx, dy, r) {
-    var minW = Math.min(1, pxMin('--win-min-w', 320) / r.width);
-    var minH = Math.min(1, pxMin('--win-min-h', 200) / r.height);
+  function resizeFrom(p, edge, dx, dy, min) {
+    var minW = min.w, minH = min.h;
     var x = p.x, y = p.y, w = p.w, h = p.h;
     if (edge.indexOf('e') >= 0) w = Math.min(1 - p.x, Math.max(minW, p.w + dx));
     if (edge.indexOf('s') >= 0) h = Math.min(1 - p.y, Math.max(minH, p.h + dy));
@@ -751,8 +793,9 @@
 
   /* === Keyboard ========================================================== */
 
+  /* Keys pressed on the title bar itself; keys on the title link or the
+     buttons inside it are theirs. */
   function onHeadKey(e, key) {
-    if (e.target !== e.currentTarget) return;   // keys on the title link or buttons are theirs
     if (e.key === 'Enter') {
       e.preventDefault();
       commit(maximizeToggled(state, key), false);
@@ -892,12 +935,8 @@
     layer.addEventListener('dblclick', onDoubleClick);
     layer.addEventListener('focusin', onFocusIn);
     layer.addEventListener('keydown', function (e) {
-      var head = e.target.closest && e.target.closest('.win-head');
-      if (head && e.target === head) onHeadKey({
-        target: e.target, currentTarget: head, key: e.key, shiftKey: e.shiftKey,
-        altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey,
-        preventDefault: function () { e.preventDefault(); }
-      }, head.closest('.win').getAttribute('data-win'));
+      var head = e.target.classList && e.target.classList.contains('win-head') ? e.target : null;
+      if (head && layer.contains(head)) onHeadKey(e, head.closest('.win').getAttribute('data-win'));
     });
     document.addEventListener('keydown', onEscape);
     window.addEventListener('popstate', function () { sync(false); });

@@ -11,7 +11,8 @@
 
    Browsers that know these attributes need nothing from this script. For
    those that do not yet, it does the same thing: show-modal opens the
-   dialog with showModal(), and close and request-close close it. A form
+   dialog with showModal(), close closes it, and request-close asks it to
+   close, which its cancel handler may refuse. A form
    inside the dialog with method="dialog" closes it on submission without
    any script at all. */
 (function () {
@@ -27,8 +28,14 @@
     var command = btn.getAttribute('command');
     if (command === 'show-modal') {
       if (!target.open) target.showModal();
-    } else if (command === 'close' || command === 'request-close') {
+    } else if (command === 'close') {
       if (target.open) target.close(btn.value || undefined);
+    } else if (command === 'request-close') {
+      /* request-close lets the dialog's cancel handler refuse, where the
+         browser has requestClose(); otherwise it closes as close does. */
+      if (!target.open) return;
+      if (target.requestClose) target.requestClose(btn.value || undefined);
+      else target.close(btn.value || undefined);
     } else {
       return;
     }

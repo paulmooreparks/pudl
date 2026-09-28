@@ -48,8 +48,12 @@
      widens it by moving left, and the arrow keys follow what they point at. */
   function rtl(p) { return getComputedStyle(p.body).direction === 'rtl'; }
 
-  function sync(p) {
-    var l = limits(p);
+  /* Brings the divider's attributes up to date. l and now, the limits and
+     the width, may be passed in by a caller that already knows them, since
+     measuring them forces the page to be laid out. */
+  function sync(p, l, now) {
+    l = l || limits(p);
+    now = now == null ? width(p) : now;
     var h = p.handle;
     if (!p.side.id) p.side.id = 'md-sidebar-' + (++uid);
     h.setAttribute('role', 'separator');
@@ -59,15 +63,17 @@
     if (!h.hasAttribute('tabindex')) h.tabIndex = 0;
     h.setAttribute('aria-valuemin', String(Math.round(l.min)));
     h.setAttribute('aria-valuemax', String(Math.round(l.max)));
-    h.setAttribute('aria-valuenow', String(width(p)));
-    h.setAttribute('aria-valuetext', (h.getAttribute('data-md-valuetext') || '{n} pixels wide').split('{n}').join(String(width(p))));
+    h.setAttribute('aria-valuenow', String(now));
+    h.setAttribute('aria-valuetext', (h.getAttribute('data-md-valuetext') || '{n} pixels wide').split('{n}').join(String(now)));
   }
 
-  function set(p, w) {
-    var l = limits(p);
+  /* The stylesheet holds the sidebar to the same limits, so the width set
+     here is the width the sidebar takes, and nothing needs measuring. */
+  function set(p, w, l) {
+    l = l || limits(p);
     w = Math.round(Math.min(l.max, Math.max(l.min, w)));
     p.layout.style.setProperty('--md-sidebar-w', w + 'px');
-    sync(p);
+    sync(p, l, w);
   }
 
   function announce(p, reset) {
@@ -87,21 +93,31 @@
     var p = handleFrom(e);
     if (!p) return;
     e.preventDefault();
-    var startX = e.clientX;
+    /* Measured once, at the start. Pointer events can arrive several times
+       a frame, so each one only notes where the pointer is, and the width
+       follows once a frame. */
+    var startX = e.clientX, lastX = startX;
     var startW = width(p);
+    var l = limits(p);
     var sign = rtl(p) ? -1 : 1;
-    var moved = false;
+    var moved = false, frame = 0;
     p.handle.setPointerCapture(e.pointerId);
     p.handle.classList.add('dragging');
 
+    function step() {
+      frame = 0;
+      set(p, startW + sign * (lastX - startX), l);
+    }
     function move(ev) {
       moved = true;
-      set(p, startW + sign * (ev.clientX - startX));
+      lastX = ev.clientX;
+      if (!frame) frame = requestAnimationFrame(step);
     }
     function end() {
       p.handle.removeEventListener('pointermove', move);
       p.handle.removeEventListener('pointerup', end);
       p.handle.removeEventListener('pointercancel', end);
+      if (frame) { cancelAnimationFrame(frame); step(); }
       p.handle.classList.remove('dragging');
       if (moved) announce(p, false);
     }
@@ -131,7 +147,7 @@
     else if (e.key === 'End') w = l.max;
     else return;
     e.preventDefault();
-    set(p, w);
+    set(p, w, l);
     clearTimeout(timers.get(p.handle));
     timers.set(p.handle, setTimeout(function () { announce(p, false); }, QUIET));
   });

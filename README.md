@@ -444,7 +444,7 @@ A server ignores a key it does not recognise and a placement it cannot parse. A 
 
 ### The markup
 
-The windows float over a host, the region they may occupy, which is usually the main area below the topbar. The host holds the page's own content and one layer, and a page has one layer. `data-win-src` on the layer says where the script fetches a window's markup, with `{key}` standing for the key. A value starting with `#` names a `<template>` in the page instead.
+The windows float over a host, the region they may occupy, which is usually the main area below the topbar. The host holds the page's own content and one layer, and a page has one layer. `data-win-src` on the layer says where the script fetches a window's markup, with `{key}` standing for the key. A value starting with `#` names a `<template>` in the page instead. The markup becomes part of the page, so it must come from the page's own origin and be served as `text/html`; the script refuses anything else, a redirect to another origin included, and falls back on the link's own page.
 
 ```html
 <main class="win-host">
@@ -563,7 +563,7 @@ and each place the applet goes needs only its name, with whatever should show wi
 </div>
 ```
 
-`ver` is added to the script's and stylesheet's addresses as `?v=`, so a new version is one edit rather than one per page. A mount may still carry `data-applet-src`, `data-applet-css` and `data-applet-page`, and each one it carries wins over the registry. The order does not matter: a mount that meets a name not yet defined waits for its `define()`. The attribute is the canonical form rather than a custom element, because a plain element carries its fallback content, needs nothing registered before the first paint, and passes through Markdown as raw HTML.
+`ver` is added to the script's and stylesheet's addresses as `?v=`, so a new version is one edit rather than one per page. A mount may still carry `data-applet-src`, `data-applet-css` and `data-applet-page`, and each one it carries wins over the registry. A mount's script and stylesheet must be on the page's own origin, because a page's markup can come from people other than its authors, such as a comment that a sanitiser let data attributes through, and a mount naming a script elsewhere would run it with the page's authority. A mount that names another origin fails and loads nothing; `define()`, which only the site's own script calls, may name any origin. The order does not matter: a mount that meets a name not yet defined waits for its `define()`. The attribute is the canonical form rather than a custom element, because a plain element carries its fallback content, needs nothing registered before the first paint, and passes through Markdown as raw HTML.
 
 The applet's script registers it:
 
@@ -677,7 +677,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.21.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.22.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
