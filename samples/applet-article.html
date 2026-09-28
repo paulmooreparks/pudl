@@ -19,7 +19,9 @@
        names only the applet; applets/registry.js says where its files are.
        data-applet-param="mix" asks pudl-applets.js to keep the applet's
        state in this page's query, so the mix a reader settles on is part of
-       the article's address, and the presets below are plain links. -->
+       the article's address. The presets below carry data-applet-preset:
+       with script, a click hands its mix to the running mixer; without,
+       it is an ordinary link to this article with the mix in its query. -->
 
   <header class="topbar">
     <a class="brand" href="../reference.html">PUDL</a>
@@ -42,13 +44,13 @@
         </div>
       </div>
 
-      <p>Some mixes the stylesheet uses, each a link to this article with the mixer set:</p>
+      <p>Some mixes the stylesheet uses. Each link sets the mixer above, and without script it is this article's address with the mixer set; Back undoes it either way.</p>
       <ul>
-        <li><a href="applet-article.html?mix=a%3D2c5282%26b%3Dffffff%26p%3D12">A selected row's tint</a>, the accent at 12% on white.</li>
-        <li><a href="applet-article.html?mix=a%3D0e1621%26b%3Df3f4f6%26p%3D18">A light theme's shadow</a>, the shade at its depth of 18%.</li>
-        <li><a href="applet-article.html?mix=a%3Db86e1c%26b%3Dfbfbfc%26p%3D22">A warning badge</a>, the warn colour at 22%.</li>
+        <li><a data-applet-preset="mixer" href="applet-article.html?mix=a%3D2c5282%26b%3Dffffff%26p%3D12">A selected row's tint</a>, the accent at 12% on white.</li>
+        <li><a data-applet-preset="mixer" href="applet-article.html?mix=a%3D0e1621%26b%3Df3f4f6%26p%3D18">A light theme's shadow</a>, the shade at its depth of 18%.</li>
+        <li><a data-applet-preset="mixer" href="applet-article.html?mix=a%3Db86e1c%26b%3Dfbfbfc%26p%3D22">A warning badge</a>, the warn colour at 22%.</li>
       </ul>
-      <p>The address keeps whatever mix you settle on, so copying it shares the article with the mixer as you left it. It is replaced, not added to the history, so Back still leaves the article rather than stepping through every colour you tried.</p>
+      <p>The address keeps whatever mix you settle on, so copying it shares the article with the mixer as you left it. Adjusting the mixer replaces the address rather than adding to the history, so Back does not step through every colour you tried; only a preset, which is a link, adds a step.</p>
     </article>
   </main>
 </body>
