@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.22.0.
+   Version 0.22.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -555,7 +555,8 @@ button.link {
    the slot the thumb runs in, and the thumb is raised, since it is what the
    reader presses. When the switch is on the track fills with the accent
    and the thumb slides to the far end, so position says it as well as
-   colour. */
+   colour. The switch is a button with role="switch", which is what lets
+   it carry aria-checked. */
 .switch {
   display: inline-flex; align-items: center; gap: 10px;
   background: none; border: 0; padding: 0; margin: 0;
@@ -648,14 +649,17 @@ button.link {
   border-radius: var(--radius-sm);
   box-shadow: var(--entry-shadow);
 }
+/* The choices not taken are in the full text colour: the muted colour does
+   not reach readable contrast on the recessed trough, and the chosen one
+   is already marked by being raised, which is how PUDL shows state. */
 .seg button, .seg a {
   display: inline-flex; align-items: center;
   padding: 4px 12px; border-radius: 4px;
   background: transparent; border: 1px solid transparent; cursor: pointer;
-  font: 600 var(--text-sm) var(--font); color: var(--text-muted);
+  font: 600 var(--text-sm) var(--font); color: var(--text);
   text-decoration: none;
 }
-.seg button:hover, .seg a:hover { color: var(--text); }
+.seg button:hover, .seg a:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
 .seg button:focus-visible, .seg a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .seg button[aria-pressed="true"], .seg button[aria-checked="true"],
 .seg [aria-current]:not([aria-current="false"]),
@@ -684,10 +688,17 @@ button.link {
   color: var(--text);
   --glyph-size: 9px;
 }
-.badge.warn { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
-.badge.danger { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
-.badge.positive, .badge.pr { background: color-mix(in srgb, var(--positive) 22%, transparent); color: var(--positive); }
-.badge.accent { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+/* A status badge's text is its status colour drawn toward the text colour,
+   because a mid-tone status colour cannot reach 4.5:1 on a tint of itself,
+   least of all in a selected table row, whose tint darkens it further.
+   Mixing in the text colour darkens the text on a light theme and lightens
+   it on a dark one, keeps the hue, and holds for a theme's own status
+   colours, so the tokens themselves stay as the theme set them. */
+.badge.warn { --badge-color: var(--warn); background: color-mix(in srgb, var(--warn) 22%, transparent); }
+.badge.danger { --badge-color: var(--danger); background: color-mix(in srgb, var(--danger) 18%, transparent); }
+.badge.positive, .badge.pr { --badge-color: var(--positive); background: color-mix(in srgb, var(--positive) 22%, transparent); }
+.badge.accent { --badge-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.badge:is(.warn, .danger, .positive, .pr, .accent) { color: color-mix(in srgb, var(--badge-color) 62%, var(--text)); }
 .badge::before { content: none; }
 .badge.warn::before { content: ""; --glyph: var(--glyph-triangle); }
 .badge.danger::before { content: ""; --glyph: var(--glyph-square); }
@@ -853,9 +864,11 @@ body:has(> .md-layout) {
   border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   color: var(--accent);
 }
-/* .fc-kind is the old name for .filter-chip-kind. */
+/* .fc-kind is the old name for .filter-chip-kind. The kind reads as
+   secondary by its size, weight and capitals; fading it with opacity
+   would take it below readable contrast, whatever the theme's colours. */
 .filter-chip-kind, .fc-kind {
-  opacity: .7; font-weight: 500; font-size: var(--text-2xs);
+  font-weight: 500; font-size: var(--text-2xs);
   text-transform: uppercase; letter-spacing: .04em;
 }
 /* The × removes the filter, so it is a small raised button. */
@@ -907,6 +920,9 @@ body:has(> .md-layout) {
   flex: 1; overflow-y: auto; padding: var(--space-5); min-width: 0;
   background: var(--bg);
 }
+/* A detail pane scrolls, so the server gives it tabindex="0" for a reader
+   who scrolls by keyboard; its focus ring is drawn inside it. */
+.md-detail:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
 
 /* The back link returns from a record to its list. It shows only when the
    layout is narrow enough to show one pane at a time. */

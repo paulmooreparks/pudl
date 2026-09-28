@@ -54,7 +54,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Section tabs | `nav.app-section-bar` of `a.section-tab` | aria-current on the current tab: `"page"` for the section's page, `"true"` for a page inside it |
 | Buttons | `.btn`, with `.btn-primary`, `.btn-danger`, `.btn-sm`; `.icon-btn`, with `.danger`; `.link` and `.link-muted` on a button or link | `disabled`; `aria-pressed="true"` latches a `.btn` |
 | Form fields | `.form-group` holding `label.form-label`, `.form-input`, `.form-select` or `.form-textarea`, `.form-help`, `.form-error`; `.form-fieldset` with a `legend`; `.form-options`, with `.inline`; `label.check`; `input.form-file` | `required`, `aria-invalid="true"`, `aria-describedby`, `readonly`, `disabled` |
-| Switch | `button.switch` holding `.switch-track` holding `.switch-thumb`, then the label | `aria-checked` |
+| Switch | `button.switch[role="switch"]` holding `.switch-track` holding `.switch-thumb`, then the label | `aria-checked` |
 | Segmented control | `.seg`, with `.pill`, `.sm`, of `button` or `a` | `aria-pressed`, `aria-checked` or aria-current |
 | Badges and chips | `.badge`, with `.warn`, `.danger`, `.positive`, `.accent`; `.chip`; `.filter-chip` holding `.filter-chip-kind` and `.filter-chip-x` | |
 | Card | `.card` holding `.card-title`, `.card-subtitle`, `.card-desc` | |
