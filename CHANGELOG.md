@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.2
+
+Fixes found by making the expense tracker a working application. Nothing a project relies on changes.
+
+- A one-line field is one height whatever its type. Browsers drew a `.form-select` and a date `.form-input` 2px taller than a text field, so fields side by side in a form did not line up. `.form-input` and `.form-select` are now 36px tall; a select with `multiple` or `size` keeps its own height.
+- A stacked `.data-table.stack` keeps its caption across the full width. The caption was squeezed into a narrow column, a word to a line, once the table became cards.
+- In a stacked table, everything in a cell's value stays together at the end, beside its label at the start. A cell holding two badges spread them across the row, and a `.data-table-check` cell was squeezed to 1% of the row's width.
+- On a phone, a pagination's summary takes a line of its own, so the page links stay on one.
+- The expense tracker sample works: its list sorts by any column, filters by search, trip, account and state with filter chips, pages, and submits or deletes several expenses at once; each expense moves from draft through approval to paid, takes a receipt and keeps a history; the Trips and Reports sections, unreachable before, are there, with reports downloadable as CSV; and the data can be reset. A script, `samples/expenses-app.js`, stands in for the server, since GitHub Pages has none. The archive page is now the list's Paid view, and its old address leads there.
+- The tests gain a suite for the expense tracker, and `PUDL_EXECUTABLE` runs them with a browser already installed.
+
 ## 0.19.1
 
 - The section tab bar keeps its height when no tab is current. The current tab stands 4px taller than the others, so the bar used to grow on a page inside a section and shrink on a page outside every section, and the content below jumped. The bar now always reserves that space.

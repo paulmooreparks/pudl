@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.19.1.
+   Version 0.19.2.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -527,6 +527,11 @@ button.link {
   width: 100%;
   box-shadow: var(--entry-shadow);
 }
+/* A one-line field is one height whatever its type, because browsers draw
+   a select or a date field a little taller than a text field, and fields
+   side by side in a form should line up. A select with multiple or size
+   shows a list, so it keeps its own height. */
+.form-input, .form-select:not([multiple], [size]) { height: 36px; line-height: 1.25; }
 .form-textarea { min-height: 5em; resize: vertical; line-height: 1.5; }
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--accent); outline: none;
@@ -1132,15 +1137,19 @@ body:has(> .md-layout) {
   .data-table.stack thead {
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
   }
-  .data-table.stack, .data-table.stack tbody, .data-table.stack tr, .data-table.stack td { display: block; }
+  .data-table.stack, .data-table.stack tbody, .data-table.stack tr, .data-table.stack td,
+  .data-table.stack caption { display: block; }
   .data-table.stack tr { padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
   .data-table.stack tbody tr:last-child { border-bottom: 0; }
+  /* The label keeps to the start and everything in the value, two badges
+     say, stays together at the end. */
   .data-table.stack td {
-    display: flex; justify-content: space-between; gap: var(--space-4);
+    display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: var(--space-1) var(--space-2);
     padding: var(--space-1) var(--space-4); border-bottom: 0; text-align: end;
   }
+  .data-table.stack .data-table-check { width: auto; }
   .data-table.stack td[data-label]::before {
-    content: attr(data-label);
+    content: attr(data-label); margin-inline-end: auto; padding-inline-end: var(--space-2);
     font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); text-align: start;
   }
 }
@@ -1298,6 +1307,8 @@ body:has(> .md-layout) {
 .page-link[rel="prev"]:dir(rtl)::before { transform: scaleX(-1); }
 .page-link[rel="next"]:dir(rtl)::after { transform: none; }
 .page-gap { padding: 0 var(--space-1); color: var(--text-muted); }
+/* On a phone the summary takes a line of its own, so the links stay on one. */
+@media (max-width: 560px) { .pagination-summary { flex-basis: 100%; margin-bottom: var(--space-1); } }
 
 /* === Reduced motion ======================================================
    A reader who has asked their system for less motion gets none: every

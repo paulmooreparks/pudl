@@ -7,13 +7,17 @@
   <script src="../dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="../dist/pudl.css">
   <link rel="stylesheet" href="expenses.css">
+  <script src="expenses-app.js" defer></script>
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-dialog.js" defer></script>
+  <script src="../dist/pudl-toast.js" defer></script>
   <script src="../dist/pudl-tooltip.js" defer></script>
 </head>
 <body>
-  <!-- The form as the server returns it after refusing a submission: a
-       notice at the top lists what is wrong, each wrong field is marked
-       aria-invalid with its error beside it, and every value the reader
-       typed is kept. -->
+  <!-- The expense form: new, or ?id=1 to edit. When a submission is refused
+       the form comes back with a notice at the top listing what is wrong,
+       each wrong field marked aria-invalid with its error beside it, and
+       every value the reader typed kept. -->
 
   <header class="topbar">
     <a class="brand" href="expenses.html">Expenses</a>
@@ -25,69 +29,15 @@
 
   <nav class="app-section-bar" aria-label="Sections">
     <a class="section-tab" href="expenses.html" aria-current="true">Expenses</a>
-    <a class="section-tab" href="expenses.html">Trips</a>
-    <a class="section-tab" href="expenses.html">Reports</a>
+    <a class="section-tab" href="trips.html">Trips</a>
+    <a class="section-tab" href="reports.html">Reports</a>
   </nav>
 
-  <main class="app-main" style="max-width: 44rem;">
-    <div class="app-head"><h1>Edit expense</h1></div>
-
-    <div class="notice danger" role="alert" style="margin-bottom: var(--space-4);">
-      <div class="notice-content">
-        <p class="notice-title">The expense was not saved</p>
-        <p class="notice-body">Two fields need attention: <a href="#amount">the amount</a> and <a href="#date">the date</a>.</p>
-      </div>
-    </div>
-
-    <form action="expenses.html" method="get" novalidate>
-      <input type="hidden" name="saved" value="1">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="date">Date</label>
-          <input class="form-input" id="date" name="date" type="date" value="2026-11-02" required aria-invalid="true" aria-describedby="date-error">
-          <p class="form-error" id="date-error">The date is after the trip ended on 22 October.</p>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="merchant">Merchant</label>
-          <input class="form-input" id="merchant" name="merchant" value="Makati Garden Hotel" required>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" for="amount">Amount</label>
-          <input class="form-input" id="amount" name="amount" inputmode="decimal" value="-21600" required aria-invalid="true" aria-describedby="amount-error amount-help">
-          <p class="form-help" id="amount-help">As printed on the receipt.</p>
-          <p class="form-error" id="amount-error">The amount must be a number greater than zero.</p>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="currency">Currency</label>
-          <select class="form-select" id="currency" name="currency">
-            <option selected>PHP</option><option>SGD</option><option>USD</option>
-          </select>
-        </div>
-      </div>
-      <fieldset class="form-fieldset">
-        <legend>Account</legend>
-        <div class="form-options inline">
-          <label class="check"><input type="radio" name="account" value="billable" checked> Billable</label>
-          <label class="check"><input type="radio" name="account" value="non-billable"> Non-billable</label>
-          <label class="check"><input type="radio" name="account" value="internal"> Internal</label>
-        </div>
-      </fieldset>
-      <div class="form-group">
-        <label class="form-label" for="notes">Notes</label>
-        <textarea class="form-textarea" id="notes" name="notes">Room rate agreed with the client in advance.</textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="receipt">Receipt</label>
-        <input class="form-file" id="receipt" name="receipt" type="file" accept="image/*,application/pdf" aria-describedby="receipt-help">
-        <p class="form-help" id="receipt-help">A photo or PDF, up to 10 MB. The current receipt is kept unless you choose another.</p>
-      </div>
-      <div class="dialog-actions" style="justify-content: flex-start;">
-        <button class="btn btn-primary" type="submit">Save</button>
-        <a class="btn" href="expense.html">Cancel</a>
-      </div>
-    </form>
+  <main class="app-main" data-page="expense-edit" style="max-width: 44rem;">
+    <noscript><p class="notice warn">This sample has no server, so a script in the page plays its part, and without script there is nothing to show.</p></noscript>
   </main>
+  <footer class="app-main sample-foot" style="max-width: 44rem;"></footer>
+
+  <div class="toast-region" role="status" aria-live="polite"></div>
 </body>
 </html>
