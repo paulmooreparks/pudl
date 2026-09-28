@@ -88,7 +88,7 @@
     </p>
 
     <h2>1. Tokens</h2>
-    <p>A theme sets the tokens below for light and dark, and PUDL derives every other token from them. The default palette shown here is a neutral graphite, with a dark graphite topbar in both themes. A project may replace all of it. A change to the accent reaches links, primary buttons, focus rings, the segmented control's active state, chips and badges.</p>
+    <p>A theme sets the tokens below for light and dark, and PUDL derives every other token from them. The default palette shown here is a neutral graphite, with a dark graphite topbar in both themes. A project may replace all of it. A change to the accent reaches links, primary buttons, focus rings, filter chips, accent badges, the current list row, selected table rows, a switch that is on and the active window.</p>
     <div class="demo">
       <div class="swatch-grid">
         <div><div class="swatch" style="background: var(--bg);"></div><div class="swatch-cell"><strong>--bg</strong>page</div></div>
@@ -97,7 +97,7 @@
         <div><div class="swatch" style="background: var(--accent);"></div><div class="swatch-cell"><strong>--accent</strong>interactivity</div></div>
         <div><div class="swatch" style="background: var(--warn);"></div><div class="swatch-cell"><strong>--warn</strong>caution</div></div>
         <div><div class="swatch" style="background: var(--danger);"></div><div class="swatch-cell"><strong>--danger</strong>destructive</div></div>
-        <div><div class="swatch" style="background: var(--pr);"></div><div class="swatch-cell"><strong>--pr</strong>shipped / Done</div></div>
+        <div><div class="swatch" style="background: var(--positive);"></div><div class="swatch-cell"><strong>--positive</strong>shipped / Done</div></div>
         <div><div class="swatch" style="background: var(--border);"></div><div class="swatch-cell"><strong>--border</strong>hairline</div></div>
       </div>
     </div>
@@ -462,7 +462,7 @@
               <h3 class="card-title">Hotel, Makati, three nights</h3>
               <p class="card-desc">Receipt attached; charged to the customer's billing account.</p>
               <div class="demo-row" style="margin-bottom: 12px;">
-                <span class="badge pr">done</span>
+                <span class="badge positive">done</span>
                 <span class="chip">manila-oct</span>
                 <span class="chip">billable</span>
               </div>
@@ -521,7 +521,7 @@
               <h3 class="card-title">Hotel, Makati, three nights</h3>
               <p class="card-desc">Receipt attached; charged to the customer's billing account.</p>
               <div class="demo-row" style="margin-bottom: 12px;">
-                <span class="badge pr">done</span>
+                <span class="badge positive">done</span>
                 <span class="chip">manila-oct</span>
               </div>
               <table class="kv-table">
@@ -700,7 +700,7 @@
       <li><span class="lbl">The URL</span>The URL holds everything worth sharing, from a record in view to the arrangement of open windows, and the server renders what it names, so a page works without script and a link shows what its sender saw.</li>
       <li><span class="lbl">Glyphs</span>Every glyph in PUDL's chrome is drawn from the stylesheet's own masks, so it looks the same on every platform and never turns into a colour emoji.</li>
       <li><span class="lbl">Time</span>Times are ISO UTC in data and local only on display.</li>
-      <li><span class="lbl">Recolour</span>Changing <code>--accent</code> reaches links, primary buttons, focus rings, filter chips, the current dock tab and the active window.</li>
+      <li><span class="lbl">Recolour</span>Changing <code>--accent</code> reaches links, primary buttons, focus rings, filter chips, the dots on the dock's tabs and the active window.</li>
     </ul>
   </div>
 </body>

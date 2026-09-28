@@ -134,7 +134,7 @@ A palette is the block of tokens at the top of `pudl.css` under "The palette": s
 
 The lighting tokens are what keep the raised and sunken surfaces readable on a new palette. `--light` is the colour of the light falling on a raised control and `--shade` the colour of its shadow. `--lit` sets how strongly the highlight shows and `--depth` how strongly the shadow does. A light theme usually wants a strong highlight and a soft shadow, and a dark theme the reverse. What stays constant from one project to the next is the grammar: a user who has learned what raised, sunken and flat mean in one application finds the same meanings in every other.
 
-The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, the segmented control, chips and filter chips, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one and gives it a light topbar. `examples/parchment.css` restores the warm parchment and leather palette with serif headings that PUDL used by default up to 0.2.0, which is also the Andoneer look.
+The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, filter chips, accent badges, the current list row's edge, selected table rows, a switch that is on, the active window and the dots on the window dock, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one and gives it a light topbar. `examples/parchment.css` restores the warm parchment and leather palette with serif headings that PUDL used by default up to 0.2.0, which is also the Andoneer look.
 
 The topbar keeps its own colours so that it can stay dark on a light page, and the links on it follow the topbar, not the page. The brand and any plain link on the topbar hover in `--tb-link-hover`, which PUDL derives by mixing the accent into the topbar's foreground, so that it reads on a dark bar and on a light one. A theme may set it.
 
@@ -687,7 +687,8 @@ Everything a project uses is in `dist/`, and everything else supports it.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/proposals/`, design proposals and the decisions taken on them
-- `tests/`, the browser tests, with `package.json` to install Playwright
+- `tests/`, the browser tests, their runner `run.js`, and in `fixtures/` the pages some of them need beyond the samples
+- `package.json`, which installs Playwright and axe for the tests, and `.github/workflows/test.yml`, which runs them in three engines on every push
 - `RELEASING.md`, the steps for cutting a release
 - `CHANGELOG.md`, what changed in each release
 

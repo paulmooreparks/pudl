@@ -40,7 +40,7 @@ function check(name, ok, extra) {
   let u = await url();
   check('the tab pushes its address with the live windows', /^article-reader-design\.html\?open=url-state,mixing&top=mixing&p\.url-state=floating:.*&p\.mixing=maximized:/.test(u), u);
   check('the list is the Design list', (await p.locator('.md-sidebar .md-row').count()) === 3);
-  check('the Design tab is current', await p.evaluate(() => new URL(document.querySelector('.section-tab.active').href).pathname.endsWith('article-reader-design.html')));
+  check('the Design tab is current', await p.evaluate(() => new URL(document.querySelector('.section-tab[aria-current]').href).pathname.endsWith('article-reader-design.html')));
   check('the title follows', /^Design/.test(await p.title()), await p.title());
   const kept = await p.evaluate(() => {
     const w = [...document.querySelectorAll('.win')].map(w => w.__marker);
@@ -81,7 +81,7 @@ function check(name, ok, extra) {
 
   // The current tab does nothing.
   const l0 = loads.length, f0 = windowFetches.length;
-  await p.click('.section-tab.active');
+  await p.click('.section-tab[aria-current]');
   await p.waitForTimeout(300);
   check('the current tab does nothing', loads.length === l0 && windowFetches.length === f0 && /design/.test(await url()));
 
