@@ -11,7 +11,7 @@ It is a stylesheet, a small theme script and a font, with optional scripts for m
 - **[The reference](https://paulmooreparks.github.io/pudl/reference.html)** shows every component in both themes, with a live demo of floating windows and menus.
 - **[The article reader](https://paulmooreparks.github.io/pudl/samples/article-reader.html)** is a working reading site built with PUDL: articles in windows, listings as child windows, a launcher, category tabs that change only the list, and an applet.
 - **[The colour mixer](https://paulmooreparks.github.io/pudl/samples/colour-mixer.html)** is that applet in a page of its own.
-- **[The expense tracker](https://paulmooreparks.github.io/pudl/samples/expenses.html)** is a small application: a sortable, paged data table with filters and a notice, a record with tabs and a delete dialog, a form the server has refused, an empty archive, and toasts after saving and deleting.
+- **[The expense tracker](https://paulmooreparks.github.io/pudl/samples/expenses.html)** is a small working application: expenses, trips and reports. Its list sorts, filters, pages and acts on several expenses at once; an expense moves from draft to paid through dialogs and menus, takes a receipt, and keeps its history; its forms refuse what is wrong field by field; and reports total everything and download as CSV. GitHub Pages has no server, so a script stands in for one in the browser, keeping the data in localStorage, and every view is still an address.
 
 The article reader fetches its windows from the server, so to run it from a copy of this repository, serve the folder, for example with `python -m http.server`, rather than opening the file directly. The reference works either way.
 
@@ -612,7 +612,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
-- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; and `expenses.html` with `expense.html`, `expense-edit.html` and `expenses-archived.html`, the expense tracker, static pages standing in for what a server would render. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
+- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/proposals/`, design proposals and the decisions taken on them
@@ -622,11 +622,11 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Tests
 
-The tests drive the samples and the reference page in real browsers through Playwright. `npm ci` installs it, `npx playwright install` fetches the browsers, `npm test` runs every suite in Chromium, and `npm run test:all` runs them in Chromium, Firefox and WebKit. `node tests/run.js firefox windows` runs one engine and only the suites whose names contain `windows`. The runner serves the repository itself on port 8765. GitHub Actions runs all three engines on every push and pull request.
+The tests drive the samples and the reference page in real browsers through Playwright. `npm ci` installs it, `npx playwright install` fetches the browsers, `npm test` runs every suite in Chromium, and `npm run test:all` runs them in Chromium, Firefox and WebKit. `node tests/run.js firefox windows` runs one engine and only the suites whose names contain `windows`. The runner serves the repository itself on port 8765. Where Playwright cannot fetch its own browsers, `PUDL_EXECUTABLE=/path/to/chromium npm test` uses one already installed. GitHub Actions runs all three engines on every push and pull request.
 
 ## Status
 
-This is version 0.19.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.19.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

@@ -20,7 +20,9 @@ function adapt(opts) {
 }
 
 async function launch() {
-  const b = await pw[engine].launch();
+  /* PUDL_EXECUTABLE points at a browser already installed, for machines
+     whose browsers do not match Playwright's pinned builds. */
+  const b = await pw[engine].launch(process.env.PUDL_EXECUTABLE ? { executablePath: process.env.PUDL_EXECUTABLE } : {});
   const newPage = b.newPage.bind(b);
   const newContext = b.newContext.bind(b);
   b.newPage = opts => newPage(adapt(opts));

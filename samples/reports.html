@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Expenses, a PUDL Sample</title>
+  <title>Reports, a PUDL Sample</title>
   <script src="../dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="../dist/pudl.css">
   <link rel="stylesheet" href="expenses.css">
@@ -14,10 +14,8 @@
   <script src="../dist/pudl-tooltip.js" defer></script>
 </head>
 <body>
-  <!-- A small expense tracker. A server would render this list from the
-       address: its filter, sort order and page all live in the query.
-       GitHub Pages has no server, so expenses-app.js stands in for one in
-       the browser, keeping the data in localStorage. -->
+  <!-- Totals by category, account, state and trip, for every trip or for
+       one, ?trip=manila-oct, with the expenses behind them as CSV. -->
 
   <header class="topbar">
     <a class="brand" href="expenses.html">Expenses</a>
@@ -28,12 +26,12 @@
   </header>
 
   <nav class="app-section-bar" aria-label="Sections">
-    <a class="section-tab" href="expenses.html" aria-current="page">Expenses</a>
+    <a class="section-tab" href="expenses.html">Expenses</a>
     <a class="section-tab" href="trips.html">Trips</a>
-    <a class="section-tab" href="reports.html">Reports</a>
+    <a class="section-tab" href="reports.html" aria-current="page">Reports</a>
   </nav>
 
-  <main class="app-main" data-page="expenses">
+  <main class="app-main" data-page="reports">
     <noscript><p class="notice warn">This sample has no server, so a script in the page plays its part, and without script there is nothing to show.</p></noscript>
   </main>
   <footer class="app-main sample-foot"></footer>
