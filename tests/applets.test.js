@@ -145,6 +145,25 @@ function check(name, ok, extra) {
   await a.evaluate(() => history.back());
   await a.waitForFunction(() => document.querySelector('.mixer .kv-table tr:nth-child(2) code').textContent === '#800080');
   check('param: Back and Forward hand the state to setState', true);
+  /* Preset links hand their state to the running applet. */
+  await a.goto(ROOT + '/samples/applet-article.html');
+  await a.waitForSelector('[data-applet-state="running"]');
+  const lenBefore = await a.evaluate(() => { window.__samePage = true; return history.length; });
+  await a.click('a[data-applet-preset] >> nth=2');
+  await a.waitForFunction(() => document.querySelector('.mixer input[type="range"]').value === '22');
+  const pre = await a.evaluate(() => ({ mix: new URLSearchParams(location.search).get('mix'), len: history.length, same: window.__samePage === true }));
+  check('preset: a click sets the running applet without leaving the page', pre.mix === 'a=b86e1c&b=fbfbfc&p=22' && pre.same, JSON.stringify(pre));
+  check('preset: it is a step in the history', pre.len === lenBefore + 1, JSON.stringify(pre));
+  await a.evaluate(() => history.back());
+  await a.waitForFunction(() => document.querySelector('.mixer input[type="range"]').value === '60');
+  check('preset: Back undoes it, still without a reload', await a.evaluate(() => window.__samePage === true));
+  const [nav] = await Promise.all([
+    a.waitForEvent('framenavigated'),
+    a.evaluate(() => { const d = document.querySelector('[data-applet]'); pudlApplets.destroy(d); document.querySelector('a[data-applet-preset]').click(); })
+  ]);
+  await a.waitForSelector('[data-applet-state="running"]');
+  check('preset: with no running applet, the link navigates and boots the preset', (await a.evaluate(() => document.querySelector('.mixer input[type="range"]').value)) === '12');
+
   const swapped = await a.evaluate(async () => {
     const old = document.querySelector('[data-applet]');
     const fresh = document.createElement('div');
@@ -170,10 +189,25 @@ function check(name, ok, extra) {
   });
   check('ownsUrl: an applet on another page leaves the address alone', own.same && /own page/.test(own.share), JSON.stringify(own));
 
-  /* In a window, the applet fills, and the windows' page ignores its param. */
+  /* In a window, an applet fills unless its mount says otherwise, and the
+     reader's host keeps its state through pudl:applet-state. */
   await p.goto(SAMPLE + '?open=mixing');
   await p.waitForSelector('.win[data-win="mixing"] [data-applet-state="running"]');
-  check('fit: an applet in a window fills', (await p.getAttribute('.win[data-win="mixing"] [data-applet]', 'data-applet-fit')) === 'fill');
+  check('fit: the windowed article\'s mount keeps flow', (await p.getAttribute('.win[data-win="mixing"] [data-applet]', 'data-applet-fit')) === 'flow');
+  const winFit = await p.evaluate(async () => {
+    const d = document.createElement('div');
+    d.setAttribute('data-applet', 'mixer');
+    d.setAttribute('data-applet-src', 'applets/mixer.js');
+    document.querySelector('.win[data-win="mixing"] .win-body').append(d);
+    pudlApplets.boot(d);
+    await new Promise(r => setTimeout(r, 200));
+    const fit = d.getAttribute('data-applet-fit');
+    pudlApplets.destroy(d); d.remove();
+    return fit;
+  });
+  check('fit: an applet in a window fills by default', winFit === 'fill', winFit);
+  check('state: the host hands back the state it kept', /p=70$/.test(await p.getAttribute('.win[data-win="mixing"] .mixer-foot a', 'href')),
+    await p.getAttribute('.win[data-win="mixing"] .mixer-foot a', 'href'));
 
   /* Regions leave an applet's parameter to the applet. */
   let fetched = 0;

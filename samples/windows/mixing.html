@@ -14,8 +14,8 @@
       <p class="byline"><time datetime="2026-09-07">7 September 2026</time></p>
       <p>PUDL never asks a theme for a shadow or a highlight. It asks for a light colour, a shade colour and two strengths, and mixes each raised and sunken surface from them with <code>color-mix()</code>. The mixer below is the same operation, so you can see what a given strength does.</p>
       <div data-applet="mixer" data-applet-src="applets/mixer.js" data-applet-css="applets/mixer.css"
-           data-applet-page="colour-mixer.html" data-mix="a=6b9bd1&amp;b=121417&amp;p=24"></div>
-      <p>The mixer is an applet. The same script runs it here, in a window, and <a href="colour-mixer.html">in a page of its own</a>. In its own page it keeps the colours in the address and Back undoes each change. Here the windows own the address, so it leaves the address alone and links to its own page instead. Close this window and the applet is taken down with it.</p>
+           data-applet-page="colour-mixer.html" data-applet-fit="flow" data-mix="a=6b9bd1&amp;b=121417&amp;p=24"></div>
+      <p>The mixer is an applet. The same script runs it here, in a window, and <a href="colour-mixer.html">in a page of its own</a>. In its own page it keeps the colours in the address and Back undoes each change. Here the windows own the address, so it leaves the address alone and links to its own page instead, and the reader keeps its colours until the end of the visit, so closing and reopening this window finds them as you left them. It flows with this article, as it would in a page, rather than filling the window: its mount says so with <code>data-applet-fit="flow"</code>. Close this window and the applet is taken down with it.</p>
       <p>Switch between the categories above the list while this is open. Only the list changes; the mixer keeps its colours.</p>
       <p class="next-link">Next: <a href="?open=numerals" data-win-open="numerals" data-win-replace>Tabular numerals and the hyphen</a></p>
     </div>
