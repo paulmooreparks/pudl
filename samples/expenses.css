@@ -25,6 +25,35 @@
 }
 .history { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); font-size: var(--text-md); }
 .history time { color: var(--text-muted); font-size: var(--text-sm); margin-inline-end: var(--space-2); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-4); }
 @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } .app-tools .md-filter { width: 100%; } }
 .sample-note { font-size: var(--text-sm); color: var(--text-muted); }
+.text-muted { color: var(--text-muted); }
+.app-back { margin: 0 0 var(--space-3); font-size: var(--text-sm); }
+.app-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+.clear-filters { font-size: var(--text-xs); }
+.bulk-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+.bulk-count { flex: 1; min-width: 12rem; font-size: var(--text-sm); color: var(--text-muted); }
+.form-actions { justify-content: flex-start; flex-wrap: wrap; }
+.sample-foot { padding-top: 0; }
+.sample-foot .sample-note { margin: 0; }
+
+/* A row of figures, each a card of its own. */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--space-3); }
+.stat .card-desc { margin: 0; }
+.stat-value { margin: 0 0 var(--space-1); font-size: var(--text-xl); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* A share of a total: a flat bar, since it is only a picture of the
+   number written beside it. */
+.share { display: flex; align-items: center; gap: var(--space-2); min-width: 8rem; }
+.share-bar { display: block; flex: none; max-width: calc(100% - 3.5rem); height: 8px; border-radius: 2px; background: var(--accent); }
+.share-pct { font-size: var(--text-sm); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.receipt { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; margin-bottom: var(--space-4); }
+.receipt-image { max-width: min(100%, 20rem); max-height: 24rem; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.receipt-actions { margin-top: var(--space-2); }
+.attach-receipt { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+.attach-receipt .form-group { margin: 0; }
+.tabs .empty-state { padding-top: var(--space-4); }
+.data-table .share-col { width: 30%; }
+@media (max-width: 560px) { .bulk-count, .app-head h1 { flex-basis: 100%; } }

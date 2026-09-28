@@ -3,17 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hotel, Makati, three nights, a PUDL Sample</title>
+  <title>Expense, a PUDL Sample</title>
   <script src="../dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="../dist/pudl.css">
   <link rel="stylesheet" href="expenses.css">
+  <script src="expenses-app.js" defer></script>
   <script src="../dist/pudl-tabs.js" defer></script>
+  <script src="../dist/pudl-menu.js" defer></script>
   <script src="../dist/pudl-dialog.js" defer></script>
+  <script src="../dist/pudl-toast.js" defer></script>
   <script src="../dist/pudl-tooltip.js" defer></script>
 </head>
 <body>
-  <!-- One expense. Its panels are tabs within the page, and #receipt or
-       #history in the address opens one of them directly. -->
+  <!-- One expense, ?id=1. Its panels are tabs within the page, and #receipt
+       or #history in the address opens one of them directly. -->
 
   <header class="topbar">
     <a class="brand" href="expenses.html">Expenses</a>
@@ -25,60 +28,15 @@
 
   <nav class="app-section-bar" aria-label="Sections">
     <a class="section-tab" href="expenses.html" aria-current="true">Expenses</a>
-    <a class="section-tab" href="expenses.html">Trips</a>
-    <a class="section-tab" href="expenses.html">Reports</a>
+    <a class="section-tab" href="trips.html">Trips</a>
+    <a class="section-tab" href="reports.html">Reports</a>
   </nav>
 
-  <main class="app-main">
-    <div class="app-head">
-      <h1>Hotel, Makati, three nights</h1>
-      <a class="btn" href="expense-edit.html">Edit</a>
-      <button class="btn btn-danger" type="button" commandfor="delete" command="show-modal">Delete…</button>
-    </div>
-    <p class="record-meta">
-      <span class="badge positive">approved</span>
-      <span class="chip">Manila, October</span>
-      <span class="chip">Billable</span>
-    </p>
-
-    <div class="tabs">
-      <div class="tablist" role="tablist" aria-label="Expense">
-        <button role="tab" id="tab-details" aria-controls="details" aria-selected="true">Details</button>
-        <button role="tab" id="tab-receipt" aria-controls="receipt">Receipt</button>
-        <button role="tab" id="tab-history" aria-controls="history">History</button>
-      </div>
-      <section role="tabpanel" id="details" aria-labelledby="tab-details">
-        <table class="kv-table">
-          <tr><th>Merchant</th><td>Makati Garden Hotel</td></tr>
-          <tr><th>Date</th><td><time datetime="2026-10-19">19 October 2026</time></td></tr>
-          <tr><th>Nights</th><td>3, from 16 October</td></tr>
-          <tr><th>Amount</th><td><data value="21600">PHP 21,600.00</data></td></tr>
-          <tr><th>Account</th><td>Billable, charged to the customer</td></tr>
-          <tr><th>Notes</th><td>Room rate agreed with the client in advance.</td></tr>
-        </table>
-      </section>
-      <section role="tabpanel" id="receipt" aria-labelledby="tab-receipt">
-        <div class="receipt-thumb">receipt-makati-garden.pdf</div>
-        <p class="form-help" style="margin-top: 8px;">Attached 19 October, 212 KB.</p>
-      </section>
-      <section role="tabpanel" id="history" aria-labelledby="tab-history">
-        <ol class="history">
-          <li><time datetime="2026-10-21T09:12Z">21 Oct, 17:12</time> Approved by accounts.</li>
-          <li><time datetime="2026-10-19T11:40Z">19 Oct, 19:40</time> Submitted with its receipt.</li>
-          <li><time datetime="2026-10-19T11:32Z">19 Oct, 19:32</time> Created.</li>
-        </ol>
-      </section>
-    </div>
+  <main class="app-main" data-page="expense">
+    <noscript><p class="notice warn">This sample has no server, so a script in the page plays its part, and without script there is nothing to show.</p></noscript>
   </main>
+  <footer class="app-main sample-foot"></footer>
 
-  <dialog class="dialog" id="delete" aria-labelledby="delete-title">
-    <h2 class="dialog-title" id="delete-title">Delete this expense?</h2>
-    <p class="dialog-body">Hotel, Makati, three nights, PHP 21,600.00, and its receipt will be removed. It has been approved, so accounts will be told.</p>
-    <form class="dialog-actions" method="get" action="expenses.html">
-      <input type="hidden" name="deleted" value="1">
-      <button class="btn" type="button" commandfor="delete" command="close" autofocus>Keep it</button>
-      <button class="btn btn-danger" type="submit">Delete the expense</button>
-    </form>
-  </dialog>
+  <div class="toast-region" role="status" aria-live="polite"></div>
 </body>
 </html>

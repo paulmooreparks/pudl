@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="expenses.css">
+  <script src="expenses-app.js" defer></script>
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-dialog.js" defer></script>
+  <script src="../dist/pudl-toast.js" defer></script>
+  <script src="../dist/pudl-tooltip.js" defer></script>
+</head>
+<body>
+  <!-- One trip, ?id=manila-oct, with its totals and its expenses. -->
+
+  <header class="topbar">
+    <a class="brand" href="expenses.html">Expenses</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark" onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">PUDL reference</a>
+    </div>
+  </header>
+
+  <nav class="app-section-bar" aria-label="Sections">
+    <a class="section-tab" href="expenses.html">Expenses</a>
+    <a class="section-tab" href="trips.html" aria-current="true">Trips</a>
+    <a class="section-tab" href="reports.html">Reports</a>
+  </nav>
+
+  <main class="app-main" data-page="trip">
+    <noscript><p class="notice warn">This sample has no server, so a script in the page plays its part, and without script there is nothing to show.</p></noscript>
+  </main>
+  <footer class="app-main sample-foot"></footer>
+
+  <div class="toast-region" role="status" aria-live="polite"></div>
+</body>
+</html>
