@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How PUDL Lights a Surface, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="applets/registry.js" defer></script>
+  <style>
+    .page { max-width: 44rem; margin: 0 auto; padding: 24px 16px 60px; line-height: 1.65; }
+    .page h1 { margin: 12px 0 4px; font-size: 26px; }
+    .page .card { margin: 24px 0; }
+  </style>
+</head>
+<body>
+  <!-- An applet embedded in an article, prose above and below. The mount
+       names only the applet; applets/registry.js says where its files are.
+       data-applet-param="mix" asks pudl-applets.js to keep the applet's
+       state in this page's query, so the mix a reader settles on is part of
+       the article's address, and the presets below are plain links. -->
+
+  <header class="topbar">
+    <a class="brand" href="../reference.html">PUDL</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark" onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="colour-mixer.html">The mixer alone</a>
+      <a class="topbar-pill" href="../reference.html">Reference</a>
+    </div>
+  </header>
+
+  <main class="page">
+    <article>
+      <h1>How PUDL lights a surface</h1>
+      <p>Every raised control in PUDL is drawn from two colours: the light falling on it and the shade beneath it. Neither is painted directly. The stylesheet mixes each into the surface with <code>color-mix()</code>, so a theme that changes its surface colour gets highlights and shadows that belong to it, without naming them.</p>
+      <p>Try it. The mixer below is the same applet that runs in a page of its own and in a window, embedded here in the article's column. Mix the accent into white and you have a light theme's hover tint; mix it into near-black and you have a dark theme's.</p>
+
+      <div class="card">
+        <div data-applet="mixer" data-applet-param="mix">
+          <noscript><p class="card-desc">The mixer needs script to run.</p></noscript>
+        </div>
+      </div>
+
+      <p>Some mixes the stylesheet uses, each a link to this article with the mixer set:</p>
+      <ul>
+        <li><a href="applet-article.html?mix=a%3D2c5282%26b%3Dffffff%26p%3D12">A selected row's tint</a>, the accent at 12% on white.</li>
+        <li><a href="applet-article.html?mix=a%3D0e1621%26b%3Df3f4f6%26p%3D18">A light theme's shadow</a>, the shade at its depth of 18%.</li>
+        <li><a href="applet-article.html?mix=a%3Db86e1c%26b%3Dfbfbfc%26p%3D22">A warning badge</a>, the warn colour at 22%.</li>
+      </ul>
+      <p>The address keeps whatever mix you settle on, so copying it shares the article with the mixer as you left it. It is replaced, not added to the history, so Back still leaves the article rather than stepping through every colour you tried.</p>
+    </article>
+  </main>
+</body>
+</html>

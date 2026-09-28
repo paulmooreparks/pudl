@@ -546,31 +546,64 @@ Same-page links inside regions, and the window fields a server renders into a re
 
 ## Applets
 
-An applet is interactive content, such as a game, a calculator or a tool, that runs unchanged in a page of its own or inside a window, from one script. PUDL does not build or manage applets. The optional `pudl-applets.js` is only the handshake between an applet and whichever host it lands in, and it is needed because scripts inside a fetched window do not run.
+An applet is interactive content, such as a game, a calculator or a tool, that runs unchanged in a page of its own, embedded in an article, or inside a window, from one script. PUDL does not build or manage applets. The optional `pudl-applets.js` is only the handshake between an applet and whichever host it lands in, and it is needed because scripts inside a fetched window do not run. An applet knows itself and never its host: it runs the same with `pudl-applets.js` alone, and a window is only one more host.
 
-The page marks where an applet goes, naming its script, its stylesheet and its own page:
+A site names each applet's files once, in a small script it loads on every page after `pudl-applets.js`:
 
-```html
-<div data-applet="mixer" data-applet-src="/js/mixer.js"
-     data-applet-css="/css/mixer.css" data-applet-page="/apps/mixer"></div>
+```js
+pudlApplets.define('mixer', { src: '/js/mixer.js', css: '/css/mixer.css',
+                              page: '/apps/mixer', ver: '3' });
 ```
 
-The applet's script registers it, with `pudl-applets.js` loaded first:
+and each place the applet goes needs only its name, with whatever should show without script:
+
+```html
+<div data-applet="mixer">
+  <noscript><p>The mixer needs JavaScript to run.</p></noscript>
+</div>
+```
+
+`ver` is added to the script's and stylesheet's addresses as `?v=`, so a new version is one edit rather than one per page. A mount may still carry `data-applet-src`, `data-applet-css` and `data-applet-page`, and each one it carries wins over the registry. The order does not matter: a mount that meets a name not yet defined waits for its `define()`. The attribute is the canonical form rather than a custom element, because a plain element carries its fallback content, needs nothing registered before the first paint, and passes through Markdown as raw HTML.
+
+The applet's script registers it:
 
 ```js
 pudlApplets.register('mixer', {
   init: function (root, opts) {
     // build inside root, find and listen only within root
-    return { destroy: function () { /* undo everything init set up */ } };
+    return {
+      state: function () { return '...'; },        // optional
+      setState: function (s) { /* ... */ },         // optional
+      destroy: function () { /* undo everything init set up */ }
+    };
   }
 });
 ```
 
-`opts.host` is `"page"` or `"window"`. `opts.ownsUrl` is true only in a page: there the applet may keep its state in the URL, and inside a window it must leave the URL to the windows. `opts.pageUrl` is the applet's own page, for a link that reaches the current state from anywhere. An applet that listens on `window` or `document`, or starts a timer, must undo that in `destroy()`; an `AbortController` passed to every `addEventListener` makes that one call.
+What `opts` tells the applet:
 
-The runtime loads each stylesheet and script once, however many mounts name it. It starts the applets in the page when the page loads, starts those in each window as the window opens, and destroys them as the window closes, so a page that loads both `pudl-windows.js` and `pudl-applets.js` needs no wiring. `pudlApplets.boot(scope)` and `pudlApplets.destroy(scope)` are there for content a project adds or removes some other way. A mount's `data-applet-state` reads `loading`, `running` or `error`.
+- `host` is `"window"` inside a window, otherwise `"page"`.
+- `fit` is how to size itself. `"fill"`: the host gives a definite box, and the applet fills it and never scrolls, as in a window or a page that is nothing but the applet. `"flow"`: the column gives the width, the applet caps its height against the viewport, and the page scrolls, as in an article. A window fills and anything else flows, unless the mount's `data-applet-fit` says otherwise; the mount's `data-applet-fit` always reads the answer, for the applet's stylesheet.
+- `ownsUrl` is true only on the applet's own page, the one `data-applet-page` or the registry names, outside a window. There the applet may keep its state in the address itself. Anywhere else it must leave the address alone: in a window the windows own it, and in someone else's article the article does.
+- `pageUrl` is the applet's own page, for a link that reaches the current state from anywhere.
+- `state` is the state its host kept for it, a string, or `null`.
+- `changed(s)` is what the applet calls with its state, as a string, when the state settles. It fires `pudl:applet-change` on the mount.
 
-`samples/colour-mixer.html` is an applet in a page of its own, and the article reader runs the same applet in a window.
+PUDL keeps no applet state, with one opt-in. A mount outside a window that carries `data-applet-param="g"` has its applet's state kept in the page's query as `g`: each `changed()` replaces the parameter, rather than adding to the history, so a game in the middle of an article is shared by the article's own address, and Back still leaves the article. The applet receives the parameter as `opts.state`, and Back and Forward hand a changed one to `setState()`. `pudl-regions.js` carries the parameter from address to address, like the windows' parameters, and never fetches regions because it changed. Any other host, such as a window that should remember its game, listens for `pudl:applet-change` and keeps the string wherever it keeps the reader's continuity, or nowhere. The shape to avoid is the applet reaching for `localStorage` or `history` itself anywhere but its own page.
+
+An applet that listens on `window` or `document`, or starts a timer, must undo that in `destroy()`; an `AbortController` passed to every `addEventListener` makes that one call.
+
+The runtime loads each stylesheet and script once, however many mounts name it. It starts the applets in the page when the page loads, those in each window as the window opens and those in a region as `pudl-regions.js` swaps it in, and destroys them as their window closes or their region goes, so a page needs no wiring. `pudlApplets.boot(scope)` and `pudlApplets.destroy(scope)` are there for content a project adds or removes some other way. A mount's `data-applet-state` reads `loading`, `running` or `error`.
+
+### Sizing an applet that fills
+
+Three lessons from parkscomputing.com's Sudoku, for any applet that fills a window without scrollbars:
+
+- An element with `aspect-ratio` and a definite width does not carry a `max-height` back to its width, so a square board squashes. Measure instead: a wrapper with `container-type: size` takes the leftover space through flex, and the content inside it is sized `min(100cqi, 100cqb)`.
+- A size container's box must come from its layout, such as flex stretch, never from its content, because a size container ignores its content's size and collapses to nothing.
+- On a phone, viewport units should be `svh`, the smallest viewport, which is always wholly on screen. What counts towards `dvh` is each browser's own business: Edge for Android answers differently from Chrome, and a number pad went under its bottom bar.
+
+`samples/colour-mixer.html` is an applet in a page of its own, `samples/applet-article.html` embeds the same applet in an article and keeps its state in the article's address, and the article reader runs it in a window.
 
 ## Accessibility, languages and print
 
@@ -612,7 +645,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
-- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
+- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; `applet-article.html`, the same applet embedded in an article; `applets/`, the applet and the registry that names it; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/proposals/`, design proposals and the decisions taken on them
@@ -626,7 +659,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.19.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.20.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

@@ -112,6 +112,90 @@ function check(name, ok, extra) {
   check('destroy takes the applet down', torn.empty, JSON.stringify(torn));
   check('destroy removes its window listeners too', torn.still, JSON.stringify(torn));
 
+  /* === Embedded in an article, named by the registry ===================== */
+  const a = await b.newPage({ viewport: { width: 1000, height: 900 } });
+  watch(a);
+  await a.goto(ROOT + '/samples/applet-article.html');
+  await a.waitForSelector('[data-applet-state="running"]');
+  const art = await a.evaluate(() => ({
+    fit: document.querySelector('[data-applet]').getAttribute('data-applet-fit'),
+    src: [...document.scripts].map(s => s.src).find(s => /mixer\.js/.test(s)),
+    css: [...document.querySelectorAll('link[rel="stylesheet"]')].map(l => l.href).find(h => /mixer\.css/.test(h)),
+    len: history.length
+  }));
+  check('registry: a mount with only a name starts, defined after the runtime ran', true);
+  check('registry: the version reaches the script and the stylesheet', /mixer\.js\?v=2$/.test(art.src) && /mixer\.css\?v=2$/.test(art.css), JSON.stringify(art));
+  check('fit: an applet in an article flows', art.fit === 'flow');
+  const setMix = (pg, v) => pg.evaluate(v => {
+    const r = document.querySelector('[data-applet] input[type="range"]');
+    r.value = String(v); r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true }));
+  }, v);
+  await setMix(a, 30);
+  const after = await a.evaluate(() => ({ mix: new URLSearchParams(location.search).get('mix'), len: history.length }));
+  check('param: the state goes into the article\'s query', after.mix === 'a=2c5282&b=ffffff&p=30', JSON.stringify(after));
+  check('param: replaced, not pushed', after.len === art.len, JSON.stringify(after));
+  await a.goto(ROOT + '/samples/applet-article.html?mix=a%3Dff0000%26b%3D0000ff%26p%3D50');
+  await a.waitForSelector('[data-applet-state="running"]');
+  check('param: the article\'s address restores the state', (await a.textContent('.mixer .kv-table tr:nth-child(2) code')) === '#800080');
+  await a.evaluate(() => history.pushState(null, '', '?mix=a%3D000000%26b%3Dffffff%26p%3D0'));
+  await a.evaluate(() => history.back());
+  await a.waitForTimeout(150);
+  await a.evaluate(() => history.forward());
+  await a.waitForFunction(() => document.querySelector('.mixer .kv-table tr:nth-child(2) code').textContent === '#ffffff');
+  await a.evaluate(() => history.back());
+  await a.waitForFunction(() => document.querySelector('.mixer .kv-table tr:nth-child(2) code').textContent === '#800080');
+  check('param: Back and Forward hand the state to setState', true);
+  const swapped = await a.evaluate(async () => {
+    const old = document.querySelector('[data-applet]');
+    const fresh = document.createElement('div');
+    fresh.setAttribute('data-applet', 'mixer');
+    old.parentNode.replaceWith(fresh);
+    document.dispatchEvent(new CustomEvent('pudl:regions-swap', { detail: { regions: [] } }));
+    await new Promise(r => setTimeout(r, 300));
+    return { old: old.hasAttribute('data-applet-state') || old.children.length > 0, fresh: fresh.getAttribute('data-applet-state') };
+  });
+  check('regions: a swap destroys the applets it removed and starts those it brought', swapped.old === false && swapped.fresh === 'running', JSON.stringify(swapped));
+
+  /* The owner test: not the applet's own page, so not its address. */
+  const own = await a.evaluate(async () => {
+    const d = document.createElement('div');
+    d.setAttribute('data-applet', 'mixer');
+    document.querySelector('article').append(d);
+    const len = history.length, before = location.search;
+    pudlApplets.boot(d);
+    await new Promise(r => setTimeout(r, 200));
+    const r = d.querySelector('input[type="range"]');
+    r.value = '90'; r.dispatchEvent(new Event('change', { bubbles: true }));
+    return { same: history.length === len && location.search === before, share: d.querySelector('.mixer-foot a').textContent };
+  });
+  check('ownsUrl: an applet on another page leaves the address alone', own.same && /own page/.test(own.share), JSON.stringify(own));
+
+  /* In a window, the applet fills, and the windows' page ignores its param. */
+  await p.goto(SAMPLE + '?open=mixing');
+  await p.waitForSelector('.win[data-win="mixing"] [data-applet-state="running"]');
+  check('fit: an applet in a window fills', (await p.getAttribute('.win[data-win="mixing"] [data-applet]', 'data-applet-fit')) === 'fill');
+
+  /* Regions leave an applet's parameter to the applet. */
+  let fetched = 0;
+  p.on('request', r => { if (/article-reader\.html/.test(r.url()) && r.resourceType() === 'fetch') fetched++; });
+  await p.evaluate(async () => {
+    const d = document.createElement('div');
+    d.setAttribute('data-applet', 'mixer');
+    d.setAttribute('data-applet-param', 'mix');
+    d.setAttribute('data-applet-src', 'applets/mixer.js');
+    document.body.append(d);
+    pudlApplets.boot(d);
+    await new Promise(r => setTimeout(r, 200));
+    const r = d.querySelector('input[type="range"]');
+    r.value = '40'; r.dispatchEvent(new Event('change', { bubbles: true }));
+    history.pushState(null, '', location.search.replace(/mix=[^&]*/, 'mix=a%3D000000%26b%3Dffffff%26p%3D5'));
+    history.back();
+    await new Promise(r => setTimeout(r, 400));
+  });
+  check('regions: Back over an applet\'s parameter fetches no regions', fetched === 0, String(fetched));
+  const carried = await p.evaluate(() => [...document.querySelectorAll('[data-region] a[href]')].some(l => /mix=/.test(l.getAttribute('href'))));
+  check('regions: same-page links carry the applet\'s parameter', carried);
+
   check('no errors or warnings', errors.length === 0, errors.join(' | '));
   await b.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');

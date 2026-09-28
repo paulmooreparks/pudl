@@ -7,6 +7,7 @@
   <script src="../dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="../dist/pudl.css">
   <script src="../dist/pudl-applets.js" defer></script>
+  <script src="applets/registry.js" defer></script>
   <style>
     .page { max-width: 44rem; margin: 0 auto; padding: 24px 16px 60px; }
     .page h1 { margin: 12px 0 4px; font-size: 26px; }
@@ -27,10 +28,9 @@
 
   <main class="page">
     <h1>Colour mixer</h1>
-    <p>This is a PUDL applet in a page of its own. The same applet runs in a window in <a href="article-reader.html?open=mixing">the article reader</a>, from the same script. Here it owns the page's address: change a colour and the address changes with it, and Back undoes the change.</p>
+    <p>This is a PUDL applet in a page of its own. The same applet runs in a window in <a href="article-reader.html?open=mixing">the article reader</a> and <a href="applet-article.html">in the middle of an article</a>, from the same script. Here it owns the page's address: change a colour and the address changes with it, and Back undoes the change.</p>
     <div class="card">
-      <div data-applet="mixer" data-applet-src="applets/mixer.js" data-applet-css="applets/mixer.css"
-           data-applet-page="colour-mixer.html">
+      <div data-applet="mixer">
         <p class="card-desc">The mixer needs script to run.</p>
       </div>
     </div>
