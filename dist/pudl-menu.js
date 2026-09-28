@@ -1,7 +1,7 @@
 /* PUDL menus. Load after pudl.css, with defer or at the end of <body>.
 
    A menu panel is an HTML popover, so it opens, closes and stacks above
-   everything without this script. The script adds three things:
+   everything without this script. The script adds four things:
      - it places the panel against the button that opened it, below the
        button or above it when there is more room there, and on a narrow
        screen as a sheet across the full width;

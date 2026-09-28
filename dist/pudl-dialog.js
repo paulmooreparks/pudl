@@ -12,7 +12,8 @@
    Browsers that know these attributes need nothing from this script. For
    those that do not yet, it does the same thing: show-modal opens the
    dialog with showModal(), close closes it, and request-close asks it to
-   close, which its cancel handler may refuse. A form
+   close, which its cancel handler may refuse in a browser that has
+   requestClose(), and otherwise closes it. A form
    inside the dialog with method="dialog" closes it on submission without
    any script at all. */
 (function () {
