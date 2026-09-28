@@ -7,6 +7,14 @@
    windows. Opening a window pushes a history entry, and every other change
    replaces the current one.
 
+   A page may have default windows, standing furniture such as a panel of
+   site links, named on the layer with data-win-default="site,help". An
+   address that names no windows opens them where their markup puts them,
+   and the page's plain address stays plain while they are as it opened
+   them. An address with open, even an empty open=, means exactly what it
+   says, so closing the last window writes open= rather than bringing the
+   defaults back.
+
    Events, dispatched so a project can hook in without editing this file:
      pudl:window-place   on the layer, before a window opens with no placement
                          in the URL. A listener may set event.detail.placement
@@ -17,7 +25,12 @@
                          fetched fragment do not run.
      pudl:window-close   on the window element, just before it leaves the
                          page by any route. Use it to tear down what
-                         pudl:window-open set up.
+                         pudl:window-open set up. event.detail.reason says
+                         why: "button" or "key" when the reader closed it,
+                         "script" from pudlWindows.close, "parent" when its
+                         parent closed, "replace" when another window took
+                         its place, and "address" when the address moved on,
+                         by Back, Forward or a link.
      pudl:windows-change on the layer, after every change, with the state in
                          event.detail. Use it to persist placements.
 
@@ -42,6 +55,9 @@
   var pending = {};        // key -> true while its window is loading
   var urlTimer = 0;
   var suppressClick = false;
+  var defaults = [];       // keys of the windows open when the address names none
+  var bare = null;         // the window parameters of the state an address naming none produced
+  var closing = {};        // key -> why its window is about to close, for pudl:window-close
 
   /* === State and URL ===================================================== */
 
@@ -100,8 +116,11 @@
     return p.mode + ':' + [p.x, p.y, p.w, p.h].map(fmt).join(',');
   }
 
+  /* The state an address names, or null when it names no windows at all,
+     which means the page's default windows. An empty open= names none. */
   function readURL() {
     var q = new URLSearchParams(location.search);
+    if (!q.has('open')) return null;
     var st = { open: keyList(q.get('open')), top: null, min: {}, place: {} };
     keyList(q.get('min')).forEach(function (k) {
       if (st.open.indexOf(k) >= 0) st.min[k] = true;
@@ -115,9 +134,33 @@
     return st;
   }
 
+  /* A state's window parameters. Keys, modes and numbers need no escaping,
+     so they are written out by hand and stay readable. */
+  function windowParams(st) {
+    if (!st.open.length) return [];
+    var parts = ['open=' + st.open.join(',')];
+    if (st.top) parts.push('top=' + st.top);
+    var mins = st.open.filter(function (k) { return st.min[k]; });
+    if (mins.length) parts.push('min=' + mins.join(','));
+    st.open.forEach(function (k) {
+      if (st.place[k]) parts.push('p.' + k + '=' + formatPlacement(st.place[k]));
+    });
+    return parts;
+  }
+
+  /* Whether a state is the one an address naming no windows opened. It is
+     known once such an address has been seen, and compared as the window
+     parameters it would write, so a default window the reader has moved,
+     minimised or closed is no longer the default. */
+  function isDefault(st) {
+    return bare !== null && windowParams(st).join('&') === bare;
+  }
+
   /* The URL for a state, keeping every query parameter that is not ours.
-     Keys, modes and numbers need no escaping, so the window parameters are
-     written out by hand and stay readable. */
+     On a page with default windows, the default state is written as no
+     window parameters at all, so the page's plain address stays plain, and
+     a state with no windows open is written as an empty open=, since no
+     parameters would bring the defaults back. */
   function urlFor(st) {
     var q = new URLSearchParams(location.search);
     Array.from(q.keys()).forEach(function (k) {
@@ -126,15 +169,12 @@
     var parts = [];
     var rest = q.toString();
     if (rest) parts.push(rest);
-    if (st.open.length) {
-      parts.push('open=' + st.open.join(','));
-      if (st.top) parts.push('top=' + st.top);
-      var mins = st.open.filter(function (k) { return st.min[k]; });
-      if (mins.length) parts.push('min=' + mins.join(','));
-      st.open.forEach(function (k) {
-        if (st.place[k]) parts.push('p.' + k + '=' + formatPlacement(st.place[k]));
-      });
+    var mine = windowParams(st);
+    if (defaults.length) {
+      if (isDefault(st)) mine = [];
+      else if (!mine.length) mine = ['open='];
     }
+    parts = parts.concat(mine);
     return location.pathname + (parts.length ? '?' + parts.join('&') : '') + location.hash;
   }
 
@@ -260,14 +300,16 @@
 
   function apply(st) {
     /* A window leaving the page says so first, however it was closed, so
-       its content can tear down what it set up. */
+       its content can tear down what it set up, and says why, so a project
+       can tell a reader closing it from the address moving on. */
     Object.keys(wins).forEach(function (k) {
       if (st.open.indexOf(k) >= 0) return;
       var gone = wins[k];
       delete wins[k];
-      gone.dispatchEvent(new CustomEvent('pudl:window-close', { bubbles: true, detail: { key: k } }));
+      gone.dispatchEvent(new CustomEvent('pudl:window-close', { bubbles: true, detail: { key: k, reason: closing[k] || 'address' } }));
       gone.remove();
     });
+    closing = {};
     zOrder = zOrder.filter(function (k) { return st.open.indexOf(k) >= 0; });
     st.open.forEach(function (k) { if (zOrder.indexOf(k) < 0) zOrder.push(k); });
     if (st.top) { zOrder.splice(zOrder.indexOf(st.top), 1); zOrder.push(st.top); }
@@ -376,12 +418,14 @@
   }
 
   /* In a master-detail layout narrow enough to show one pane at a time, the
-     windows are the detail pane: it shows while any window does. A link
-     marked data-win-back minimises them all, which returns to the list. */
+     windows are the detail pane: it shows while any window the reader
+     opened does. A default window is part of the page rather than a record,
+     so it does not turn the pane over by itself. A link marked
+     data-win-back minimises them all, which returns to the list. */
   function syncPane() {
     var md = layer.closest('.md-layout');
     if (md) {
-      var any = state.open.some(function (k) { return !isHidden(state, k); });
+      var any = state.open.some(function (k) { return defaults.indexOf(k) < 0 && !isHidden(state, k); });
       md.setAttribute('data-md-pane', any ? 'detail' : 'list');
     }
     document.querySelectorAll('a[data-win-back]').forEach(function (a) {
@@ -601,6 +645,7 @@
   function replaceWith(oldKey, key, from) {
     if (!wins[oldKey] || oldKey === key) { open(key, from); return; }
     if (wins[key]) {
+      markClosing(oldKey, 'replace');
       commit(closed(raised(state, key), oldKey), true);
       focusWindow(key);
       return;
@@ -623,6 +668,7 @@
         st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
         st.place[key] = Object.assign({}, st.place[oldKey]);
         delete st.min[key];
+        markClosing(oldKey, 'replace');
         st = closed(st, oldKey);
       }
       st.top = key;
@@ -637,17 +683,28 @@
     });
   }
 
-  function close(key) {
+  /* Notes why a window and its children are about to close, which
+     pudl:window-close reports. */
+  function markClosing(key, reason) {
+    closing[key] = reason;
+    childrenOf(state, key).forEach(function (c) { closing[c] = 'parent'; });
+  }
+
+  /* reason is "button", "key" or "script", for pudl:window-close. */
+  function close(key, reason) {
     var back = openers[key];
     delete openers[key];
+    markClosing(key, reason);
     commit(closed(state, key), false);
     if (back && back.isConnected) back.focus();
     else if (state.top) focusWindow(state.top);
   }
 
-  /* Brings the page in line with a URL, after Back or Forward or at start. */
+  /* Brings the page in line with a URL, after Back or Forward or at start.
+     An address that names no windows opens the page's default windows. */
   function sync(push) {
-    var st = readURL();
+    var named = readURL();
+    var st = named || { open: defaults.slice(), top: null, min: {}, place: {} };
     var missing = st.open.filter(function (k) { return !wins[k]; });
     return Promise.all(missing.map(function (k) {
       return load(k).then(function (el) { adopt(el); announceOpen(el); return null; },
@@ -662,6 +719,7 @@
         st.place[k] = clampPlacement(p, layer.clientWidth, layer.clientHeight);
       });
       if (!st.top) st.top = st.open.filter(function (k) { return !st.min[k]; }).pop() || null;
+      if (!named && defaults.length) bare = windowParams(st).join('&');
       commit(st, push);
     });
   }
@@ -861,7 +919,7 @@
       var wk = btn.closest('.win').getAttribute('data-win');
       if (action === 'minimize') { e.preventDefault(); commit(minimized(state, wk), false); }
       else if (action === 'maximize') { e.preventDefault(); commit(maximizeToggled(state, wk), false); }
-      else if (action === 'close') { e.preventDefault(); close(wk); }
+      else if (action === 'close') { e.preventDefault(); close(wk, 'button'); }
     }
   }
 
@@ -914,13 +972,16 @@
     var t = e.target;
     if (t && t.closest && t.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
     e.preventDefault();
-    close(top);
+    close(top, 'key');
   }
 
   function init() {
     layer = document.querySelector('[data-win-layer]');
     if (!layer) return;
     srcTemplate = layer.getAttribute('data-win-src') || '';
+    /* The layer names the default windows, not the windows themselves,
+       because a default window the address has closed is not in the page. */
+    defaults = keyList(layer.getAttribute('data-win-default'));
 
     ghost = document.createElement('div');
     ghost.className = 'win-ghost';
@@ -963,7 +1024,7 @@
         focusWindow(key);
       },
       minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
-      close: function (key) { if (wins[key]) close(key); },
+      close: function (key) { if (wins[key]) close(key, 'script'); },
       state: function () { return copy(state); }
     };
 

@@ -197,7 +197,6 @@ function check(name, ok, extra) {
   const winFit = await p.evaluate(async () => {
     const d = document.createElement('div');
     d.setAttribute('data-applet', 'mixer');
-    d.setAttribute('data-applet-src', 'applets/mixer.js');
     document.querySelector('.win[data-win="mixing"] .win-body').append(d);
     pudlApplets.boot(d);
     await new Promise(r => setTimeout(r, 200));
@@ -216,7 +215,6 @@ function check(name, ok, extra) {
     const d = document.createElement('div');
     d.setAttribute('data-applet', 'mixer');
     d.setAttribute('data-applet-param', 'mix');
-    d.setAttribute('data-applet-src', 'applets/mixer.js');
     document.body.append(d);
     pudlApplets.boot(d);
     await new Promise(r => setTimeout(r, 200));

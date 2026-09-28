@@ -10,7 +10,7 @@ function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
   if (!ok) failures++;
 }
-const RULES = ['color-contrast', 'scrollable-region-focusable', 'aria-allowed-attr', 'aria-valid-attr-value', 'button-name', 'link-name'];
+const RULES = ['color-contrast', 'scrollable-region-focusable', 'aria-allowed-attr', 'aria-allowed-role', 'aria-valid-attr-value', 'button-name', 'link-name'];
 const PAGES = [
   ['/reference.html', { width: 1280, height: 900 }],
   ['/samples/expenses.html', { width: 1280, height: 900 }],

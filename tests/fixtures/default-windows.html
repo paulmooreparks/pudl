@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Default windows</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>.win-host { height: 600px; }</style>
+</head>
+<body>
+  <!-- A test fixture: a page whose server renders the default window "panel"
+       for an address that names no windows. -->
+  <p><a id="open-note" href="?open=panel,note" data-win-open="note">Open the note</a></p>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="panel">
+      <section class="win" data-win="panel" data-win-mode="floating" style="--win-x:0; --win-y:0.7; --win-w:1; --win-h:0.3">
+        <header class="win-head">
+          <h2 class="win-title">Site links</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="close" href="?open=" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body"><p>Home, Articles, About.</p></div>
+      </section>
+    </div>
+  </div>
+  <template id="tpl-panel">
+    <section class="win" data-win="panel" data-win-mode="floating" style="--win-x:0; --win-y:0.7; --win-w:1; --win-h:0.3">
+      <header class="win-head">
+        <h2 class="win-title">Site links</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="close" href="?open=" aria-label="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body"><p>Home, Articles, About.</p></div>
+    </section>
+  </template>
+  <template id="tpl-note">
+    <section class="win" data-win="note">
+      <header class="win-head">
+        <h2 class="win-title">A note</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body"><p>Opened by the reader.</p></div>
+    </section>
+  </template>
+</body>
+</html>

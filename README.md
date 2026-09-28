@@ -444,6 +444,14 @@ A key names a record and is made of letters, digits, `-` and `_`. The mode is `f
 
 A server ignores a key it does not recognise and a placement it cannot parse. A window whose placement is missing opens floating, cascading from the top left.
 
+#### Default windows
+
+Some windows are part of a page's furniture rather than a record the reader opened: a panel of site links, a help strip. The layer names them, with `data-win-default="site"` (keys, comma-separated), and an address that names no windows at all opens them. The server renders them for such an address, where their markup places them, and the page's plain address stays plain for as long as they stay as it opened them. They move, minimise and close like any window.
+
+An address that carries `open`, even an empty `open=`, means exactly what it says, so a shared link or Back and Forward are never changed by the defaults. Closing the last window on such a page writes `open=`, because an address with no window parameters would bring the defaults back, and moving a default window writes it into the address like any other. The layer names the defaults, rather than each window's markup, because a default window the address has closed is not in the page. In a master-detail layout narrow enough to show one pane at a time, a default window does not turn the pane over to the detail by itself.
+
+Whether a reader's close should last beyond the visit is the project's business, since PUDL keeps no state: `pudl:window-close` carries `detail.reason`, `"button"` or `"key"` when the reader closed the window, so a project can remember it and render the page with `open=` next time.
+
 ### The markup
 
 The windows float over a host, the region they may occupy, which is usually the main area below the topbar. The host holds the page's own content and one layer, and a page has one layer. `data-win-src` on the layer says where the script fetches a window's markup, with `{key}` standing for the key. A value starting with `#` names a `<template>` in the page instead. The markup becomes part of the page, so it must come from the page's own origin and be served as `text/html`; the script refuses anything else, a redirect to another origin included, and falls back on the link's own page.
@@ -465,7 +473,7 @@ A link with `data-win-open` opens its record as a window on a plain click, and a
 Each window is the same markup whether the server renders it into the page or returns it from the `data-win-src` URL:
 
 ```html
-<article class="win" data-win="exp-12" data-win-mode="floating"
+<section class="win" data-win="exp-12" data-win-mode="floating"
          role="dialog" aria-labelledby="win-exp-12-title"
          style="--win-x:0.36; --win-y:0.04; --win-w:0.5; --win-h:0.72">
   <header class="win-head">
@@ -478,10 +486,12 @@ Each window is the same markup whether the server renders it into the page or re
     </nav>
   </header>
   <div class="win-body">…</div>
-</article>
+</section>
 ```
 
 The server writes the placement from the URL into `data-win-mode` and the four `--win-` properties, gives a minimised window the `hidden` attribute, gives the active window the class `active`, and renders the windows in stacking order with the active one last. Each button's `href` is the URL of the state that pressing it produces, with the other parameters kept. The buttons are empty because their glyphs come from the stylesheet. The title is plain text. A page opens with the ↗ button, and the whole title bar is the drag handle. A window's `data-win-src` URL should return the window markup alone, not a whole page, so that opening a window costs one small render.
+
+A window is a `<section>`, because it is a dialog and ARIA allows `role="dialog"` on a section but not on an `<article>`, which earlier versions of this README used. An `<article>` window still works, and assistive technology still hears a dialog, but a checker such as axe reports the role as not allowed. The content inside a window may of course be an article.
 
 Scripts inside a fetched window do not run. A project wires up a window's content by listening for `pudl:window-open`, which fires on each window as it arrives. `pudl:window-place` fires on the layer before a window opens with no placement in the URL, and a listener may set `event.detail.placement` to `{mode, x, y, w, h}`, from saved state for example. `pudl:windows-change` fires on the layer after every change with the whole state, for a project that wants to remember placements. PUDL keeps no state of its own beyond the URL.
 
@@ -498,7 +508,7 @@ A window opened by a link inside another window opens in that window's state ins
 A window can open children for content that belongs to it, such as a source listing, an image or a receipt. A child's markup names its parent:
 
 ```html
-<article class="win" data-win="art-12-listing-1" data-win-parent="art-12" data-win-mode="maximized">
+<section class="win" data-win="art-12-listing-1" data-win-parent="art-12" data-win-mode="maximized">
 ```
 
 The relation belongs to the content, so it lives in the markup and the URL does not repeat it: the child appears in `open` like any other window. A link inside the parent with `data-win-open` opens the child. A child's buttons are maximise, which also restores, and close. It has no minimise button, because it has no dock tab to come back from. A child opened from a floating parent floats, and the reader may want to maximise it and restore it again.
@@ -515,7 +525,7 @@ The relation belongs to the content, so it lives in the markup and the URL does 
 
 A link inside a window marked `data-win-replace`, as well as `data-win-open`, opens its target in place of the window it sits in, the way a link works in a browser tab. The new window takes the old one's place in the dock and its placement, the old one closes, and the move is one history entry, so Back returns to the old window. If the target is already open it comes forward and the old window closes. A reading site uses this for a "Next" link at the foot of an article.
 
-`pudl:window-close` fires on each window just before it leaves the page, however it was closed: by its button, with its parent, by Back or by a replacement. Content that set something up on `pudl:window-open` tears it down there.
+`pudl:window-close` fires on each window just before it leaves the page, however it was closed, and `detail.reason` says how: `"button"` for its close button, `"key"` for Escape on a child window, `"script"` for `pudlWindows.close()`, `"parent"` when its parent closed, `"replace"` when another window took its place, and `"address"` when the address moved on, by Back, Forward or a link. Content that set something up on `pudl:window-open` tears it down there.
 
 `window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script.
 
@@ -538,11 +548,19 @@ A navigation that changes only part of a page, such as a category tab or a filte
 
 A plain click on a same-origin link inside a region, or a GET form submitted inside one, fetches the target page, which may be the same path with other parameters or another path, such as a page per category. If that page has a region of every name the current page has, and the same window layer, the script replaces each region with its counterpart and pushes the address, carrying the open windows, which stay exactly as they were. If it does not, or the fetch fails, the browser navigates as it always would, so the worst case is an ordinary page load. A link to what the regions already show does nothing. Back and Forward swap the regions again when the part of the address they depend on changed; when only the windows changed, the windows module handles it alone.
 
+A link outside every region swaps regions in the same way when it carries `data-region-link`, or sits inside an element that does. The usual case is an article in a window, whose tag and category links lead to pages with the same regions: without the attribute, following one is an ordinary page load, and the address it loads carries no windows, so every window closes. Marking the window's body keeps them:
+
+```html
+<div class="win-body" data-region-link>…<a href="/articles/design">Design</a>…</div>
+```
+
+It is opt-in, because a window's content often links to pages that were never meant to be swapped in, and those should stay ordinary links.
+
 Because a swap needs a counterpart for every region, a region that is sometimes empty must still be rendered when it has nothing in it. A chips row with no active filters is the usual case: render the empty `.md-chips` element anyway, and PUDL hides it, or every navigation away from a filtered view falls back to a full page load. PUDL tells an empty chips row by the absence of chips, not by `:empty`, so the whitespace a template leaves inside it does no harm.
 
 The script asks the server for nothing special. It fetches the same address a bookmark would, so the server renders what the address names, as it always does, and the swap reads the regions out of that page.
 
-Same-page links inside regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
+Same-page links that swap regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
 
 `samples/article-reader.html` and its two category pages use regions for their category tabs and article list. Open an article, restore it, scroll it, set the colour mixer, and move between categories: only the list changes.
 
@@ -565,7 +583,7 @@ and each place the applet goes needs only its name, with whatever should show wi
 </div>
 ```
 
-`ver` is added to the script's and stylesheet's addresses as `?v=`, so a new version is one edit rather than one per page. A mount may still carry `data-applet-src`, `data-applet-css` and `data-applet-page`, and each one it carries wins over the registry. A mount's script and stylesheet must be on the page's own origin, because a page's markup can come from people other than its authors, such as a comment that a sanitiser let data attributes through, and a mount naming a script elsewhere would run it with the page's authority. A mount that names another origin fails and loads nothing; `define()`, which only the site's own script calls, may name any origin. The order does not matter: a mount that meets a name not yet defined waits for its `define()`. The attribute is the canonical form rather than a custom element, because a plain element carries its fallback content, needs nothing registered before the first paint, and passes through Markdown as raw HTML.
+`ver` is added to the script's and stylesheet's addresses as `?v=`, so a new version is one edit rather than one per page. Only `define()` names an applet's script and stylesheet. A page's markup can come from people other than its authors, such as a comment that a sanitiser let data attributes through, and a mount that named a script would let them choose what runs with the page's authority; `define()` is called by the site's own script. A mount may carry `data-applet-page`, a page on the site's own origin that overrides the registry's. Up to 0.22 a mount could also carry `data-applet-src` and `data-applet-css`; they are no longer read, and a mount that carries them warns in the console. The order does not matter: a mount that meets a name not yet defined waits for its `define()`. The attribute is the canonical form rather than a custom element, because a plain element carries its fallback content, needs nothing registered before the first paint, and passes through Markdown as raw HTML.
 
 The applet's script registers it:
 
@@ -679,7 +697,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.22.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.23.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

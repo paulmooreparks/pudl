@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.23.0
+
+Issues #7 and #8, reported by jottinger, and two changes from the 0.22 review. A project upgrading should read the last two items.
+
+- Default windows (#8). The layer names windows that are part of a page's furniture, `data-win-default="site"`, and an address that names no windows opens them where their markup puts them, keeping the page's plain address plain while they stay that way. An address with `open`, even an empty `open=`, means exactly what it says, so closing the last window on such a page writes `open=`. The layer names the defaults, not the windows' own markup as the issue proposed, because a default window the address has closed is not in the page for the script to find.
+- `pudl:window-close` says why a window closed, in `detail.reason`: `button`, `key`, `script`, `parent`, `replace` or `address`. A project can remember a reader's close of a default window from it (#8).
+- Links inside a window can swap regions (#7). A link outside every region carrying `data-region-link`, or inside an element that does, such as a window's body, swaps regions as a link inside one does, so following a tag or category link in an article keeps the windows open. It is opt-in, and every other link is unchanged. The article reader's "Raised means pressable" shows it.
+- **Only `pudlApplets.define()` names an applet's script and stylesheet.** A mount's `data-applet-src` and `data-applet-css` are no longer read, and a mount that carries them warns in the console. A page's markup can come from people other than its authors, and a mount that named a script let them choose what ran, even on the page's own origin, which may serve uploaded files. A mount's `data-applet-page` is still read, on the page's origin only. A project moves the two attributes into its `define()` call.
+- **A window is a `<section class="win">`.** ARIA allows `role="dialog"` on a section but not on an article, which the documented markup used before. An `<article>` window still works, but axe reports its role; the README, the contract, the reference page and the samples use `<section>`.
+- The axe suite also checks that roles are allowed where they are used, and a new suite covers default windows and links inside windows.
+
 ## 0.22.1
 
 Accessibility fixes from issues #5 and #6, reported by jottinger.

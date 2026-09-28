@@ -18,11 +18,20 @@
    an ordinary page load. Back and Forward swap the regions again when the
    part of the address they depend on has changed.
 
+   A link outside every region, such as a tag or category link in an
+   article in a window, does the same when it carries data-region-link, or
+   sits inside an element that does:
+
+     <div class="win-body" data-region-link>…</div>
+
+   Without the attribute it is an ordinary link, since a window's content
+   often links to pages that were never meant to be swapped in.
+
    The server renders what the address names, so the page fetched for an
    address is the page a bookmark of it would show; the script asks the
    server for nothing special.
 
-   A same-page link inside a region carries the open windows in its address
+   A same-page link that swaps regions carries the open windows in its address
    (the open, top, min and p.* parameters), and the script keeps those up to
    date as the windows change, so a middle-click or a copied link carries
    the windows as they are, not as they were when the page loaded.
@@ -33,6 +42,11 @@
 
   var busy = null;          // AbortController of the fetch in flight
   var listPart = '';        // the address without window parameters, as the regions show it
+
+  /* The links that swap regions: those inside a region, and those outside
+     any that a project marks with data-region-link, on the link itself or
+     on an element holding it, such as a window's body. */
+  var LINKS = '[data-region] a[href], [data-region-link] a[href], a[data-region-link][href]';
 
   function isWinParam(name) {
     return name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0;
@@ -178,12 +192,12 @@
 
   /* === Keeping links current ============================================= */
 
-  /* Same-page links inside regions carry the live windows, and so do the
-     window fields a server renders into a region's GET forms. */
+  /* Same-page links that swap regions carry the live windows, and so do
+     the window fields a server renders into a region's GET forms. */
   function refreshLinks() {
     var here = location.pathname;
     var now = live();
-    document.querySelectorAll('[data-region] a[href]').forEach(function (a) {
+    document.querySelectorAll(LINKS).forEach(function (a) {
       if (a.hasAttribute('data-win-open')) return;
       var url;
       try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
@@ -215,7 +229,7 @@
 
   document.addEventListener('click', function (e) {
     if (!plainClick(e)) return;
-    var a = e.target.closest && e.target.closest('[data-region] a[href]');
+    var a = e.target.closest && e.target.closest(LINKS);
     if (!a) return;
     /* Links that act on windows or menus belong to those scripts, and links
        meant for another tab or a download to the browser. */
