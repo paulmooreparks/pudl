@@ -583,13 +583,21 @@ pudlApplets.register('mixer', {
 What `opts` tells the applet:
 
 - `host` is `"window"` inside a window, otherwise `"page"`.
-- `fit` is how to size itself. `"fill"`: the host gives a definite box, and the applet fills it and never scrolls, as in a window or a page that is nothing but the applet. `"flow"`: the column gives the width, the applet caps its height against the viewport, and the page scrolls, as in an article. A window fills and anything else flows, unless the mount's `data-applet-fit` says otherwise; the mount's `data-applet-fit` always reads the answer, for the applet's stylesheet.
+- `fit` is how to size itself. `"fill"`: the host gives a definite box, and the applet fills it and never scrolls, as in a window or a page that is nothing but the applet. `"flow"`: the column gives the width, the applet caps its height against the viewport, and the page scrolls, as in an article. A window fills and anything else flows, unless the mount's `data-applet-fit` says otherwise; the mount's `data-applet-fit` always reads the answer, for the applet's stylesheet. The override matters for an article that opens in a window: the article scrolls within its window, so an applet in it should flow with the prose, and its mount says `data-applet-fit="flow"`, as the article reader's colour-mixing article does.
 - `ownsUrl` is true only on the applet's own page, the one `data-applet-page` or the registry names, outside a window. There the applet may keep its state in the address itself. Anywhere else it must leave the address alone: in a window the windows own it, and in someone else's article the article does.
 - `pageUrl` is the applet's own page, for a link that reaches the current state from anywhere.
-- `state` is the state its host kept for it, a string, or `null`.
+- `state` is the state its host kept for it, a string, or `null`. Just before `init`, `pudl:applet-state` fires on the mount with `detail.state`, and whatever a listener puts there, synchronously, is what arrives. `detail` also carries the applet's `name`, `host`, `fit` and `param`.
 - `changed(s)` is what the applet calls with its state, as a string, when the state settles. It fires `pudl:applet-change` on the mount.
 
-PUDL keeps no applet state, with one opt-in. A mount outside a window that carries `data-applet-param="g"` has its applet's state kept in the page's query as `g`: each `changed()` replaces the parameter, rather than adding to the history, so a game in the middle of an article is shared by the article's own address, and Back still leaves the article. The applet receives the parameter as `opts.state`, and Back and Forward hand a changed one to `setState()`. `pudl-regions.js` carries the parameter from address to address, like the windows' parameters, and never fetches regions because it changed. Any other host, such as a window that should remember its game, listens for `pudl:applet-change` and keeps the string wherever it keeps the reader's continuity, or nowhere. The shape to avoid is the applet reaching for `localStorage` or `history` itself anywhere but its own page.
+PUDL keeps no applet state, with one opt-in. A mount outside a window that carries `data-applet-param="g"` has its applet's state kept in the page's query as `g`: each `changed()` replaces the parameter, rather than adding to the history, so a game in the middle of an article is shared by the article's own address, and Back still leaves the article. The applet receives the parameter as `opts.state`, and Back and Forward hand a changed one to `setState()`. `pudl-regions.js` carries the parameter from address to address, like the windows' parameters, and never fetches regions because it changed. Any other host, such as a window that should remember its game, answers `pudl:applet-state` from wherever it keeps the reader's continuity and listens for `pudl:applet-change` to keep it there, or keeps it nowhere. The article reader does this for its windows in a dozen lines, `samples/applets/continuity.js`. The shape to avoid is the applet reaching for `localStorage` or `history` itself anywhere but its own page.
+
+An article about an applet wants links that set it up, such as "a glider gun". Such a link carries `data-applet-preset` with the applet's name, and its `href` is where it goes without script, which is the applet's page, or the article, with the state in the query:
+
+```html
+<a data-applet-preset="conway" href="/page/conway?preset=gosper">a Gosper glider gun</a>
+```
+
+With a running instance of that applet in the same window as the link, or, like the link, in no window, a plain click hands the state to the instance's `setState()` instead of navigating: the nearest such instance before the link, else the first after it. The state is the value of the mount's `data-applet-param` if the link carries that parameter, and otherwise the link's whole query, which is why an applet's own-page query and its state string should share one grammar. A mount that keeps its state in the address, by `data-applet-param` or on its own page, gets the link's state there as a new history entry, so Back undoes the preset as it would have undone the link. With no instance to take it, or with a modifier key, the link is an ordinary link, and the applet reads the same state from the address it arrives at.
 
 An applet that listens on `window` or `document`, or starts a timer, must undo that in `destroy()`; an `AbortController` passed to every `addEventListener` makes that one call.
 
@@ -603,7 +611,17 @@ Three lessons from parkscomputing.com's Sudoku, for any applet that fills a wind
 - A size container's box must come from its layout, such as flex stretch, never from its content, because a size container ignores its content's size and collapses to nothing.
 - On a phone, viewport units should be `svh`, the smallest viewport, which is always wholly on screen. What counts towards `dvh` is each browser's own business: Edge for Android answers differently from Chrome, and a number pad went under its bottom bar.
 
-`samples/colour-mixer.html` is an applet in a page of its own, `samples/applet-article.html` embeds the same applet in an article and keeps its state in the article's address, and the article reader runs it in a window.
+Content with a size of its own, such as a `<canvas>` with real pixel dimensions, is scaled into the box rather than resized. In the fill habitat give it `max-width: 100%; max-height: 100%; width: auto; height: auto` inside the elastic stage, so it keeps its proportions and shrinks to fit. The pointer then no longer lands on the pixel it appears to: map each event back through the canvas's displayed size,
+
+```js
+var r = canvas.getBoundingClientRect();
+var x = (e.clientX - r.left) * canvas.width / r.width;
+var y = (e.clientY - r.top) * canvas.height / r.height;
+```
+
+and give the canvas no border or padding, or subtract them, since the rectangle includes both.
+
+`samples/colour-mixer.html` is an applet in a page of its own, `samples/applet-article.html` embeds the same applet in an article, keeps its state in the article's address and sets it from preset links, and the article reader runs it in a window that remembers its colours.
 
 ## Accessibility, languages and print
 
@@ -659,7 +677,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.20.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.21.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

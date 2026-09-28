@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.21.0
+
+Follow-ups from parkscomputing.com's second applet, `Architecture/pudl-proposal-applet-followups.md`; `docs/proposals/applet-followups.md` records the response.
+
+- Preset links. A link with `data-applet-preset="name"` hands its state to a running instance of that applet in the same window as the link, or like the link in none, instead of navigating: the value of the mount's `data-applet-param` if the link carries it, otherwise the link's whole query. A mount that keeps its state in the address gets it there as a new history entry, so Back undoes the preset. With no instance to take it, the link is an ordinary link.
+- A host hands an applet its state. Just before `init`, `pudl:applet-state` fires on the mount, and whatever a listener puts in `detail.state` arrives as `opts.state`. With `pudl:applet-change`, that is all a window needs to keep an applet's continuity, and PUDL still keeps no state and never hands out an instance.
+- The README's applet section shows how to scale content with a size of its own, such as a canvas, into a fill habitat, with the pointer mapping that goes with it, and when an article in a window wants `data-applet-fit="flow"`.
+- The article reader keeps its windowed mixer's colours for the visit through the new event, in `samples/applets/continuity.js`; its colour-mixing article's mount flows; and `samples/applet-article.html` sets its mixer from preset links.
+
 ## 0.20.0
 
 Applets and their hosts, from parkscomputing.com's `Architecture/pudl-proposal-applet-hosts.md`; `docs/proposals/applet-hosts.md` records the response.

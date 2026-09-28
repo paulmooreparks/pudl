@@ -47,7 +47,18 @@
    in the page's query under that name, replaced rather than pushed, so an
    applet embedded in an article can be shared by the article's address.
    Back and Forward hand a changed value to setState(). Any other host
-   listens for pudl:applet-change and keeps the state where it likes.
+   keeps the state where it likes: just before init, pudl:applet-state
+   fires on the mount, and whatever a listener puts in detail.state
+   arrives as opts.state; pudl:applet-change says when to keep it again.
+
+   A link carrying data-applet-preset="mixer" sets up a running mixer: its
+   href is where it goes without script, and with an instance of that
+   applet in the same window as the link, or like the link in no window,
+   a plain click hands the link's state to setState() instead. The state
+   is the value of the mount's data-applet-param if the link carries one,
+   otherwise the link's whole query. A mount that keeps its state in the
+   address gets the link's address as a new history entry, so Back undoes
+   the preset.
 
    The runtime loads each stylesheet and script once, starts the applets in
    the page when it loads, those in each window as it opens and those in a
@@ -62,7 +73,7 @@
   var waiting = {};        // name -> resolvers for applets whose script is still arriving
   var unresolved = {};     // name -> mounts that met the name before define()
   var scripts = {};        // src -> promise of the script having run
-  var running = [];        // { root, instance, param, last, fitSet }
+  var running = [];        // { root, name, instance, param, last, ownsUrl, fitSet }
 
   function register(name, def) {
     registry[name] = def;
@@ -172,7 +183,7 @@
 
   /* Replaces one parameter in the address and leaves every other one as
      written, since the windows write theirs unescaped for readability. */
-  function writeParam(name, value) {
+  function writeParam(name, value, push) {
     var segs = location.search.replace(/^\?/, '').split('&').filter(function (seg) {
       if (!seg) return false;
       var k = seg.split('=')[0];
@@ -181,7 +192,9 @@
     });
     if (value !== null && value !== '') segs.push(encodeURIComponent(name) + '=' + encodeURIComponent(value));
     var url = location.pathname + (segs.length ? '?' + segs.join('&') : '') + location.hash;
-    if (url !== location.pathname + location.search + location.hash) history.replaceState(history.state, '', url);
+    if (url === location.pathname + location.search + location.hash) return;
+    if (push) history.pushState(null, '', url);
+    else history.replaceState(history.state, '', url);
   }
 
   /* === Starting and stopping ============================================== */
@@ -199,13 +212,22 @@
     }
     var param = inWindow ? null : root.getAttribute('data-applet-param');
     var pageUrl = c.page || location.pathname;
-    var entry = { root: root, instance: null, param: param, last: param ? readParam(param) : null, fitSet: fitSet };
+    var host = inWindow ? 'window' : 'page';
+    var ownsUrl = !inWindow && !param && samePage(pageUrl);
+    var entry = { root: root, name: c.name, instance: null, param: param, last: param ? readParam(param) : null,
+                  ownsUrl: ownsUrl, fitSet: fitSet };
+    /* The host's turn to hand over the state it kept, such as a window's
+       from wherever it keeps the reader's continuity. */
+    var ask = new CustomEvent('pudl:applet-state', { bubbles: true,
+      detail: { name: c.name, host: host, fit: fit, param: param, state: entry.last } });
+    root.dispatchEvent(ask);
+    var state = ask.detail.state == null ? null : String(ask.detail.state);
     var instance = def.init(root, {
-      host: inWindow ? 'window' : 'page',
+      host: host,
       fit: fit,
-      ownsUrl: !inWindow && !param && samePage(pageUrl),
+      ownsUrl: ownsUrl,
       pageUrl: pageUrl,
-      state: entry.last,
+      state: state,
       changed: function (s) {
         if (s === undefined && entry.instance && entry.instance.state) s = entry.instance.state();
         root.dispatchEvent(new CustomEvent('pudl:applet-change', { bubbles: true, detail: { state: s == null ? null : String(s) } }));
@@ -267,6 +289,40 @@
       if (entry.instance && entry.instance.setState) entry.instance.setState(now);
     });
   });
+
+  /* The instance a preset link sets up: one of its applet in the same
+     window as the link, or like the link in none, the nearest before the
+     link, else the first after it. */
+  function presetTarget(link) {
+    var name = link.getAttribute('data-applet-preset');
+    var win = link.closest('.win');
+    var pool = running.filter(function (x) {
+      return x.name === name && x.root.isConnected && x.instance && x.instance.setState && x.root.closest('.win') === win;
+    });
+    var before = pool.filter(function (x) { return x.root.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING; });
+    return before.length ? before[before.length - 1] : pool[0] || null;
+  }
+
+  /* Caught on the way down, so that no other script, such as regions,
+     treats the click as a navigation first. */
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var link = e.target.closest && e.target.closest('a[data-applet-preset][href]');
+    if (!link) return;
+    var entry = presetTarget(link);
+    if (!entry) return;
+    var url = new URL(link.href);
+    if (url.origin !== location.origin) return;
+    var s = entry.param && url.searchParams.has(entry.param) ? url.searchParams.get(entry.param) : url.search.replace(/^\?/, '');
+    e.preventDefault();
+    if (entry.param) {
+      entry.last = s;
+      writeParam(entry.param, s, true);
+    } else if (entry.ownsUrl && samePage(url.href)) {
+      history.pushState(null, '', url.pathname + url.search + url.hash);
+    }
+    entry.instance.setState(s);
+  }, true);
 
   document.addEventListener('pudl:window-open', function (e) { boot(e.target); });
   document.addEventListener('pudl:window-close', function (e) { destroy(e.target); });
