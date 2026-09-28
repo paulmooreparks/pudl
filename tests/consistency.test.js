@@ -78,7 +78,8 @@ function check(name, ok, extra) {
     const g = s => getComputedStyle(document.querySelector(s));
     const probe = document.createElement('span'); document.body.append(probe);
     probe.style.color = 'var(--text)'; const text = getComputedStyle(probe).color;
-    probe.style.color = 'var(--positive)'; const pos = getComputedStyle(probe).color;
+    /* A badge's text is its status colour drawn toward the text colour, for contrast. */
+    probe.style.color = 'color-mix(in srgb, var(--positive) 62%, var(--text))'; const pos = getComputedStyle(probe).color;
     probe.remove();
     const kind = document.createElement('span'); kind.className = 'fc-kind'; document.body.append(kind);
     const legacySize = getComputedStyle(kind).fontSize; kind.remove();
@@ -97,11 +98,11 @@ function check(name, ok, extra) {
   check('names: .fc-kind still styles like .filter-chip-kind', pills.kind === pills.legacySize);
   const prTheme = await p.evaluate(() => {
     document.documentElement.style.setProperty('--pr', '#ff0000');
-    const c = getComputedStyle(document.querySelector('.badge.positive')).color;
+    const c = getComputedStyle(document.querySelector('.badge.positive')).getPropertyValue('--badge-color').trim();
     document.documentElement.style.removeProperty('--pr');
     return c;
   });
-  check('names: a theme that sets --pr still colours --positive', prTheme === 'rgb(255, 0, 0)', prTheme);
+  check('names: a theme that sets --pr still colours --positive', prTheme === '#ff0000', prTheme);
 
   /* Switch. */
   const sw = await p.evaluate(() => {

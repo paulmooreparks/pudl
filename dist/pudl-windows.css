@@ -191,6 +191,9 @@
   border: 1px solid var(--border); border-top: 0;
   border-radius: 0 0 calc(var(--radius) - var(--win-band)) calc(var(--radius) - var(--win-band));
 }
+/* The script makes the body a tab stop, so it can be scrolled from the
+   keyboard. It is a large area, so its focus ring is drawn inside it. */
+.win-body:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
 .win[data-win-mode="maximized"] .win-body,
 .win[data-win-mode="left"] .win-body,
 .win[data-win-mode="right"] .win-body { border: 0; border-radius: 0; }

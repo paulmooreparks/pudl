@@ -401,7 +401,7 @@ Each pane is its own URL, which the server already has, because selecting a reco
 ```html
 <div class="md-layout" data-md-pane="detail">
   …
-  <div class="md-detail">
+  <div class="md-detail" tabindex="0">
     <a class="md-back" href="/expenses?trip=manila-oct#row-exp-12">Expenses</a>
     …
   </div>
@@ -409,6 +409,8 @@ Each pane is its own URL, which the server already has, because selecting a reco
 ```
 
 `data-md-pane="detail"` goes on the layout whenever the URL names a record, or shows a form that stands in for one, such as a new record, whether or not a row in the list is highlighted. Otherwise it is `"list"` or absent. On a wide layout the attribute changes nothing.
+
+The detail pane carries `tabindex="0"` because it scrolls, and a reader who scrolls by keyboard can otherwise reach it only through a link or field inside it, which a plain record may not have. A window's body needs no such attribute; `pudl-windows.js` gives it one.
 
 The detail pane starts with an `.md-back` link, which appears only when one pane shows at a time. Its `href` is the list's URL with the current filters kept, and its fragment names the record's row, whose `.md-row` carries that id, so the list scrolls back to where the reader left it. The link text names the list. It returns to the list the record lives in, and it is not a breadcrumb trail. While the record shows, the list's toolbar and filter chips step aside, since they act on the list, except a toolbar marked `.md-site-tools`, which holds site-wide tools such as a launcher or a window dock and stays in both panes, and while the list shows, its rows grow taller because they are touch targets. None of this needs script.
 
@@ -677,7 +679,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.22.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.22.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

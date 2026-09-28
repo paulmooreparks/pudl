@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.22.1
+
+Accessibility fixes from issues #5 and #6, reported by jottinger.
+
+- The default theme meets WCAG 2.2 AA text contrast everywhere axe checks it, in both themes. A status badge's text is now its status colour drawn toward the text colour (62% of the status colour), since a mid-tone colour cannot reach 4.5:1 on a tint of itself; the status tokens are unchanged, so notices, glyphs and a theme's own colours are unaffected. A filter chip's kind label is no longer faded with opacity. A segmented control's choices not taken are in the full text colour, the chosen one still marked by being raised, and they hover with a light tint.
+- A window's body is a tab stop, given by `pudl-windows.js`, so a window whose content has no link or field can still be scrolled from the keyboard. Its focus ring is drawn inside it. A master-detail detail pane takes `tabindex="0"` in its markup for the same reason, and has the same ring.
+- A switch is `button.switch` with `role="switch"`, which is what lets it carry `aria-checked`. The contract and the reference page say so.
+- A new test suite runs axe for contrast, keyboard scrolling and ARIA on the reference page and the samples in both themes, in all three engines.
+
 ## 0.22.0
 
 A review of the whole implementation for performance, clarity and security.

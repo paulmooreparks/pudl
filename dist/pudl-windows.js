@@ -482,6 +482,12 @@
         'Window: {title}. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.')
         .split('{title}').join(titleOf(key)));
     }
+
+    /* A window's body scrolls, and a reader with only a keyboard can
+       scroll it only by focusing something inside it. Content with no link
+       or field has nothing to focus, so the body itself is a tab stop. */
+    var body = el.querySelector('.win-body');
+    if (body && !body.hasAttribute('tabindex')) body.tabIndex = 0;
     return el;
   }
 
