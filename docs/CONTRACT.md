@@ -93,6 +93,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-applet`, `-src`, `-css`, `-page` | an applet mount | `pudl-applets.js` | The applet's name, and its script, stylesheet and page, each overriding the registry |
 | `data-applet-fit` | an applet mount | `pudl-applets.js`, the applet's stylesheet | `fill` or `flow`; the runtime sets it when absent |
 | `data-applet-param` | an applet mount outside a window | `pudl-applets.js`, `pudl-regions.js` | The page query parameter that keeps the applet's state |
+| `data-applet-preset` | a link | `pudl-applets.js` | The applet whose running instance the link's state is handed to |
 | `data-toast-ms`, `data-toast-sticky`, `data-toast-close-label` | a toast, the region | `pudl-toast.js` | How long, whether to stay, the dismiss label |
 | `data-tooltip` | any element | `pudl-tooltip.js` | A tooltip's text |
 | `data-label` | a data table cell | the stylesheet | The label shown when rows stack |
@@ -110,6 +111,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
+| `pudl:applet-state` | the applet's mount, bubbles | `name`, `host`, `fit`, `param`, and `state` for a listener to set | Just before `init`; what `state` holds then is `opts.state` |
 | `pudl:applet-change` | the applet's mount, bubbles | `state`, a string or null | When the applet calls `opts.changed()` |
 
 ## Script functions
@@ -130,6 +132,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 **Regions.** A soft navigation fetches the same address a bookmark would. It swaps when the answering page has a region of every name the current page has, and the same window layer source; otherwise the browser navigates. A region that is sometimes empty must still be rendered.
 
 **Applets.** A mount outside a window with `data-applet-param="name"` has its applet's state under `name` in the page's query, replaced rather than pushed as it changes. Regions carry that parameter from address to address like the windows' parameters, and a change in it alone fetches nothing. The applet owns the address itself only on its own page: `ownsUrl` is true when the mount is outside a window, has no `data-applet-param`, and its page, from `data-applet-page` or the registry, is this page's path, ignoring an index file, an `.html` extension and a trailing slash.
+
+A link with `data-applet-preset` whose click an instance takes is handled as the link: its state goes to `setState()`, and a mount that keeps its state in the address gets it there as a new history entry.
 
 **Everything else.** Sorting, filtering, paging, the record in view and the panel chosen in a set of tabs are addresses: query parameters for the first four, the fragment for the last. What is momentary, such as an open menu or a tooltip, is not.
 
