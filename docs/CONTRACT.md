@@ -29,6 +29,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-tooltip.js` | `pudl.css` | Tooltips on glyph-only controls |
 | `pudl-tree.js` | `pudl.css` | Trees |
 | `pudl-grid.js` | `pudl.css` | Tables whose rows are choices |
+| `pudl-hljs.css` | `pudl.css` | highlight.js classes coloured from the syntax tokens |
 
 ## Tokens
 
@@ -38,6 +39,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 - Accent and status: `--accent`, `--accent-hover`, `--on-accent`, `--warn`, `--danger`, `--danger-hover`, `--positive`
 - Lighting: `--light`, `--shade`, `--lit`, `--depth`
 - Topbar: `--tb-bg`, `--tb-fg`, `--tb-link-hover`
+- Syntax: `--syntax-keyword`, `--syntax-string`, `--syntax-number`, `--syntax-comment`, `--syntax-name`, `--syntax-tag`, `--syntax-attr`, `--syntax-heading`, `--syntax-link`, `--syntax-error`, each reaching 4.5:1 on `--surface`, `--surface-alt` and `--input-bg`
 - Fonts: `--font`, `--font-display`, `--mono`
 - Adjustments with defaults derived from the above: `--dialog-bg`, `--section-current-bg`, `--win-active-bg`, `--win-active-fg`, `--win-active-border`, `--win-active-shadow`
 - Layout: `--md-sidebar-w` and `--md-sidebar-min` on a `.md-layout`
@@ -77,6 +79,8 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Tree | `ul.tree` of `li` holding `a`, then optionally a nested `ul` of the same | `aria-expanded` on a node's link when it has children; `aria-current` on the current node's |
 | Path bar | `nav.path` (with `.mono`) holding `ol` of `li`, each an `a` or, last, the current place with `aria-current` | `aria-current` |
 | Glyph | `.glyph` with `--glyph` set to a glyph token, and `--glyph-size` | |
+| Document tabs | `.tablist.doc-tabs[role="tablist"]` of `[role="tab"]` links or buttons, each holding its name, an optional `.doc-tab-dirty` with words for assistive technology, and an optional `.doc-tab-close[aria-hidden="true"]` | `aria-selected` |
+| Code | `pre.code` for a block to read; `.code-surface` for an editor's surface | |
 | Drop target | `.drop-zone` holding an optional `.drop-hint`; any element as a target | `data-drop-over` on a zone, `data-drop-target` on an item, set by the host while something is dragged over it |
 | Numbers and time | `.num`, `time`, `data` in prose take tabular figures | |
 
@@ -120,6 +124,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
+| `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
 | `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |

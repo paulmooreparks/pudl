@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.26.0
+
+The editor half of parkscomputing.com's `Architecture/pudl-proposal-tree-crumbs-editor.md`.
+
+- Document tabs. A `.tablist.doc-tabs` holds tabs that come and go, one per open document, and looks like every other tab rather than the flat strip the proposal sketched. A `.doc-tab-dirty` mark is a drawn dot whose words are heard and not seen, rather than a typed "●"; a `.doc-tab-close` is a small raised button inside the tab, hidden from assistive technology because a tab list may hold only tabs. `pudl-tabs.js` makes the list one stop in the Tab order, moves focus with the arrow keys, Home and End, and turns the close button and the Delete key into `pudl:tab-close`, for the host to decide.
+- Syntax colours. Ten `--syntax-` tokens, set for both themes and for print, each reaching 4.5:1 on every surface code sits on, so highlighters take their colours from the theme. The new optional `dist/pudl-hljs.css` maps highlight.js onto them, and the README has the CodeMirror 6 recipe. The dark theme's error colour is its own, because `--danger` falls short of 4.5:1 on an editor's surface.
+- Code surfaces. `pre.code` is a flat panel for code to read, and `.code-surface` a sunken one for an editor, since sunken means input; the proposal's single sunken surface would have made a code block look editable.
+- The reference page gains a section for document tabs and code, which the axe suite checks for contrast in both themes.
+
 ## 0.25.0
 
 The general half of parkscomputing.com's `Architecture/pudl-proposal-tree-crumbs-editor.md`; document tabs and syntax colours follow in 0.26.0.

@@ -124,9 +124,12 @@ With tabs within a page and tooltips as well:
         crossorigin="anonymous"></script>
 ```
 
-With trees and grids as well:
+With trees and grids as well, and highlight.js coloured by PUDL's syntax tokens:
 
 ```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.25.0/dist/pudl-hljs.css"
+      integrity="sha384-HLJS-PENDING"
+      crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.25.0/dist/pudl-tree.js" defer
         integrity="sha384-AdH7FeNFZ3jt9YKyB/5ih6sMZO5DYZgPf7B1/qC6q+aYaNsl2WKJYyagAffRqKe3"
         crossorigin="anonymous"></script>
@@ -225,6 +228,58 @@ Tabs within a page switch between panels of one thing in place, where section ta
 ```
 
 With the optional `pudl-tabs.js`, one panel shows at a time; a tab is chosen by pressing it, or with the arrow keys, Home and End once the list has focus; the list is one stop in the Tab order; and the chosen panel's id is the address's fragment, so `…#receipt` opens that panel and a reload keeps it. The fragment is replaced, not pushed, so switching panels does not fill the history. Without the script the tab list is hidden and every panel shows, one after another.
+
+## Document tabs
+
+Tabs that come and go, one per open document, record or view, as in an editor, are a `.tablist.doc-tabs`, so they look like every other tab:
+
+```html
+<div class="tablist doc-tabs" role="tablist" aria-label="Open files">
+  <a role="tab" href="?file=today.md" aria-selected="true">today.md<span
+     class="doc-tab-dirty">unsaved</span><span class="doc-tab-close" aria-hidden="true"></span></a>
+  <a role="tab" href="?file=notes.md" aria-selected="false">notes.md<span
+     class="doc-tab-close" aria-hidden="true"></span></a>
+</div>
+```
+
+Which document is open is the host's state, so a tab is a link to the address that shows its document, or a button the host handles. A `.doc-tab-dirty` mark shows as a dot in the accent, while its words, here "unsaved", are heard by assistive technology rather than seen. A `.doc-tab-close` is a small raised button drawn inside the tab and hidden from assistive technology, because a tab list may hold only tabs.
+
+With `pudl-tabs.js`, the list is one stop in the Tab order, on the selected tab; the arrow keys, Home and End move focus along it, and Enter or Space chooses, as the tab itself does. Pressing a tab's close button, or Delete on the focused tab, fires `pudl:tab-close` on the tab rather than following it, so the host can ask about unsaved changes before it removes the tab.
+
+## Code
+
+A code block is for reading, so it is flat: `pre.code`, a tinted panel in the monospace face with no shadow. An editor's surface takes input, so it is sunken like a field: `.code-surface` on the element the editor draws into.
+
+Highlighted code takes its colours from ten syntax tokens, `--syntax-keyword`, `--syntax-string`, `--syntax-number`, `--syntax-comment`, `--syntax-name`, `--syntax-tag`, `--syntax-attr`, `--syntax-heading`, `--syntax-link` and `--syntax-error`, set for both themes, each reaching 4.5:1 on every surface a code block or editor sits on. A theme may set them, and should keep that contrast. The optional `pudl-hljs.css` maps highlight.js's classes onto them, in place of a highlight.js theme:
+
+```html
+<link rel="stylesheet" href="pudl-hljs.css">
+<pre class="code"><code class="language-js">…</code></pre>
+```
+
+PUDL does not carry CodeMirror, but CodeMirror 6 takes the same tokens through a `HighlightStyle`, and the editor's surface through `.code-surface`:
+
+```js
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags } from '@lezer/highlight';
+
+const pudlHighlight = HighlightStyle.define([
+  { tag: tags.keyword, color: 'var(--syntax-keyword)' },
+  { tag: [tags.string, tags.regexp], color: 'var(--syntax-string)' },
+  { tag: [tags.number, tags.bool, tags.null], color: 'var(--syntax-number)' },
+  { tag: tags.comment, color: 'var(--syntax-comment)', fontStyle: 'italic' },
+  { tag: [tags.function(tags.variableName), tags.definition(tags.variableName)], color: 'var(--syntax-name)' },
+  { tag: [tags.tagName, tags.typeName], color: 'var(--syntax-tag)' },
+  { tag: [tags.attributeName, tags.propertyName], color: 'var(--syntax-attr)' },
+  { tag: tags.heading, color: 'var(--syntax-heading)', fontWeight: '700' },
+  { tag: [tags.link, tags.url], color: 'var(--syntax-link)', textDecoration: 'underline' },
+  { tag: tags.invalid, color: 'var(--syntax-error)' }
+]);
+// new EditorView({ extensions: [syntaxHighlighting(pudlHighlight), …], parent: surface }),
+// where surface is an element with class="code-surface".
+```
+
+Because the colours are CSS variables, a theme change reaches the editor at once, with no new highlight style.
 
 ## Empty and loading states
 
@@ -773,6 +828,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-tooltip.js`, the optional script that shows tooltips on glyph-only controls
   - `pudl-tree.js`, the optional script that makes nested lists of links into trees
   - `pudl-grid.js`, the optional script for tables whose rows are choices
+  - `pudl-hljs.css`, the optional stylesheet that colours highlight.js's classes from the syntax tokens
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -791,7 +847,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.25.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.26.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
