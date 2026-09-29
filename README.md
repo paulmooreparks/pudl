@@ -320,7 +320,7 @@ Pin a release rather than tracking the default branch. A change to PUDL reaches 
 
 ## Toggle buttons and hidden elements
 
-A button that latches, such as a mode switch, is a `.btn` with `aria-pressed`. While the attribute is `"true"` the button stays pressed in, and the same attribute tells assistive technology that it is on. The project's own script flips it; a group of mutually exclusive choices is a segmented control instead.
+A button that latches, such as a mode switch, is a `.btn` with `aria-pressed`. While the attribute is `"true"` the button stays pressed in, and the same attribute tells assistive technology that it is on. The project's own script flips it; a group of mutually exclusive choices is a segmented control instead. A primary button may latch too, such as a flash card's Reveal: latched, it keeps its accent fill and its text and loses its lift, pressed in rather than darkened, so its label reads in both themes.
 
 The `hidden` attribute always hides an element, even a component that sets its own `display`, because `pudl.css` gives it `display: none !important`. The one exception is `hidden="until-found"`, which the browser hides in its own way so that in-page search can still reveal it.
 
@@ -546,7 +546,7 @@ A navigation that changes only part of a page, such as a category tab or a filte
 <nav class="md-sidebar" data-region="list">…</nav>
 ```
 
-A plain click on a same-origin link inside a region, or a GET form submitted inside one, fetches the target page, which may be the same path with other parameters or another path, such as a page per category. If that page has a region of every name the current page has, and the same window layer, the script replaces each region with its counterpart and pushes the address, carrying the open windows, which stay exactly as they were. If it does not, or the fetch fails, the browser navigates as it always would, so the worst case is an ordinary page load. A link to what the regions already show does nothing. Back and Forward swap the regions again when the part of the address they depend on changed; when only the windows changed, the windows module handles it alone.
+A plain click on a same-origin link inside a region, or a GET form submitted inside one, fetches the target page, which may be the same path with other parameters or another path, such as a page per category. If that page has a region of every name the current page has, and the same window layer, the script replaces each region with its counterpart and pushes the address, carrying the open windows, which stay exactly as they were. If it does not, or the fetch fails, the browser navigates as it always would, so the worst case is an ordinary page load. A link to what the regions already show does nothing. A form's empty fields are left out of the address it builds, so clearing a filter leaves no `?q=` behind. Back and Forward swap the regions again when the part of the address they depend on changed; when only the windows changed, the windows module handles it alone.
 
 A link outside every region swaps regions in the same way when it carries `data-region-link`, or sits inside an element that does. The usual case is an article in a window, whose tag and category links lead to pages with the same regions: without the attribute, following one is an ordinary page load, and the address it loads carries no windows, so every window closes. Marking the window's body keeps them:
 
@@ -698,7 +698,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.23.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.23.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

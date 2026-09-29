@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.23.1
+
+Two findings from parkscomputing.com.
+
+- A primary button latched on is readable. With `aria-pressed="true"` it took the pressed background of an ordinary button and kept its own text colour, so its label nearly vanished. It now keeps its accent fill and its text and is pressed in, flat and shaded from the top, rather than darkened, since the dark theme's accent carries dark text. The reference page has one, which the axe suite checks in both themes.
+- A GET form in a region leaves its empty fields out of the address, so clearing a filter no longer leaves `?q=` behind.
+- The script comments of `pudl-menu.js` and `pudl-dialog.js` are corrected, and the reference page, README and contract agree with 0.23.0 throughout.
+
 ## 0.23.0
 
 Issues #7 and #8, reported by jottinger, and two changes from the 0.22 review. A project upgrading should read the last two items.
