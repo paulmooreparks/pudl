@@ -23,6 +23,12 @@
      pudl:window-open    on the window element, once it is in the page. Use it
                          to wire up the window's content, because scripts in a
                          fetched fragment do not run.
+     pudl:window-closing on the window element, before a reader's close or
+                         a script's, and on each child closing with it;
+                         cancelable, so an editor with unsaved changes can
+                         keep its window open while it asks. detail.key and
+                         detail.reason as below. A close by the address
+                         cannot be refused.
      pudl:window-close   on the window element, just before it leaves the
                          page by any route. Use it to tear down what
                          pudl:window-open set up. event.detail.reason says
@@ -34,8 +40,12 @@
      pudl:windows-change on the layer, after every change, with the state in
                          event.detail. Use it to persist placements.
 
+   A layout whose detail pane holds a record of its own, with windows over
+   it, puts data-win-pane="off" on the layer, and the script then leaves
+   the layout's data-md-pane to the server.
+
    window.pudlWindows offers open, replace, raise, minimize, minimizeAll,
-   restoreAll, close and state
+   restoreAll, retitle, close and state
    to scripts, each doing what the matching link or button does. */
 (function () {
   'use strict';
@@ -459,7 +469,10 @@
      back. Each is a real link to the state it produces, and is marked
      aria-disabled while it would change nothing. */
   function syncPane() {
-    var md = layer.closest('.md-layout');
+    /* A layout whose detail pane holds a record of its own, with windows
+       floating over it, leaves the pane to the server: its layer carries
+       data-win-pane="off". */
+    var md = layer.getAttribute('data-win-pane') === 'off' ? null : layer.closest('.md-layout');
     if (md) {
       var any = state.open.some(function (k) { return defaults.indexOf(k) < 0 && !isHidden(state, k); });
       md.setAttribute('data-md-pane', any ? 'detail' : 'list');
@@ -559,6 +572,25 @@
     });
   }
 
+  /* The title bar's spoken name, which carries the window's title. */
+  function labelHead(key) {
+    var head = wins[key] && wins[key].querySelector('.win-head');
+    if (head) head.setAttribute('aria-label', text('head',
+      'Window: {title}. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.')
+      .split('{title}').join(titleOf(key)));
+  }
+
+  /* Gives a window a new title, which the title bar's spoken name, its
+     dock tab and its list row follow at once. */
+  function retitle(key, title) {
+    var t = wins[key] && wins[key].querySelector('.win-title');
+    if (!t) return;
+    t.textContent = String(title);
+    labelHead(key);
+    renderDocks();
+    renderRows();
+  }
+
   function adopt(el) {
     var key = el.getAttribute('data-win');
     wins[key] = el;
@@ -583,9 +615,7 @@
       /* A link's native drag would take the pointer away from a title-bar drag. */
       head.querySelectorAll('a').forEach(function (a) { a.draggable = false; });
       head.tabIndex = 0;
-      head.setAttribute('aria-label', text('head',
-        'Window: {title}. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.')
-        .split('{title}').join(titleOf(key)));
+      labelHead(key);
     }
 
     /* A window's body scrolls, and a reader with only a keyboard can
@@ -758,6 +788,17 @@
 
   /* reason is "button", "key" or "script", for pudl:window-close. */
   function close(key, reason) {
+    /* Before a reader's close, or a script's, the window and each child
+       closing with it may refuse, as an editor with unsaved changes does
+       while it asks about them. A close by the address, by Back or a link,
+       cannot be refused, since the address has already moved. */
+    var family = [key].concat(childrenOf(state, key));
+    var refused = family.some(function (k) {
+      return !wins[k].dispatchEvent(new CustomEvent('pudl:window-closing', {
+        bubbles: true, cancelable: true, detail: { key: k, reason: k === key ? reason : 'parent' }
+      }));
+    });
+    if (refused) return;
     var back = openers[key];
     delete openers[key];
     markClosing(key, reason);
@@ -1097,6 +1138,7 @@
         focusWindow(key);
       },
       minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
+      retitle: retitle,
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
       close: function (key) { if (wins[key]) close(key, 'script'); },

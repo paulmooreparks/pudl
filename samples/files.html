@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Files, a PUDL Sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <link rel="stylesheet" href="../dist/pudl-hljs.css">
+  <link rel="stylesheet" href="files.css">
+  <script src="files-app.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="applets/files-registry.js" defer></script>
+  <script src="../dist/pudl-regions.js" defer></script>
+  <script src="../dist/pudl-tree.js" defer></script>
+  <script src="../dist/pudl-grid.js" defer></script>
+  <script src="../dist/pudl-tabs.js" defer></script>
+  <script src="../dist/pudl-md.js" defer></script>
+  <script src="../dist/pudl-dialog.js" defer></script>
+  <script src="../dist/pudl-toast.js" defer></script>
+</head>
+<body>
+  <!-- A small file browser and editor. A server would render the folder
+       tree and the folder's contents from the address, ?path=/notes. This
+       sample has no server, so files-app.js stands in for one in the
+       browser and keeps the files in localStorage. The folder tree and the
+       folder's contents are the regions pudl-regions.js swaps, so moving
+       between folders leaves the editor and preview windows open. -->
+
+  <header class="topbar">
+    <a class="brand" href="files.html">Files</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark" onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">PUDL reference</a>
+    </div>
+  </header>
+
+  <div class="md-layout" data-md-pane="list" data-files-app>
+    <div class="md-toolbar md-site-tools">
+      <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+    </div>
+    <div class="md-body">
+      <div class="md-sidebar files-sidebar">
+        <div class="files-tree" data-region="tree">
+          <noscript><p class="files-note">This sample has no server, so a script in the page plays its part, and without script there is nothing to show.</p></noscript>
+        </div>
+        <p class="files-foot sample-note"></p>
+      </div>
+      <div class="md-resize" role="separator" aria-orientation="vertical" aria-label="Resize the folder tree"></div>
+      <div class="md-detail files-stage" tabindex="0">
+        <div class="win-host files-host">
+          <div class="files-folder" data-region="folder"></div>
+          <div class="win-layer" data-win-layer data-win-pane="off" data-win-src="#tpl-{key}"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The applets' windows. A request for a second preview opens
+       "preview-2", which takes this template with a 2 in its title. -->
+  <template id="tpl-editor">
+    <section class="win" data-win="editor" data-win-mode="floating">
+      <header class="win-head">
+        <h2 class="win-title">Editor</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="page" href="editor.html" aria-label="Open as a page" title="Open as a page"></a>
+          <a class="win-btn" data-win-action="minimize" href="files.html" aria-label="Minimize" title="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="files.html" aria-label="Maximize" title="Maximize"></a>
+          <a class="win-btn" data-win-action="close" href="files.html" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div data-applet="editor"></div>
+      </div>
+    </section>
+  </template>
+  <template id="tpl-preview">
+    <section class="win" data-win="preview" data-win-mode="floating">
+      <header class="win-head">
+        <h2 class="win-title">Preview</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="page" href="preview.html" aria-label="Open as a page" title="Open as a page"></a>
+          <a class="win-btn" data-win-action="minimize" href="files.html" aria-label="Minimize" title="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="files.html" aria-label="Maximize" title="Maximize"></a>
+          <a class="win-btn" data-win-action="close" href="files.html" aria-label="Close" title="Close"></a>
+        </nav>
+      </header>
+      <div class="win-body">
+        <div data-applet="preview" data-applet-fit="flow"></div>
+      </div>
+    </section>
+  </template>
+
+  <dialog class="dialog" id="reset" aria-labelledby="reset-title" aria-describedby="reset-body">
+    <h2 class="dialog-title" id="reset-title">Reset the sample?</h2>
+    <p class="dialog-body" id="reset-body">Every file goes back to how the sample started, and your edits and the files you added are lost.</p>
+    <form class="dialog-actions" method="dialog">
+      <button class="btn" value="keep" autofocus>Keep my files</button>
+      <button class="btn btn-danger" value="reset">Reset</button>
+    </form>
+  </dialog>
+
+  <div class="toast-region" role="status" aria-live="polite"></div>
+</body>
+</html>
