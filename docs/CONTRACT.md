@@ -30,6 +30,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-tree.js` | `pudl.css` | Trees |
 | `pudl-grid.js` | `pudl.css` | Tables whose rows are choices |
 | `pudl-hljs.css` | `pudl.css` | highlight.js classes coloured from the syntax tokens |
+| `pudl-code.js` | `pudl.css` | Copy and Download on code blocks |
 
 ## Tokens
 
@@ -44,7 +45,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 - Adjustments with defaults derived from the above: `--dialog-bg`, `--section-current-bg`, `--win-active-bg`, `--win-active-fg`, `--win-active-border`, `--win-active-shadow`
 - Layout: `--md-sidebar-w` and `--md-sidebar-min` on a `.md-layout`
 
-**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-pill`; the surface treatments `--input-bg`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-diamond`, `--glyph-document`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-triangle` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
+**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-pill`; the surface treatments `--input-bg`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-copy`, `--glyph-diamond`, `--glyph-document`, `--glyph-download`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-triangle` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
 
 Every other custom property is internal.
 
@@ -80,7 +81,8 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Path bar | `nav.path` (with `.mono`) holding `ol` of `li`, each an `a` or, last, the current place with `aria-current` | `aria-current` |
 | Glyph | `.glyph` with `--glyph` set to a glyph token, and `--glyph-size` | |
 | Document tabs | `.tablist.doc-tabs[role="tablist"]` of `[role="tab"]` links or buttons, each holding its name, an optional `.doc-tab-dirty` with words for assistive technology, and an optional `.doc-tab-close[aria-hidden="true"]` | `aria-selected` |
-| Code | `pre.code` for a block to read, with `tabindex="0"` when it may scroll; `.code-surface` for an editor's surface | |
+| Code | `pre.code` for a block to read, with `tabindex="0"` when it may scroll; `.code-surface` for an editor's surface; `pre[data-code-actions]`, with `data-code-filename`, which `pudl-code.js` wraps in `.code-block` with a `.code-head` holding `.code-lang` and `.code-actions` | |
+| Visually hidden | `.visually-hidden`, words for assistive technology alone | |
 | Drop target | `.drop-zone` holding an optional `.drop-hint`; any element as a target | `data-drop-over` on a zone, `data-drop-target` on an item, set by the host while something is dragged over it |
 | Numbers and time | `.num`, `time`, `data` in prose take tabular figures | |
 
@@ -126,6 +128,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
+| `pudl:code-copy`, `pudl:code-download` | the code block's `pre`, bubbles | `ok` for a copy, `name` for a download | After each action |
 | `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
 | `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
@@ -146,6 +149,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
+| `pudlCode.enhance(scope or pre)`, `.names`, `.extensions`, `.words` | `pudl-code.js` | Take in code blocks added by other means; the maps and words a project extends |
 | `pudlRegions.refresh()` | `pudl-regions.js` | Carry the live windows into region links a script has rendered |
 
 ## Addresses

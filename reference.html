@@ -17,6 +17,7 @@
   <script src="dist/pudl-tooltip.js" defer></script>
   <script src="dist/pudl-tree.js" defer></script>
   <script src="dist/pudl-grid.js" defer></script>
+  <script src="dist/pudl-code.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -81,7 +82,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.28.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.29.0</a>
     </div>
   </header>
 
@@ -746,7 +747,7 @@
     </div>
 
     <h2 id="docs">20. Document tabs and code</h2>
-    <p>Document tabs come and go, one per open file, and look like every other tab. An unsaved document's tab carries a dot, whose word is heard rather than seen, and each tab has a small raised close button; Delete closes the focused tab. The host decides, through <code>pudl:tab-close</code>. A code block is flat, because it is for reading, and an editor's surface is sunken, because it takes input; highlighted code in both takes the theme's <code>--syntax</code> colours.</p>
+    <p>Document tabs come and go, one per open file, and look like every other tab. An unsaved document's tab carries a dot, whose word is heard rather than seen, and each tab has a small raised close button; Delete closes the focused tab. The host decides, through <code>pudl:tab-close</code>. A code block is flat, because it is for reading, and an editor's surface is sunken, because it takes input; highlighted code in both takes the theme's <code>--syntax</code> colours. A block marked <code>data-code-actions</code> gains a strip naming its language, with raised buttons to copy the code and to download it as a file.</p>
     <div class="demo">
       <div class="tablist doc-tabs" role="tablist" aria-label="Open files">
         <button role="tab" type="button" aria-selected="true" aria-controls="doc-panel">today.md<span class="doc-tab-dirty">unsaved</span><span class="doc-tab-close" aria-hidden="true"></span></button>
@@ -754,7 +755,7 @@
         <button role="tab" type="button" aria-selected="false" aria-controls="doc-panel">build.sh<span class="doc-tab-close" aria-hidden="true"></span></button>
       </div>
       <div id="doc-panel" role="tabpanel" aria-label="today.md" style="padding: var(--space-3) 0 0;">
-        <pre class="code"><code class="hljs language-js"><span class="hljs-comment">// Keep the window in front across a reload.</span>
+        <pre class="code" data-code-actions data-code-filename="restore-all.js" tabindex="0"><code class="hljs language-js"><span class="hljs-comment">// Keep the window in front across a reload.</span>
 <span class="hljs-keyword">function</span> <span class="hljs-title function_">restoreAll</span>(<span class="hljs-params">state</span>) {
   <span class="hljs-keyword">const</span> top = state.<span class="hljs-property">top</span> ?? <span class="hljs-literal">null</span>;
   <span class="hljs-keyword">return</span> { ...state, <span class="hljs-attr">min</span>: {}, top, <span class="hljs-attr">note</span>: <span class="hljs-string">"restored"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">2</span> };
