@@ -8,12 +8,12 @@
   </header>
   <div class="win-body">
     <div class="listing">
-      <p>From <code>dist/pudl-windows.js</code>.</p>
-<pre><code>function parsePlacement(value) {
-  var m = /^([a-z]+):([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)$/.exec(value || '');
-  if (!m) return null;
-  var p = { mode: m[1], x: +m[2], y: +m[3], w: +m[4], h: +m[5] };
-  return validPlacement(p) ? p : null;
+      <p>From <code>dist/pudl-windows.js</code>, highlighted as a server would with highlight.js and coloured by <code>pudl-hljs.css</code>.</p>
+<pre class="code"><code class="hljs language-js"><span class="hljs-keyword">function</span> <span class="hljs-title function_">parsePlacement</span>(<span class="hljs-params">value</span>) {
+  <span class="hljs-keyword">var</span> m = <span class="hljs-regexp">/^([a-z]+):([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)$/</span>.<span class="hljs-title function_">exec</span>(value || <span class="hljs-string">''</span>);
+  <span class="hljs-keyword">if</span> (!m) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+  <span class="hljs-keyword">var</span> p = { <span class="hljs-attr">mode</span>: m[<span class="hljs-number">1</span>], <span class="hljs-attr">x</span>: +m[<span class="hljs-number">2</span>], <span class="hljs-attr">y</span>: +m[<span class="hljs-number">3</span>], <span class="hljs-attr">w</span>: +m[<span class="hljs-number">4</span>], <span class="hljs-attr">h</span>: +m[<span class="hljs-number">5</span>] };
+  <span class="hljs-keyword">return</span> <span class="hljs-title function_">validPlacement</span>(p) ? p : <span class="hljs-literal">null</span>;
 }</code></pre>
     </div>
   </div>

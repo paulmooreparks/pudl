@@ -22,6 +22,7 @@
   display: grid; place-items: center; width: 12rem; height: 15rem;
   border: 1px dashed var(--border); border-radius: var(--radius-sm);
   color: var(--text-muted); font-size: var(--text-sm); background: var(--surface-alt);
+  align-content: center; gap: var(--space-2); text-align: center;
 }
 .history { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-2); font-size: var(--text-md); }
 .history time { color: var(--text-muted); font-size: var(--text-sm); margin-inline-end: var(--space-2); }

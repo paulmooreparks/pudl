@@ -465,7 +465,7 @@
 
     const r = x.receipt;
     const preview = r ? (r.data ? `<img class="receipt-image" src="${r.data}" alt="The receipt for ${esc(x.title)}">`
-      : `<div class="receipt-thumb">${esc(r.name)}</div>`) : '';
+      : `<div class="receipt-thumb"><span class="glyph" style="--glyph: var(--glyph-document); --glyph-size: 32px" aria-hidden="true"></span>${esc(r.name)}</div>`) : '';
     const receipt = r ? `
       <div class="receipt">
         ${preview}
@@ -480,13 +480,14 @@
         <p class="empty-state-body">A photo or a PDF of the receipt, up to 10 MB.${x.state === 'paid' || x.state === 'rejected' ? '' : ' Accounts pays nothing back without one.'}</p>
       </div>`;
     const attach = editable || (x.state === 'approved' && !r) ? `
-      <form data-action="receipt" class="attach-receipt">
+      <form data-action="receipt" class="attach-receipt drop-zone">
         <input type="hidden" name="id" value="${x.id}">
         <div class="form-group">
           <label class="form-label" for="receipt-file">${r ? 'Replace the receipt' : 'Attach a receipt'}</label>
           <input class="form-file" id="receipt-file" name="receipt" type="file" accept="image/*,application/pdf" required>
         </div>
         <button class="btn" type="submit" name="op" value="attach">Attach</button>
+        <p class="drop-hint">Drop the receipt to attach it</p>
       </form>` : '';
 
     return `
@@ -1132,6 +1133,35 @@
       return { go: 'expenses.html', flash: 'The sample data is back as it started.' };
     }
   };
+
+  /* A receipt dropped on the attach form is attached as if chosen with the
+     file field. What may be dropped is this page's rule; PUDL draws the
+     zone while a file is over it, from data-drop-over. */
+  const carriesFiles = e => e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types, 'Files') >= 0;
+  const zoneOf = e => e.target.closest && e.target.closest('.attach-receipt.drop-zone');
+  ['dragenter', 'dragover'].forEach(type => document.addEventListener(type, e => {
+    const zone = zoneOf(e);
+    if (!zone || !carriesFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    zone.setAttribute('data-drop-over', '');
+  }));
+  document.addEventListener('dragleave', e => {
+    const zone = zoneOf(e);
+    if (zone && !zone.contains(e.relatedTarget)) zone.removeAttribute('data-drop-over');
+  });
+  document.addEventListener('drop', e => {
+    const zone = zoneOf(e);
+    if (!zone || !carriesFiles(e)) return;
+    e.preventDefault();
+    zone.removeAttribute('data-drop-over');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const one = new DataTransfer();
+    one.items.add(file);
+    zone.querySelector('input[type="file"]').files = one.files;
+    zone.requestSubmit(zone.querySelector('button[value="attach"]'));
+  });
 
   document.addEventListener('submit', async e => {
     const form = e.target;

@@ -7,6 +7,7 @@
   <script src="../dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="../dist/pudl.css">
   <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <link rel="stylesheet" href="../dist/pudl-hljs.css">
   <link rel="stylesheet" href="article-reader.css">
   <script src="../dist/pudl-windows.js" defer></script>
   <script src="../dist/pudl-menu.js" defer></script>
@@ -68,13 +69,17 @@
         </nav>
       </div>
       <nav class="win-dock" data-win-dock aria-label="Open articles"></nav>
+      <div class="md-toolbar-cmds">
+        <a class="btn btn-sm" href="?" data-win-back aria-disabled="true">Minimise all</a>
+        <a class="btn btn-sm" href="?" data-win-restore aria-disabled="true">Restore all</a>
+      </div>
     </div>
     <div class="md-body">
       <nav class="md-sidebar" data-region="list" aria-label="Design articles">
         <div class="md-section-label">Design</div>
-        <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable<span class="md-meta"><time datetime="2026-09-21">21 September 2026</time></span></a></div>
-        <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours<span class="md-meta"><time datetime="2026-09-07">7 September 2026</time></span></a></div>
-        <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=elevation" data-win-open="elevation">Raised means pressable<span class="md-meta"><time datetime="2026-09-21">21 September 2026</time></span><span class="md-meta">Why every control that can be pressed looks lifted, and nothing else does.</span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=mixing" data-win-open="mixing">Mixing two colours<span class="md-meta"><time datetime="2026-09-07">7 September 2026</time></span><span class="md-meta">A colour mixer that runs in a window and in a page of its own.</span></a></div>
+        <div class="md-row"><a class="md-item" href="?open=numerals" data-win-open="numerals">Tabular numerals and the hyphen<span class="md-meta"><time datetime="2026-08-30">30 August 2026</time></span><span class="md-meta">Why columns of numbers line up, and why prose keeps its own figures.</span></a></div>
       </nav>
       <div class="md-resize" role="separator" aria-orientation="vertical" aria-label="Resize the article list"></div>
       <div class="md-detail reader-stage" tabindex="0">
