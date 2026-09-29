@@ -115,6 +115,17 @@ function check(name, ok, extra) {
   await p.waitForFunction(() => /design/.test(location.pathname) && /q=colour/.test(location.search) && !document.querySelector('[data-region][aria-busy]'));
   check('a region form swaps and keeps the windows', loads.length === l1 && /open=url-state,mixing/.test(await url()), await url());
 
+  // Clearing the field leaves no empty q= in the address.
+  await p.evaluate(() => {
+    const f = document.createElement('form');
+    f.method = 'get'; f.action = 'article-reader-design.html';
+    f.innerHTML = '<input name="q" value=""><input name="kind" value="note"><button id="tb2">Go</button>';
+    document.querySelector('.md-sidebar').append(f);
+  });
+  await p.click('#tb2');
+  await p.waitForFunction(() => /kind=note/.test(location.search) && !document.querySelector('[data-region][aria-busy]'));
+  check('a region form leaves its empty fields out of the address', !/(^|[?&])q=/.test(await url()), await url());
+
   // A page without the same regions is an ordinary navigation.
   await p.evaluate(() => {
     const a = document.createElement('a');

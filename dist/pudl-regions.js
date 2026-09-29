@@ -256,10 +256,13 @@
     var action = (e.submitter && e.submitter.getAttribute('formaction')) || f.getAttribute('action') || location.href;
     var url = new URL(action, location.href);
     if (url.origin !== location.origin) return;
+    /* A field left empty is left out of the address, so a cleared filter
+       leaves no ?q= behind, and the address for no filter is the same
+       whether the reader cleared the field or followed a plain link. */
     var data = new FormData(f, e.submitter || null);
     var q = new URLSearchParams();
     var now = live();
-    data.forEach(function (v, k) { if (typeof v === 'string' && !now.isLive(k)) q.append(k, v); });
+    data.forEach(function (v, k) { if (typeof v === 'string' && v !== '' && !now.isLive(k)) q.append(k, v); });
     url.search = q.toString();
     e.preventDefault();
     swap(url.pathname + url.search, true);
