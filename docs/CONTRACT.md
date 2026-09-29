@@ -91,7 +91,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | Attribute | On | Read by | Meaning |
 |---|---|---|---|
 | `data-theme`, `data-theme-pref` | `<html>` | the stylesheet, a settings control | The theme in force, and the reader's preference |
-| `data-win-layer`, `data-win-src` | the window layer | `pudl-windows.js` | The layer, and where window markup comes from (`{key}`, or `#` for a template); fetched markup must be `text/html` from the page's origin |
+| `data-win-layer`, `data-win-src` | the window layer | `pudl-windows.js` | The layer, and where window markup comes from (`{key}`, or `#` for a template); fetched markup must be `text/html` from the page's origin; a numbered key `name-2` to `name-9` with no template of its own takes `name`'s, numbered |
 | `data-win-default` | the window layer | `pudl-windows.js` | The keys of the windows an address naming no windows opens |
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
 | `data-win-open`, `data-win-replace` | a link | `pudl-windows.js` | Open that key's window, in place of this one |
@@ -128,7 +128,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
 | `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
-| `pudl:applet-state` | the applet's mount, bubbles | `name`, `host`, `fit`, `param`, and `state` for a listener to set | Just before `init`; what `state` holds then is `opts.state` |
+| `pudl:applet-state` | the applet's mount, bubbles | `name`, `instance`, `host`, `fit`, `param`, and `state` for a listener to set; a request's state wins over it | Just before `init`; what `state` holds then is `opts.state` |
 | `pudl:applet-change` | the applet's mount, bubbles | `state`, a string or null | When the applet calls `opts.changed()` |
 
 ## Script functions
@@ -137,8 +137,9 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 |---|---|---|
 | `pudlSetTheme(p)`, `pudlThemePreference()`, `pudlToggleTheme()` | `pudl-theme.js` | Set, read and toggle the reader's theme |
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
-| `pudlApplets.define(name, { src, css, page, ver })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name |
-| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()` and `setState(s)`, with `opts.host`, `opts.fit`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
+| `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |
+| `pudlApplets.request(verb, { path, kind, … }, from)`, `.can(verb, kind)` | `pudl-applets.js` | Ask for a request without naming an applet; `request` returns false when nothing serves it |
+| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()` and `setState(s)`, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |

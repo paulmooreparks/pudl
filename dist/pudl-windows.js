@@ -165,13 +165,14 @@
      a state with no windows open is written as an empty open=, since no
      parameters would bring the defaults back. */
   function urlFor(st) {
-    var q = new URLSearchParams(location.search);
-    Array.from(q.keys()).forEach(function (k) {
-      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0) q.delete(k);
+    /* The page's own parameters are kept exactly as written, so that a
+       readable ?path=/notes stays readable rather than becoming %2F. */
+    var parts = location.search.replace(/^\?/, '').split('&').filter(function (seg) {
+      if (!seg) return false;
+      var k = seg.split('=')[0];
+      try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
+      return !(k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0);
     });
-    var parts = [];
-    var rest = q.toString();
-    if (rest) parts.push(rest);
     var mine = windowParams(st);
     if (defaults.length) {
       if (isDefault(st)) mine = [];
@@ -511,13 +512,23 @@
      otherwise fetched from the server, which returns the same markup it
      renders into the page. The markup joins the page with the page's own
      authority, so it must come from the page's own origin as HTML: the
-     fetch refuses another origin, a redirect to one included. */
+     fetch refuses another origin, a redirect to one included.
+
+     A numbered window, such as an applet's second instance "terminal-2",
+     whose template the page does not have, takes the template of the key
+     without its number, "terminal", with the number added to its title.
+     A server answers a numbered key itself. */
   function load(key) {
     var src = srcFor(key);
     if (!src) return Promise.reject(new Error('no data-win-src on the layer'));
-    var got;
+    var got, number = null;
     if (src.charAt(0) === '#') {
       var t = document.getElementById(src.slice(1));
+      var m = !t && /^(.+)-([2-9])$/.exec(key);
+      if (m) {
+        t = document.getElementById(srcFor(m[1]).slice(1));
+        if (t) number = m[2];
+      }
       got = t ? Promise.resolve(t.content.cloneNode(true)) : Promise.reject(new Error('no template ' + src));
     } else {
       got = fetch(src, { mode: 'same-origin', credentials: 'same-origin', headers: { Accept: 'text/html' } })
@@ -536,6 +547,14 @@
       var el = frag.querySelector('.win[data-win="' + key + '"]') || frag.querySelector('.win');
       if (!el) throw new Error(src + ' holds no .win element');
       el.setAttribute('data-win', key);
+      /* A numbered copy of a template gives up the title's id, so that
+         adopt() names it for this key and it never repeats another's. */
+      var title = number && el.querySelector('.win-title');
+      if (title) {
+        title.appendChild(document.createTextNode(' ' + number));
+        title.removeAttribute('id');
+        el.removeAttribute('aria-labelledby');
+      }
       return document.importNode(el, true);
     });
   }
