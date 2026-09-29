@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.25.0
+
+The general half of parkscomputing.com's `Architecture/pudl-proposal-tree-crumbs-editor.md`; document tabs and syntax colours follow in 0.26.0.
+
+- Trees. A `ul.tree` of nested lists of links is a hierarchy of places, an indented list without script. The new optional `dist/pudl-tree.js` makes it the ARIA tree pattern, after the WAI-ARIA navigation tree: one tab stop, arrow keys that move, open and close, mirrored right to left, Home and End, type-ahead, and a small raised toggle on each node with children. `pudl:tree-toggle` says when a node opens or closes. The proposal's sample put the tree item on the list item and moved focus to the link inside it, and found its toggle by the pointer's position; here the link is the tree item and the toggle an element of its own.
+- Path bars. `nav.path` shows where the reader is inside a hierarchy they are browsing, with drawn separators that assistive technology does not hear. It is never a site's breadcrumb trail, which PUDL still does not have; the README and the Architectural Principles say so.
+- Grids. A `.data-table` with `role="grid"` is a table whose rows are choices, each row's first link its address. The new optional `dist/pudl-grid.js` makes it one tab stop, moves the selection with the arrow keys, Home, End, Page Up and Page Down, and opens a row with Enter or a double-click by following its link, or with `pudl:row-open` when it has none; `pudl:row-select` says when the selection moves. ARIA allows `aria-selected` on a row only in a grid, which the README now says.
+- Glyphs for files and documents, `--glyph-folder`, `--glyph-file`, `--glyph-document`, `--glyph-app`, `--glyph-script`, `--glyph-link` and `--glyph-home`, and `.glyph`, which draws any glyph token as an element at the size of the text around it. The glyphs carry no colours of their own, since the shape says the kind.
+- Drop targets. A host sets `data-drop-over` on a `.drop-zone`, or `data-drop-target` on an item, while something is dragged over it, and PUDL rings it in the accent and shows the zone's `.drop-hint`.
+- The reference page gains sections for trees and path bars, and for grids with glyphs and drop targets, which the axe suite checks. `RELEASING.md` now hashes whatever `dist/` holds.
+
 ## 0.24.0
 
 From parkscomputing.com's `Architecture/pudl-proposal-meta-wrap-restore-all.md`.

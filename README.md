@@ -124,6 +124,17 @@ With tabs within a page and tooltips as well:
         crossorigin="anonymous"></script>
 ```
 
+With trees and grids as well:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.24.0/dist/pudl-tree.js" defer
+        integrity="sha384-TREE-PENDING"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.24.0/dist/pudl-grid.js" defer
+        integrity="sha384-GRID-PENDING"
+        crossorigin="anonymous"></script>
+```
+
 Always name an exact release, as these examples do. jsDelivr also accepts a loose version such as `@v0` or `@latest`, but PUDL's changes are visual, and a page linked that way would change its look whenever a release lands, which is the surprise that pinning exists to prevent. The `integrity` attribute makes the browser refuse a file whose bytes differ from the release, so a pinned page cannot change even if the CDN misbehaves.
 
 An application in production should still copy a release into its own tree. A CDN is a third party that sees every visitor's address, and it cannot be reached offline or from inside a closed network.
@@ -263,9 +274,77 @@ A data table lists many records, one per row, inside a `.data-table-wrap` that s
 
 - A column the reader can sort by has `aria-sort` on its header, and a link inside it to the address of the other order. The header is raised, since pressing it re-sorts, and shows two small arrows while the column is not the sort and one arrow for its direction when it is. Sorting is an address, so it works without script and can be shared.
 - Columns of numbers carry `.num` and align to the end.
-- A row is selected by a checked checkbox in a `.data-table-check` cell, or by `aria-selected="true"`, and shows a tint and an accent edge at its start.
+- A row is selected by a checked checkbox in a `.data-table-check` cell, or in a grid by `aria-selected="true"`, and shows a tint and an accent edge at its start. ARIA allows `aria-selected` on a row only in a grid, below.
 - A `.data-table-empty` row, with one cell spanning the columns, says there is nothing to show.
 - With `.stack`, a wrap 560px wide or less shows each row as a small card of labelled values, the labels from each cell's `data-label`; without it, a narrow table scrolls sideways.
+
+## Rows to choose from
+
+A table whose rows are choices, such as a file list, an inbox or a picker, is a grid: `role="grid"` on the `.data-table`, with each row's first link its own address, so that without script the table is a list of links.
+
+```html
+<table class="data-table" role="grid" aria-label="Contents">
+  <thead>…</thead>
+  <tbody>
+    <tr aria-selected="true"><td><a href="?open=notes.md">notes.md</a></td>…</tr>
+    <tr aria-selected="false"><td><a href="?open=todo.md">todo.md</a></td>…</tr>
+  </tbody>
+</table>
+```
+
+With the optional `pudl-grid.js`, the grid is one stop in the Tab order, on the selected row. Selection follows focus, which Up, Down, Home, End, Page Up and Page Down move, and Enter or a double-click opens the row by following its first link, so a link that opens a window or swaps regions does just that. A row with no link fires `pudl:row-open` on the row instead, for the host to act on, and every change of selection fires `pudl:row-select`. The selection is single. The links inside a row leave the Tab order, because the row stands for them, so a row's other actions belong on a toolbar that acts on the selected row, as a file manager's do. `pudlGrid.enhance(table)` takes in rows a script has added.
+
+## Trees and path bars
+
+A tree is a hierarchy of places, such as folders or nested categories, written as nested lists of links, so that without script it is an indented list the reader can follow and every node is an address.
+
+```html
+<ul class="tree" aria-label="Folders">
+  <li><a href="?path=/" aria-expanded="true">site</a>
+    <ul>
+      <li><a href="?path=/articles" aria-expanded="false">articles</a>
+        <ul>…</ul></li>
+      <li><a href="?path=/about.md" aria-current="page">about.md</a></li>
+    </ul></li>
+</ul>
+```
+
+The server marks each node that has children with `aria-expanded` on its link, `"true"` or `"false"`, and the current node with `aria-current`. Without script every branch shows. The optional `pudl-tree.js` turns the list into the ARIA tree pattern, following the WAI-ARIA navigation tree: the links become tree items and the tree one stop in the Tab order; Up and Down move between the nodes showing; Right opens a node or moves into it and Left closes it or moves to its parent, mirrored on a right-to-left page; Home and End go to the ends; typing a node's first letters moves to it; and Enter follows the link. Each node with children gains a small raised toggle that opens and closes it by pointer. `pudl:tree-toggle` fires on a node's link as it opens or closes, with `detail.open`, so a host can remember which nodes are open, or fill in a branch as it opens and call `pudlTree.enhance(tree)` to take the new nodes in.
+
+The nodes are flat, as list rows are, because they are places to go, and the current node carries the current row's accent edge and bold.
+
+A **path bar** says where the reader is inside a hierarchy they are browsing, such as the folder a file manager shows:
+
+```html
+<nav class="path mono" aria-label="Location">
+  <ol>
+    <li><a href="?path=/">site</a></li>
+    <li><a href="?path=/articles">articles</a></li>
+    <li><span aria-current="location">coincidences.md</span></li>
+  </ol>
+</nav>
+```
+
+It is for a browsed hierarchy only. A site's own sections are its tabs, and a record's way back is its back link, so a path bar is never a site's breadcrumb trail. The separators are drawn, and assistive technology hears the list rather than them. `.mono` sets the path in the monospace face, for file paths.
+
+## Glyphs as elements and drop targets
+
+Any glyph token can be drawn as an element with `.glyph`, in the colour of the text around it and at its size, unless `--glyph-size` says otherwise:
+
+```html
+<span class="glyph" style="--glyph: var(--glyph-folder)" aria-hidden="true"></span> drafts
+```
+
+A glyph beside words that already say what it shows is `aria-hidden`; one that stands alone carries `role="img"` and an `aria-label`. For lists of files and documents there are `--glyph-folder`, `--glyph-file`, `--glyph-document`, `--glyph-app`, `--glyph-script`, `--glyph-link` and `--glyph-home`. They carry no colour of their own, because the shape says the kind; PUDL's colours are for state.
+
+A **drop target** is styled by PUDL and run by its host, since what may be dropped where is the application's rule. While something is dragged over a place it may land, the host sets `data-drop-over` on a `.drop-zone`, or `data-drop-target` on an item such as a folder's row, and PUDL rings it in the accent. A `.drop-hint` inside a zone says what dropping there will do, and shows only while something is over it.
+
+```html
+<div class="drop-zone" data-drop-over>
+  …the list…
+  <p class="drop-hint">Drop text files here to upload them</p>
+</div>
+```
 
 ## Notices and toasts
 
@@ -692,6 +771,8 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-toast.js`, the optional script that raises and dismisses toasts and dismisses notices
   - `pudl-tabs.js`, the optional script for tabs within a page
   - `pudl-tooltip.js`, the optional script that shows tooltips on glyph-only controls
+  - `pudl-tree.js`, the optional script that makes nested lists of links into trees
+  - `pudl-grid.js`, the optional script for tables whose rows are choices
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -710,7 +791,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.24.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.25.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

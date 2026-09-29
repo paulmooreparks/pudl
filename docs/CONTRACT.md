@@ -27,6 +27,8 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-toast.js` | `pudl.css` | Toasts and dismissing notices |
 | `pudl-tabs.js` | `pudl.css` | Tabs within a page |
 | `pudl-tooltip.js` | `pudl.css` | Tooltips on glyph-only controls |
+| `pudl-tree.js` | `pudl.css` | Trees |
+| `pudl-grid.js` | `pudl.css` | Tables whose rows are choices |
 
 ## Tokens
 
@@ -40,7 +42,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 - Adjustments with defaults derived from the above: `--dialog-bg`, `--section-current-bg`, `--win-active-bg`, `--win-active-fg`, `--win-active-border`, `--win-active-shadow`
 - Layout: `--md-sidebar-w` and `--md-sidebar-min` on a `.md-layout`
 
-**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-pill`; the surface treatments `--input-bg`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-diamond`, `--glyph-empty`, `--glyph-info`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-search`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-triangle` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
+**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-pill`; the surface treatments `--input-bg`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-diamond`, `--glyph-document`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-triangle` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
 
 Every other custom property is internal.
 
@@ -59,7 +61,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Badges and chips | `.badge`, with `.warn`, `.danger`, `.positive`, `.accent`; `.chip`; `.filter-chip` holding `.filter-chip-kind` and `.filter-chip-x` | |
 | Card | `.card` holding `.card-title`, `.card-subtitle`, `.card-desc` | |
 | Key/value table | `table.kv-table` of `th` and `td` rows | |
-| Data table | `.data-table-wrap` holding `table.data-table`, with `.stack`; `th[aria-sort]` holding `a` or `button`; `.num`; `.data-table-check`; `tr.data-table-empty`; `td[data-label]` | `aria-sort`; `aria-selected="true"` or a checked `.data-table-check` checkbox |
+| Data table | `.data-table-wrap` holding `table.data-table`, with `.stack`; `th[aria-sort]` holding `a` or `button`; `.num`; `.data-table-check`; `tr.data-table-empty`; `td[data-label]` | `aria-sort`; `aria-selected="true"` in a grid, or a checked `.data-table-check` checkbox |
 | Notices | `.notice`, with `.positive`, `.warn`, `.danger`, holding `.notice-content` with `.notice-title`, `.notice-body`, `.notice-actions`, and `button.notice-close` | `hidden` once dismissed |
 | Toasts | `.toast-region` holding `.toast`, with `.positive`, `.warn`, `.danger`, holding `p.toast-text` and `button.toast-close` | `data-toast-ms`, `data-toast-sticky` |
 | Tabs within a page | `.tabs` holding `.tablist[role=tablist]` of `[role=tab][aria-controls]`, then `[role=tabpanel]` panels | `aria-selected` |
@@ -71,6 +73,11 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Windows | `.win-host` holding `.win-layer[data-win-layer][data-win-src]`; `section.win[data-win]` holding `header.win-head` with `.win-title` and `.win-chrome` of `.win-btn[data-win-action]`, then `.win-body`; `nav.win-dock[data-win-dock]`; a list row `.md-row-child[data-win-child]` | `data-win-mode`, `hidden` for minimised, the four `--win-` position properties, `.active` on the window in front |
 | Applets | an element with `data-applet`, and optionally `data-applet-page`, `data-applet-fit`, `data-applet-param` | `data-applet-state`; `data-applet-fit` |
 | Regions | any element with `data-region` | `aria-busy` while replaced |
+| Grid | `table.data-table[role="grid"]` whose rows each hold a link, the first being the row's address | `aria-selected` on rows |
+| Tree | `ul.tree` of `li` holding `a`, then optionally a nested `ul` of the same | `aria-expanded` on a node's link when it has children; `aria-current` on the current node's |
+| Path bar | `nav.path` (with `.mono`) holding `ol` of `li`, each an `a` or, last, the current place with `aria-current` | `aria-current` |
+| Glyph | `.glyph` with `--glyph` set to a glyph token, and `--glyph-size` | |
+| Drop target | `.drop-zone` holding an optional `.drop-hint`; any element as a target | `data-drop-over` on a zone, `data-drop-target` on an item, set by the host while something is dragged over it |
 | Numbers and time | `.num`, `time`, `data` in prose take tabular figures | |
 
 The `hidden` attribute always hides, on any component, except `hidden="until-found"`.
@@ -112,6 +119,9 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:window-close` | the window, bubbles | `key`, `reason`: `button`, `key`, `script`, `parent`, `replace` or `address` | Just before a window leaves the page, by any route |
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
+| `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
+| `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
+| `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
 | `pudl:applet-state` | the applet's mount, bubbles | `name`, `host`, `fit`, `param`, and `state` for a listener to set | Just before `init`; what `state` holds then is `opts.state` |
 | `pudl:applet-change` | the applet's mount, bubbles | `state`, a string or null | When the applet calls `opts.changed()` |
@@ -126,6 +136,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()` and `setState(s)`, with `opts.host`, `opts.fit`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
+| `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
+| `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
 
 ## Addresses
 
@@ -141,7 +153,7 @@ A link with `data-applet-preset` whose click an instance takes is handled as the
 
 ## Internal
 
-These are how PUDL works today and may change in any release: the classes scripts add for their own use (`.placing`, `.sheet`, `.dragging`, `.tabs-ready`, `.leaving`, `.minimized`, `.win-rh`, `.win-ghost`, `.win-moving`, `.tooltip`), `data-toast-armed`, `data-edge`, the custom properties not listed above (among them `--ctl-h`, `--notice-color`, `--badge-color`, `--glyph` and `--glyph-size`), the popover used for tooltips, the order of rules in the stylesheets, and anything a script does that no event, function or attribute above describes.
+These are how PUDL works today and may change in any release: the classes scripts add for their own use (`.placing`, `.sheet`, `.dragging`, `.tabs-ready`, `.leaving`, `.minimized`, `.win-rh`, `.win-ghost`, `.win-moving`, `.tooltip`, `.tree-ready`, `.tree-toggle`, `.tree-spacer`), `data-toast-armed`, `data-edge`, the custom properties not listed above (among them `--ctl-h`, `--notice-color`, `--badge-color`, `--glyph` and `--glyph-size`), the popover used for tooltips, the order of rules in the stylesheets, and anything a script does that no event, function or attribute above describes.
 
 ## Names already replaced
 
