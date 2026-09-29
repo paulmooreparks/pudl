@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.29.0
+
+Copy and download on code blocks, from parkscomputing.com's `Architecture/pudl-proposal-code-actions.md`.
+
+- The new optional `dist/pudl-code.js` gives a `pre` marked `data-code-actions` a strip above the code that names its language and holds raised Copy and Download buttons. Copy takes the code's text without its highlighting, confirms with a check and a live region, and where the clipboard is unavailable or refused selects the code and says how to copy it. Download names the file from `data-code-filename`, else by the language's extension, else `code.txt`. `pudlCode.names`, `.extensions` and `.words` are a project's to extend, `pudlCode.enhance()` takes in blocks added later or a bare `pre` from Markdown, and `pudl:code-copy` and `pudl:code-download` fire after each action.
+- As proposed, with the header strip, opt-in marking and about thirty languages. The fallback message names both Ctrl+C and Command+C rather than guessing the platform from `navigator.platform`, which browsers are withdrawing, and a second copy restarts the confirmation rather than stacking timers.
+- Two glyphs, `--glyph-copy` and `--glyph-download`, and `.visually-hidden`, for words meant for assistive technology alone. The document tab's unsaved mark keeps its own way of hiding its words, because the dot and the words are one element.
+- The reference page's code block and the Files sample's Markdown preview carry the actions.
+
 ## 0.28.0
 
 A third sample, and what building it asked of PUDL.

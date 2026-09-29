@@ -60,7 +60,7 @@
         for (i++; i < lines.length && !/^```\s*$/.test(lines[i]); i++) body.push(lines[i]);
         /* A long line scrolls the block sideways, so the block is a tab
            stop, for a reader who scrolls with the keyboard. */
-        out.push('<pre class="code" tabindex="0"><code' + (m[1] ? ' class="language-' + esc(m[1]) + '"' : '') + '>' + code(body, m[1]) + '</code></pre>');
+        out.push('<pre class="code" data-code-actions tabindex="0"><code' + (m[1] ? ' class="language-' + esc(m[1]) + '"' : '') + '>' + code(body, m[1]) + '</code></pre>');
       } else if ((m = /^(#{1,6})\s+(.*)$/.exec(l))) {
         flush();
         var level = Math.min(6, m[1].length + 2);   // the window's title is the h2
@@ -105,6 +105,9 @@
       } else {
         root.innerHTML = '<p class="files-preview-path"><code>' + esc(p) + '</code></p>' +
           '<article class="files-preview-doc">' + render(text) + '</article>';
+        /* Its code blocks gain Copy and Download, a download named by the
+           block's language. */
+        if (window.pudlCode) window.pudlCode.enhance(root);
       }
       if (key && window.pudlWindows) window.pudlWindows.retitle(key, p ? base + ': ' + nameOf(p) : base);
       var s = p ? stateOf(p) : null;

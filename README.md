@@ -125,12 +125,15 @@ With tabs within a page and tooltips as well:
         crossorigin="anonymous"></script>
 ```
 
-With trees and grids as well, and highlight.js coloured by PUDL's syntax tokens:
+With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and code blocks that copy and download:
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.28.0/dist/pudl-hljs.css"
       integrity="sha384-fo4XfkospG0ZjwQuB+cvRKuwdy3TtGciaUXVrI2ESl7MsuuiU41IDoTNtr3i/Cyj"
       crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.28.0/dist/pudl-code.js" defer
+        integrity="sha384-CODE-PENDING"
+        crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.28.0/dist/pudl-tree.js" defer
         integrity="sha384-AdH7FeNFZ3jt9YKyB/5ih6sMZO5DYZgPf7B1/qC6q+aYaNsl2WKJYyagAffRqKe3"
         crossorigin="anonymous"></script>
@@ -281,6 +284,21 @@ const pudlHighlight = HighlightStyle.define([
 ```
 
 Because the colours are CSS variables, a theme change reaches the editor at once, with no new highlight style.
+
+### Copying and downloading code
+
+A reader who wants a listing should not have to select it by hand, which is awkward for a long one and nearly impossible on a phone. A code block marked `data-code-actions` gains, with the optional `pudl-code.js`, a strip above the code that names its language and holds two small raised buttons, Copy and Download:
+
+```html
+<pre class="code" data-code-actions data-code-filename="exercise-0-0.cpp"><code class="language-cpp">…</code></pre>
+```
+
+- **Copy** puts the code's text on the clipboard, never its highlighting. The button's glyph turns to a check for two seconds, and a live region says "Copied". Where the clipboard is unavailable or refused, the script selects the code instead and says how to copy it by hand.
+- **Download** saves the code as a file named from `data-code-filename`, else `code` with an extension for the language, else `code.txt`.
+
+The strip is flat, as the code is, and stays outside the `pre`, whose content is text. Without script the block is the plain `pre.code` it was. The strip's language name and the download's extension come from `pudlCode.names` and `pudlCode.extensions`, which cover about thirty common languages and to which a project adds its own; `pudlCode.words` holds the words the script writes, for a page in another language. `pudlCode.enhance(scope)` takes in blocks added by other means, and `pudlCode.enhance(pre)` takes a single block, marked or not, which is how a site whose Markdown writes a bare `pre` takes part. Enhancing a block twice changes nothing. `pudl:code-copy`, with `detail.ok`, and `pudl:code-download`, with `detail.name`, fire on the `pre` after each action.
+
+PUDL also has `.visually-hidden`, for words meant for assistive technology alone, such as the strip's live region.
 
 ## Empty and loading states
 
@@ -857,6 +875,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-tree.js`, the optional script that makes nested lists of links into trees
   - `pudl-grid.js`, the optional script for tables whose rows are choices
   - `pudl-hljs.css`, the optional stylesheet that colours highlight.js's classes from the syntax tokens
+  - `pudl-code.js`, the optional script that gives code blocks Copy and Download
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -875,7 +894,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.28.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.29.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
