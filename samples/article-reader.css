@@ -20,9 +20,4 @@
 .article .next-link { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 14px; }
 .listing { max-width: 90ch; margin: 0 auto; }
 .listing p { margin: 0 0 12px; color: var(--text-muted); font-size: 13px; }
-.listing pre {
-  margin: 0; padding: 14px 16px; overflow: auto;
-  font: 13px/1.55 var(--mono);
-  background: var(--surface-alt); border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-}
+.listing pre.code { margin: 0; }
