@@ -36,7 +36,7 @@ function check(name, ok, extra) {
   /* === Tabs within a page ================================================ */
   const vis = () => p.evaluate(() => ['panel-details', 'panel-receipt', 'panel-history'].map(id => !document.getElementById(id).hidden));
   check('tabs: one panel shows at a time', JSON.stringify(await vis()) === '[true,false,false]', JSON.stringify(await vis()));
-  check('tabs: one tab stop for the list', JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('#panels ~ .demo [role="tab"]')].map(t => t.tabIndex))) === '[0,-1,-1]');
+  check('tabs: one tab stop for the list', JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('#panels ~ .demo .tabs [role="tab"]')].map(t => t.tabIndex))) === '[0,-1,-1]');
   await p.click('#tab-receipt');
   check('tabs: pressing a tab shows its panel and records it', JSON.stringify(await vis()) === '[false,true,false]' &&
     (await p.evaluate(() => location.hash)) === '#panel-receipt');

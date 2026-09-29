@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.25.0.
+   Version 0.26.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -83,6 +83,21 @@
      page, as the default palette does. */
   --tb-bg: #262b31;
   --tb-fg: #f3f4f6;
+
+  /* Syntax. The colours of highlighted code, in a code block or an
+     editor, so every highlighter takes them from the theme. Each reaches
+     4.5:1 on --surface, --surface-alt and --input-bg; a theme that sets
+     them should keep that. */
+  --syntax-keyword: #9b2c63;
+  --syntax-string: #1d6a39;
+  --syntax-number: #8a4a00;
+  --syntax-comment: #57606b;
+  --syntax-name: #1d4f91;
+  --syntax-tag: #6b36a3;
+  --syntax-attr: #6d5500;
+  --syntax-heading: #1b1f24;
+  --syntax-link: #2c5282;
+  --syntax-error: #b42318;
 
   /* Fonts. A theme may change these within the roles the README sets out.
      Inter ships with PUDL in fonts/, so it does not depend on what the
@@ -249,6 +264,17 @@
 
   --tb-bg: #262b31;
   --tb-fg: #e6e8eb;
+
+  --syntax-keyword: #f08dc0;
+  --syntax-string: #85cf9b;
+  --syntax-number: #efad6b;
+  --syntax-comment: #9aa3ad;
+  --syntax-name: #8fbcef;
+  --syntax-tag: #c6a3f2;
+  --syntax-attr: #e2c275;
+  --syntax-heading: #e6e8eb;
+  --syntax-link: #8db3e0;
+  --syntax-error: #f0857b;
 
   /* On a dark page --surface is barely lighter than --bg, so the dialog
      takes the next step up to keep reading as lifted. */
@@ -425,6 +451,37 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 }
 .tabs:not(.tabs-ready) > [role="tabpanel"] { border-top: 1px solid var(--border); margin-bottom: var(--space-3); }
 .tabs > [role="tabpanel"]:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
+
+/* === Document tabs =======================================================
+   Tabs that come and go, one per open document, record or view, as in an
+   editor: a .tablist.doc-tabs, so they look like every other tab. A tab
+   may carry a .doc-tab-dirty mark, a dot whose words, "unsaved" say, are
+   heard by assistive technology and hidden from the eye, and a
+   .doc-tab-close, a small raised button drawn inside the tab and hidden
+   from assistive technology, since a tab list may hold only tabs; the
+   Delete key closes the focused tab for the keyboard. pudl-tabs.js turns
+   both into pudl:tab-close, and the host decides. */
+.doc-tabs > [role="tab"] { display: inline-flex; align-items: center; gap: 6px; }
+.doc-tabs > [role="tab"]:has(.doc-tab-close) { padding-inline-end: 6px; }
+.doc-tab-dirty {
+  flex: none; width: 10px; height: 10px; overflow: hidden;
+  font-size: 0; color: transparent;
+  background: var(--accent);
+  -webkit-mask: var(--glyph-circle) center / contain no-repeat;
+  mask: var(--glyph-circle) center / contain no-repeat;
+}
+.doc-tab-close {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1px solid var(--raise-border); background: var(--raise-grad); box-shadow: var(--raise-shadow);
+  color: var(--text-muted); cursor: pointer;
+}
+.doc-tab-close::before {
+  content: ""; width: 9px; height: 9px; background: currentColor;
+  -webkit-mask: var(--glyph-close) center / contain no-repeat;
+  mask: var(--glyph-close) center / contain no-repeat;
+}
+.doc-tab-close:hover { color: var(--danger); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 
 /* A region that pudl-regions.js is replacing dims a little while the new
    content is on its way, after a moment, so a fast answer never flickers. */
@@ -767,6 +824,28 @@ button.link {
 }
 .kv-table td { padding: var(--space-2) 0; color: var(--text); vertical-align: top; overflow-wrap: anywhere; }
 .kv-table tr + tr th, .kv-table tr + tr td { border-top: 1px solid var(--border); }
+
+/* === Code ================================================================
+   A code block is for reading, so it is flat: a tinted panel with no
+   shadow. An editor's surface takes input, so it is sunken like a field.
+   Both set text in the monospace face, and highlighted code in either
+   takes the --syntax colours, which dist/pudl-hljs.css maps onto
+   highlight.js and the README onto CodeMirror. */
+pre.code {
+  margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4);
+  overflow: auto;
+  background: var(--surface-alt); color: var(--text);
+  border-radius: var(--radius-sm);
+  font: var(--text-sm)/1.55 var(--mono);
+  tab-size: 4;
+}
+.code-surface {
+  font-family: var(--mono); font-size: var(--text-sm);
+  background: var(--input-bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--entry-shadow);
+}
+.code-surface:focus-within { border-color: var(--accent); box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring); }
 
 /* === Dialogs ==============================================================
    A dialog is a native <dialog class="dialog">, rendered by the server and
@@ -1560,6 +1639,10 @@ body:has(> .md-layout) {
   .glyph, .path li + li::before { forced-color-adjust: none; background: CanvasText; }
   .drop-zone[data-drop-over], [data-drop-target] { outline: 2px dashed Highlight; outline-offset: -2px; }
   .drop-zone[data-drop-over] > .drop-hint { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .doc-tab-dirty { forced-color-adjust: none; background: CanvasText; }
+  .doc-tab-close { border: 1px solid ButtonText; }
+  .doc-tab-close::before { forced-color-adjust: none; background: ButtonText; }
+  .code-surface, pre.code { border: 1px solid CanvasText; }
 }
 
 /* === Print ===============================================================
@@ -1572,6 +1655,9 @@ body:has(> .md-layout) {
     --bg: #ffffff; --surface: #ffffff; --surface-alt: #f2f2f2;
     --text: #000000; --text-muted: #444444; --border: #999999;
     --accent: #1a3d6b; --accent-hover: #1a3d6b;
+    --syntax-keyword: #9b2c63; --syntax-string: #1d6a39; --syntax-number: #8a4a00; --syntax-comment: #57606b;
+    --syntax-name: #1d4f91; --syntax-tag: #6b36a3; --syntax-attr: #6d5500; --syntax-heading: #000000;
+    --syntax-link: #1a3d6b; --syntax-error: #b42318;
   }
   .topbar, .app-section-bar, .md-toolbar, .md-chips, .md-resize, .md-back,
   .menu, .menu-panel, .dialog-backdrop, .theme-toggle,

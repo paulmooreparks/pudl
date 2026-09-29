@@ -7,6 +7,7 @@
   <script src="dist/pudl-theme.js"></script>
   <link rel="stylesheet" href="dist/pudl.css">
   <link rel="stylesheet" href="dist/pudl-windows.css">
+  <link rel="stylesheet" href="dist/pudl-hljs.css">
   <script src="dist/pudl-windows.js" defer></script>
   <script src="dist/pudl-menu.js" defer></script>
   <script src="dist/pudl-md.js" defer></script>
@@ -30,6 +31,7 @@
     .ref .demo-grid { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: center; }
     .ref .demo-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
     .ref code { font-family: var(--mono); font-size: 12.5px; background: var(--surface-alt); padding: 1px 6px; border-radius: 3px; }
+    .ref pre.code code { font-size: inherit; background: none; padding: 0; border-radius: 0; }
     .ref .swatch { width: 100%; height: 56px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
     .ref .swatch-grid {
       display: grid; gap: 14px;
@@ -79,7 +81,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.25.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.26.0</a>
     </div>
   </header>
 
@@ -743,7 +745,27 @@
       </div>
     </div>
 
-    <h2>20. Invariants</h2>
+    <h2 id="docs">20. Document tabs and code</h2>
+    <p>Document tabs come and go, one per open file, and look like every other tab. An unsaved document's tab carries a dot, whose word is heard rather than seen, and each tab has a small raised close button; Delete closes the focused tab. The host decides, through <code>pudl:tab-close</code>. A code block is flat, because it is for reading, and an editor's surface is sunken, because it takes input; highlighted code in both takes the theme's <code>--syntax</code> colours.</p>
+    <div class="demo">
+      <div class="tablist doc-tabs" role="tablist" aria-label="Open files">
+        <button role="tab" type="button" aria-selected="true" aria-controls="doc-panel">today.md<span class="doc-tab-dirty">unsaved</span><span class="doc-tab-close" aria-hidden="true"></span></button>
+        <button role="tab" type="button" aria-selected="false" aria-controls="doc-panel">notes.md<span class="doc-tab-close" aria-hidden="true"></span></button>
+        <button role="tab" type="button" aria-selected="false" aria-controls="doc-panel">build.sh<span class="doc-tab-close" aria-hidden="true"></span></button>
+      </div>
+      <div id="doc-panel" role="tabpanel" aria-label="today.md" style="padding: var(--space-3) 0 0;">
+        <pre class="code"><code class="hljs language-js"><span class="hljs-comment">// Keep the window in front across a reload.</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">restoreAll</span>(<span class="hljs-params">state</span>) {
+  <span class="hljs-keyword">const</span> top = state.<span class="hljs-property">top</span> ?? <span class="hljs-literal">null</span>;
+  <span class="hljs-keyword">return</span> { ...state, <span class="hljs-attr">min</span>: {}, top, <span class="hljs-attr">note</span>: <span class="hljs-string">"restored"</span>, <span class="hljs-attr">count</span>: <span class="hljs-number">2</span> };
+}</code></pre>
+        <textarea class="code-surface" aria-label="Edit today.md" rows="4" style="width: 100%; padding: var(--space-2) var(--space-3);"># Today
+
+Draft the release notes for [0.26](CHANGELOG.md).</textarea>
+      </div>
+    </div>
+
+    <h2>21. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>
