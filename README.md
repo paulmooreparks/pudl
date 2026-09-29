@@ -769,6 +769,29 @@ An applet that listens on `window` or `document`, or starts a timer, must undo t
 
 The runtime loads each stylesheet and script once, however many mounts name it. It starts the applets in the page when the page loads, those in each window as the window opens and those in a region as `pudl-regions.js` swaps it in, and destroys them as their window closes or their region goes, so a page needs no wiring. `pudlApplets.boot(scope)` and `pudlApplets.destroy(scope)` are there for content a project adds or removes some other way. A mount's `data-applet-state` reads `loading`, `running` or `error`.
 
+### Requests between applets
+
+Once a site has several applets, they start to ask each other for things: a file manager opens a file in the editor, a terminal opens one too, and the file manager opens a terminal in a folder. An applet declares the requests it serves in its `define()`, and a caller asks for a request without naming an applet:
+
+```js
+pudlApplets.define('editor', { src: '/js/editor.js', page: '/page/editor',
+  handles: { open: { param: 'file', kinds: ['file', 'script'] } } });
+pudlApplets.define('terminal', { src: '/js/terminal.js', page: '/page/terminal', instances: 4,
+  handles: { shell: { param: 'cwd', extra: ['run'], reuse: false } } });
+
+if (pudlApplets.can('open', 'file')) {
+  pudlApplets.request('open', { path: '~/notes.md', kind: 'file' }, button);
+}
+```
+
+A request is a verb and a path, and optionally a kind and further parameters. The verbs and kinds are the project's own words; PUDL routes them and gives them no meaning. The first applet defined that serves the verb, and the kind if it lists kinds, answers, with the state `param=path`, followed by any `extra` parameters the request carries, with a path's slashes and tildes left readable. `request()` returns false when nothing serves it, so a caller can fall back or hide the action, and `can()` asks the same question without acting.
+
+On a page with windows, the request goes to the applet's newest open instance, whose window comes forward and whose `setState()` takes the state, as Back, Forward and preset links already do; what adopting it means is the applet's affair, and an editor may open the file in a new tab. With no instance open, or when the verb says `reuse: false`, it opens a new instance in a new window while fewer than `instances` of them are open, and the new instance starts with the state, ahead of anything the host's `pudl:applet-state` listener offers, because the reader asked for it just now. At the limit, the newest instance takes the request. The instances' keys are the applet's name, then `name-2` to `name-9`, passing over any key an unrelated window already holds. On a page without windows, the browser goes to the applet's page with the state as its query, in a new tab when that page is the one the caller is on.
+
+A window source must answer the numbered keys. A server renders the applet's window again for `/window/terminal-2`, with the number in its title, after checking that no real page has that key; a page whose windows come from templates needs nothing more, because a numbered key with no template of its own takes the template of the unnumbered one, with the number added to its title.
+
+`opts.instance` and `pudl:applet-state`'s `detail.instance` carry the key an instance goes by, its window's key or, outside a window, the applet's name, so a host can keep each instance's state apart. That matters for one reason: a request's state reaches a new window through memory, not through the address, which the windows own. A reload keeps the window but not the state a request gave it, unless the host keeps it for that instance.
+
 ### Sizing an applet that fills
 
 Three lessons from parkscomputing.com's Sudoku, for any applet that fills a window without scrollbars:
@@ -847,7 +870,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.26.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.27.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

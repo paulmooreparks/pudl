@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Applet requests</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-applets.js" defer></script>
+  <script src="applet-requests.js" defer></script>
+  <style>.win-host { height: 600px; }</style>
+</head>
+<body>
+  <!-- A test fixture: two applets that declare the requests they serve,
+       a notepad that is reused and a shell that opens a new window each
+       time, and an unrelated window whose key looks like a shell's. -->
+  <button id="caller" type="button">Caller</button>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}"></div>
+  </div>
+  <template id="tpl-notepad">
+    <section class="win" data-win="notepad">
+      <header class="win-head"><h2 class="win-title">Notepad</h2></header>
+      <div class="win-body"><div data-applet="notepad"></div></div>
+    </section>
+  </template>
+  <template id="tpl-shell">
+    <section class="win" data-win="shell">
+      <header class="win-head"><h2 class="win-title" id="shell-title">Shell</h2></header>
+      <div class="win-body"><div data-applet="shell"></div></div>
+    </section>
+  </template>
+  <template id="tpl-shell-2">
+    <section class="win" data-win="shell-2">
+      <header class="win-head"><h2 class="win-title">Shells, an article</h2></header>
+      <div class="win-body"><p>An article whose key looks like a shell's.</p></div>
+    </section>
+  </template>
+</body>
+</html>

@@ -41,7 +41,11 @@
      ownsUrl  true only on the applet's own page, where it may keep its
               state in the address itself;
      pageUrl  the applet's own page, for a share link that works anywhere;
-     state    the state the host kept for it, a string, or null;
+     instance the key this instance goes by: its window's key in a window,
+              otherwise the applet's name, for a host that keeps each
+              instance's state apart;
+     state    the state the host kept for it, or a request left for it, a
+              string, or null;
      changed  a function the applet calls, with its state string, when the
               state changes; it fires pudl:applet-change on the mount.
 
@@ -52,8 +56,13 @@
    applet embedded in an article can be shared by the article's address.
    Back and Forward hand a changed value to setState(). Any other host
    keeps the state where it likes: just before init, pudl:applet-state
-   fires on the mount, and whatever a listener puts in detail.state
-   arrives as opts.state; pudl:applet-change says when to keep it again.
+   fires on the mount, with detail.instance, and whatever a listener puts
+   in detail.state arrives as opts.state; pudl:applet-change says when to
+   keep it again.
+
+   Applets can ask each other for things without naming each other, by
+   declaring the requests they serve; the section on requests below sets
+   it out.
 
    A link carrying data-applet-preset="mixer" sets up a running mixer: its
    href is where it goes without script, and with an instance of that
@@ -231,17 +240,21 @@
     var pageUrl = c.page || location.pathname;
     var host = inWindow ? 'window' : 'page';
     var ownsUrl = !inWindow && !param && samePage(pageUrl);
+    var inst = instanceKey(root, c.name);
     var entry = { root: root, name: c.name, instance: null, param: param, last: param ? readParam(param) : null,
                   ownsUrl: ownsUrl, fitSet: fitSet };
     /* The host's turn to hand over the state it kept, such as a window's
-       from wherever it keeps the reader's continuity. */
+       from wherever it keeps the reader's continuity. A request the reader
+       made just now, which opened this window, wins over it. */
     var ask = new CustomEvent('pudl:applet-state', { bubbles: true,
-      detail: { name: c.name, host: host, fit: fit, param: param, state: entry.last } });
+      detail: { name: c.name, instance: inst, host: host, fit: fit, param: param, state: entry.last } });
     root.dispatchEvent(ask);
     var state = ask.detail.state == null ? null : String(ask.detail.state);
+    if (Object.prototype.hasOwnProperty.call(handed, inst)) { state = handed[inst]; delete handed[inst]; }
     var instance = def.init(root, {
       host: host,
       fit: fit,
+      instance: inst,
       ownsUrl: ownsUrl,
       pageUrl: pageUrl,
       state: state,
@@ -286,7 +299,136 @@
     });
   }
 
-  window.pudlApplets = { define: define, register: register, boot: boot, destroy: destroy };
+  /* === Requests ============================================================
+     An applet may declare in define() the requests it serves, and how many
+     windows of it may be open at once:
+
+       handles: { verb: { param, kinds, extra, reuse } }, instances: n
+
+     A caller asks with request(verb, { path, kind, ...extra }, from), and
+     never names an applet; can(verb, kind) says whether anything would
+     answer. The verbs and kinds are the project's own words, which PUDL
+     only routes. The first applet defined that serves the verb, and the
+     kind if it lists kinds, answers, with the state param=path, followed
+     by any extra parameters the request carries.
+
+     On a page with windows, the request goes to the newest open instance,
+     whose window comes forward and whose setState() takes the state; or,
+     with none open, or when the verb says reuse: false, to a new instance
+     in a new window while fewer than instances of them are open (keys name,
+     name-2 and so on, to name-9), which takes the state as it starts. On a
+     page without windows, the browser goes to the applet's page with the
+     state as its query, in a new tab when that page is this one. */
+
+  var handed = {};         // window key -> state a request left for a window still on its way
+  var MAX_INSTANCES = 9;
+
+  /* The key an applet's instance goes by: its window's, or in no window,
+     the applet's name. */
+  function instanceKey(root, name) {
+    var win = root.closest('.win[data-win]');
+    return win ? win.getAttribute('data-win') : name;
+  }
+
+  function handlerFor(verb, kind) {
+    var names = Object.keys(defs);
+    for (var i = 0; i < names.length; i++) {
+      var d = defs[names[i]];
+      var h = d.handles && Object.prototype.hasOwnProperty.call(d.handles, verb) ? d.handles[verb] : null;
+      if (!h) continue;
+      if (kind && h.kinds && h.kinds.indexOf(kind) < 0) continue;
+      return { name: names[i], h: h, def: d };
+    }
+    return null;
+  }
+
+  /* The request as a state string, with a path's slashes and tildes left
+     readable. */
+  function stateOf(h, req) {
+    var pairs = [[h.param, req.path]];
+    (h.extra || []).forEach(function (k) { pairs.push([k, req[k]]); });
+    return pairs.filter(function (p) { return p[0] && p[1] != null && p[1] !== ''; }).map(function (p) {
+      return encodeURIComponent(p[0]) + '=' + encodeURIComponent(p[1]).replace(/%2F/g, '/').replace(/%7E/g, '~');
+    }).join('&');
+  }
+
+  /* The keys of the applet's windows, in the order they opened: the open
+     windows that hold a mount of it, found by the mount rather than by the
+     key, so an unrelated window keyed like an instance is never taken for
+     one, and the windows a request has opened that are still on their way. */
+  function instanceKeys(name) {
+    var open = window.pudlWindows.state().open;
+    var arriving = Object.keys(handed).filter(function (k) {
+      return open.indexOf(k) < 0 && (k === name || k.indexOf(name + '-') === 0);
+    });
+    return open.filter(function (k) {
+      if (Object.prototype.hasOwnProperty.call(handed, k)) return true;
+      var win = document.querySelector('.win[data-win="' + k + '"]');
+      return !!(win && Array.prototype.some.call(win.querySelectorAll('[data-applet]'), function (m) {
+        return m.getAttribute('data-applet') === name;
+      }));
+    }).concat(arriving);
+  }
+
+  /* The first key of name, name-2 … name-9 that no window holds. The limit
+     counts the applet's own windows, not the numbers, so a key an
+     unrelated window already holds is passed over rather than counted. */
+  function freeKey(name) {
+    var taken = window.pudlWindows.state().open;
+    for (var n = 1; n <= MAX_INSTANCES; n++) {
+      var k = n === 1 ? name : name + '-' + n;
+      if (taken.indexOf(k) < 0 && !Object.prototype.hasOwnProperty.call(handed, k)) return k;
+    }
+    return null;
+  }
+
+  function deliver(key, name, state) {
+    window.pudlWindows.raise(key);
+    var entry = running.find(function (x) {
+      return x.name === name && x.root.isConnected && instanceKey(x.root, name) === key;
+    });
+    if (entry && entry.instance && entry.instance.setState) entry.instance.setState(state);
+    else handed[key] = state;
+  }
+
+  function request(verb, req, from) {
+    req = req || {};
+    var found = handlerFor(verb, req.kind);
+    if (!found) return false;
+    var state = stateOf(found.h, req);
+
+    if (!(window.pudlWindows && document.querySelector('[data-win-layer]'))) {
+      var page = found.def.page;
+      if (!page || !sameOrigin(page)) return false;
+      var url = page + (state ? (page.indexOf('?') < 0 ? '?' : '&') + state : '');
+      if (samePage(page)) window.open(url, '_blank', 'noopener');
+      else location.assign(url);
+      return true;
+    }
+
+    var mine = instanceKeys(found.name);
+    if (found.h.reuse === false || !mine.length) {
+      var limit = Math.min(found.def.instances || 1, MAX_INSTANCES);
+      var key = mine.length < limit ? freeKey(found.name) : null;
+      if (key) {
+        handed[key] = state;
+        window.pudlWindows.open(key, from || null);
+        return true;
+      }
+    }
+    deliver(mine[mine.length - 1], found.name, state);
+    return true;
+  }
+
+  function can(verb, kind) { return !!handlerFor(verb, kind); }
+
+  /* A window a request was opening that closed, or never arrived, takes
+     its handed state with it. */
+  document.addEventListener('pudl:window-close', function (e) {
+    delete handed[e.detail && e.detail.key];
+  });
+
+  window.pudlApplets = { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can };
 
   /* A mount with data-applet-param keeps its state in the page's query. */
   document.addEventListener('pudl:applet-change', function (e) {

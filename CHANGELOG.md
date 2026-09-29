@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.27.0
+
+Requests between applets, from parkscomputing.com's `Architecture/pudl-proposal-applet-handlers.md`.
+
+- An applet declares in `define()` the requests it serves, `handles: { verb: { param, kinds, extra, reuse } }`, and how many windows of it may be open, `instances`, up to nine. A caller asks with `pudlApplets.request(verb, { path, kind, … }, from)` and never names an applet, and `pudlApplets.can(verb, kind)` says whether anything would answer. The verbs and kinds are the project's own words.
+- On a page with windows, a request goes to the applet's newest open instance through its `setState()`, bringing its window forward, or opens a new instance, `name`, `name-2` and so on, which starts with the request's state ahead of the host's; with `reuse: false` it opens a new one each time until the limit, when the newest takes it. On a page without windows it goes to the applet's page, in a new tab when that is the caller's page.
+- As proposed, with three changes. `fresh: true` is `reuse: false`. An applet's instances are found by the mounts in the open windows, not by a pattern of keys, so an unrelated window keyed like `terminal-2` is passed over rather than taken for a terminal. And routing depends on whether the page has windows, not on whether the caller sits in one, so a request from a desktop's toolbar no longer leaves the desktop.
+- `opts.instance` and `pudl:applet-state`'s `detail.instance` carry the key an instance goes by, so a host can keep each instance's state apart.
+- A window whose markup comes from a template, keyed `name-2` to `name-9` with no template of its own, takes `name`'s template with the number added to its title.
+- The windows script keeps the page's own query parameters exactly as written when it writes the address. It used to re-encode them, turning a readable `?path=/notes` into `?path=%2Fnotes`.
+
 ## 0.26.0
 
 The editor half of parkscomputing.com's `Architecture/pudl-proposal-tree-crumbs-editor.md`.
