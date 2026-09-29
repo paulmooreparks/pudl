@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24.0
+
+From parkscomputing.com's `Architecture/pudl-proposal-meta-wrap-restore-all.md`.
+
+- List metadata wraps. A row's `.md-meta` lines now wrap instead of running off the sidebar's edge uncut, while the title keeps to one line with its ellipsis. An item may hold several `.md-meta` lines, a date and then a description, and the README shows the markup.
+- Restore-all. A link with `data-win-restore` restores every minimised window in one step, the reverse of `data-win-back`, and `pudlWindows.minimizeAll()` and `pudlWindows.restoreAll()` do both from script. The script keeps both links' `href`s current and marks each `aria-disabled="true"` while it would change nothing. A `.btn` marked `aria-disabled="true"` looks disabled and takes no clicks.
+- The window in front survives minimise-all. `top` in the address may now name a minimised window, which it does after minimise-all: no window is then active, and restoring brings that window back in front, after a reload or from a shared link too. Older addresses are unaffected, and a server that marks the active window must not mark a minimised `top`.
+
 ## 0.23.1
 
 Two findings from parkscomputing.com.

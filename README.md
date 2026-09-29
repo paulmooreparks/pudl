@@ -412,6 +412,16 @@ Each pane is its own URL, which the server already has, because selecting a reco
 
 The detail pane carries `tabindex="0"` because it scrolls, and a reader who scrolls by keyboard can otherwise reach it only through a link or field inside it, which a plain record may not have. A window's body needs no such attribute; `pudl-windows.js` gives it one.
 
+A row in the list is an `.md-row` holding an `a.md-item` whose text is the title, and which may hold `.md-meta` lines beneath it, as many as the row needs, a date and then a description say:
+
+```html
+<div class="md-row"><a class="md-item" href="/articles/elevation">Raised means pressable
+  <time class="md-meta" datetime="2026-09-21">21 September 2026</time>
+  <span class="md-meta">Why every control that can be pressed looks lifted.</span></a></div>
+```
+
+The title keeps to one line and ends in an ellipsis when the sidebar is too narrow for it; the metadata lines wrap, so none of them loses its end.
+
 The detail pane starts with an `.md-back` link, which appears only when one pane shows at a time. Its `href` is the list's URL with the current filters kept, and its fragment names the record's row, whose `.md-row` carries that id, so the list scrolls back to where the reader left it. The link text names the list. It returns to the list the record lives in, and it is not a breadcrumb trail. While the record shows, the list's toolbar and filter chips step aside, since they act on the list, except a toolbar marked `.md-site-tools`, which holds site-wide tools such as a launcher or a window dock and stays in both panes, and while the list shows, its rows grow taller because they are touch targets. None of this needs script.
 
 ## Floating windows
@@ -432,7 +442,7 @@ Four kinds of query parameter describe the windows, alongside whatever parameter
 | Parameter | Value | Meaning |
 |---|---|---|
 | `open` | keys, comma-separated | the open windows, in the order they were opened, which is the dock's order |
-| `top` | one key | the active window, drawn above the others |
+| `top` | one key | the active window, drawn above the others; when it names a minimised window, which it does after minimise-all, no window is active, and that window comes back in front on restoring them |
 | `min` | keys, comma-separated | the minimised windows, which stay open and show only in the dock |
 | `p.<key>` | `<mode>:<x>,<y>,<w>,<h>` | one window's placement |
 
@@ -527,13 +537,15 @@ A link inside a window marked `data-win-replace`, as well as `data-win-open`, op
 
 `pudl:window-close` fires on each window just before it leaves the page, however it was closed, and `detail.reason` says how: `"button"` for its close button, `"key"` for Escape on a child window, `"script"` for `pudlWindows.close()`, `"parent"` when its parent closed, `"replace"` when another window took its place, and `"address"` when the address moved on, by Back, Forward or a link. Content that set something up on `pudl:window-open` tears it down there.
 
-`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script.
+`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script.
 
 ### Windows and a list
 
 A list built from master-detail rows follows the windows its links open. The script finds each `.md-row` holding a link with `data-win-open`, marks the row of the window in front with `active` and `aria-current`, and adds an `.md-row-child` row beneath it for each open child, titled with the child's title and linking to it. The row goes when the child closes. A server rendering the page for a URL renders the same rows.
 
 When the layer sits inside a master-detail layout, in place of `.md-detail` or inside it, the windows are the detail pane. The script sets `data-md-pane` to `detail` while any window shows and to `list` otherwise, so a narrow layout shows the list or the windows. A link with `data-win-back`, usually an `.md-back` above the layer, minimises every window, which returns to the list with the windows kept in the URL.
+
+A link with `data-win-restore` does the reverse, restoring every minimised window in one step, with the window that was in front before back in front. Together they make a minimise-all and restore-all pair for a desktop's toolbar. The script keeps both links' `href`s current, so they work without script from the second page on, and marks each `aria-disabled="true"` while it would change nothing: minimise-all with nothing showing, restore-all with nothing minimised. A `.btn` so marked looks disabled and takes no clicks. The server renders the first `href`s, and the same `aria-disabled`, for a page without script.
 
 `samples/article-reader.html` puts all of this together as a reading site: an article list in the sidebar, each article opening maximised, and listings as child windows.
 
@@ -698,7 +710,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.23.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.24.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
