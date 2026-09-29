@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.28.0
+
+A third sample, and what building it asked of PUDL.
+
+- **Files**, `samples/files.html`: a file browser and editor with a folder tree, a path bar, the folder's contents as a grid, files dropped on it to add them, and an editor with document tabs and a Markdown preview in windows. The editor and the preview are applets that answer requests, so the browser opens a file without naming either. It borrows its behaviour and wording from parkscomputing.com's Files and Editor, rebuilt on PUDL's classes.
+- The article reader's listings are highlighted code blocks, its toolbar has minimise-all and restore-all, and its rows carry descriptions that wrap. The expense tracker takes a receipt dropped on its attach form.
+- `pudl:window-closing` fires before a close by button, Escape or script, on the window and each child closing with it, and can be cancelled, so an editor with unsaved changes can keep its window while it asks. A close by the address cannot be refused.
+- `pudlWindows.retitle(key, title)` changes a window's title, and the title bar's spoken name, the dock tab and the list row follow.
+- `data-win-pane="off"` on a window layer leaves a master-detail layout's `data-md-pane` to the server, for a layout whose detail pane holds a record of its own with windows over it. Before, the script set it to `list` whenever no window showed, so on a phone that record could not be reached.
+- Requests to an applet made while its script is still loading queue up and all arrive, in order. Before, each overwrote the last.
+- Region links keep their own parameters as written, so `?path=/notes` no longer becomes `?path=%2Fnotes`, and `pudlRegions.refresh()` lets a page that renders region links by script bring them up to date with the windows.
+- `pre.code` shows a focus ring, for a block that scrolls and so carries `tabindex="0"`, and tree rows grow into touch targets in a narrow master-detail sidebar.
+
 ## 0.27.0
 
 Requests between applets, from parkscomputing.com's `Architecture/pudl-proposal-applet-handlers.md`.

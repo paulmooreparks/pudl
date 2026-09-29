@@ -80,7 +80,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Path bar | `nav.path` (with `.mono`) holding `ol` of `li`, each an `a` or, last, the current place with `aria-current` | `aria-current` |
 | Glyph | `.glyph` with `--glyph` set to a glyph token, and `--glyph-size` | |
 | Document tabs | `.tablist.doc-tabs[role="tablist"]` of `[role="tab"]` links or buttons, each holding its name, an optional `.doc-tab-dirty` with words for assistive technology, and an optional `.doc-tab-close[aria-hidden="true"]` | `aria-selected` |
-| Code | `pre.code` for a block to read; `.code-surface` for an editor's surface | |
+| Code | `pre.code` for a block to read, with `tabindex="0"` when it may scroll; `.code-surface` for an editor's surface | |
 | Drop target | `.drop-zone` holding an optional `.drop-hint`; any element as a target | `data-drop-over` on a zone, `data-drop-target` on an item, set by the host while something is dragged over it |
 | Numbers and time | `.num`, `time`, `data` in prose take tabular figures | |
 
@@ -93,6 +93,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-theme`, `data-theme-pref` | `<html>` | the stylesheet, a settings control | The theme in force, and the reader's preference |
 | `data-win-layer`, `data-win-src` | the window layer | `pudl-windows.js` | The layer, and where window markup comes from (`{key}`, or `#` for a template); fetched markup must be `text/html` from the page's origin; a numbered key `name-2` to `name-9` with no template of its own takes `name`'s, numbered |
 | `data-win-default` | the window layer | `pudl-windows.js` | The keys of the windows an address naming no windows opens |
+| `data-win-pane="off"` | the window layer | `pudl-windows.js` | Leave the master-detail layout's `data-md-pane` to the server |
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
 | `data-win-open`, `data-win-replace` | a link | `pudl-windows.js` | Open that key's window, in place of this one |
 | `data-win-action` | a window button | `pudl-windows.js` | `page`, `minimize`, `maximize` or `close` |
@@ -120,6 +121,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:theme-change` | the document | `preference`, `theme` | After the theme changes, in this tab or another |
 | `pudl:window-place` | the window layer | `key`, `parent`, `opener`, and `placement` for a listener to set | Before a window opens with no placement in the URL |
 | `pudl:window-open` | the window, bubbles | | When a window's content is in the page |
+| `pudl:window-closing` | the window, and each child closing with it, bubbles, cancelable | `key`, `reason`: `button`, `key`, `script` or `parent` | Before a reader's or a script's close; cancelling it keeps the window |
 | `pudl:window-close` | the window, bubbles | `key`, `reason`: `button`, `key`, `script`, `parent`, `replace` or `address` | Just before a window leaves the page, by any route |
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
@@ -136,7 +138,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | Function | From | Does |
 |---|---|---|
 | `pudlSetTheme(p)`, `pudlThemePreference()`, `pudlToggleTheme()` | `pudl-theme.js` | Set, read and toggle the reader's theme |
-| `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
+| `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
 | `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |
 | `pudlApplets.request(verb, { path, kind, … }, from)`, `.can(verb, kind)` | `pudl-applets.js` | Ask for a request without naming an applet; `request` returns false when nothing serves it |
 | `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()` and `setState(s)`, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
@@ -144,6 +146,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
+| `pudlRegions.refresh()` | `pudl-regions.js` | Carry the live windows into region links a script has rendered |
 
 ## Addresses
 

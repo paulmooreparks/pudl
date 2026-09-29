@@ -1,0 +1,69 @@
+/* === Files sample (these pages only) =======================================
+   PUDL's own parts carry the page: a master-detail layout, a tree, a path
+   bar, a grid, glyphs, a drop zone, document tabs and a code surface. What
+   is here is only where they sit. */
+
+/* The sidebar holds the tree, with the note about the sample at its foot. */
+.files-sidebar { display: flex; flex-direction: column; }
+.files-tree { flex: 1; padding: var(--space-2) 0; }
+.files-sidebar .sample-note {
+  margin: 0; padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border);
+  font-size: var(--text-sm); color: var(--text-muted);
+}
+.files-note { margin: 0; padding: var(--space-3) var(--space-4); color: var(--text-muted); }
+
+/* The detail pane is the windows' host, so the folder inside it scrolls
+   and the pane does not, as in the article reader. */
+.files-stage { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.files-host { flex: 1; min-height: 0; }
+/* The display above would otherwise outrank PUDL's own rules for a narrow
+   layout, which show one pane at a time. */
+@container md (max-width: 640px) {
+  .files-stage { display: none; }
+  .md-layout[data-md-pane="detail"] .files-stage { display: flex; }
+}
+.files-folder {
+  box-sizing: border-box; height: 100%; overflow: auto;
+  display: flex; flex-direction: column; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+.files-folder .md-back { margin: 0; align-self: flex-start; }
+.files-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.files-count { margin-inline-start: auto; font-size: var(--text-sm); color: var(--text-muted); }
+/* The list is also the drop zone, so it keeps some height to drop onto. */
+.files-folder .drop-zone { flex: none; min-height: 12rem; }
+
+/* === The editor ============================================================
+   A toolbar, the document tabs, then the sunken editing surface, which
+   takes whatever height is left. In a window the applet fills the window's
+   body; in a page of its own it takes most of the screen. */
+.files-editor { display: flex; flex-direction: column; min-height: 0; }
+.files-editor[data-applet-fit="flow"] { height: min(75svh, 720px); min-height: 20rem; }
+.win-body:has(> .files-editor[data-applet-fit="fill"]) { display: flex; flex-direction: column; overflow: hidden; }
+.files-editor[data-applet-fit="fill"] { flex: 1; }
+.files-editor-bar { display: flex; align-items: center; gap: var(--space-3); min-width: 0; margin-bottom: var(--space-2); }
+.files-editor-status {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--text-sm); color: var(--text-muted);
+}
+.files-editor .doc-tabs { flex: none; overflow-x: auto; }
+.files-editor-panel { flex: 1; min-height: 0; display: flex; }
+.files-editor-panel textarea {
+  flex: 1; box-sizing: border-box; width: 100%; min-height: 0; margin: 0;
+  padding: var(--space-2) var(--space-3);
+  line-height: 1.55; tab-size: 4; resize: none;
+}
+.files-editor-panel textarea:focus { outline: none; }
+.files-editor-empty { margin: 0; color: var(--text-muted); }
+
+/* === The preview =========================================================== */
+.files-preview { max-width: 68ch; margin: 0 auto; }
+.files-preview-path { margin: 0 0 var(--space-3); font-size: var(--text-sm); color: var(--text-muted); }
+.files-preview-doc > :first-child { margin-top: 0; }
+.files-preview-doc h3, .files-preview-doc h4, .files-preview-doc h5 { margin: var(--space-4) 0 var(--space-2); }
+.files-preview-doc p, .files-preview-doc ul, .files-preview-doc ol { margin: 0 0 var(--space-3); }
+/* The applets' own pages: a heading, a sentence, and the applet. */
+.files-page { max-width: 60rem; margin: 0 auto; padding: var(--space-5) var(--space-4) var(--space-6); }
+.files-page h1 { margin: 0 0 var(--space-1); font-size: var(--text-2xl); }
+.files-page > p { margin: 0 0 var(--space-4); }

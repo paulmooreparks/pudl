@@ -36,7 +36,9 @@
    date as the windows change, so a middle-click or a copied link carries
    the windows as they are, not as they were when the page loaded.
 
-   After a swap, pudl:regions-swap fires on the document. */
+   After a swap, pudl:regions-swap fires on the document. A page that
+   renders links into its regions by script calls pudlRegions.refresh()
+   afterwards, so they carry the live windows too. */
 (function () {
   'use strict';
 
@@ -78,14 +80,17 @@
     return { isLive: isLive, segs: segs };
   }
 
-  /* An address with its own live parameters replaced by the current ones. */
+  /* An address with its own live parameters replaced by the current ones.
+     Its other parameters are kept exactly as written, so a readable
+     ?path=/notes stays readable rather than becoming %2F. */
   function withLiveWindows(url, now) {
     now = now || live();
-    var q = new URLSearchParams(url.search);
-    Array.from(q.keys()).forEach(function (k) { if (now.isLive(k)) q.delete(k); });
-    var parts = [];
-    var rest = q.toString();
-    if (rest) parts.push(rest);
+    var parts = url.search.replace(/^\?/, '').split('&').filter(function (seg) {
+      if (!seg) return false;
+      var name = seg.split('=')[0];
+      try { name = decodeURIComponent(name.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
+      return !now.isLive(name);
+    });
     parts = parts.concat(now.segs);
     return url.pathname + (parts.length ? '?' + parts.join('&') : '') + url.hash;
   }
@@ -277,6 +282,10 @@
   });
 
   document.addEventListener('pudl:windows-change', refreshLinks);
+
+  /* A page that renders a region's links by script, after a swap or at
+     any other time, asks for them to carry the live windows again. */
+  window.pudlRegions = { refresh: refreshLinks };
 
   function init() {
     listPart = withoutWindows(new URL(location.href));

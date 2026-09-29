@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preview, a PUDL Applet</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-hljs.css">
+  <link rel="stylesheet" href="files.css">
+  <script src="files-app.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="applets/files-registry.js" defer></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="files.html">Files</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark" onclick="pudlToggleTheme()">◐</button>
+      <a class="topbar-pill" href="../reference.html">PUDL reference</a>
+    </div>
+  </header>
+
+  <main class="files-page">
+    <h1>Preview</h1>
+    <p>This is the Files sample's Markdown preview in a page of its own. In <a href="files.html">the file browser</a> it opens in a window, as many as three at a time. Here the file it shows is in the page's address.</p>
+    <div data-applet="preview">
+      <p>The preview needs script to run.</p>
+    </div>
+  </main>
+
+</body>
+</html>

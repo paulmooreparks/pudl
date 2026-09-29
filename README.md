@@ -12,6 +12,7 @@ It is a stylesheet, a small theme script and a font, with optional scripts for m
 - **[The article reader](https://paulmooreparks.github.io/pudl/samples/article-reader.html)** is a working reading site built with PUDL: articles in windows, listings as child windows, a launcher, category tabs that change only the list, and an applet.
 - **[The colour mixer](https://paulmooreparks.github.io/pudl/samples/colour-mixer.html)** is that applet in a page of its own.
 - **[The expense tracker](https://paulmooreparks.github.io/pudl/samples/expenses.html)** is a small working application: expenses, trips and reports. Its list sorts, filters, pages and acts on several expenses at once; an expense moves from draft to paid through dialogs and menus, takes a receipt, and keeps its history; its forms refuse what is wrong field by field; and reports total everything and download as CSV. GitHub Pages has no server, so a script stands in for one in the browser, keeping the data in localStorage, and every view is still an address.
+- **[Files](https://paulmooreparks.github.io/pudl/samples/files.html)** is a file browser and editor: a folder tree, a path bar, the folder's contents as a grid of rows to choose from, files dropped on it to add them, and an editor with document tabs and a Markdown preview that open in windows. The editor and the preview are applets that answer requests, so the browser asks to open a file without naming either. Like the expense tracker, it keeps its files in localStorage.
 
 The article reader fetches its windows from the server, so to run it from a copy of this repository, serve the folder, for example with `python -m http.server`, rather than opening the file directly. The reference works either way.
 
@@ -248,7 +249,7 @@ With `pudl-tabs.js`, the list is one stop in the Tab order, on the selected tab;
 
 ## Code
 
-A code block is for reading, so it is flat: `pre.code`, a tinted panel in the monospace face with no shadow. An editor's surface takes input, so it is sunken like a field: `.code-surface` on the element the editor draws into.
+A code block is for reading, so it is flat: `pre.code`, a tinted panel in the monospace face with no shadow. An editor's surface takes input, so it is sunken like a field: `.code-surface` on the element the editor draws into. A code block whose lines may run past its width scrolls sideways, so it carries `tabindex="0"`, for a reader who scrolls by keyboard, and PUDL draws its focus ring.
 
 Highlighted code takes its colours from ten syntax tokens, `--syntax-keyword`, `--syntax-string`, `--syntax-number`, `--syntax-comment`, `--syntax-name`, `--syntax-tag`, `--syntax-attr`, `--syntax-heading`, `--syntax-link` and `--syntax-error`, set for both themes, each reaching 4.5:1 on every surface a code block or editor sits on. A theme may set them, and should keep that contrast. The optional `pudl-hljs.css` maps highlight.js's classes onto them, in place of a highlight.js theme:
 
@@ -671,13 +672,17 @@ A link inside a window marked `data-win-replace`, as well as `data-win-open`, op
 
 `pudl:window-close` fires on each window just before it leaves the page, however it was closed, and `detail.reason` says how: `"button"` for its close button, `"key"` for Escape on a child window, `"script"` for `pudlWindows.close()`, `"parent"` when its parent closed, `"replace"` when another window took its place, and `"address"` when the address moved on, by Back, Forward or a link. Content that set something up on `pudl:window-open` tears it down there.
 
-`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script.
+Before a close by its button, by Escape or by `pudlWindows.close()`, `pudl:window-closing` fires on the window, and on each child that would close with it, with the same `detail`, and it can be cancelled. An editor with unsaved changes cancels it, asks, and closes the window itself if the reader says to discard them. A close by the address, by Back, Forward or a link, cannot be refused, because the address has already moved on.
+
+`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `retitle(key, title)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script. `retitle` changes a window's title, as a preview does when it shows another file, and the title bar's spoken name, the dock tab and the list row follow.
 
 ### Windows and a list
 
 A list built from master-detail rows follows the windows its links open. The script finds each `.md-row` holding a link with `data-win-open`, marks the row of the window in front with `active` and `aria-current`, and adds an `.md-row-child` row beneath it for each open child, titled with the child's title and linking to it. The row goes when the child closes. A server rendering the page for a URL renders the same rows.
 
 When the layer sits inside a master-detail layout, in place of `.md-detail` or inside it, the windows are the detail pane. The script sets `data-md-pane` to `detail` while any window shows and to `list` otherwise, so a narrow layout shows the list or the windows. A link with `data-win-back`, usually an `.md-back` above the layer, minimises every window, which returns to the list with the windows kept in the URL.
+
+Some layouts show a record of their own in the detail pane, with windows floating over it, as a file manager shows a folder's contents. There the server decides which pane a narrow layout shows, and the layer carries `data-win-pane="off"` so that the script leaves `data-md-pane` alone.
 
 A link with `data-win-restore` does the reverse, restoring every minimised window in one step, with the window that was in front before back in front. Together they make a minimise-all and restore-all pair for a desktop's toolbar. The script keeps both links' `href`s current, so they work without script from the second page on, and marks each `aria-disabled="true"` while it would change nothing: minimise-all with nothing showing, restore-all with nothing minimised. A `.btn` so marked looks disabled and takes no clicks. The server renders the first `href`s, and the same `aria-disabled`, for a page without script.
 
@@ -706,7 +711,7 @@ Because a swap needs a counterpart for every region, a region that is sometimes 
 
 The script asks the server for nothing special. It fetches the same address a bookmark would, so the server renders what the address names, as it always does, and the swap reads the regions out of that page.
 
-Same-page links that swap regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
+Same-page links that swap regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. A link's own parameters are kept as written. A page that renders links into a region by script calls `pudlRegions.refresh()` afterwards, so they carry the windows too. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
 
 `samples/article-reader.html` and its two category pages use regions for their category tabs and article list. Open an article, restore it, scroll it, set the colour mixer, and move between categories: only the list changes.
 
@@ -855,7 +860,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
-- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; `applet-article.html`, the same applet embedded in an article; `applets/`, the applet and the registry that names it; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
+- `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; `applet-article.html`, the same applet embedded in an article; `applets/`, the applet and the registry that names it; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage; and `files.html`, the file browser, whose `files-app.js` does the same for it, with its editor and preview applets in `applets/` and pages of their own in `editor.html` and `preview.html`. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/proposals/`, design proposals and the decisions taken on them
@@ -870,7 +875,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.27.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.28.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

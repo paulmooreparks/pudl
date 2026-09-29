@@ -250,7 +250,12 @@
       detail: { name: c.name, instance: inst, host: host, fit: fit, param: param, state: entry.last } });
     root.dispatchEvent(ask);
     var state = ask.detail.state == null ? null : String(ask.detail.state);
-    if (Object.prototype.hasOwnProperty.call(handed, inst)) { state = handed[inst]; delete handed[inst]; }
+    /* Requests that arrived while the applet was on its way queue up: the
+       first is the state it starts with, and the rest reach setState() in
+       order once it runs, so none is lost. */
+    var queued = Object.prototype.hasOwnProperty.call(handed, inst) ? handed[inst] : [];
+    delete handed[inst];
+    if (queued.length) state = queued[0];
     var instance = def.init(root, {
       host: host,
       fit: fit,
@@ -266,6 +271,9 @@
     entry.instance = instance || null;
     running.push(entry);
     root.setAttribute('data-applet-state', 'running');
+    if (entry.instance && entry.instance.setState) {
+      queued.slice(1).forEach(function (s) { entry.instance.setState(s); });
+    }
   }
 
   function start(root) {
@@ -320,7 +328,7 @@
      page without windows, the browser goes to the applet's page with the
      state as its query, in a new tab when that page is this one. */
 
-  var handed = {};         // window key -> state a request left for a window still on its way
+  var handed = {};         // window key -> states requests left, in order, for an instance still on its way
   var MAX_INSTANCES = 9;
 
   /* The key an applet's instance goes by: its window's, or in no window,
@@ -388,7 +396,7 @@
       return x.name === name && x.root.isConnected && instanceKey(x.root, name) === key;
     });
     if (entry && entry.instance && entry.instance.setState) entry.instance.setState(state);
-    else handed[key] = state;
+    else (handed[key] = handed[key] || []).push(state);
   }
 
   function request(verb, req, from) {
@@ -411,7 +419,7 @@
       var limit = Math.min(found.def.instances || 1, MAX_INSTANCES);
       var key = mine.length < limit ? freeKey(found.name) : null;
       if (key) {
-        handed[key] = state;
+        handed[key] = [state];
         window.pudlWindows.open(key, from || null);
         return true;
       }
