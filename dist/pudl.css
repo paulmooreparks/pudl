@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.24.0.
+   Version 0.25.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -143,6 +143,18 @@
   --glyph-info: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Ccircle cx='8' cy='5' r='1'/%3E%3Cpath d='M8 7.4v4.2' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E");
   --glyph-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.2' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M5.2 8.2l2 2 3.8-4' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   --glyph-empty: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M1.8 9.2l2-5.4h8.4l2 5.4v3.6a.8.8 0 0 1-.8.8H2.6a.8.8 0 0 1-.8-.8z' fill='none' stroke='black' stroke-width='1.3' stroke-linejoin='round'/%3E%3Cpath d='M1.8 9.2h3.6l.9 1.6h3.4l.9-1.6h3.6' fill='none' stroke='black' stroke-width='1.3' stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* Kinds of thing a list may hold, for file managers, document lists and
+     attachments. The shape says the kind, so these carry no colour of
+     their own. */
+  --glyph-folder: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M1.5 4.5a1 1 0 0 1 1-1h3.6l1.4 1.5h5.9a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-10.9a1 1 0 0 1-1-1z'/%3E%3C/svg%3E");
+  --glyph-file: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M4 1.5h5.5l3 3v9.5a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V2a.5.5 0 0 1 .5-.5z'/%3E%3Cpath d='M9.5 1.5v3h3'/%3E%3C/svg%3E");
+  --glyph-document: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M4 1.5h5.5l3 3v9.5a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V2a.5.5 0 0 1 .5-.5z'/%3E%3Cpath d='M9.5 1.5v3h3M5.8 8h4.4M5.8 10.5h4.4M5.8 5.5h2'/%3E%3C/svg%3E");
+  --glyph-app: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4'%3E%3Crect x='2' y='2' width='5' height='5' rx='1'/%3E%3Crect x='9' y='2' width='5' height='5' rx='1'/%3E%3Crect x='2' y='9' width='5' height='5' rx='1'/%3E%3Crect x='9' y='9' width='5' height='5' rx='1'/%3E%3C/svg%3E");
+  --glyph-script: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='1.5' y='2.5' width='13' height='11' rx='1.5'/%3E%3Cpath d='M4.5 6.5l2 1.75-2 1.75'/%3E%3Cpath d='M8 11h3.5'/%3E%3C/svg%3E");
+  --glyph-link: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3H3.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1H12a1 1 0 0 0 1-1V9'/%3E%3Cpath d='M9.5 2.5h4v4M13.5 2.5l-6 6'/%3E%3C/svg%3E");
+  --glyph-home: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 7.5l6-5 6 5'/%3E%3Cpath d='M3.5 6.5v7h3.5v-4h2v4h3.5v-7'/%3E%3C/svg%3E");
+  /* The separator between the places in a path bar. */
+  --glyph-slash: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M10.5 2.5l-5 11' stroke='black' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
   --glyph-stop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.4 1.8h5.2l3.6 3.6v5.2l-3.6 3.6H5.4l-3.6-3.6V5.4z' fill='none' stroke='black' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M8 4.8v4' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='11' r='1'/%3E%3C/svg%3E");
 
   /* === Derived ==============================================================
@@ -1032,6 +1044,75 @@ body:has(> .md-layout) {
   color: var(--text-muted); font-size: var(--text-md); line-height: 1;
 }
 
+/* === Trees ===============================================================
+   A hierarchy of places, such as folders or nested categories: nested
+   lists of links, each a place with an address, so without script a tree
+   is an indented list the reader can follow. The server marks a node that
+   has children with aria-expanded on its link, and the current node with
+   aria-current. pudl-tree.js turns it into the ARIA tree pattern, draws
+   the toggles, and collapses what aria-expanded="false" says is closed.
+
+   The nodes are flat, like list rows, because they are places to go; the
+   current node carries the accent edge and bold of the current list row.
+   Each toggle is a small raised button, since pressing it opens or closes
+   its branch. */
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { padding-inline-start: var(--space-4); }
+.tree a {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 10px 3px 6px;
+  border-inline-end: 3px solid transparent;
+  font-size: var(--text-sm); line-height: 1.5;
+  color: var(--text); text-decoration: none; white-space: nowrap;
+}
+.tree a:hover { background: var(--surface-alt); }
+.tree a[aria-current]:not([aria-current="false"]) {
+  background: var(--surface-alt); border-inline-end-color: var(--accent); font-weight: 700;
+}
+.tree a:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
+.tree-toggle, .tree-spacer { flex: none; width: 16px; height: 16px; }
+.tree-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 4px; border: 1px solid var(--raise-border);
+  background: var(--raise-grad); box-shadow: var(--raise-shadow);
+  color: var(--text-muted); cursor: pointer;
+}
+.tree-toggle:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.tree-toggle::before {
+  content: ""; width: 10px; height: 10px;
+  background: currentColor;
+  -webkit-mask: var(--glyph-caret) center / contain no-repeat;
+  mask: var(--glyph-caret) center / contain no-repeat;
+  transform: rotate(-90deg);
+}
+.tree-toggle:dir(rtl)::before { transform: rotate(90deg); }
+[aria-expanded="true"] > .tree-toggle::before { transform: none; }
+.tree.tree-ready a[aria-expanded="false"] + ul { display: none; }
+
+/* === Path bar ============================================================
+   Where the reader is inside a hierarchy they are browsing, such as the
+   folder a file manager shows: an ordered list of the places above it,
+   each a link, ending with the place itself, marked aria-current. It is
+   for a browsed hierarchy only. A site's own sections are its tabs, and a
+   record's way back is its back link, so a path bar is never a site's
+   breadcrumb trail. The separators are drawn, and say nothing to
+   assistive technology, which hears the list. */
+.path ol {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0 2px;
+  margin: 0; padding: 0; list-style: none; min-width: 0;
+  font-size: var(--text-sm);
+}
+.path li { display: inline-flex; align-items: center; min-width: 0; }
+.path li + li::before {
+  content: ""; flex: none; width: 12px; height: 12px; margin-inline: 1px;
+  background: var(--text-muted);
+  -webkit-mask: var(--glyph-slash) center / contain no-repeat;
+  mask: var(--glyph-slash) center / contain no-repeat;
+}
+.path li > * { max-width: 16em; padding: 2px 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.path [aria-current]:not([aria-current="false"]) { font-weight: 700; color: var(--text); }
+.path.mono { font-family: var(--mono); }
+
 /* === Menus ===============================================================
    A menu button opens a panel of choices: places to go, and actions. The
    button is raised and carries a caret, so it reads as opening something
@@ -1181,6 +1262,16 @@ body:has(> .md-layout) {
   padding: var(--space-6) var(--space-4);
   text-align: center; color: var(--text-muted);
 }
+
+/* A table whose rows are choices, such as a file list or an inbox, is a
+   grid: role="grid" on the table. pudl-grid.js makes it one stop in the
+   Tab order, moves the selection with the arrow keys, and opens a row, by
+   its first link, with Enter or a double-click. The selected row already
+   looks selected; the row with focus also carries the ring. */
+.data-table[role="grid"] tbody tr { cursor: default; }
+.data-table[role="grid"] tbody tr:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
+.data-table[role="grid"] tbody tr[aria-selected="true"]:focus-visible { box-shadow: inset 3px 0 var(--accent), inset 0 0 0 3px var(--focus-ring); }
+.data-table[role="grid"] tbody tr[aria-selected="true"]:dir(rtl):focus-visible { box-shadow: inset -3px 0 var(--accent), inset 0 0 0 3px var(--focus-ring); }
 
 @container dt (max-width: 560px) {
   .data-table.stack thead {
@@ -1359,6 +1450,45 @@ body:has(> .md-layout) {
 /* On a phone the summary takes a line of its own, so the links stay on one. */
 @media (max-width: 560px) { .pagination-summary { flex-basis: 100%; margin-bottom: var(--space-1); } }
 
+/* === Glyphs as elements ==================================================
+   Any glyph token drawn as an element, in the colour of the text around
+   it, at the size of that text unless --glyph-size says otherwise:
+
+     <span class="glyph" style="--glyph: var(--glyph-folder)" aria-hidden="true"></span>
+
+   A glyph beside words that already say what it shows is aria-hidden; one
+   that stands alone carries role="img" and an aria-label. */
+.glyph {
+  display: inline-block; flex: none; vertical-align: -0.125em;
+  width: var(--glyph-size, 1em); height: var(--glyph-size, 1em);
+  background: currentColor;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+  mask: var(--glyph) center / contain no-repeat;
+}
+
+/* === Drop targets ========================================================
+   What may be dropped where is the application's rule, so the behaviour
+   is the host's; PUDL supplies only the look, so every application shows
+   the same one. While something is dragged over a place it may land, the
+   host sets data-drop-over on a .drop-zone, or data-drop-target on an item
+   such as a folder's row, and PUDL rings it in the accent. A .drop-hint
+   inside a zone says what dropping there will do, and shows only then. */
+.drop-zone { position: relative; }
+.drop-zone[data-drop-over], [data-drop-target] {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+.drop-hint { display: none; }
+.drop-zone[data-drop-over] > .drop-hint {
+  display: block; position: absolute; z-index: 1;
+  inset-inline-start: 50%; bottom: var(--space-3); translate: -50% 0;
+  margin: 0; padding: 4px 12px; border-radius: var(--radius-pill);
+  background: var(--accent); color: var(--on-accent);
+  font-size: var(--text-sm); font-weight: 600; white-space: nowrap;
+  pointer-events: none;
+}
+.drop-zone[data-drop-over]:dir(rtl) > .drop-hint { translate: 50% 0; }
+
 /* === Reduced motion ======================================================
    A reader who has asked their system for less motion gets none: every
    transition and animation completes at once. */
@@ -1424,6 +1554,12 @@ body:has(> .md-layout) {
   .md-resize::before { background: CanvasText; inset: 0 2.5px; }
   .md-resize:hover::before, .md-resize.dragging::before, .md-resize:focus-visible::before { background: Highlight; }
   .badge { border: 1px solid CanvasText; }
+  .tree a[aria-current]:not([aria-current="false"]) { forced-color-adjust: none; background: Highlight; color: HighlightText; }
+  .tree-toggle { border: 1px solid ButtonText; }
+  .tree-toggle::before { forced-color-adjust: none; background: ButtonText; }
+  .glyph, .path li + li::before { forced-color-adjust: none; background: CanvasText; }
+  .drop-zone[data-drop-over], [data-drop-target] { outline: 2px dashed Highlight; outline-offset: -2px; }
+  .drop-zone[data-drop-over] > .drop-hint { forced-color-adjust: none; background: Highlight; color: HighlightText; }
 }
 
 /* === Print ===============================================================
