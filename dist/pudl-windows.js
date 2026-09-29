@@ -34,7 +34,8 @@
      pudl:windows-change on the layer, after every change, with the state in
                          event.detail. Use it to persist placements.
 
-   window.pudlWindows offers open, replace, raise, minimize, close and state
+   window.pudlWindows offers open, replace, raise, minimize, minimizeAll,
+   restoreAll, close and state
    to scripts, each doing what the matching link or button does. */
 (function () {
   'use strict';
@@ -129,8 +130,10 @@
       var p = parsePlacement(q.get('p.' + k));
       if (p) st.place[k] = p;
     });
+    /* top may name a minimised window, after every window was minimised: it
+       is then the window that comes back in front on restoring them. */
     var top = q.get('top');
-    st.top = (top && st.open.indexOf(top) >= 0 && !st.min[top]) ? top : null;
+    st.top = (top && st.open.indexOf(top) >= 0) ? top : null;
     return st;
   }
 
@@ -202,6 +205,12 @@
     return !!(st.min[key] || (p && st.min[p]));
   }
 
+  /* The window in front, the active one: top, unless top is hidden, in
+     which case no window is active. */
+  function active(st) {
+    return st.top && !isHidden(st, st.top) ? st.top : null;
+  }
+
   /* The topmost visible window outside the given set, for when the top
      window is minimised or closed. */
   function nextTop(st, except) {
@@ -232,12 +241,31 @@
     return st;
   }
 
-  /* Minimises every top-level window, which shows the page beneath them. */
+  /* Minimises every top-level window, which shows the page beneath them.
+     top stays, now naming a hidden window, so that restoring them brings
+     the same window back in front, after a reload too. */
   function allMinimized(st) {
     st = copy(st);
     st.open.forEach(function (k) { if (!parentOf(st, k)) st.min[k] = true; });
-    st.top = null;
     return st;
+  }
+
+  /* Restores every minimised top-level window, the reverse of
+     allMinimized(): the window top names comes back in front, or with none
+     named, the one highest in the stack. */
+  function allRestored(st) {
+    st = copy(st);
+    st.open.forEach(function (k) { if (!parentOf(st, k)) delete st.min[k]; });
+    if (!st.top) st.top = nextTop(st, []);
+    return st;
+  }
+
+  /* Whether minimising all, or restoring all, would change anything. */
+  function anyShowing(st) {
+    return st.open.some(function (k) { return !parentOf(st, k) && !st.min[k]; });
+  }
+  function anyMinimized(st) {
+    return st.open.some(function (k) { return !parentOf(st, k) && st.min[k]; });
   }
 
   function maximizeToggled(st, key) {
@@ -329,11 +357,12 @@
     });
     zOrder = ordered;
 
+    var front = active(st);
     zOrder.forEach(function (k, i) {
       var el = wins[k];
       setPlacement(el, st.place[k]);
       el.hidden = isHidden(st, k);
-      el.classList.toggle('active', k === st.top);
+      el.classList.toggle('active', k === front);
       el.style.zIndex = String(i + 1);
     });
     state = st;
@@ -364,7 +393,8 @@
 
   /* The dock has a tab for each top-level window only. */
   function renderDocks() {
-    var topRoot = state.top ? rootOf(state, state.top) : null;
+    var front = active(state);
+    var topRoot = front ? rootOf(state, front) : null;
     document.querySelectorAll('[data-win-dock]').forEach(function (dock) {
       dock.textContent = '';
       state.open.forEach(function (k) {
@@ -386,7 +416,8 @@
      its own beneath its parent's, which goes when the child closes. */
   function renderRows() {
     document.querySelectorAll('.md-row-child[data-win-child]').forEach(function (r) { r.remove(); });
-    var topRoot = state.top ? rootOf(state, state.top) : null;
+    var front = active(state);
+    var topRoot = front ? rootOf(state, front) : null;
     document.querySelectorAll('.md-row').forEach(function (row) {
       var link = row.querySelector('a[data-win-open]');
       if (!link) return;
@@ -402,13 +433,13 @@
       var after = row;
       childrenOf(state, key).forEach(function (c) {
         var child = document.createElement('div');
-        child.className = 'md-row md-row-child' + (c === state.top ? ' active' : '');
+        child.className = 'md-row md-row-child' + (c === front ? ' active' : '');
         child.setAttribute('data-win-child', c);
         var a = document.createElement('a');
         a.className = 'md-item';
         a.href = urlFor(raised(state, c));
         a.setAttribute('data-win-tab', c);
-        if (c === state.top) a.setAttribute('aria-current', 'true');
+        if (c === front) a.setAttribute('aria-current', 'true');
         a.textContent = titleOf(c);
         child.appendChild(a);
         after.after(child);
@@ -420,16 +451,27 @@
   /* In a master-detail layout narrow enough to show one pane at a time, the
      windows are the detail pane: it shows while any window the reader
      opened does. A default window is part of the page rather than a record,
-     so it does not turn the pane over by itself. A link marked
-     data-win-back minimises them all, which returns to the list. */
+     so it does not turn the pane over by itself.
+
+     A link marked data-win-back minimises every window, which also
+     returns to the list, and one marked data-win-restore brings them all
+     back. Each is a real link to the state it produces, and is marked
+     aria-disabled while it would change nothing. */
   function syncPane() {
     var md = layer.closest('.md-layout');
     if (md) {
       var any = state.open.some(function (k) { return defaults.indexOf(k) < 0 && !isHidden(state, k); });
       md.setAttribute('data-md-pane', any ? 'detail' : 'list');
     }
-    document.querySelectorAll('a[data-win-back]').forEach(function (a) {
-      a.setAttribute('href', urlFor(allMinimized(state)));
+    linkAll('a[data-win-back]', urlFor(allMinimized(state)), anyShowing(state));
+    linkAll('a[data-win-restore]', urlFor(allRestored(state)), anyMinimized(state));
+  }
+
+  function linkAll(selector, href, useful) {
+    document.querySelectorAll(selector).forEach(function (a) {
+      a.setAttribute('href', href);
+      if (useful) a.removeAttribute('aria-disabled');
+      else a.setAttribute('aria-disabled', 'true');
     });
   }
 
@@ -690,6 +732,11 @@
     childrenOf(state, key).forEach(function (c) { closing[c] = 'parent'; });
   }
 
+  function restoreAll() {
+    commit(allRestored(state), false);
+    if (state.top) focusWindow(state.top);
+  }
+
   /* reason is "button", "key" or "script", for pudl:window-close. */
   function close(key, reason) {
     var back = openers[key];
@@ -909,7 +956,14 @@
     var back = e.target.closest('a[data-win-back]');
     if (back) {
       e.preventDefault();
-      commit(allMinimized(state), false);
+      if (back.getAttribute('aria-disabled') !== 'true') commit(allMinimized(state), false);
+      return;
+    }
+
+    var restore = e.target.closest('a[data-win-restore]');
+    if (restore) {
+      e.preventDefault();
+      if (restore.getAttribute('aria-disabled') !== 'true') restoreAll();
       return;
     }
 
@@ -1024,6 +1078,8 @@
         focusWindow(key);
       },
       minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
+      minimizeAll: function () { commit(allMinimized(state), false); },
+      restoreAll: restoreAll,
       close: function (key) { if (wins[key]) close(key, 'script'); },
       state: function () { return copy(state); }
     };

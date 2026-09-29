@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.23.1.
+   Version 0.24.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -459,6 +459,13 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 }
 .btn[disabled], .btn.is-disabled {
   opacity: .45; cursor: not-allowed;
+  box-shadow: var(--raise-shadow);
+  background: var(--raise-grad);
+}
+/* A link styled as a button cannot be disabled, so it is marked
+   aria-disabled, and it then looks disabled and takes no clicks. */
+.btn[aria-disabled="true"] {
+  opacity: .45; pointer-events: none;
   box-shadow: var(--raise-shadow);
   background: var(--raise-grad);
 }
@@ -1011,8 +1018,14 @@ body:has(> .md-layout) {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   cursor: pointer;
 }
+/* A row's title keeps to one line and ends in an ellipsis, but its
+   metadata wraps: a description cut at the sidebar's edge would lose its
+   end with nothing to say so, since the ellipsis marks only the title's
+   line. An item may hold several .md-meta lines, a date and then a
+   description say. */
 .md-item .md-meta {
   display: block; font-size: var(--text-2xs); font-weight: 500; color: var(--text-muted);
+  white-space: normal; overflow-wrap: anywhere;
 }
 .md-grip {
   flex: none; width: 22px; text-align: center; cursor: grab;
