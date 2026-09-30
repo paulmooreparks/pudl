@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.29.0.
+   Version 0.29.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -352,8 +352,12 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 }
 
 /* === Topbar / brand chrome ============================================== */
+/* The topbar wraps rather than widening the page: on a screen too narrow
+   for the brand and its chrome on one line, the chrome moves to a second
+   line, at the end, and wraps within itself if it must. */
 .topbar {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-2);
   padding: 10px 20px;
   background: var(--tb-grad);
   border-bottom: 1px solid var(--tb-border);
@@ -371,7 +375,8 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .topbar a:not([class]) { color: var(--tb-chrome-fg); }
 .brand:hover, .topbar a:not([class]):hover { color: var(--tb-link-hover); }
 .topbar-chrome {
-  display: inline-flex; align-items: center; gap: var(--space-2);
+  display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2);
+  min-width: 0; margin-inline-start: auto;
 }
 /* A topbar pill is raised, so it is always a link or a button, never a label. */
 .topbar-pill {
@@ -383,6 +388,17 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   text-decoration: none;
 }
 .topbar-pill:hover { color: var(--tb-chrome-hover-fg); }
+/* A pill may carry a glyph with its words in a .topbar-pill-label. On a
+   phone the words are then heard but not shown, and the pill is its
+   glyph, so a topbar with several pills still fits on one line. */
+@media (max-width: 640px) {
+  .topbar { padding: 8px 12px; }
+  .topbar-pill:has(> .glyph) { position: relative; padding-inline: 8px; }
+  .topbar-pill:has(> .glyph) > .topbar-pill-label {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+}
 /* The theme toggle shares the chip styling on the topbar chrome. */
 .theme-toggle {
   display: inline-flex; align-items: center; justify-content: center;
