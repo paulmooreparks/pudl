@@ -1,0 +1,40 @@
+{
+  "$description": "The faces, the type scale, the spacing grid and the radii. A theme may change the faces, within the roles chapter 4 sets out, and changes nothing else here. A px is a logical unit: the CSS pixel, the device-independent pixel, the Android dp and the Apple point.",
+  "font": {
+    "$description": "Inter ships with PUDL, so an implementation does not depend on what the reader has installed. The rest of each list stands in until it loads, or where it cannot.",
+    "$type": "fontFamily",
+    "font": { "$value": ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"], "$description": "Every text, unless a role below says otherwise." },
+    "font-display": { "$value": "{font.font}", "$description": "Headings and the brand. A theme may give them a face of their own." },
+    "mono": { "$value": ["ui-monospace", "Cascadia Code", "SF Mono", "Consolas", "monospace"], "$description": "Code, and values meant to be read character by character." }
+  },
+  "type": {
+    "$description": "The type scale. Every size PUDL uses is one of these.",
+    "$type": "dimension",
+    "text-2xs": { "$value": { "value": 11, "unit": "px" }, "$description": "Section labels, meta lines, badges." },
+    "text-xs": { "$value": { "value": 12, "unit": "px" }, "$description": "Chips, small buttons, dock tabs." },
+    "text-sm": { "$value": { "value": 13, "unit": "px" }, "$description": "Labels, tabs, list rows, secondary text." },
+    "text-md": { "$value": { "value": 14, "unit": "px" }, "$description": "Controls, table values, dialog text." },
+    "text-base": { "$value": { "value": 15, "unit": "px" }, "$description": "Body text." },
+    "text-lg": { "$value": { "value": 17, "unit": "px" }, "$description": "Card and dialog titles, the brand, the fourth heading level." },
+    "text-xl": { "$value": { "value": 20, "unit": "px" }, "$description": "The third heading level." },
+    "text-2xl": { "$value": { "value": 24, "unit": "px" }, "$description": "The second heading level." },
+    "text-3xl": { "$value": { "value": 30, "unit": "px" }, "$description": "The first heading level." }
+  },
+  "space": {
+    "$description": "The spacing grid, on a 4px base. Spacing between and around components comes from these. A control's own padding belongs to the control and is fixed with it.",
+    "$type": "dimension",
+    "space-1": { "$value": { "value": 4, "unit": "px" } },
+    "space-2": { "$value": { "value": 8, "unit": "px" } },
+    "space-3": { "$value": { "value": 12, "unit": "px" } },
+    "space-4": { "$value": { "value": 16, "unit": "px" } },
+    "space-5": { "$value": { "value": 24, "unit": "px" } },
+    "space-6": { "$value": { "value": 32, "unit": "px" } }
+  },
+  "radius": {
+    "$description": "The corner radii.",
+    "$type": "dimension",
+    "radius": { "$value": { "value": 12, "unit": "px" }, "$description": "Cards, panels, windows." },
+    "radius-sm": { "$value": { "value": 7, "unit": "px" }, "$description": "Buttons, entries, tabs." },
+    "radius-pill": { "$value": { "value": 999, "unit": "px" }, "$description": "Fully rounded ends, for chips and badges." }
+  }
+}

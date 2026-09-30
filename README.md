@@ -4,7 +4,9 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-It is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions, and no framework and no build step. Every project that uses it carries a copy.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.1.0.
+
+The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
 ## See it
 
@@ -28,7 +30,7 @@ The article reader fetches its windows from the server, so to run it from a copy
 - **Dialogs are native dialog elements rendered by the server**, and a page never falls back on the browser's own `confirm()`.
 - **Glyphs are drawn, not typed.** Every glyph in PUDL's chrome is an SVG mask from the stylesheet, so it looks the same everywhere and never turns into a colour emoji.
 
-`reference.html` shows every component in both themes and lists the rest of the invariants. [`docs/CONTRACT.md`](docs/CONTRACT.md) lists every class, token, attribute, event and function a project may rely on, and what is internal.
+These rules belong to the language, and [chapter 2 of the specification](https://github.com/paulmooreparks/pudl-spec/blob/main/spec/02-grammar.md) states them in full; where the two differ, the specification is right and this README is out of date. `reference.html` shows every component in both themes and lists the rest of the invariants. [`docs/CONTRACT.md`](docs/CONTRACT.md) lists every class, token, attribute, event and function a project may rely on, and what is internal.
 
 ## Using it
 
@@ -977,6 +979,8 @@ Everything a project uses is in `dist/`, and everything else supports it.
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
 - `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; `applet-article.html`, the same applet embedded in an article; `applets/`, the applet and the registry that names it; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage; and `files.html`, the file browser, whose `files-app.js` does the same for it, with its editor and preview applets in `applets/` and pages of their own in `editor.html` and `preview.html`. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
+- `vendor/pudl-spec/`, the specification's tokens and glyphs at the version this release implements, copied from a tag of pudl-spec and never edited here
+- `build/tokens.js`, which writes the token block of `dist/pudl.css` from them, the repository's only build step; a project never runs it
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/proposals/`, design proposals and the decisions taken on them
 - `tests/`, the browser tests, their runner `run.js`, and in `fixtures/` the pages some of them need beyond the samples

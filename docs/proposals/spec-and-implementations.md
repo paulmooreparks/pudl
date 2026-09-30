@@ -1,6 +1,6 @@
 # Proposal: separating the language from its web implementation
 
-Status: proposed, 2026-09-30. For Paul to decide. The decisions it asks for are listed at the end.
+Status: accepted, 2026-09-30. Paul took all three recommendations, recorded at the end.
 
 PUDL is meant to be a design language, and this repository was meant to be one implementation of it. In practice the two have grown into one thing. The README states a rule of the language and then, in the same paragraph, names the CSS class that carries it out. `docs/CONTRACT.md` calls itself the list of everything a project may rely on, but everything in it is a class, a data attribute, a script function or a query parameter, so it is really the web implementation's interface. One version number covers both, which means a new button style and a new rule about what a button is look like the same kind of change.
 
@@ -93,8 +93,10 @@ In the order I would do them, and why:
 9. Applets: the host contract, independent of any platform.
 10. Conformance checklists.
 
-## Decisions for Paul
+## Decisions
 
-1. Separate repository (`pudl-spec`, recommended) or a `spec/` folder here.
-2. The first platform after the web: Avalonia (recommended), or the Go terminal library if Tela needs it sooner.
-3. Whether the web implementation's 1.0 waits for spec 1.0, which is cleaner, or ships first against the rules as they stand in this README and conforms to spec 1.0 when it exists.
+Paul decided all three on 2026-09-30, each as recommended.
+
+1. The spec lives in a separate repository, `pudl-spec`, created now. This repository keeps its name and becomes the web implementation.
+2. The first platform after the web is Avalonia.
+3. The web implementation's 1.0 waits for spec 1.0. Writing the spec settles questions that would otherwise be frozen into the web's interface first, such as what a window becomes on a phone and what replaces a hover-only affordance on touch, and settling them after a 1.0 would put the change on adopters.
