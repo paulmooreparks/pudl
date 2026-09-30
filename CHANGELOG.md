@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.31.0
+
+Splitters, from parkscomputing.com's `Architecture/pudl-proposal-splitter.md`.
+
+- A `.split` holds two `.split-pane`s and a `.split-handle` between them, which resizes the first. The first pane's size is a custom property on the split, `--split-a` by default, so a server renders a stored size and the stylesheet does the layout. `.stacked` puts the panes one above the other, which the proposal did not ask for, so that an editor above a terminal needs no second component.
+- The new optional `dist/pudl-split.js` makes the handle a focusable separator in the ARIA window-splitter pattern, moved by pointer, by the arrow keys along its axis, Shift for a larger step, Home and End to its limits, and returned to the stylesheet's size by Enter or a double-click. Its limits, `data-split-min` in pixels and `data-split-max` in pixels or a percentage, follow the split's own size as a window resizes it. PUDL keeps no state: `pudl:split` fires with `detail.size`, or null after a reset, for the project to store. The proposal's event carried the width; it is `size` because a stacked split's is a height.
+- The handle is drawn as the master-detail divider is. The divider keeps its own script, so each stands alone.
+- The reference page gains a section for splitters.
+
 ## 0.30.1
 
 - A menu panel whose rows fit no longer shows a scrollbar (from parkscomputing.com's `Architecture/pudl-bug-menu-scrollbar.md`). `pudl-menu.js` measured the panel's natural height with `scrollHeight`, which leaves out the border and rounds down, so a panel came out two pixels, or a fraction of one, short of its content. It now measures the panel's whole rectangle and rounds up. A new suite checks the reference page's menus at display scales of 1, 1.25 and 1.92.

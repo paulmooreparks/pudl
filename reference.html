@@ -18,6 +18,7 @@
   <script src="dist/pudl-tree.js" defer></script>
   <script src="dist/pudl-grid.js" defer></script>
   <script src="dist/pudl-code.js" defer></script>
+  <script src="dist/pudl-split.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -82,7 +83,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()">◐</button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.30.1</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.31.0</a>
     </div>
   </header>
 
@@ -766,7 +767,22 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </div>
     </div>
 
-    <h2>21. Invariants</h2>
+    <h2 id="split">21. Splitters</h2>
+    <p>Two panes inside a component, with a handle between them that resizes the first, drawn as the master-detail divider is. Drag it, or focus it and use the arrow keys, Home and End; Enter or a double-click returns the stylesheet's size. The second pair is stacked.</p>
+    <div class="demo">
+      <div class="split" style="height: 160px; border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <div class="split-pane" style="padding: var(--space-3); background: var(--surface-alt);">Folders</div>
+        <div class="split-handle" aria-label="Resize the folders" data-split-min="100" data-split-max="70%"></div>
+        <div class="split-pane" style="padding: var(--space-3);">Files</div>
+      </div>
+      <div class="split stacked" style="height: 220px; margin-top: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+        <div class="split-pane" style="padding: var(--space-3);">Editor</div>
+        <div class="split-handle" aria-label="Resize the editor" data-split-min="60"></div>
+        <div class="split-pane" style="padding: var(--space-3); background: var(--surface-alt);">Terminal</div>
+      </div>
+    </div>
+
+    <h2>22. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>

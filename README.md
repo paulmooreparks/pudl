@@ -134,6 +134,9 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.30.1/dist/pudl-code.js" defer
         integrity="sha384-/v1kx/aWnxGTqr57wM4rCYnbtWgeysmaYmVYyVbS7xv627AumdudiiTv/QyNdtTr"
         crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.30.1/dist/pudl-split.js" defer
+        integrity="sha384-SPLIT-PENDING"
+        crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.30.1/dist/pudl-tree.js" defer
         integrity="sha384-AdH7FeNFZ3jt9YKyB/5ih6sMZO5DYZgPf7B1/qC6q+aYaNsl2WKJYyagAffRqKe3"
         crossorigin="anonymous"></script>
@@ -553,6 +556,22 @@ A sidebar's width is the reader's convenience, not something to link to, so it i
 
 Windows in the detail pane are sized as fractions of their area, so they follow the divider as it moves. On a layout narrow enough to show one pane at a time the divider is hidden.
 
+## Splitters
+
+The master-detail divider resizes a page's sidebar. A splitter does the same for two panes inside a component, such as a folder tree beside a file list, or an editor above a terminal:
+
+```html
+<div class="split" style="--split-a: 240px">
+  <div class="split-pane">…</div>
+  <div class="split-handle" aria-label="Resize the folders" data-split-min="140" data-split-max="60%"></div>
+  <div class="split-pane">…</div>
+</div>
+```
+
+The first pane's size is a custom property on the `.split`, `--split-a` unless the handle's `data-split-prop` names another, and the stylesheet does the layout; without one the panes share the space equally. A `.split.stacked` puts the panes one above the other. The handle is drawn as the divider is, a rule that takes the accent while it is hovered, dragged or focused.
+
+With the optional `pudl-split.js`, the handle moves by pointer and by keyboard. It is a focusable separator in the ARIA window-splitter pattern. The arrow keys along its axis move it a step, and with Shift a larger one; Home and End go to its limits; Enter or a double-click returns the stylesheet's size. Its limits are `data-split-min` in pixels, 80 unless it says otherwise, and `data-split-max` in pixels or as a percentage of the split, by default all but the minimum, so the second pane never vanishes. They follow the split's own size, whatever changes it. PUDL keeps no state: when a change ends, `pudl:split` fires on the handle with `detail.size` in pixels, or null after a return to the stylesheet's size, and a project that wants the size remembered stores it and renders it in the `style` next time. `data-split-valuetext` gives the handle's spoken size in the page's words, with `{n}` for the pixels.
+
 ## Master-detail on a narrow screen
 
 The master-detail layout shows a list beside one record. When the layout itself is 640px wide or less, on a phone or in a narrow window or panel, it shows one pane at a time instead: the list, or the record. It measures its own width with a container query, not the screen's, so a layout inside a narrow floating window behaves the same way as one on a phone.
@@ -914,6 +933,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-grid.js`, the optional script for tables whose rows are choices
   - `pudl-hljs.css`, the optional stylesheet that colours highlight.js's classes from the syntax tokens
   - `pudl-code.js`, the optional script that gives code blocks Copy and Download
+  - `pudl-split.js`, the optional script for splitters between two panes
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -932,7 +952,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.30.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.31.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
