@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.29.1
+
+- The topbar no longer widens the page on a phone (#9, reported by jottinger). It and its chrome wrap, the chrome moving to a line of its own at the end when the brand and it do not fit on one, with less padding on a phone. A pill may carry a glyph and a `.topbar-pill-label`, and on a phone it then shows only the glyph, its words still heard.
+- A new suite loads every sample and the reference page at 320 and 390 pixels wide and fails if any scrolls sideways, so a page that outgrows a phone is caught.
+
 ## 0.29.0
 
 Copy and download on code blocks, from parkscomputing.com's `Architecture/pudl-proposal-code-actions.md`.

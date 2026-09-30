@@ -156,6 +156,12 @@ The smallest useful theme changes only `--accent` and `--accent-hover`. The acce
 
 The topbar keeps its own colours so that it can stay dark on a light page, and the links on it follow the topbar, not the page. The brand and any plain link on the topbar hover in `--tb-link-hover`, which PUDL derives by mixing the accent into the topbar's foreground, so that it reads on a dark bar and on a light one. A theme may set it.
 
+The topbar never widens the page. On a screen too narrow for the brand and its chrome on one line, the chrome moves to a second line, at the end, and wraps within itself if it must. A pill may carry a glyph with its words in a `.topbar-pill-label`, and on a phone it then shows only the glyph while its words are still heard, so a topbar with several pills stays compact:
+
+```html
+<a class="topbar-pill" href="/articles"><span class="glyph" style="--glyph: var(--glyph-document)" aria-hidden="true"></span><span class="topbar-pill-label">Articles</span></a>
+```
+
 PUDL sets text in Inter, which it ships in `dist/fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
 
 ## What a project may change
@@ -894,7 +900,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.29.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.29.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
