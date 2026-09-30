@@ -46,7 +46,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 - Adjustments with defaults derived from the above: `--dialog-bg`, `--section-current-bg`, `--win-active-bg`, `--win-active-fg`, `--win-active-border`, `--win-active-shadow`, `--win-head-docked`
 - Layout: `--md-sidebar-w` and `--md-sidebar-min` on a `.md-layout`
 
-**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-pill`; the surface treatments `--input-bg`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-copy`, `--glyph-diamond`, `--glyph-dock`, `--glyph-document`, `--glyph-download`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-triangle`, `--glyph-undock` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
+**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-pill`; the surface treatments `--input-bg`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-copy`, `--glyph-diamond`, `--glyph-dock`, `--glyph-document`, `--glyph-download`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-gear`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-tick`, `--glyph-triangle`, `--glyph-undock` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
 
 Every other custom property is internal.
 
@@ -100,9 +100,11 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-pane="off"` | the window layer | `pudl-windows.js` | Leave the master-detail layout's `data-md-pane` to the server |
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
 | `data-win-open`, `data-win-replace` | a link | `pudl-windows.js` | Open that key's window, in place of this one |
-| `data-win-action` | a window button | `pudl-windows.js` | `page`, `minimize`, `maximize`, `dock` or `close` |
+| `data-win-menu` | the window layer | `pudl-windows.js` | Give every window a window menu |
+| `data-win-action` | a window button | `pudl-windows.js` | `menu`, `page`, `minimize`, `maximize`, `dock` or `close` |
+| `data-applet-text-commands`, `-no-commands` | an applet mount outside a window | `pudl-applets.js` | The label of its Commands button, and the text of an empty menu |
 | `data-win-dock`, `data-win-tab`, `data-win-back`, `data-win-restore` | the dock, a dock tab or row, a minimise-all or back link, a restore-all link | `pudl-windows.js` | The script keeps the last two's `href` current and marks them `aria-disabled` when they would change nothing |
-| `data-win-text-maximize`, `-restore`, `-minimized`, `-head`, `-dock`, `-undock`, `-collapse`, `-expand` | the window layer | `pudl-windows.js` | The page's own words, with `{title}` |
+| `data-win-text-maximize`, `-restore`, `-minimized`, `-head`, `-dock`, `-undock`, `-collapse`, `-expand`, `-menu`, `-page`, `-minimize`, `-reset`, `-close` | the window layer | `pudl-windows.js` | The page's own words, with `{title}` |
 | `data-win-edge` | a docked window | the stylesheet, `pudl-windows.js` | The edge it shows on, `top`, `bottom`, `left` or `right`, which the server renders and the script keeps |
 | `data-menu-key`, `data-menu-empty` | a menu panel | `pudl-menu.js` | Its summoning key, its "nothing matches" text |
 | `data-md-pane` | `.md-layout` | the stylesheet, `pudl-windows.js` | Which pane a narrow layout shows |
@@ -128,6 +130,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:window-open` | the window, bubbles | | When a window's content is in the page |
 | `pudl:window-closing` | the window, and each child closing with it, bubbles, cancelable | `key`, `reason`: `button`, `key`, `script` or `parent` | Before a reader's or a script's close; cancelling it keeps the window |
 | `pudl:window-close` | the window, bubbles | `key`, `reason`: `button`, `key`, `script`, `parent`, `replace` or `address` | Just before a window leaves the page, by any route |
+| `pudl:window-menu` | the window, bubbles | `key`, and `add(label, run, { checked, disabled })` | As the window menu opens, for content to add its commands |
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
@@ -148,7 +151,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
 | `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |
 | `pudlApplets.request(verb, { path, kind, … }, from)`, `.can(verb, kind)` | `pudl-applets.js` | Ask for a request without naming an applet; `request` returns false when nothing serves it |
-| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()` and `setState(s)`, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
+| `pudlApplets.commandsIn(scope)` | `pudl-applets.js` | The commands of the applets running inside `scope`, as the window menu shows them |
+| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()`, `setState(s)` and `commands()`, which returns `[{ label, run, checked, disabled }]`, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |

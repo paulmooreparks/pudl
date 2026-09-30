@@ -82,6 +82,8 @@
   var defaults = [];       // keys of the windows open when the address names none
   var bare = null;         // the window parameters of the state an address naming none produced
   var closing = {};        // key -> why its window is about to close, for pudl:window-close
+  var homes = {};          // key -> the placement its markup gave it, which reset returns it to
+  var menuRuns = {};       // key -> the content's commands in its open window menu, by index
 
   /* === State and URL ===================================================== */
 
@@ -748,7 +750,12 @@
       head.querySelectorAll('a').forEach(function (a) { a.draggable = false; });
       head.tabIndex = 0;
       labelHead(key);
+      addMenu(el, key, head);
     }
+
+    /* Where reset returns the window: the placement its markup gave it as
+       it arrived. */
+    if (!homes[key]) homes[key] = markupPlacement(el, Object.keys(wins).length - 1);
 
     /* A window's body scrolls, and a reader with only a keyboard can
        scroll it only by focusing something inside it. Content with no link
@@ -756,6 +763,140 @@
     var body = el.querySelector('.win-body');
     if (body && !body.hasAttribute('tabindex')) body.tabIndex = 0;
     return el;
+  }
+
+  /* === The window menu =====================================================
+     A menu at the left of the title bar, on every window of a layer marked
+     data-win-menu, or on a window whose markup carries a button with
+     data-win-action="menu". It holds the window's own commands first, then
+     below a separator the commands of what the window holds: those an
+     applet's instance offers through commands(), and those any content
+     adds when pudl:window-menu fires on the window. It is built afresh each
+     time it opens, so its labels are always true. */
+
+  function addMenu(el, key, head) {
+    var btn = head.querySelector('[data-win-action="menu"]');
+    if (!btn && !layer.hasAttribute('data-win-menu')) return;
+    var id = 'win-menu-' + key;
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'win-btn';
+      btn.setAttribute('data-win-action', 'menu');
+      head.insertBefore(btn, head.firstChild);
+    }
+    btn.setAttribute('popovertarget', id);
+    btn.setAttribute('aria-label', text('menu', 'Window menu'));
+    if (!document.getElementById(id)) {
+      var panel = document.createElement('div');
+      panel.className = 'menu-panel win-menu';
+      panel.id = id;
+      panel.setAttribute('popover', '');
+      panel.setAttribute('data-win-menu-for', key);
+      el.appendChild(panel);
+    }
+  }
+
+  function menuItem(label, cmd, opts) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'menu-action';
+    b.setAttribute('data-win-cmd', cmd);
+    b.textContent = label;
+    if (opts && opts.checked != null) b.setAttribute('aria-pressed', opts.checked ? 'true' : 'false');
+    if (opts && opts.disabled) b.disabled = true;
+    if (opts && opts.danger) b.classList.add('danger');
+    return b;
+  }
+
+  function sep() {
+    var hr = document.createElement('hr');
+    hr.className = 'menu-sep';
+    return hr;
+  }
+
+  /* The commands of what a window holds. */
+  function contentCommands(win, key) {
+    var list = [];
+    function add(label, run, opts) {
+      if (typeof label !== 'string' || typeof run !== 'function') return;
+      list.push({ label: label, run: run, checked: opts && opts.checked, disabled: opts && opts.disabled });
+    }
+    if (window.pudlApplets && window.pudlApplets.commandsIn) {
+      window.pudlApplets.commandsIn(win).forEach(function (c) { add(c.label, c.run, c); });
+    }
+    win.dispatchEvent(new CustomEvent('pudl:window-menu', { bubbles: true, detail: { key: key, add: add } }));
+    return list;
+  }
+
+  function buildMenu(panel, key) {
+    var win = wins[key];
+    if (!win) return;
+    var p = state.place[key];
+    var dock = dockEdge(p);
+    panel.textContent = '';
+    var page = win.querySelector('.win-head a[data-win-action="page"]');
+    if (page) panel.appendChild(menuItem(text('page', 'Open as a page'), 'page'));
+    panel.appendChild(menuItem(dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
+                                    : text('minimize', 'Minimize'), 'minimize'));
+    if (!dock) panel.appendChild(menuItem(p.mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
+    snapItems(panel, key);
+    panel.appendChild(menuItem(dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
+    panel.appendChild(menuItem(text('reset', 'Reset size and position'), 'reset'));
+    var own = contentCommands(win, key);
+    menuRuns[key] = own;
+    if (own.length) {
+      panel.appendChild(sep());
+      own.forEach(function (c, i) { panel.appendChild(menuItem(c.label, 'content:' + i, c)); });
+    }
+    panel.appendChild(sep());
+    panel.appendChild(menuItem(text('close', 'Close'), 'close', { danger: true }));
+  }
+
+  /* Filled in with snap zones; the halves until then. */
+  function snapItems() {}
+
+  function runCommand(key, cmd) {
+    if (!wins[key]) return;
+    var p = state.place[key];
+    if (cmd === 'page') {
+      var a = wins[key].querySelector('.win-head a[data-win-action="page"]');
+      if (a) location.assign(a.href);
+    } else if (cmd === 'minimize') commit(minimizeToggled(state, key), false);
+    else if (cmd === 'maximize') commit(maximizeToggled(state, key), false);
+    else if (cmd === 'dock') commit(docked(state, key, dockEdge(p) ? null : 'bottom'), false);
+    else if (cmd === 'reset') commit(resetPlaced(state, key), false);
+    else if (cmd === 'close') close(key, 'button');
+    else if (cmd.indexOf('content:') === 0) {
+      var c = (menuRuns[key] || [])[+cmd.slice(8)];
+      if (c && !c.disabled) c.run();
+    } else runSnap(key, cmd);
+    if (cmd !== 'close' && wins[key] && !isHidden(state, key)) focusWindow(key);
+  }
+
+  /* Filled in with snap zones. */
+  function runSnap() {}
+
+  /* Returns a window to the placement its markup gave it. */
+  function resetPlaced(st, key) {
+    st = raised(st, key);
+    var home = homes[key] || markupPlacement(wins[key], 0);
+    st.place[key] = clampPlacement(Object.assign({}, home), innerW(), innerH());
+    return st;
+  }
+
+  function openMenu(key) {
+    var panel = document.getElementById('win-menu-' + key);
+    if (!panel) return;
+    function focusFirst() {
+      var first = panel.querySelector('.menu-action:not(:disabled)');
+      if (first) first.focus();
+    }
+    if (panel.matches(':popover-open')) { focusFirst(); return; }
+    /* pudl-menu.js hides a panel until the toggle event has placed it, and
+       a hidden row cannot take focus, so focus waits for that event. */
+    panel.addEventListener('toggle', focusFirst, { once: true });
+    panel.showPopover();
   }
 
   /* The key of the window an element sits in, or null. */
@@ -795,6 +936,12 @@
     var inherited = host && fromOpener(host);
     if (inherited) return inherited;
 
+    return markupPlacement(el, index);
+  }
+
+  /* The placement a window's markup gives it: the position in its style
+     if it has one, else its mode with a cascade from the top left. */
+  function markupPlacement(el, index) {
     var s = el.style;
     var mode = MODES.indexOf(el.getAttribute('data-win-mode')) >= 0 ? el.getAttribute('data-win-mode') : 'floating';
     /* A docked window's strip comes from --win-dock-size in its style. */
@@ -1159,6 +1306,11 @@
   /* Keys pressed on the title bar itself; keys on the title link or the
      buttons inside it are theirs. */
   function onHeadKey(e, key) {
+    /* The keys that open a context menu open the window menu. */
+    if (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey)) {
+      if (document.getElementById('win-menu-' + key)) { e.preventDefault(); openMenu(key); }
+      return;
+    }
     var side = shownEdge(state, key);
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -1229,6 +1381,13 @@
     if (restore) {
       e.preventDefault();
       if (restore.getAttribute('aria-disabled') !== 'true') restoreAll();
+      return;
+    }
+
+    var cmd = e.target.closest('.win-menu [data-win-cmd]');
+    if (cmd && layer.contains(cmd)) {
+      e.preventDefault();
+      if (!cmd.disabled) runCommand(cmd.closest('.win-menu').getAttribute('data-win-menu-for'), cmd.getAttribute('data-win-cmd'));
       return;
     }
 
@@ -1335,6 +1494,15 @@
     });
     document.addEventListener('keydown', onEscape);
     window.addEventListener('popstate', function () { sync(false); });
+
+    /* The window menu is built as it opens. beforetoggle does not bubble,
+       so it is caught on the way down. */
+    layer.addEventListener('beforetoggle', function (e) {
+      var panel = e.target;
+      if (e.newState === 'open' && panel.classList && panel.classList.contains('win-menu')) {
+        buildMenu(panel, panel.getAttribute('data-win-menu-for'));
+      }
+    }, true);
 
     /* A side dock moves to the bottom when the layer grows too narrow for
        it, and back when it widens again. */

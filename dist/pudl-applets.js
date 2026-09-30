@@ -50,7 +50,8 @@
               state changes; it fires pudl:applet-change on the mount.
 
    The instance may also have state(), returning a string, and
-   setState(s), taking one. PUDL keeps no applet state, with one opt-in: a
+   setState(s), taking one, and commands(), which the section on commands
+   below sets out. PUDL keeps no applet state, with one opt-in: a
    mount outside a window with data-applet-param="name" has its state kept
    in the page's query under that name, replaced rather than pushed, so an
    applet embedded in an article can be shared by the article's address.
@@ -271,6 +272,7 @@
     entry.instance = instance || null;
     running.push(entry);
     root.setAttribute('data-applet-state', 'running');
+    if (!inWindow && entry.instance && typeof entry.instance.commands === 'function') addCommandRow(entry);
     if (entry.instance && entry.instance.setState) {
       queued.slice(1).forEach(function (s) { entry.instance.setState(s); });
     }
@@ -303,8 +305,93 @@
       catch (err) { if (window.console) console.warn('pudl-applets:', err); }
       entry.root.removeAttribute('data-applet-state');
       if (entry.fitSet) entry.root.removeAttribute('data-applet-fit');
+      if (entry.row) entry.row.remove();
       return false;
     });
+  }
+
+  /* === Commands ============================================================
+     An instance may offer commands of its own with commands(), returning
+     [{ label, run, checked, disabled }], asked afresh each time they are
+     shown so each label and tick is current. checked, when given, makes
+     the command one that switches on and off. In a window the commands
+     join the window menu, which asks for them with commandsIn(); on a page
+     they get a menu of their own, in a row above the applet. */
+
+  function commandsOf(entry) {
+    var list;
+    try { list = entry.instance.commands(); }
+    catch (err) { if (window.console) console.warn('pudl-applets:', err); return []; }
+    return (Array.isArray(list) ? list : []).filter(function (c) {
+      return c && typeof c.label === 'string' && typeof c.run === 'function';
+    });
+  }
+
+  /* The commands of the running applets inside scope, in document order. */
+  function commandsIn(scope) {
+    var out = [];
+    running.forEach(function (entry) {
+      if (!entry.root.isConnected || !entry.instance || typeof entry.instance.commands !== 'function') return;
+      if (scope && scope !== entry.root && !scope.contains(entry.root)) return;
+      out = out.concat(commandsOf(entry));
+    });
+    return out;
+  }
+
+  var rows = 0;
+  function addCommandRow(entry) {
+    var id = 'applet-commands-' + (++rows);
+    var row = document.createElement('div');
+    row.className = 'applet-commands';
+    var menu = document.createElement('div');
+    menu.className = 'menu';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm menu-btn';
+    btn.setAttribute('popovertarget', id);
+    var gear = document.createElement('span');
+    gear.className = 'glyph';
+    gear.style.setProperty('--glyph', 'var(--glyph-gear)');
+    gear.setAttribute('aria-hidden', 'true');
+    btn.appendChild(gear);
+    btn.appendChild(document.createTextNode(' ' + (entry.root.getAttribute('data-applet-text-commands') || 'Commands')));
+    var panel = document.createElement('div');
+    panel.className = 'menu-panel';
+    panel.id = id;
+    panel.setAttribute('popover', '');
+    var shown = [];
+    panel.addEventListener('beforetoggle', function (e) {
+      if (e.newState !== 'open') return;
+      shown = commandsOf(entry);
+      panel.textContent = '';
+      shown.forEach(function (c, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'menu-action';
+        b.textContent = c.label;
+        b.setAttribute('data-applet-cmd', String(i));
+        if (c.checked != null) b.setAttribute('aria-pressed', c.checked ? 'true' : 'false');
+        if (c.disabled) b.disabled = true;
+        panel.appendChild(b);
+      });
+      if (!shown.length) {
+        var none = document.createElement('p');
+        none.className = 'menu-empty';
+        none.textContent = entry.root.getAttribute('data-applet-text-no-commands') || 'No commands just now';
+        panel.appendChild(none);
+      }
+    });
+    panel.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-applet-cmd]');
+      if (!b || b.disabled) return;
+      var c = shown[+b.getAttribute('data-applet-cmd')];
+      if (c) c.run();
+    });
+    menu.appendChild(btn);
+    menu.appendChild(panel);
+    row.appendChild(menu);
+    entry.root.parentNode.insertBefore(row, entry.root);
+    entry.row = row;
   }
 
   /* === Requests ============================================================
@@ -436,7 +523,8 @@
     delete handed[e.detail && e.detail.key];
   });
 
-  window.pudlApplets = { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can };
+  window.pudlApplets = { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can,
+                         commandsIn: commandsIn };
 
   /* A mount with data-applet-param keeps its state in the page's query. */
   document.addEventListener('pudl:applet-change', function (e) {

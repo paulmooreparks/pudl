@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window menu</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-applets.js" defer></script>
+  <script src="window-menu.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 640px; } .bar { padding: 8px; }</style>
+</head>
+<body>
+  <!-- A test fixture: a layer whose windows all get the window menu, one
+       holding an applet with commands of its own and one holding plain
+       content that adds commands through pudl:window-menu. -->
+  <div class="bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-menu data-win-default="counter,notes">
+      <section class="win" data-win="counter" style="--win-x: 0.05; --win-y: 0.05; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head">
+          <h2 class="win-title">Counter</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="page" href="window-menu-page.html" aria-label="Open as a page"></a>
+            <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a>
+            <a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a>
+            <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body"><div data-applet="counter"></div></div>
+      </section>
+      <section class="win" data-win="notes" style="--win-x: 0.5; --win-y: 0.1; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head">
+          <h2 class="win-title">Notes</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body"><p id="notes-text">Plain content.</p></div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
