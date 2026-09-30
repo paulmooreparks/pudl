@@ -420,7 +420,7 @@ Any glyph token can be drawn as an element with `.glyph`, in the colour of the t
 <span class="glyph" style="--glyph: var(--glyph-folder)" aria-hidden="true"></span> drafts
 ```
 
-A glyph beside words that already say what it shows is `aria-hidden`; one that stands alone carries `role="img"` and an `aria-label`. For lists of files and documents there are `--glyph-folder`, `--glyph-file`, `--glyph-document`, `--glyph-app`, `--glyph-script`, `--glyph-link` and `--glyph-home`. They carry no colour of their own, because the shape says the kind; PUDL's colours are for state.
+A glyph beside words that already say what it shows is `aria-hidden`; one that stands alone carries `role="img"` and an `aria-label`. For lists of files and documents there are `--glyph-folder`, `--glyph-file`, `--glyph-document`, `--glyph-app`, `--glyph-script`, `--glyph-link` and `--glyph-home`. They carry no colour of their own, because the shape says the kind; PUDL's colours are for state. `--glyph-gear` marks settings and an applet's Commands button, and `--glyph-tick` marks a menu command that is switched on.
 
 A **drop target** is styled by PUDL and run by its host, since what may be dropped where is the application's rule. While something is dragged over a place it may land, the host sets `data-drop-over` on a `.drop-zone`, or `data-drop-target` on an item such as a folder's row, and PUDL rings it in the accent. A `.drop-hint` inside a zone says what dropping there will do, and shows only while something is over it.
 
@@ -722,6 +722,25 @@ A window may be docked at an edge of the workspace, and it then belongs to the w
 - **Narrow screens.** On a layer 640px wide or less a side dock shows at the bottom, since there is no room beside the content.
 - **Rendering.** The script sets the strips as `--dock-top`, `--dock-bottom`, `--dock-left` and `--dock-right` on the layer, and `data-win-edge` on each docked window, naming the edge it shows on. A server renders the same, as above, so the page is right before the script runs.
 
+### The window menu
+
+A layer carrying `data-win-menu` gives every window a menu button at the left of its title bar. A single window can have one instead by carrying the button in its markup, `<button type="button" class="win-btn" data-win-action="menu"></button>`, first in its `.win-head`. The menu reaches every command a window has from one place, including the ones a title bar has no room for, and it is the keyboard's route to them: the context-menu key or Shift+F10 on a focused title bar opens it with focus on its first command, and the arrow keys and Enter choose one. It needs `pudl-menu.js` to place it and move through it.
+
+The menu is built afresh each time it opens, in three groups:
+
+1. The window's own commands. These are Open as a page when the window has a page link, Minimize (Collapse or Expand on a docked window), Maximize or Restore, Dock at the bottom or Undock, and Reset size and position, which returns the window to the placement its markup gave it.
+2. The commands of what the window holds, after a separator. An applet's come from its `commands()`, described under Applets. Any other content adds its own when `pudl:window-menu` fires on the window as the menu opens: `detail.key` names the window, and `detail.add(label, run, { checked, disabled })` adds a command.
+3. Close, last and after a separator, so it is never chosen by a slip from the command above it.
+
+```js
+document.addEventListener('pudl:window-menu', function (e) {
+  if (e.detail.key !== 'notes') return;
+  e.detail.add('Word wrap', toggleWrap, { checked: wrapping });
+});
+```
+
+A command given `checked` carries `aria-pressed` and shows a tick while it is on. A disabled command stays in the menu, dimmed, so the reader learns it exists. Content cannot take over the window's own commands; one that must stop a close cancels `pudl:window-closing`, as below. The labels come from the `data-win-text-*` attributes listed under Accessibility, languages and print, with `data-win-text-menu` for the button, and `data-win-text-page`, `-minimize`, `-reset` and `-close` for the commands the other buttons do not already name.
+
 ### Child windows
 
 A window can open children for content that belongs to it, such as a source listing, an image or a receipt. A child's markup names its parent:
@@ -819,6 +838,7 @@ pudlApplets.register('mixer', {
     return {
       state: function () { return '...'; },        // optional
       setState: function (s) { /* ... */ },         // optional
+      commands: function () { return [/* ... */]; }, // optional
       destroy: function () { /* undo everything init set up */ }
     };
   }
@@ -843,6 +863,8 @@ An article about an applet wants links that set it up, such as "a glider gun". S
 ```
 
 With a running instance of that applet in the same window as the link, or, like the link, in no window, a plain click hands the state to the instance's `setState()` instead of navigating: the nearest such instance before the link, else the first after it. The state is the value of the mount's `data-applet-param` if the link carries that parameter, and otherwise the link's whole query, which is why an applet's own-page query and its state string should share one grammar. A mount that keeps its state in the address, by `data-applet-param` or on its own page, gets the link's state there as a new history entry, so Back undoes the preset as it would have undone the link. With no instance to take it, or with a modifier key, the link is an ordinary link, and the applet reads the same state from the address it arrives at.
+
+An applet may offer commands of its own, such as Save, Word wrap or Show hidden files, with `commands()`, which returns `[{ label, run, checked, disabled }]`. The runtime asks for them each time they are shown, so an applet builds the list from its current state and every label, tick and disabled command is true when the reader sees it. A command given `checked`, true or false, switches something on and off and shows a tick while it is on. In a window the commands join the window menu, below the window's own; on a page, where there is no window menu, the runtime puts a row above the applet holding a Commands menu button with the gear glyph, whose label a mount may change with `data-applet-text-commands`, and removes the row when the applet is destroyed. `pudlApplets.commandsIn(scope)` returns the commands of the applets running inside `scope`.
 
 An applet that listens on `window` or `document`, or starts a timer, must undo that in `destroy()`; an `AbortController` passed to every `addEventListener` makes that one call.
 
@@ -952,7 +974,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.31.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.32.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

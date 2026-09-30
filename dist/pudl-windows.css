@@ -224,6 +224,11 @@
   -webkit-mask: var(--glyph) center / contain no-repeat;
   mask: var(--glyph) center / contain no-repeat;
 }
+.win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-caret); }
+.win-btn[data-win-action="menu"] { margin-inline-end: var(--space-1); }
+.win:has(> .win-menu:popover-open) .win-btn[data-win-action="menu"] {
+  background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow);
+}
 .win-btn[data-win-action="page"]::before { --glyph: var(--glyph-open); }
 .win-btn[data-win-action="minimize"]::before { --glyph: var(--glyph-minimize); }
 .win-btn[data-win-action="maximize"]::before { --glyph: var(--glyph-maximize); }

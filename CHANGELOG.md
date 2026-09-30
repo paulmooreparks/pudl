@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.32.0
+
+The window menu, from parkscomputing.com's `Architecture/pudl-proposal-window-menu.md`.
+
+- A layer carrying `data-win-menu` gives every window a menu button at the left of its title bar, and a window can carry the button itself, `data-win-action="menu"`, without the layer's attribute. The menu holds the window's own commands first (Open as a page, Minimize or Collapse, Maximize or Restore, Dock at the bottom or Undock, and Reset size and position), then the commands of what the window holds, then Close, last and after a separator.
+- An applet offers commands with an optional `commands()` on its instance, returning `[{ label, run, checked, disabled }]`, asked afresh each time the menu opens. Other content adds commands when `pudl:window-menu` fires on the window, through `detail.add(label, run, { checked, disabled })`. A command with `checked` carries `aria-pressed` and shows a tick while it is on. Content cannot take over the window's own commands; `pudl:window-closing` remains the way to stop a close.
+- On an applet's page, outside any window, the runtime puts a Commands menu button above an applet that has `commands()`, and removes it with the applet. `pudlApplets.commandsIn(scope)` returns the commands of the applets in a scope.
+- The context-menu key or Shift+F10 on a focused title bar opens the menu, so every window command has a keyboard route.
+- Reset returns a window to the placement its markup gave it.
+- Two glyphs, `--glyph-gear` and `--glyph-tick`. A disabled `.menu-action` is dimmed.
+- The reference page and the Files sample turn the window menu on.
+
 ## 0.31.0
 
 Splitters, from parkscomputing.com's `Architecture/pudl-proposal-splitter.md`.
