@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.34.1
+
+This release implements PUDL specification 0.2.1.
+
+- **Segmented controls are drawn as they were before 0.34.0.** The chosen segment is raised in the trough and the others lie flat, because with two choices a pressed-in segment beside a raised one was hard to read. The specification now defines a segmented control as a switch with more than two positions, whose chosen segment is the thumb, as macOS and iOS draw it. The segment corners of `--radius-xs` and the dimming of a disabled segment from 0.34.0 stay.
+- A segmented control of links on the topbar keeps its own text colour. The topbar's rule for plain links outweighed it, so since 0.34.0 an unchosen segment's words came out in the bar's pale colour on a light segment (from parkscomputing.com's `Architecture/pudl-bug-topbar-seg-link.md`). The rule now carries no weight from the bar, so any component on the bar keeps its own colours.
+
 ## 0.34.0
 
 This release implements PUDL specification 0.2.0. Writing the specification's component sections found places where this implementation broke the grammar; Paul settled the grammar on 2026-10-01, and this release brings the web into line. Several changes are visible.

@@ -25,11 +25,29 @@ function check(name, ok, extra) {
       const s = el => getComputedStyle(el).boxShadow;
       return { on: s(on), off: s(off) };
     });
-    /* Pressed in is one shadow cast inside; raised is the lit edge inside
-       and a shadow cast outside. */
-    check(theme + ': the chosen segment is pressed in and the others stand raised',
-          seg.on.split(',').length === 1 && /inset/.test(seg.on) &&
-          seg.off.split(',').length === 2 && /inset/.test(seg.off.split(',')[0]) && !/inset/.test(seg.off.split(',')[1]), JSON.stringify(seg));
+    /* A segmented control is a switch with more positions: the chosen
+       segment is the raised thumb, the lit edge inside and a shadow cast
+       outside, and the others lie flat on the track. */
+    check(theme + ': the chosen segment is raised as a thumb and the others lie flat',
+          seg.off === 'none' &&
+          seg.on.split(',').length === 2 && /inset/.test(seg.on.split(',')[0]) && !/inset/.test(seg.on.split(',')[1]), JSON.stringify(seg));
+
+    /* A segmented control of links on the topbar keeps its own text colour
+       (from parkscomputing.com's Architecture/pudl-bug-topbar-seg-link.md). */
+    const onBar = await p.evaluate(() => {
+      const bar = document.querySelector('.topbar');
+      const seg = document.createElement('nav');
+      seg.className = 'seg';
+      seg.innerHTML = '<a href="#a" aria-current="page">Window</a><a href="#b">Classic</a>';
+      bar.appendChild(seg);
+      const c = getComputedStyle(seg.querySelectorAll('a')[1]).color;
+      const text = getComputedStyle(document.documentElement).getPropertyValue('--text');
+      const probe = document.createElement('span'); probe.style.color = text; document.body.appendChild(probe);
+      const want = getComputedStyle(probe).color;
+      probe.remove(); seg.remove();
+      return { c, want };
+    });
+    check(theme + ': a segmented control of links on the topbar keeps its own text colour', onBar.c === onBar.want, JSON.stringify(onBar));
 
     /* The contrast of a field's edge against what it sits on, measured
        from the colours the browser computes. */
