@@ -31,7 +31,9 @@ function check(name, ok, extra) {
       await p.keyboard.press('Escape');
     }
     check('at a scale of ' + scale + ', a menu whose rows fit has nothing to scroll', over.length === 0, over.join(' '));
-    await ctx.close();
+    /* Playwright's Firefox can fail to close a context it has finished
+       with, which says nothing about the page. */
+    await ctx.close().catch(() => {});
   }
   check('no errors', errors.length === 0, errors.join(' | '));
   await b.close();

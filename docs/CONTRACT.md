@@ -31,6 +31,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-grid.js` | `pudl.css` | Tables whose rows are choices |
 | `pudl-hljs.css` | `pudl.css` | highlight.js classes coloured from the syntax tokens |
 | `pudl-code.js` | `pudl.css` | Copy and Download on code blocks |
+| `pudl-split.js` | `pudl.css` | Splitters between two panes |
 
 ## Tokens
 
@@ -83,6 +84,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Document tabs | `.tablist.doc-tabs[role="tablist"]` of `[role="tab"]` links or buttons, each holding its name, an optional `.doc-tab-dirty` with words for assistive technology, and an optional `.doc-tab-close[aria-hidden="true"]` | `aria-selected` |
 | Code | `pre.code` for a block to read, with `tabindex="0"` when it may scroll; `.code-surface` for an editor's surface; `pre[data-code-actions]`, with `data-code-filename`, which `pudl-code.js` wraps in `.code-block` with a `.code-head` holding `.code-lang` and `.code-actions` | |
 | Visually hidden | `.visually-hidden`, words for assistive technology alone | |
+| Splitter | `.split` (with `.stacked`) holding `.split-pane`, `.split-handle`, `.split-pane`; the first pane's size in `--split-a` on the split, or the property the handle's `data-split-prop` names; `data-split-min`, `data-split-max`, `data-split-valuetext` on the handle | |
 | Drop target | `.drop-zone` holding an optional `.drop-hint`; any element as a target | `data-drop-over` on a zone, `data-drop-target` on an item, set by the host while something is dragged over it |
 | Numbers and time | `.num`, `time`, `data` in prose take tabular figures | |
 
@@ -129,6 +131,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
+| `pudl:split` | a splitter's handle, bubbles | `size` in pixels, or null after a reset | When a change to the split ends |
 | `pudl:code-copy`, `pudl:code-download` | the code block's `pre`, bubbles | `ok` for a copy, `name` for a download | After each action |
 | `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
@@ -150,6 +153,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
+| `pudlSplit.refresh()` | `pudl-split.js` | Bring the handles' values and limits up to date after a change the script did not see |
 | `pudlCode.enhance(scope or pre)`, `.names`, `.extensions`, `.words` | `pudl-code.js` | Take in code blocks added by other means; the maps and words a project extends |
 | `pudlRegions.refresh()` | `pudl-regions.js` | Carry the live windows into region links a script has rendered |
 
