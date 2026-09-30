@@ -102,6 +102,19 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await choose('notes', 'Close');
   check('Close closes the window', await p.evaluate(() => pudlWindows.state().open.indexOf('notes') < 0));
 
+  /* Open as a page follows the title bar's link, its target included
+     (from parkscomputing.com's Architecture/pudl-bug-menu-page-target.md). */
+  await p.evaluate(() => { const a = document.querySelector('.win[data-win="counter"] a[data-win-action="page"]'); a.target = '_blank'; a.rel = 'noopener'; });
+  const here = p.url();
+  const [tab] = await Promise.all([p.context().waitForEvent('page', { timeout: 5000 }).catch(() => null), choose('counter', 'Open as a page')]);
+  if (tab) await tab.waitForLoadState().catch(() => {});
+  check('Open as a page with a link that targets a new tab opens one, and leaves this page where it was',
+        !!tab && /window-menu-page\.html/.test(tab.url()) && p.url() === here, (tab ? tab.url() : 'no tab') + ' ' + p.url());
+  if (tab) await tab.close();
+  await p.evaluate(() => document.querySelector('.win[data-win="counter"] a[data-win-action="page"]').removeAttribute('target'));
+  await Promise.all([p.waitForURL(/window-menu-page\.html/, { timeout: 5000 }).catch(() => {}), choose('counter', 'Open as a page')]);
+  check('and with no target it goes there in this tab', /window-menu-page\.html/.test(p.url()), p.url());
+
   /* On its own page, the applet's commands get a menu of their own. */
   await p.goto(ROOT + '/tests/fixtures/window-menu-page.html');
   await p.waitForSelector('.applet-commands .menu-btn');

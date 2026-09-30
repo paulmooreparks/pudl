@@ -1003,8 +1003,10 @@
     if (!wins[key]) return;
     var p = state.place[key];
     if (cmd === 'page') {
+      /* The link carries the command out itself, so its target and rel
+         apply, as they do from the title bar. */
       var a = wins[key].querySelector('.win-head a[data-win-action="page"]');
-      if (a) location.assign(a.href);
+      if (a) a.click();
     } else if (cmd === 'minimize') commit(minimizeToggled(state, key), false);
     else if (cmd === 'maximize') commit(maximizeToggled(state, key), false);
     else if (cmd === 'dock') commit(docked(state, key, dockEdge(p) ? null : 'bottom'), false);
