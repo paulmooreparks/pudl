@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window sizing</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-applets.js" defer></script>
+  <script src="window-sizing.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 700px; } .bar { padding: 8px; }</style>
+</head>
+<body>
+  <!-- A test fixture: a tool sized by its content, whose settings change
+       how much it holds, and a terminal the reader sizes, with limits. -->
+  <div class="bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-menu data-win-default="tool,term">
+      <section class="win" data-win="tool" data-win-size="content" style="--win-x: 0.05; --win-y: 0.05; --win-w: 0.9; --win-h: 0.9">
+        <header class="win-head">
+          <h2 class="win-title">Barcode tool</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a>
+            <a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a>
+            <a class="win-btn" data-win-action="dock" href="?" aria-label="Dock at the bottom"></a>
+            <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body"><div data-applet="barcodes"></div></div>
+      </section>
+      <section class="win" data-win="term" data-win-min="400,250" data-win-max="700,500" style="--win-x: 0.5; --win-y: 0.3; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head">
+          <h2 class="win-title">Terminal</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a>
+            <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body"><pre>$</pre></div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

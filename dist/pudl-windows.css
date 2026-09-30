@@ -98,6 +98,24 @@
   border-color: color-mix(in srgb, var(--accent) 45%, var(--raise-border));
   box-shadow: var(--win-shadow-active);
 }
+/* A floating window's largest size, from its data-win-max, which the
+   script sets as --win-max-w and --win-max-h. */
+.win[data-win-mode="floating"] { max-width: var(--win-max-w, none); max-height: var(--win-max-h, none); }
+
+/* A window sized by its content, data-win-size="content", takes its
+   content's width and height, and follows them as they change, larger and
+   smaller, from a top-left corner that stays where it is. It stops at the
+   right and bottom of the area, and its body scrolls. It cannot be
+   resized, maximised, snapped or docked, so those handles and buttons go. */
+.win[data-win-size="content"] {
+  width: fit-content; height: auto;
+  min-width: 0; min-height: 0;
+  max-width: min(var(--win-max-w, 100000px), calc((100% - var(--dock-left, 0px) - var(--dock-right, 0px)) * (1 - var(--win-x, 0.06))));
+  max-height: min(var(--win-max-h, 100000px), calc((100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)) * (1 - var(--win-y, 0.05))));
+}
+.win[data-win-size="content"] > .win-rh,
+.win[data-win-size="content"] .win-head [data-win-action="maximize"],
+.win[data-win-size="content"] .win-head [data-win-action="dock"] { display: none; }
 /* While its title bar is dragged, a window moves by transform on a layer of
    its own, so each step is composited rather than laid out and repainted
    with its shadow. The script sets the transform and clears it on release. */
