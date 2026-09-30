@@ -18,7 +18,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   const btn = k => '.win[data-win="' + k + '"] .win-head [data-win-action="menu"]';
   const panel = k => '#win-menu-' + k;
   const rows = k => p.evaluate(s => Array.from(document.querySelector(s).children).map(el =>
-    el.matches('.menu-sep') ? '|' : el.textContent + (el.hasAttribute('aria-pressed') ? '[' + el.getAttribute('aria-pressed') + ']' : '') + (el.disabled ? '(off)' : '')), panel(k));
+    el.matches('.menu-sep') ? '|' : el.matches('.win-snap') ? 'picker' : el.textContent + (el.hasAttribute('aria-pressed') ? '[' + el.getAttribute('aria-pressed') + ']' : '') + (el.disabled ? '(off)' : '')), panel(k));
   const openMenu = async k => {
     await p.click(btn(k));
     await p.waitForFunction(s => { const el = document.querySelector(s); return el.matches(':popover-open') && !el.classList.contains('placing'); }, panel(k));
@@ -34,7 +34,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await openMenu('counter');
   let r = await rows('counter');
   check('the window commands come first, then the applet\'s, then Close after a separator',
-        r.join(',') === 'Open as a page,Minimize,Maximize,Dock at the bottom,Reset size and position,|,Add one,Wrap lines[false],Clear(off),|,Close', r.join(','));
+        r.join(',') === 'Open as a page,Minimize,Maximize,picker,Dock at the bottom,Reset size and position,|,Add one,Wrap lines[false],Clear(off),|,Close', r.join(','));
   const placed = await p.evaluate(([bs, ps]) => {
     const a = document.querySelector(bs).getBoundingClientRect(), m = document.querySelector(ps).getBoundingClientRect();
     return Math.abs(m.left - a.left) <= 2 && m.top >= a.bottom - 1;
@@ -77,7 +77,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
 
   await openMenu('notes');
   r = await rows('notes');
-  check('plain content adds its commands through pudl:window-menu', r.join(',') === 'Minimize,Maximize,Dock at the bottom,Reset size and position,|,Shout,|,Close', r.join(','));
+  check('plain content adds its commands through pudl:window-menu', r.join(',') === 'Minimize,Maximize,picker,Dock at the bottom,Reset size and position,|,Shout,|,Close', r.join(','));
   await p.click(panel('notes') + ' .menu-action >> text="Shout"');
   check('and they run', (await p.textContent('#notes-text')) === 'PLAIN CONTENT.');
 

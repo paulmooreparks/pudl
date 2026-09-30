@@ -118,6 +118,21 @@
 .win[data-win-mode="left"] { border-right-width: 1px; }
 .win[data-win-mode="right"] { border-left-width: 1px; }
 
+/* A zone is a rectangle of the inner area, --zone-x, --zone-y, --zone-w
+   and --zone-h as fractions of it, which the script sets from the address
+   and a server may render. It is drawn flush like a half, with a hairline
+   on each side that meets another zone, which the script sets as
+   --zone-rule-e and --zone-rule-s. */
+.win[data-win-mode="zone"] {
+  left: calc(var(--dock-left, 0px) + var(--zone-x, 0) * (100% - var(--dock-left, 0px) - var(--dock-right, 0px)));
+  top: calc(var(--dock-top, 0px) + var(--zone-y, 0) * (100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)));
+  width: calc(var(--zone-w, 0.5) * (100% - var(--dock-left, 0px) - var(--dock-right, 0px)));
+  height: calc(var(--zone-h, 0.5) * (100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)));
+  padding: 0; border-radius: 0;
+  border-width: 0 var(--zone-rule-e, 0px) var(--zone-rule-s, 0px) 0;
+  min-width: 0; min-height: 0;
+}
+
 /* === Docked windows ======================================================
    A docked window holds an edge of the layer, and is part of its frame:
    flush, without shadow, rounded corners or frame band, with a hairline on
@@ -226,6 +241,27 @@
 }
 .win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-caret); }
 .win-btn[data-win-action="menu"] { margin-inline-end: var(--space-1); }
+/* The layout picker, in the window menu and on the maximise button: a
+   thumbnail of each layout, whose zones are small raised buttons. The zone
+   the window fills is drawn in the accent. */
+.win-snap { display: flex; gap: 6px; padding: 6px 14px; }
+.win-snap-layout { position: relative; width: 48px; height: 32px; flex: none; }
+.win-snap .win-snap-zone {
+  position: absolute; padding: 0;
+  left: calc(var(--zl) / 6 * 100% + 1px); top: calc(var(--zt) / 6 * 100% + 1px);
+  width: calc((var(--zr) - var(--zl)) / 6 * 100% - 2px); height: calc((var(--zb) - var(--zt)) / 6 * 100% - 2px);
+  border: 1px solid var(--raise-border); border-radius: 3px;
+  background: var(--raise-grad);
+}
+.win-snap .win-snap-zone:hover,
+.win-snap .win-snap-zone:focus-visible { background: color-mix(in srgb, var(--accent) 35%, var(--surface)); border-color: var(--accent); box-shadow: none; }
+.win-snap .win-snap-zone[aria-current="true"] { background: var(--accent); border-color: var(--accent); }
+.win-snap .win-snap-zone:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (forced-colors: active) {
+  .win-snap .win-snap-zone { border-color: ButtonText; }
+  .win-snap .win-snap-zone:hover, .win-snap .win-snap-zone[aria-current="true"] { forced-color-adjust: none; background: Highlight; }
+}
+
 .win:has(> .win-menu:popover-open) .win-btn[data-win-action="menu"] {
   background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow);
 }
@@ -239,7 +275,8 @@
 
 .win[data-win-mode="maximized"] .win-head,
 .win[data-win-mode="left"] .win-head,
-.win[data-win-mode="right"] .win-head { border-radius: 0; border-width: 0 0 1px; }
+.win[data-win-mode="right"] .win-head,
+.win[data-win-mode="zone"] .win-head { border-radius: 0; border-width: 0 0 1px; }
 
 /* === Body ================================================================ */
 .win-body {
@@ -254,7 +291,8 @@
 .win-body:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
 .win[data-win-mode="maximized"] .win-body,
 .win[data-win-mode="left"] .win-body,
-.win[data-win-mode="right"] .win-body { border: 0; border-radius: 0; }
+.win[data-win-mode="right"] .win-body,
+.win[data-win-mode="zone"] .win-body { border: 0; border-radius: 0; }
 
 /* === Resize handles ======================================================
    Invisible strips the script adds along each edge and at each corner. They
@@ -274,7 +312,8 @@
 .win-rh[data-edge="sw"] { bottom: calc(var(--win-hit) / -2); left: calc(var(--win-hit) / -2); cursor: nesw-resize; }
 .win[data-win-mode="maximized"] .win-rh,
 .win[data-win-mode="left"] .win-rh,
-.win[data-win-mode="right"] .win-rh { display: none; }
+.win[data-win-mode="right"] .win-rh,
+.win[data-win-mode="zone"] .win-rh { display: none; }
 /* A docked window resizes only along its free edge, the one facing the
    workspace, and a collapsed one not at all. */
 .win[data-win-edge] .win-rh { display: none; }

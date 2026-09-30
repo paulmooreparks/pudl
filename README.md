@@ -512,6 +512,8 @@ An open menu is not part of the URL. It is momentary, like a hover, and everythi
 
 A menu can also be **summoned by a key**. A `.menu-panel` carrying `data-menu-key`, a single printable key such as `/`, opens when that key is pressed anywhere outside an editable field, with focus in its filter; inside any field the key types as usual. Its button, if it has one, gets a matching `aria-keyshortcuts`. A panel with no button, kept only for its key, opens as a palette near the top centre of the window. If the filter sits in a GET form and the reader presses Enter with no row left, the form submits, so a server can take the typed text to a page of its own, such as a "go to" endpoint that redirects by slug; with a row left, Enter follows it. That makes a launcher summoned by `/` a go-to palette with completion that always ends in an address.
 
+A panel a script opens from something that cannot carry `popovertarget`, such as a link, names that element's id in `data-menu-anchor`, and is placed against it as against a button. The windows' layout picker opens this way from the maximise button.
+
 A **launcher** is a menu button first in the row that holds a window dock, whose panel reaches everything a site offers: one section per category, a filter at the top, and site-wide actions at the foot. Put it in a toolbar marked `.md-site-tools` so that it stays on screen when a narrow master-detail layout shows a record, and the reader can reach everything from inside an article on a phone. `samples/article-reader.html` has one.
 
 ## Filtering a list
@@ -626,7 +628,7 @@ Four kinds of query parameter describe the windows, alongside whatever parameter
 | `min` | keys, comma-separated | the minimised windows, which stay open and show only in the dock |
 | `p.<key>` | `<mode>:<x>,<y>,<w>,<h>` | one window's placement |
 
-A key names a record and is made of letters, digits, `-` and `_`. The mode is `floating`, `maximized`, `left` or `right`, the last two being the snapped halves. The four numbers are the window's left edge, top edge, width and height as fractions of the layer, from 0 to 1, with at most three decimal places. A maximised or snapped window keeps its floating numbers, which are where it returns when restored. For example:
+A key names a record and is made of letters, digits, `-` and `_`. The mode is `floating`, `maximized`, `left` or `right`, the last two being the snapped halves; the zones and the docks below add modes of their own. The four numbers are the window's left edge, top edge, width and height as fractions of the layer, from 0 to 1, with at most three decimal places. A maximised or snapped window keeps its floating numbers, which are where it returns when restored. For example:
 
 ```
 /trips/manila?open=exp-12,exp-13&top=exp-13&min=exp-12&p.exp-12=floating:0.36,0.04,0.5,0.72&p.exp-13=left:0.4,0.08,0.5,0.72
@@ -686,6 +688,20 @@ A window is a `<section>`, because it is a dialog and ARIA allows `role="dialog"
 Scripts inside a fetched window do not run. A project wires up a window's content by listening for `pudl:window-open`, which fires on each window as it arrives. `pudl:window-place` fires on the layer before a window opens with no placement in the URL, and a listener may set `event.detail.placement` to `{mode, x, y, w, h}`, from saved state for example. `pudl:windows-change` fires on the layer after every change with the whole state, for a project that wants to remember placements. PUDL keeps no state of its own beyond the URL.
 
 With a title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Double-clicking the title bar also maximises or restores it, and dragging it against the left, right or top edge of the layer snaps it to that half or maximises it.
+
+### Snap zones
+
+A window can be snapped to a zone, a rectangle of the workspace on a grid of sixths, which holds the halves, the quarters, the thirds and two thirds beside one third. A zone follows the workspace as it resizes, and it is a fraction of the area the docks leave, so it never covers a docked window. A zone window is drawn flush like a half, with a hairline where it meets another zone.
+
+- **Dragging.** A drag that ends at a side snaps to that half, as before, and one that ends at a corner snaps to that quarter. A corner is the last 64 pixels of a side. The top edge still maximises, and the foot of the workspace still docks, except at its corners.
+- **The layout picker.** The window menu holds a thumbnail of each layout, halves, quarters, thirds, and two thirds with one third either way round, and each zone in a thumbnail is a button that snaps the window there. The zone the window fills is drawn in the accent and marked `aria-current`. On a window that has the window menu, a mouse resting on the maximise button for half a second opens the same picker under it.
+- **The keyboard.** The picker's zones are menu rows, each named in words, such as "Top left quarter", so the arrow keys and Enter reach every zone from the window menu. Shift with the arrow keys still resizes a window rather than snapping it.
+- **Script.** `pudlWindows.snap(key, zone)` snaps a window to a named zone, `left`, `right`, `top`, `bottom`, `top-left`, `top-right`, `bottom-left`, `bottom-right`, `left-third`, `middle-third`, `right-third`, `left-two-thirds` or `right-two-thirds`, or to a rectangle `{ x, y, w, h }` of fractions, which is moved to the nearest sixths. `pudlWindows.snap(key, null)` floats it again.
+- **Restoring.** A zone window restores as a half does. The maximise button reads Restore and floats it again, and dragging it lifts it back to its floating size.
+- **The address.** A zone is the mode `zone`, whose placement adds the zone's rectangle after the floating geometry: `p.term=zone:0.06,0.05,0.55,0.75,0,0,0.5,0.5` is the top left quarter. A zone that is a half or the whole is written, and read, as `left`, `right` or `maximized`, so every arrangement has one address, and existing addresses are unchanged. A server renders a zone as `data-win-mode="zone"` with `--zone-x`, `--zone-y`, `--zone-w` and `--zone-h` in the window's style, and a window's markup may open it in a zone the same way.
+- **Opening from a zone.** A window opened by a link in a zone window opens in the same zone, as one opened from a half opens in that half.
+
+Tiling, where windows divide the space among themselves, is left out. A zone is the unit a tiling layout would place windows in, so nothing here rules it out.
 
 The active window's title bar comes from four tokens a theme may set: `--win-active-bg`, `--win-active-fg`, `--win-active-border` and `--win-active-shadow`. By default the light theme fills the bar with the accent and light text, the classic active window, and the dark theme, whose accent must be bright for its links to read, tints the raised gradient toward the accent and keeps the normal text colour. The active window also takes a stronger shadow and an accent-tinted frame in both themes.
 
@@ -767,7 +783,7 @@ A link inside a window marked `data-win-replace`, as well as `data-win-open`, op
 
 Before a close by its button, by Escape or by `pudlWindows.close()`, `pudl:window-closing` fires on the window, and on each child that would close with it, with the same `detail`, and it can be cancelled. An editor with unsaved changes cancels it, asks, and closes the window itself if the reader says to discard them. A close by the address, by Back, Forward or a link, cannot be refused, because the address has already moved on.
 
-`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `retitle(key, title)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script. `retitle` changes a window's title, as a preview does when it shows another file, and the title bar's spoken name, the dock tab and the list row follow.
+`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `dock(key, edge)`, `snap(key, zone)`, `retitle(key, title)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script. `retitle` changes a window's title, as a preview does when it shows another file, and the title bar's spoken name, the dock tab and the list row follow.
 
 ### Windows and a list
 
@@ -974,7 +990,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.32.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.33.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

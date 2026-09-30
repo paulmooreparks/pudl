@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.33.0
+
+Snap zones, from parkscomputing.com's `Architecture/pudl-proposal-snap-zones.md`.
+
+- A window can be snapped to a zone, a rectangle of the area the docks leave on a grid of sixths: the halves, quarters, thirds, and two thirds beside one third. It is the new mode `zone`, drawn flush like a half.
+- A drag that ends at a corner snaps to that quarter. The sides, the top and the foot behave as before, except that the bottom corners are quarters rather than the dock.
+- The window menu holds a layout picker, a thumbnail of each layout whose zones are buttons, each named in words, so the keyboard reaches every zone through the menu. On a window with the window menu, a mouse resting on the maximise button opens the same picker. Shift with the arrow keys still resizes, as the decision on the proposal kept it, and right-click does nothing new.
+- `pudlWindows.snap(key, zone)` takes a zone's name or a rectangle, moved to the nearest sixths, and null floats the window again.
+- In the address a zone adds its rectangle after the floating geometry, `p.term=zone:0.06,0.05,0.55,0.75,0,0,0.5,0.5`. The proposal put the rectangle in place of the four numbers, but those are always where the window returns when restored, so it follows them as a dock's size does. A zone that is a half or the whole is written and read as `left`, `right` or `maximized`, so existing addresses are unchanged.
+- `pudl-menu.js` places a panel against the element its `data-menu-anchor` names, for a panel a script opens from a link.
+
 ## 0.32.0
 
 The window menu, from parkscomputing.com's `Architecture/pudl-proposal-window-menu.md`.
