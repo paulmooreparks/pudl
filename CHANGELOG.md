@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.30.1
+
+- A menu panel whose rows fit no longer shows a scrollbar (from parkscomputing.com's `Architecture/pudl-bug-menu-scrollbar.md`). `pudl-menu.js` measured the panel's natural height with `scrollHeight`, which leaves out the border and rounds down, so a panel came out two pixels, or a fraction of one, short of its content. It now measures the panel's whole rectangle and rounds up. A new suite checks the reference page's menus at display scales of 1, 1.25 and 1.92.
+
 ## 0.30.0
 
 Docked windows, from pudl.bytecode.news's Site window, specified in `docs/proposals/docked-windows.md`.
