@@ -53,13 +53,42 @@
    it, puts data-win-pane="off" on the layer, and the script then leaves
    the layout's data-md-pane to the server.
 
+   A window may be snapped to a zone of the area the docks leave, mode
+   zone, on a grid of sixths: a drag to a side or the top snaps to a half
+   or the whole, and at a corner to a quarter, and the layout picker in
+   the window menu, or on the maximise button, reaches the thirds too.
+
    window.pudlWindows offers open, replace, raise, minimize, minimizeAll,
-   restoreAll, dock, retitle, close and state to scripts, each doing what
+   restoreAll, dock, snap, retitle, close and state to scripts, each doing what
    the matching link or button does. */
 (function () {
   'use strict';
 
-  var MODES = ['floating', 'maximized', 'left', 'right', 'dock-top', 'dock-bottom', 'dock-left', 'dock-right'];
+  var MODES = ['floating', 'maximized', 'left', 'right', 'zone', 'dock-top', 'dock-bottom', 'dock-left', 'dock-right'];
+  /* The named zones, as [left, top, right, bottom] in sixths of the inner
+     area. The halves and the whole are modes of their own, left, right and
+     maximized, which every zone that equals one becomes. */
+  var ZONES = {
+    maximized: [0, 0, 6, 6], left: [0, 0, 3, 6], right: [3, 0, 6, 6], top: [0, 0, 6, 3], bottom: [0, 3, 6, 6],
+    'top-left': [0, 0, 3, 3], 'top-right': [3, 0, 6, 3], 'bottom-left': [0, 3, 3, 6], 'bottom-right': [3, 3, 6, 6],
+    'left-third': [0, 0, 2, 6], 'middle-third': [2, 0, 4, 6], 'right-third': [4, 0, 6, 6],
+    'left-two-thirds': [0, 0, 4, 6], 'right-two-thirds': [2, 0, 6, 6]
+  };
+  var ZONE_WORDS = {
+    left: 'Left half', right: 'Right half', top: 'Top half', bottom: 'Bottom half',
+    'top-left': 'Top left quarter', 'top-right': 'Top right quarter',
+    'bottom-left': 'Bottom left quarter', 'bottom-right': 'Bottom right quarter',
+    'left-third': 'Left third', 'middle-third': 'Middle third', 'right-third': 'Right third',
+    'left-two-thirds': 'Left two thirds', 'right-two-thirds': 'Right two thirds'
+  };
+  /* The layouts the picker offers, each a set of zones that fill the area. */
+  var LAYOUTS = [
+    ['halves', 'Halves', ['left', 'right']],
+    ['quarters', 'Quarters', ['top-left', 'top-right', 'bottom-left', 'bottom-right']],
+    ['thirds', 'Thirds', ['left-third', 'middle-third', 'right-third']],
+    ['two-one', 'Two thirds and one third', ['left-two-thirds', 'right-third']],
+    ['one-two', 'One third and two thirds', ['left-third', 'right-two-thirds']]
+  ];
   var SIDES = ['top', 'bottom', 'left', 'right'];
   var DOCK_SIZE = 0.25;    // a docked window's strip, as a fraction of the layer, when nothing says otherwise
   var DOCK_MAX = 0.8;      // the most of the layer a dock may take
@@ -67,6 +96,8 @@
   var EDGES = ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'];
   var KEY_RE = /^[A-Za-z0-9_-]+$/;
   var SNAP_PX = 16;        // a drag ending this close to an edge snaps to it
+  var CORNER_PX = 64;      // and this close to the edge across it as well, to that corner's quarter
+  var HOVER_MS = 500;      // a pointer resting this long on the maximise button opens the layout picker
   var CLICK_PX = 4;        // a press that moves less than this is a click
   var KEY_STEP = 0.02;     // arrow keys move or resize by this fraction
   var URL_DELAY = 300;     // ms of keyboard quiet before the URL is written
@@ -89,7 +120,10 @@
 
   function copy(st) {
     var place = {};
-    Object.keys(st.place).forEach(function (k) { place[k] = Object.assign({}, st.place[k]); });
+    Object.keys(st.place).forEach(function (k) {
+      place[k] = Object.assign({}, st.place[k]);
+      if (place[k].zone) place[k].zone = Object.assign({}, place[k].zone);
+    });
     return { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place };
   }
 
@@ -123,24 +157,76 @@
       y: Math.min(1 - h, Math.max(0, p.y))
     };
     if (p.s != null) out.s = Math.min(DOCK_MAX, Math.max(0.05, p.s));
+    if (p.zone) out.zone = p.zone;
     return out;
   }
 
+  function fraction(n) { return typeof n === 'number' && isFinite(n) && n >= 0 && n <= 1; }
+
   function validPlacement(p) {
     return !!p && MODES.indexOf(p.mode) >= 0 &&
-      [p.x, p.y, p.w, p.h].every(function (n) { return typeof n === 'number' && isFinite(n) && n >= 0 && n <= 1; }) &&
+      [p.x, p.y, p.w, p.h].every(fraction) &&
       p.w > 0 && p.h > 0 &&
-      (p.s == null || (typeof p.s === 'number' && isFinite(p.s) && p.s > 0 && p.s <= 1));
+      (p.s == null || (fraction(p.s) && p.s > 0)) &&
+      (p.mode !== 'zone' || !!gridZone(p.zone));
   }
 
-  /* A placement is mode:x,y,w,h, and a docked one may add its strip's
-     size: dock-bottom:0.06,0.05,0.55,0.75,0.22. The four numbers are always
-     the floating geometry to return to. */
+  /* === Zones ===============================================================
+     A zone is a rectangle of the inner area on a grid of sixths, which
+     holds halves, thirds and quarters. A placement in mode zone carries it
+     as zone: {x, y, w, h}, fractions of the inner area. */
+
+  /* The rectangle, moved to the nearest sixths, or null if nothing is left
+     of it there. */
+  function gridZone(z) {
+    if (!z || ![z.x, z.y, z.w, z.h].every(fraction)) return null;
+    var l = Math.round(z.x * 6), t = Math.round(z.y * 6);
+    var r = Math.min(6, Math.round((z.x + z.w) * 6)), b = Math.min(6, Math.round((z.y + z.h) * 6));
+    return r > l && b > t ? zoneOf([l, t, r, b]) : null;
+  }
+
+  function zoneOf(s) { return { x: s[0] / 6, y: s[1] / 6, w: (s[2] - s[0]) / 6, h: (s[3] - s[1]) / 6 }; }
+
+  function sixths(z) {
+    return [Math.round(z.x * 6), Math.round(z.y * 6), Math.round((z.x + z.w) * 6), Math.round((z.y + z.h) * 6)].join(',');
+  }
+
+  /* The zone a placement fills, for the modes that fill one. */
+  function zoneFilled(p) {
+    if (!p) return null;
+    if (p.mode === 'zone') return p.zone;
+    return ['maximized', 'left', 'right'].indexOf(p.mode) >= 0 ? zoneOf(ZONES[p.mode]) : null;
+  }
+
+  /* Puts a placement in a zone. A zone that is a half or the whole takes
+     that mode instead, so every arrangement has one spelling. */
+  function inZone(p, z) {
+    z = gridZone(z);
+    if (!z) return;
+    var s = sixths(z);
+    var named = ['maximized', 'left', 'right'].filter(function (m) { return ZONES[m].join(',') === s; })[0];
+    p.mode = named || 'zone';
+    if (named) delete p.zone;
+    else p.zone = z;
+  }
+
+  /* A placement is mode:x,y,w,h. A docked one adds its strip's size,
+     dock-bottom:0.06,0.05,0.55,0.75,0.22, and a zone adds its rectangle,
+     zone:0.06,0.05,0.55,0.75,0,0,0.5,0.5. The first four numbers are always
+     the floating geometry to return to. A zone that is a half or the whole
+     reads as left, right or maximized. */
   function parsePlacement(value) {
-    var m = /^([a-z-]+):([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)(?:,([0-9.]+))?$/.exec(value || '');
+    var m = /^([a-z-]+):([0-9.]+(?:,[0-9.]+){3,7})$/.exec(value || '');
     if (!m) return null;
-    var p = { mode: m[1], x: +m[2], y: +m[3], w: +m[4], h: +m[5] };
-    if (m[6] != null) p.s = +m[6];
+    var n = m[2].split(',').map(Number);
+    var p = { mode: m[1], x: n[0], y: n[1], w: n[2], h: n[3] };
+    if (p.mode === 'zone') {
+      if (n.length !== 8) return null;
+      p.zone = gridZone({ x: n[4], y: n[5], w: n[6], h: n[7] });
+      if (!p.zone) return null;
+      inZone(p, p.zone);
+    } else if (n.length === 5) p.s = n[4];
+    else if (n.length !== 4) return null;
     return validPlacement(p) ? p : null;
   }
 
@@ -149,6 +235,7 @@
   function formatPlacement(p) {
     var nums = [p.x, p.y, p.w, p.h];
     if (dockEdge(p)) nums.push(p.s != null ? p.s : DOCK_SIZE);
+    if (p.mode === 'zone') nums.push(p.zone.x, p.zone.y, p.zone.w, p.zone.h);
     return p.mode + ':' + nums.map(fmt).join(',');
   }
 
@@ -383,6 +470,17 @@
     return st;
   }
 
+  /* Snaps a window to a zone, a name from ZONES or a rectangle, or with
+     none, lets it float again. */
+  function snapped(st, key, zone) {
+    st = raised(st, key);
+    var p = st.place[key];
+    if (zone == null || zone === 'floating') { p.mode = 'floating'; return st; }
+    var z = typeof zone === 'string' ? (ZONES[zone] ? zoneOf(ZONES[zone]) : null) : gridZone(zone);
+    if (z) inZone(p, z);
+    return st;
+  }
+
   /* Docks a window at an edge, or with no edge, undocks it back to where
      it floated. A window keeps its strip's size while undocked, so docking
      it again brings it back as it was. */
@@ -436,6 +534,18 @@
     el.style.setProperty('--win-w', fmt(p.w));
     el.style.setProperty('--win-h', fmt(p.h));
     if (p.s != null) el.style.setProperty('--win-dock-size', fmt(p.s));
+    /* A zone's rectangle, and a hairline on each side that meets another
+       zone rather than the edge of the area. */
+    if (p.mode === 'zone') {
+      el.style.setProperty('--zone-x', fmt(p.zone.x));
+      el.style.setProperty('--zone-y', fmt(p.zone.y));
+      el.style.setProperty('--zone-w', fmt(p.zone.w));
+      el.style.setProperty('--zone-h', fmt(p.zone.h));
+      el.style.setProperty('--zone-rule-e', p.zone.x + p.zone.w < 0.999 ? '1px' : '0px');
+      el.style.setProperty('--zone-rule-s', p.zone.y + p.zone.h < 0.999 ? '1px' : '0px');
+    } else {
+      ['--zone-x', '--zone-y', '--zone-w', '--zone-h', '--zone-rule-e', '--zone-rule-s'].forEach(function (v) { el.style.removeProperty(v); });
+    }
   }
 
   /* The words this script writes into the page, in English unless the layer
@@ -795,6 +905,7 @@
       panel.setAttribute('data-win-menu-for', key);
       el.appendChild(panel);
     }
+    addSnapPanel(el, key);
   }
 
   function menuItem(label, cmd, opts) {
@@ -839,8 +950,10 @@
     if (page) panel.appendChild(menuItem(text('page', 'Open as a page'), 'page'));
     panel.appendChild(menuItem(dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
                                     : text('minimize', 'Minimize'), 'minimize'));
-    if (!dock) panel.appendChild(menuItem(p.mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
-    snapItems(panel, key);
+    if (!dock) {
+      panel.appendChild(menuItem(p.mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
+      snapItems(panel, key);
+    }
     panel.appendChild(menuItem(dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
     panel.appendChild(menuItem(text('reset', 'Reset size and position'), 'reset'));
     var own = contentCommands(win, key);
@@ -853,8 +966,38 @@
     panel.appendChild(menuItem(text('close', 'Close'), 'close', { danger: true }));
   }
 
-  /* Filled in with snap zones; the halves until then. */
-  function snapItems() {}
+  /* The layout picker: a thumbnail of each layout, each of its zones a
+     button that snaps the window there. Its buttons are menu rows, so the
+     arrow keys reach them in order, and each says its zone in words. The
+     zone the window fills is marked aria-current. */
+  function snapItems(panel, key) {
+    var now = zoneFilled(state.place[key]);
+    var here = now ? sixths(now) : null;
+    var box = document.createElement('div');
+    box.className = 'win-snap';
+    box.setAttribute('role', 'group');
+    box.setAttribute('aria-label', text('snap', 'Snap to a zone'));
+    LAYOUTS.forEach(function (lay) {
+      var g = document.createElement('div');
+      g.className = 'win-snap-layout';
+      g.setAttribute('role', 'group');
+      g.setAttribute('aria-label', text('layout-' + lay[0], lay[1]));
+      lay[2].forEach(function (name) {
+        var z = ZONES[name];
+        var b = menuItem('', 'snap:' + name);
+        b.classList.add('win-snap-zone');
+        b.setAttribute('aria-label', text('zone-' + name, ZONE_WORDS[name]));
+        b.style.setProperty('--zl', z[0]);
+        b.style.setProperty('--zt', z[1]);
+        b.style.setProperty('--zr', z[2]);
+        b.style.setProperty('--zb', z[3]);
+        if (here === z.join(',')) b.setAttribute('aria-current', 'true');
+        g.appendChild(b);
+      });
+      box.appendChild(g);
+    });
+    panel.appendChild(box);
+  }
 
   function runCommand(key, cmd) {
     if (!wins[key]) return;
@@ -874,8 +1017,49 @@
     if (cmd !== 'close' && wins[key] && !isHidden(state, key)) focusWindow(key);
   }
 
-  /* Filled in with snap zones. */
-  function runSnap() {}
+  function runSnap(key, cmd) {
+    var name = cmd.indexOf('snap:') === 0 ? cmd.slice(5) : null;
+    if (name && ZONES[name]) commit(snapped(state, key, name), false);
+  }
+
+  /* The picker also opens from the maximise button, when a mouse rests on
+     it for a moment, in a panel of its own placed against the button. It
+     closes when the pointer has left both the button and the panel. */
+  function addSnapPanel(el, key) {
+    var max = el.querySelector('.win-head [data-win-action="maximize"]');
+    if (!max) return;
+    if (!max.id) max.id = 'win-max-' + key;
+    var id = 'win-snap-' + key;
+    var panel = document.getElementById(id);
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.className = 'menu-panel win-snap-panel';
+      panel.id = id;
+      panel.setAttribute('popover', '');
+      panel.setAttribute('data-win-menu-for', key);
+      panel.setAttribute('data-menu-anchor', max.id);
+      panel.setAttribute('aria-label', text('snap', 'Snap to a zone'));
+      el.appendChild(panel);
+    }
+    var openTimer = 0, closeTimer = 0;
+    function stay() { clearTimeout(closeTimer); }
+    function leave() {
+      clearTimeout(openTimer);
+      closeTimer = setTimeout(function () { if (panel.matches(':popover-open')) panel.hidePopover(); }, 300);
+    }
+    max.addEventListener('pointerenter', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      stay();
+      if (panel.matches(':popover-open') || dockEdge(state.place[key])) return;
+      openTimer = setTimeout(function () {
+        if (max.matches(':hover') && wins[key] && !panel.matches(':popover-open')) panel.showPopover();
+      }, HOVER_MS);
+    });
+    max.addEventListener('pointerleave', leave);
+    max.addEventListener('pointerdown', function () { clearTimeout(openTimer); });
+    panel.addEventListener('pointerenter', stay);
+    panel.addEventListener('pointerleave', leave);
+  }
 
   /* Returns a window to the placement its markup gave it. */
   function resetPlaced(st, key) {
@@ -919,7 +1103,9 @@
     var x = p.x + OPENER_STEP, y = p.y + OPENER_STEP;
     if (x + p.w > 1) x = OPENER_STEP;
     if (y + p.h > 1) y = OPENER_STEP;
-    return { mode: p.mode, x: x, y: y, w: p.w, h: p.h };
+    var out = { mode: p.mode, x: x, y: y, w: p.w, h: p.h };
+    if (p.mode === 'zone') out.zone = p.zone;
+    return out;
   }
 
   /* The placement a window opens with when the URL gives none: whatever a
@@ -953,13 +1139,22 @@
       w: parseFloat(s.getPropertyValue('--win-w')), h: parseFloat(s.getPropertyValue('--win-h'))
     };
     if (dockSize != null) fromStyle.s = dockSize;
+    /* A zone comes from --zone-x, --zone-y, --zone-w and --zone-h. */
+    var zone = mode === 'zone' ? gridZone({
+      x: parseFloat(s.getPropertyValue('--zone-x')), y: parseFloat(s.getPropertyValue('--zone-y')),
+      w: parseFloat(s.getPropertyValue('--zone-w')), h: parseFloat(s.getPropertyValue('--zone-h'))
+    }) : null;
+    if (mode === 'zone' && !zone) mode = fromStyle.mode = 'floating';
+    if (zone) inZone(fromStyle, zone);
     if (validPlacement(fromStyle)) return fromStyle;
 
     /* The markup's mode still counts without numbers, so a window can open
-       maximised or docked, and the cascade gives it somewhere to restore to. */
+       maximised, snapped or docked, and the cascade gives it somewhere to
+       restore to. */
     var step = (index % 6) * 0.04;
     var cascade = { mode: mode, x: 0.06 + step, y: 0.05 + step, w: 0.55, h: 0.75 };
     if (dockSize != null) cascade.s = dockSize;
+    if (zone) inZone(cascade, zone);
     return cascade;
   }
 
@@ -1124,31 +1319,40 @@
 
   /* === Dragging, resizing and snapping =================================== */
 
-  /* Where a drag released here would land: docked at the bottom near the
-     layer's foot, maximised near the inner area's top, or snapped to a
-     half near its sides. */
+  /* Where a drag released here would land, as dock-bottom or a name from
+     ZONES. At a side of the inner area a window snaps to that half, or to
+     a quarter when the pointer is at a corner too; at the top it
+     maximises, or takes a top quarter at a corner. At the foot of the
+     layer it docks, except at a bottom corner, which is a quarter. */
   function snapAt(clientX, clientY, r, outer) {
+    var nearL = clientX - r.left < SNAP_PX, nearR = r.right - clientX < SNAP_PX;
+    var nearT = clientY - r.top < SNAP_PX;
+    var cornerT = clientY - r.top < CORNER_PX, cornerB = r.bottom - clientY < CORNER_PX;
+    var cornerL = clientX - r.left < CORNER_PX, cornerR = r.right - clientX < CORNER_PX;
+    if (nearL || nearR) {
+      var side = nearL ? 'left' : 'right';
+      return cornerT ? 'top-' + side : cornerB ? 'bottom-' + side : side;
+    }
     if (outer.bottom - clientY < SNAP_PX) return 'dock-bottom';
-    if (clientY - r.top < SNAP_PX) return 'maximized';
-    if (clientX - r.left < SNAP_PX) return 'left';
-    if (r.right - clientX < SNAP_PX) return 'right';
+    if (nearT) return cornerL ? 'top-left' : cornerR ? 'top-right' : 'maximized';
     return null;
   }
 
   /* The outline of where a window will land, in the terms the stylesheet
      lays windows out by, so it matches the docks' strips exactly. */
   var L = 'var(--dock-left, 0px)', R = 'var(--dock-right, 0px)', T = 'var(--dock-top, 0px)', B = 'var(--dock-bottom, 0px)';
-  function showGhost(mode) {
-    if (!mode) { ghost.hidden = true; return; }
-    var iw = 'calc(100% - ' + L + ' - ' + R + ')', ih = 'calc(100% - ' + T + ' - ' + B + ')';
-    var half = 'calc((100% - ' + L + ' - ' + R + ') / 2)';
-    var bottom = state.open.some(function (k) { return shownEdge(state, k) === 'bottom'; }) ? B : (DOCK_SIZE * 100) + '%';
-    var g = {
-      maximized: [L, T, iw, ih],
-      left: [L, T, half, ih],
-      right: ['calc(' + L + ' + (100% - ' + L + ' - ' + R + ') / 2)', T, half, ih],
-      'dock-bottom': ['0px', 'calc(100% - ' + bottom + ')', '100%', bottom]
-    }[mode];
+  function showGhost(snap) {
+    if (!snap) { ghost.hidden = true; return; }
+    var g;
+    if (snap === 'dock-bottom') {
+      var bottom = state.open.some(function (k) { return shownEdge(state, k) === 'bottom'; }) ? B : (DOCK_SIZE * 100) + '%';
+      g = ['0px', 'calc(100% - ' + bottom + ')', '100%', bottom];
+    } else {
+      var z = ZONES[snap];
+      var iw = '(100% - ' + L + ' - ' + R + ')', ih = '(100% - ' + T + ' - ' + B + ')';
+      g = ['calc(' + L + ' + ' + iw + ' * ' + z[0] + ' / 6)', 'calc(' + T + ' + ' + ih + ' * ' + z[1] + ' / 6)',
+           'calc(' + iw + ' * ' + (z[2] - z[0]) + ' / 6)', 'calc(' + ih + ' * ' + (z[3] - z[1]) + ' / 6)'];
+    }
     ghost.style.left = g[0]; ghost.style.top = g[1];
     ghost.style.width = g[2]; ghost.style.height = g[3];
     ghost.hidden = false;
@@ -1272,8 +1476,11 @@
       }
       if (edge && dockSide) st.place[key] = cur;
       else {
-        st.place[key] = Object.assign({}, cur, { mode: snap || 'floating' });
-        if (snap === 'dock-bottom' && st.place[key].s == null) st.place[key].s = DOCK_SIZE;
+        st.place[key] = Object.assign({}, cur, { mode: 'floating' });
+        if (snap === 'dock-bottom') {
+          st.place[key].mode = snap;
+          if (st.place[key].s == null) st.place[key].s = DOCK_SIZE;
+        } else if (snap) inZone(st.place[key], zoneOf(ZONES[snap]));
       }
       commit(st, false);
     }
@@ -1384,10 +1591,10 @@
       return;
     }
 
-    var cmd = e.target.closest('.win-menu [data-win-cmd]');
+    var cmd = e.target.closest('[data-win-menu-for] [data-win-cmd]');
     if (cmd && layer.contains(cmd)) {
       e.preventDefault();
-      if (!cmd.disabled) runCommand(cmd.closest('.win-menu').getAttribute('data-win-menu-for'), cmd.getAttribute('data-win-cmd'));
+      if (!cmd.disabled) runCommand(cmd.closest('[data-win-menu-for]').getAttribute('data-win-menu-for'), cmd.getAttribute('data-win-cmd'));
       return;
     }
 
@@ -1499,8 +1706,11 @@
        so it is caught on the way down. */
     layer.addEventListener('beforetoggle', function (e) {
       var panel = e.target;
-      if (e.newState === 'open' && panel.classList && panel.classList.contains('win-menu')) {
-        buildMenu(panel, panel.getAttribute('data-win-menu-for'));
+      if (e.newState !== 'open' || !panel.classList) return;
+      if (panel.classList.contains('win-menu')) buildMenu(panel, panel.getAttribute('data-win-menu-for'));
+      else if (panel.classList.contains('win-snap-panel')) {
+        panel.textContent = '';
+        snapItems(panel, panel.getAttribute('data-win-menu-for'));
       }
     }, true);
 
@@ -1530,6 +1740,12 @@
       dock: function (key, edge) {
         if (!wins[key] || (edge != null && SIDES.indexOf(edge) < 0)) return;
         commit(docked(state, key, edge || null), false);
+      },
+      /* zone is a name from ZONES, a rectangle {x, y, w, h} of fractions,
+         which is moved to the nearest sixths, or null to float again. */
+      snap: function (key, zone) {
+        if (!wins[key] || (typeof zone === 'string' && zone !== 'floating' && !ZONES[zone])) return;
+        commit(snapped(state, key, zone), false);
       },
       retitle: retitle,
       minimizeAll: function () { commit(allMinimized(state), false); },
