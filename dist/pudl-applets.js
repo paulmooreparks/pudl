@@ -232,8 +232,10 @@
     var inWindow = !!root.closest('.win');
     var fit = root.getAttribute('data-applet-fit');
     var fitSet = false;
+    /* A window gives a definite box to fill, unless it is sized by its
+       content, when the content's own size is what sizes the window. */
     if (fit !== 'fill' && fit !== 'flow') {
-      fit = inWindow ? 'fill' : 'flow';
+      fit = inWindow && !root.closest('.win[data-win-size="content"]') ? 'fill' : 'flow';
       root.setAttribute('data-applet-fit', fit);
       fitSet = true;
     }

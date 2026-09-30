@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.2.1.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.3.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -711,6 +711,22 @@ A window's markup may give it a starting mode with `data-win-mode` and no positi
 
 A window opened by a link inside another window opens in that window's state instead, so following a link never overturns the reader's arrangement: maximised from a maximised window, the same half from a snapped one, and from a floating window, floating one step down and to the right so the opener stays in sight, starting again near the top left when the step would run past the edge. A window opened from outside any window, from a list, a menu or the dock, keeps its markup's default. In full, a new window's placement comes from the URL if it names one, then from a `pudl:window-place` listener, then from its opener, then from a position in its markup, then from its markup's mode. The event's `detail.opener` names the opening window's key, or is null. A window opened from a docked one opens as it would from the page.
 
+### Windows sized by their content
+
+A window is sized either by the reader or by its content, as a Win32 window has a sizing border or is a dialog that sizes itself to its template. Every window is sized by the reader unless its markup says otherwise. A tool laid out at its own size, such as a form, a settings page or a small game, marks its window `data-win-size="content"`:
+
+```html
+<section class="win" data-win="barcodes" data-win-size="content">…</section>
+```
+
+- **Its size is its content's.** The window takes its content's width and height and follows them as they change, larger and smaller, so an applet whose settings add or remove fields resizes its window by doing so, with nothing to call. The browser does the following, through the window's intrinsic size, and no script watches it. What sets the width is the content: give the applet's root a width, or a maximum width, and let nothing in it stretch to the height it is given, or the height would have nothing to come from.
+- **Its top-left corner stays where it is** as its size changes, so a control above the part that changed stays under the pointer. At the right and bottom of the workspace it stops, and its body scrolls.
+- **It cannot be resized, maximised, snapped or docked.** It has no resize edges, and its maximise and dock buttons do not show. Its window menu leaves out Maximize, the layout picker and Dock, and offers Reset position in place of Reset size and position. Enter and a double-click on its title bar do nothing, Shift with the arrow keys does nothing, and a drag to an edge moves it there without snapping. An address or a script that asks for any of these leaves it floating where it is.
+- **Its address keeps a floating placement**, whose width and height it ignores, so the same address still works if the window is later sized by the reader.
+- **An applet in it flows.** It is told `fit: "flow"` and its mount reads `data-applet-fit="flow"`, since the window gives it no box to fill.
+
+A window the reader sizes may carry limits, `data-win-min="400,250"` and `data-win-max="1200,900"`, its smallest and largest width and height in pixels. Dragging, the keyboard and an address all respect them, so a terminal keeps a usable grid however small it is dragged, and an old link cannot open it smaller.
+
 ### Docked windows
 
 A window may be docked at an edge of the workspace, and it then belongs to the workspace's frame: it takes that strip away from every other window, which lays itself out in what remains. A maximised window ends where a dock begins, a snapped half is half of what is left, and a floating window cannot be dragged into a dock's strip, so nothing ever covers a docked window. It serves standing furniture a page opens by default, such as a site's links at the foot of the workspace, and a tool the reader keeps beside their work, such as a terminal at the bottom or a mixer at the side. A footer that never moves or closes is page layout instead, and belongs below the window host. `docs/proposals/docked-windows.md` sets out the rules.
@@ -994,7 +1010,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.34.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.35.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

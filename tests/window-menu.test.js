@@ -51,6 +51,22 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   check('the menu is built afresh, with the tick and the enabled state current', r.indexOf('Wrap lines[true]') >= 0 && r.indexOf('Clear') >= 0, r.join(','));
   const tick = await p.evaluate(s => getComputedStyle(document.querySelector(s + ' [aria-pressed="true"]'), '::before').visibility, panel('counter'));
   check('a command that is on shows a tick', tick === 'visible', tick);
+  /* The indent that lines words up beside ticks leaves the layout picker's
+     zones alone (from parkscomputing.com's
+     Architecture/pudl-bug-snap-zone-indent.md). */
+  const overlap = await p.evaluate(s => {
+    const bad = [];
+    document.querySelectorAll(s + ' .win-snap-layout').forEach(g => {
+      const lr = g.getBoundingClientRect();
+      const zs = Array.from(g.querySelectorAll('.win-snap-zone')).map(z => z.getBoundingClientRect());
+      zs.forEach((a, i) => {
+        if (a.left < lr.left - 0.5 || a.right > lr.right + 0.5) bad.push('outside');
+        zs.slice(i + 1).forEach(b => { if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) bad.push('overlap'); });
+      });
+    });
+    return bad;
+  }, panel('counter'));
+  check('in a menu with ticked commands, the layout picker\'s zones stay inside their thumbnails and apart', overlap.length === 0, overlap.join(','));
   await p.keyboard.press('Escape');
 
   await choose('counter', 'Maximize');

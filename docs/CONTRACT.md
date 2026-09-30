@@ -101,10 +101,12 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
 | `data-win-open`, `data-win-replace` | a link | `pudl-windows.js` | Open that key's window, in place of this one |
 | `data-win-menu` | the window layer | `pudl-windows.js` | Give every window a window menu |
+| `data-win-size` | a window | `pudl-windows.js`, `pudl-windows.css`, `pudl-applets.js` | `content` for a window sized by its content, or `user`, the default |
+| `data-win-min`, `data-win-max` | a window | `pudl-windows.js` | Its smallest and largest width and height, `w,h` in pixels |
 | `data-win-action` | a window button | `pudl-windows.js` | `menu`, `page`, `minimize`, `maximize`, `dock` or `close` |
 | `data-applet-text-commands`, `-no-commands` | an applet mount outside a window | `pudl-applets.js` | The label of its Commands button, and the text of an empty menu |
 | `data-win-dock`, `data-win-tab`, `data-win-back`, `data-win-restore` | the dock, a dock tab or row, a minimise-all or back link, a restore-all link | `pudl-windows.js` | The script keeps the last two's `href` current and marks them `aria-disabled` when they would change nothing |
-| `data-win-text-maximize`, `-restore`, `-minimized`, `-head`, `-dock`, `-undock`, `-collapse`, `-expand`, `-menu`, `-page`, `-minimize`, `-reset`, `-close`, `-snap`, `-layout-<name>`, `-zone-<name>` | the window layer | `pudl-windows.js` | The page's own words, with `{title}` |
+| `data-win-text-maximize`, `-restore`, `-minimized`, `-head`, `-dock`, `-undock`, `-collapse`, `-expand`, `-menu`, `-page`, `-minimize`, `-reset`, `-reset-position`, `-close`, `-snap`, `-layout-<name>`, `-zone-<name>` | the window layer | `pudl-windows.js` | The page's own words, with `{title}` |
 | `data-win-edge` | a docked window | the stylesheet, `pudl-windows.js` | The edge it shows on, `top`, `bottom`, `left` or `right`, which the server renders and the script keeps |
 | `data-menu-key`, `data-menu-empty` | a menu panel | `pudl-menu.js` | Its summoning key, its "nothing matches" text |
 | `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |

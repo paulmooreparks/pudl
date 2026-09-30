@@ -136,11 +136,16 @@
     });
   }
 
-  /* The smallest a window may be, as fractions of a layer of that size. */
-  function minFractions(layerW, layerH) {
+  /* The smallest a window may be, as fractions of a layer of that size, and
+     the largest, mw and mh. A window's own data-win-min and data-win-max,
+     set on it as --win-min-w and so on, win over the layer's. */
+  function minFractions(layerW, layerH, el) {
+    var from = el || layer;
     return {
-      w: Math.min(1, pxMin('--win-min-w', 320) / (layerW || 1)),
-      h: Math.min(1, pxMin('--win-min-h', 200) / (layerH || 1))
+      w: Math.min(1, pxOf(from, '--win-min-w', 320) / (layerW || 1)),
+      h: Math.min(1, pxOf(from, '--win-min-h', 200) / (layerH || 1)),
+      mw: Math.min(1, pxOf(from, '--win-max-w', Infinity) / (layerW || 1)),
+      mh: Math.min(1, pxOf(from, '--win-max-h', Infinity) / (layerH || 1))
     };
   }
 
@@ -149,8 +154,8 @@
      docked window's strip size, s, is kept, within its limits. */
   function clampPlacement(p, layerW, layerH, min) {
     min = min || minFractions(layerW, layerH);
-    var w = Math.min(1, Math.max(min.w, p.w));
-    var h = Math.min(1, Math.max(min.h, p.h));
+    var w = Math.min(min.mw != null ? Math.max(min.w, min.mw) : 1, Math.max(min.w, p.w));
+    var h = Math.min(min.mh != null ? Math.max(min.h, min.mh) : 1, Math.max(min.h, p.h));
     var out = {
       mode: p.mode, w: w, h: h,
       x: Math.min(1 - w, Math.max(0, p.x)),
@@ -560,7 +565,21 @@
     return t ? t.textContent.trim() : key;
   }
 
+  /* A window sized by its content, data-win-size="content", has nothing to
+     fill, so it always floats: an address or a script that asks for it
+     maximised, snapped or docked leaves it floating where it is. */
+  function contentSized(key) {
+    return !!wins[key] && wins[key].getAttribute('data-win-size') === 'content';
+  }
+
   function apply(st) {
+    st.open.forEach(function (k) {
+      var p = st.place[k];
+      if (p && p.mode !== 'floating' && contentSized(k)) {
+        st.place[k] = Object.assign({}, p, { mode: 'floating' });
+        delete st.place[k].zone;
+      }
+    });
     /* A window leaving the page says so first, however it was closed, so
        its content can tear down what it set up, and says why, so a project
        can tell a reader closing it from the address moving on. */
@@ -849,6 +868,16 @@
       el.appendChild(h);
     });
 
+    /* A user-sized window's limits, data-win-min="w,h" and data-win-max="w,h"
+       in pixels, become the properties the stylesheet and the resize
+       gestures read, so they hold however the size was reached. */
+    [['data-win-min', '--win-min-'], ['data-win-max', '--win-max-']].forEach(function (lim) {
+      var m = /^\s*(\d+)\s*,\s*(\d+)\s*$/.exec(el.getAttribute(lim[0]) || '');
+      if (!m) return;
+      el.style.setProperty(lim[1] + 'w', m[1] + 'px');
+      el.style.setProperty(lim[1] + 'h', m[2] + 'px');
+    });
+
     var title = el.querySelector('.win-title');
     if (title && !title.id) title.id = 'win-' + key + '-title';
     if (!el.hasAttribute('role')) el.setAttribute('role', 'dialog');
@@ -950,12 +979,15 @@
     if (page) panel.appendChild(menuItem(text('page', 'Open as a page'), 'page'));
     panel.appendChild(menuItem(dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
                                     : text('minimize', 'Minimize'), 'minimize'));
-    if (!dock) {
+    /* A window sized by its content has no size to change: no maximising,
+       no zones and no dock, and reset returns only its position. */
+    var sized = contentSized(key);
+    if (!dock && !sized) {
       panel.appendChild(menuItem(p.mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
       snapItems(panel, key);
     }
-    panel.appendChild(menuItem(dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
-    panel.appendChild(menuItem(text('reset', 'Reset size and position'), 'reset'));
+    if (!sized) panel.appendChild(menuItem(dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
+    panel.appendChild(menuItem(sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
     var own = contentCommands(win, key);
     menuRuns[key] = own;
     if (own.length) {
@@ -1052,7 +1084,7 @@
     max.addEventListener('pointerenter', function (e) {
       if (e.pointerType !== 'mouse') return;
       stay();
-      if (panel.matches(':popover-open') || dockEdge(state.place[key])) return;
+      if (panel.matches(':popover-open') || dockEdge(state.place[key]) || contentSized(key)) return;
       openTimer = setTimeout(function () {
         if (max.matches(':hover') && wins[key] && !panel.matches(':popover-open')) panel.showPopover();
       }, HOVER_MS);
@@ -1067,7 +1099,7 @@
   function resetPlaced(st, key) {
     st = raised(st, key);
     var home = homes[key] || markupPlacement(wins[key], 0);
-    st.place[key] = clampPlacement(Object.assign({}, home), innerW(), innerH());
+    st.place[key] = clampPlacement(Object.assign({}, home), innerW(), innerH(), contentSized(key) ? { w: 0, h: 0 } : null);
     return st;
   }
 
@@ -1360,8 +1392,10 @@
     ghost.hidden = false;
   }
 
-  function pxMin(prop, fallback) {
-    var v = parseFloat(getComputedStyle(layer).getPropertyValue(prop));
+  function pxMin(prop, fallback) { return pxOf(layer, prop, fallback); }
+
+  function pxOf(el, prop, fallback) {
+    var v = parseFloat(getComputedStyle(el).getPropertyValue(prop));
     return isFinite(v) ? v : fallback;
   }
 
@@ -1377,12 +1411,20 @@
     var target = e.currentTarget;
     var outer = layer.getBoundingClientRect();
     var r = innerRect();
-    var min = minFractions(r.width, r.height);
+    var min = minFractions(r.width, r.height, el);
     var start = Object.assign({}, state.place[key]);
     var dockSide = shownEdge(state, key);
     var base = start, baseX = e.clientX, baseY = e.clientY;
     var lastX = baseX, lastY = baseY;
     var cur = start, snap = null, moved = false, frame = 0;
+    /* A window sized by its content moves at the size it has, which its
+       placement does not record, and never snaps, since a zone is a size. */
+    var sized = contentSized(key);
+    if (sized) {
+      var box = el.getBoundingClientRect();
+      base = start = Object.assign({}, start, { w: Math.min(1, box.width / r.width), h: Math.min(1, box.height / r.height) });
+      min = { w: 0, h: 0 };
+    }
 
     target.setPointerCapture(e.pointerId);
 
@@ -1399,7 +1441,7 @@
         el.removeAttribute('data-win-edge');
         el.classList.remove('win-collapsed');
         r = innerRect();
-        min = minFractions(r.width, r.height);
+        min = minFractions(r.width, r.height, el);
       }
       /* Dragging a maximised, snapped or docked window lifts it back to its
          floating size, under the pointer, at the same point along the
@@ -1442,7 +1484,7 @@
       }
       cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h, s: base.s }, r.width, r.height, min);
       el.style.transform = 'translate(' + (cur.x - base.x) * r.width + 'px, ' + (cur.y - base.y) * r.height + 'px)';
-      var s = snapAt(lastX, lastY, r, outer);
+      var s = sized ? null : snapAt(lastX, lastY, r, outer);
       if (s !== snap) { snap = s; showGhost(s); }
     }
 
@@ -1494,15 +1536,16 @@
 
   function resizeFrom(p, edge, dx, dy, min) {
     var minW = min.w, minH = min.h;
+    var maxW = min.mw != null ? Math.max(minW, min.mw) : 1, maxH = min.mh != null ? Math.max(minH, min.mh) : 1;
     var x = p.x, y = p.y, w = p.w, h = p.h;
-    if (edge.indexOf('e') >= 0) w = Math.min(1 - p.x, Math.max(minW, p.w + dx));
-    if (edge.indexOf('s') >= 0) h = Math.min(1 - p.y, Math.max(minH, p.h + dy));
+    if (edge.indexOf('e') >= 0) w = Math.min(1 - p.x, maxW, Math.max(minW, p.w + dx));
+    if (edge.indexOf('s') >= 0) h = Math.min(1 - p.y, maxH, Math.max(minH, p.h + dy));
     if (edge.indexOf('w') >= 0) {
-      x = Math.max(0, Math.min(p.x + p.w - minW, p.x + dx));
+      x = Math.max(0, p.x + p.w - maxW, Math.min(p.x + p.w - minW, p.x + dx));
       w = p.w + (p.x - x);
     }
     if (edge.indexOf('n') >= 0) {
-      y = Math.max(0, Math.min(p.y + p.h - minH, p.y + dy));
+      y = Math.max(0, p.y + p.h - maxH, Math.min(p.y + p.h - minH, p.y + dy));
       h = p.h + (p.y - y);
     }
     var out = { mode: 'floating', x: x, y: y, w: w, h: h };
@@ -1541,12 +1584,22 @@
       commitSoon(sd);
       return;
     }
+    /* A window sized by its content moves with the arrow keys at the size
+       it has, and Shift does nothing, since its content sets its size. */
+    var sized = contentSized(key);
+    if (sized && e.shiftKey) return;
     var st = raised(state, key);
     var p = st.place[key];
     p.mode = 'floating';
+    var W = innerW(), H = innerH();
+    if (sized) {
+      var box = wins[key].getBoundingClientRect();
+      p.w = Math.min(1, box.width / W);
+      p.h = Math.min(1, box.height / H);
+    }
     if (e.shiftKey) { p.w += d[0] * KEY_STEP; p.h += d[1] * KEY_STEP; }
     else { p.x += d[0] * KEY_STEP; p.y += d[1] * KEY_STEP; }
-    st.place[key] = clampPlacement(p, innerW(), innerH());
+    st.place[key] = clampPlacement(p, W, H, sized ? { w: 0, h: 0 } : minFractions(W, H, wins[key]));
     commitSoon(st);
   }
 

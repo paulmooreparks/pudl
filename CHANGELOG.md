@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.35.0
+
+Windows sized by their content, from parkscomputing.com's `Architecture/pudl-proposal-window-sizing.md`. This release implements PUDL specification 0.3.0.
+
+- A window marked `data-win-size="content"` takes its content's width and height and follows them as they change, larger and smaller, from a fixed top-left corner, so an applet whose settings add fields resizes its window by doing so, with nothing to call. It stops at the right and bottom of the workspace, where its body scrolls. It cannot be resized, maximised, snapped or docked: its resize edges and its maximise and dock buttons go, its window menu offers Reset position, and an address or script asking otherwise leaves it floating. Its address keeps an ordinary floating placement, whose size it ignores.
+- An applet in such a window is told `fit: "flow"`.
+- A window the reader sizes may carry `data-win-min="w,h"` and `data-win-max="w,h"` in pixels, which dragging, the keyboard and an address all respect.
+- The layout picker's zones no longer spill out of their thumbnails in a window menu that holds a command with a tick. The indent that lines up the words of the other commands reached the zones too, which are commands with no words (from parkscomputing.com's `Architecture/pudl-bug-snap-zone-indent.md`).
+- Two changes from the proposal. The mode is declared on the window's markup only, not also in `pudlApplets.define()`: PUDL never builds a window for an applet, and the runtime would learn the mode only after the window was placed. And a window sized by its content does not dock, since it has no size to give a dock's strip.
+
 ## 0.34.1
 
 This release implements PUDL specification 0.2.1.
