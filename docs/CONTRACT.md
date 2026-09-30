@@ -56,7 +56,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 
 | Component | Markup | State |
 |---|---|---|
-| Topbar | `header.topbar` holding `a.brand`, `.topbar-chrome` with `a.topbar-pill` (optionally a `.glyph` and a `.topbar-pill-label`, shown as the glyph alone on a phone), `button.theme-toggle`; a menu button may hold its words in `.menu-btn-label`, cut short on a phone | `aria-current` on the pill for the current page |
+| Topbar | `header.topbar` holding `a.brand`, optionally `nav.topbar-tabs` of `a` (with `--section-current-bg` for what lies below), `.topbar-chrome` with `a.topbar-pill` (optionally a `.glyph` and a `.topbar-pill-label`, shown as the glyph alone on a phone), `button.theme-toggle`; a menu button may hold its words in `.menu-btn-label`, cut short on a phone | `aria-current` on the pill or tab for the current page |
 | Section tabs | `nav.app-section-bar` of `a.section-tab` | aria-current on the current tab: `"page"` for the section's page, `"true"` for a page inside it |
 | Buttons | `.btn`, with `.btn-primary`, `.btn-danger`, `.btn-sm`; `.icon-btn`, with `.danger`; `.link` and `.link-muted` on a button or link | `disabled`; `aria-pressed="true"` latches a `.btn` |
 | Form fields | `.form-group` holding `label.form-label`, `.form-input`, `.form-select` or `.form-textarea`, `.form-help`, `.form-error`; `.form-fieldset` with a `legend`; `.form-options`, with `.inline`; `label.check`; `input.form-file` | `required`, `aria-invalid="true"`, `aria-describedby`, `readonly`, `disabled` |

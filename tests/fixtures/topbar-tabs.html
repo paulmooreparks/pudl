@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Topbar tabs</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+</head>
+<body>
+  <!-- A test fixture after parkscomputing.com: a topbar holding the site's
+       sections as tabs, with the current one opening into the page. -->
+  <header class="topbar">
+    <a class="brand" href="#">Parks Computing</a>
+    <nav class="topbar-tabs" aria-label="Sections">
+      <a href="#all" aria-current="page">All</a>
+      <a href="#articles">Articles</a>
+      <a href="#applications">Applications</a>
+      <a href="#applets">Applets</a>
+      <a href="#projects">Projects</a>
+      <a href="#links">Links</a>
+    </nav>
+    <div class="topbar-chrome">
+      <nav class="seg" data-seg-menu aria-label="View"><a href="#window" aria-current="page">Window</a><a href="#classic">Classic</a></nav>
+    </div>
+  </header>
+  <main style="padding: var(--space-5) var(--space-6)">
+    <h1>Paul's Thoughts on Computing</h1>
+    <div class="card" style="max-width: 20rem">A card on the page.</div>
+  </main>
+</body>
+</html>

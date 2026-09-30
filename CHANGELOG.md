@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.37.0
+
+This release implements PUDL specification 0.5.0.
+
+- **Tabs in the topbar.** A `nav.topbar-tabs` of links between the brand and the chrome holds a site's main sections as tabs, as a browser puts its tabs in its title bar, for parkscomputing.com's All, Articles, Applications and the rest. The row stands on the topbar's bottom edge; the tabs are raised in the topbar's chip colours, and the one marked `aria-current` stands flat and taller, covers the topbar's bottom border and takes the colour below it, `--bg` unless `--section-current-bg` on the row says otherwise, so it opens into the page. On a phone the tabs take the topbar's last row and scroll sideways.
+- The topbar's vertical padding is now `--tb-pad-y`, which the tabs read to reach its edge.
+
 ## 0.36.0
 
 This release implements PUDL specification 0.4.0.

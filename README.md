@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.4.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.5.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -168,6 +168,21 @@ The topbar never widens the page. On a screen too narrow for the brand and its c
 ```
 
 The pill for the page the reader is on carries `aria-current="page"` and is pressed in, as the current tab of a dock or a segmented control is. A menu button on the topbar may hold its words in a `.menu-btn-label`, and a phone then cuts a long name short with an ellipsis rather than letting it widen the chrome.
+
+The topbar can hold a site's main sections as **tabs**, as a browser puts its tabs in its title bar, between the brand and the chrome:
+
+```html
+<header class="topbar">
+  <a class="brand" href="/">Parks Computing</a>
+  <nav class="topbar-tabs" aria-label="Sections">
+    <a href="/" aria-current="page">All</a>
+    <a href="/articles">Articles</a>
+  </nav>
+  <div class="topbar-chrome">…</div>
+</header>
+```
+
+The row stands on the topbar's bottom edge. The tabs the reader can go to are raised in the topbar's chip colours, and the tab marked `aria-current` stands flat and taller, covers the topbar's bottom border and takes the colour of what lies below it, so it opens into the page as a section tab opens into its content. That colour is `--bg`; a page whose content directly below the topbar sits on another colour sets `--section-current-bg` on the `.topbar-tabs`. On a phone the tabs take the topbar's last row and scroll sideways.
 
 PUDL sets text in Inter, which it ships in `dist/fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
 
@@ -1021,7 +1036,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.36.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.37.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
