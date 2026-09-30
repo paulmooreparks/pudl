@@ -162,6 +162,8 @@ The topbar never widens the page. On a screen too narrow for the brand and its c
 <a class="topbar-pill" href="/articles"><span class="glyph" style="--glyph: var(--glyph-document)" aria-hidden="true"></span><span class="topbar-pill-label">Articles</span></a>
 ```
 
+The pill for the page the reader is on carries `aria-current="page"` and is pressed in, as the current tab of a dock or a segmented control is. A menu button on the topbar may hold its words in a `.menu-btn-label`, and a phone then cuts a long name short with an ellipsis rather than letting it widen the chrome.
+
 PUDL sets text in Inter, which it ships in `dist/fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
 
 ## What a project may change
@@ -218,7 +220,7 @@ A form the server has refused comes back with every value the reader typed, a no
 
 - A field with `aria-invalid="true"` takes a danger border and a danger focus ring, and its `.form-error`, tied by `aria-describedby`, leads with the warning glyph, so the state never rests on the border's colour.
 - A field with `required` gives its group's label an asterisk, drawn by the stylesheet and hidden from assistive technology, which hears "required" from the field itself.
-- `.form-help` is muted text under a field.
+- `.form-help` is a field's help text, sometimes called a hint: muted text under the field, tied to it by `aria-describedby`.
 - `.form-fieldset` with a `legend` groups related choices, and `.form-options`, or `.form-options.inline`, lays out their `.check` labels, radio buttons included.
 - `.form-file` on a file input makes its button raised like any other.
 
@@ -900,7 +902,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.29.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.29.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

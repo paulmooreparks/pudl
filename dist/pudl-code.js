@@ -78,6 +78,9 @@
     if (!pre.parentNode || (pre.parentElement && pre.parentElement.classList.contains('code-block'))) return;
     var lang = langOf(pre);
     var words = window.pudlCode.words;
+    /* A block may scroll sideways, so a reader who scrolls by keyboard
+       needs to be able to focus it. */
+    if (!pre.hasAttribute('tabindex')) pre.tabIndex = 0;
     var wrap = document.createElement('div');
     wrap.className = 'code-block';
     var head = document.createElement('div');

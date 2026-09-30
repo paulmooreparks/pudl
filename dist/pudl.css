@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.29.1.
+   Version 0.29.2.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -391,8 +391,20 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 /* A pill may carry a glyph with its words in a .topbar-pill-label. On a
    phone the words are then heard but not shown, and the pill is its
    glyph, so a topbar with several pills still fits on one line. */
+/* The pill for the page the reader is on, marked aria-current, is pressed
+   in, as the current tab of a dock or a segmented control is. */
+.topbar-pill[aria-current]:not([aria-current="false"]) {
+  color: var(--tb-fg);
+  background: color-mix(in srgb, #000 24%, var(--tb-bg));
+  box-shadow: inset 0 1px 3px color-mix(in srgb, #000 50%, transparent);
+}
+/* A menu button on the topbar may hold its words in a .menu-btn-label,
+   which a phone then cuts short with an ellipsis rather than letting the
+   button widen the chrome. */
+.menu-btn-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 640px) {
   .topbar { padding: 8px 12px; }
+  .topbar .menu-btn:has(> .menu-btn-label) { max-width: 10rem; }
   .topbar-pill:has(> .glyph) { position: relative; padding-inline: 8px; }
   .topbar-pill:has(> .glyph) > .topbar-pill-label {
     position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
@@ -1109,15 +1121,17 @@ body:has(> .md-layout) {
   /* The list pane fills the layout, and its rows are touch targets. */
   .md-sidebar { flex: 1; width: auto; border-inline-end: 0; }
   .md-sidebar .md-item, .md-sidebar .tree a { padding-top: 10px; padding-bottom: 10px; }
-  .md-detail { display: none; padding: var(--space-4); }
+  .md-detail { padding: var(--space-4); }
+  .md-layout:not([data-md-pane="detail"]) .md-detail { display: none; }
 
   /* The detail pane: the list, its toolbar and its filters step aside. A
      toolbar of site-wide tools, such as a launcher or a window dock, is
-     marked .md-site-tools and stays in both panes. */
+     marked .md-site-tools and stays in both panes. PUDL only hides the
+     pane it is not showing, and leaves the display of the one it shows
+     alone, so a detail pane a project lays out as a flex column stays one. */
   .md-layout[data-md-pane="detail"] .md-toolbar:not(.md-site-tools),
   .md-layout[data-md-pane="detail"] .md-chips,
   .md-layout[data-md-pane="detail"] .md-sidebar { display: none; }
-  .md-layout[data-md-pane="detail"] .md-detail { display: block; }
 
   .md-back {
     display: inline-flex; align-items: center; gap: var(--space-1);
@@ -1645,7 +1659,8 @@ body:has(> .md-layout) {
   .seg [aria-current]:not([aria-current="false"]), .seg button.active,
   .section-tab[aria-current]:not([aria-current="false"]), .section-tab.active,
   .md-row:has(> [aria-current]:not([aria-current="false"])), .md-row.active,
-  .btn[aria-pressed="true"], .menu:has(> .menu-panel:popover-open) > .menu-btn {
+  .btn[aria-pressed="true"], .menu:has(> .menu-panel:popover-open) > .menu-btn,
+  .topbar-pill[aria-current]:not([aria-current="false"]) {
     forced-color-adjust: none;
     background: Highlight; color: HighlightText; border-color: Highlight;
   }

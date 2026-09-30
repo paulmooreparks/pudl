@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.29.2
+
+What a review of pudl.bytecode.news, the second site built on PUDL, found PUDL lacking, from the workarounds in its own stylesheet.
+
+- A narrow master-detail layout no longer forces its detail pane to `display: block`. PUDL hides only the pane it is not showing, so a detail pane a project lays out as a flex column stays one.
+- A topbar pill for the page the reader is on, marked `aria-current`, is pressed in, as the current tab of a dock or a segmented control is, with the system's highlight in forced colours.
+- A menu button on the topbar may hold its words in a `.menu-btn-label`, which a phone cuts short with an ellipsis.
+- `pudl-code.js` gives a code block it enhances `tabindex="0"` when it has none, so a block that scrolls can be scrolled from the keyboard.
+- The README calls `.form-help` a field's hint as well as its help text, so it can be found by either name.
+
 ## 0.29.1
 
 - The topbar no longer widens the page on a phone (#9, reported by jottinger). It and its chrome wrap, the chrome moving to a line of its own at the end when the brand and it do not fit on one, with less padding on a phone. A pill may carry a glyph and a `.topbar-pill-label`, and on a phone it then shows only the glyph, its words still heard.

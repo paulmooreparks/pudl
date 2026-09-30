@@ -149,7 +149,9 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   check('receipt: attaching shows the picture', /attached/.test(await toast()) && !!(await p.$('#receipt img.receipt-image')) && await p.$eval('#receipt', el => !el.hidden));
   check('receipt: the warning goes', !(await p.$('.record-meta .badge.warn')));
   await submitAndWait('.receipt-actions button[value="remove"]');
-  check('receipt: and it can be removed', !!(await p.$('.record-meta .badge.warn')));
+  /* The navigation can resolve before the page's script has drawn the
+     record, so the check waits for the badge itself. */
+  check('receipt: and it can be removed', await p.waitForSelector('.record-meta .badge.warn', { timeout: 5000 }).then(() => true, () => false));
 
   /* === Duplicate and delete ============================================= */
   await go('expense.html?id=2');

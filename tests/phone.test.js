@@ -57,6 +57,44 @@ const PAGES = ['/reference.html', '/samples/article-reader.html', '/samples/arti
   });
   check('on a wide screen a pill shows its words', shown === 'none', shown);
 
+  /* What pudl.bytecode.news's workarounds asked of PUDL. */
+  const ctx3 = await b.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
+  const n = await ctx3.newPage();
+  n.on('pageerror', e => errors.push(e.message));
+  await n.goto(ROOT + '/samples/article-reader.html?open=elevation&top=elevation');
+  await n.waitForSelector('.win[data-win="elevation"]');
+  const pane = await n.evaluate(() => {
+    const s = document.createElement('style');
+    s.textContent = '.md-detail.reader-stage { display: flex; flex-direction: column; }';
+    document.head.append(s);
+    return getComputedStyle(document.querySelector('.md-detail')).display;
+  });
+  check('a narrow detail pane keeps the display a project gives it', pane === 'flex', pane);
+  const bar = await n.evaluate(() => {
+    document.querySelector('.topbar-chrome').insertAdjacentHTML('afterbegin',
+      '<a class="topbar-pill" id="cur" href="#" aria-current="page">Admin</a><a class="topbar-pill" id="not" href="#">Submit</a>' +
+      '<div class="menu"><button class="btn btn-sm menu-btn" id="mb" type="button" popovertarget="x"><span class="menu-btn-label">A very long menu name for this phone</span></button></div>');
+    const cur = getComputedStyle(document.getElementById('cur')), not = getComputedStyle(document.getElementById('not'));
+    const label = document.querySelector('#mb .menu-btn-label');
+    const root = document.documentElement;
+    return { pressed: /inset/.test(cur.boxShadow) && cur.backgroundColor !== not.backgroundColor,
+             cut: label.scrollWidth > label.clientWidth && getComputedStyle(label).textOverflow === 'ellipsis',
+             width: Math.round(document.getElementById('mb').getBoundingClientRect().width), fits: root.scrollWidth <= root.clientWidth };
+  });
+  check('the topbar pill for the current page is pressed in', bar.pressed, JSON.stringify(bar));
+  check('a long topbar menu button is cut short on a phone and the page still fits', bar.cut && bar.width <= 161 && bar.fits, JSON.stringify(bar));
+  await n.goto(ROOT + '/reference.html');
+  await n.waitForFunction(() => window.pudlCode);
+  const tab = await n.evaluate(() => {
+    const pre = document.createElement('pre');
+    pre.innerHTML = '<code>x</code>';
+    document.body.append(pre);
+    pudlCode.enhance(pre);
+    return pre.getAttribute('tabindex');
+  });
+  check('a code block pudl-code.js enhances can be focused, to scroll it', tab === '0', tab);
+  await ctx3.close();
+
   check('no errors', errors.length === 0, errors.join(' | '));
   await b.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');
