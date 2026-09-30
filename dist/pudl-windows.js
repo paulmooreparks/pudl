@@ -15,6 +15,15 @@
    says, so closing the last window writes open= rather than bringing the
    defaults back.
 
+   A window may be docked at an edge of the layer, mode dock-top,
+   dock-bottom, dock-left or dock-right, and it then takes that strip from
+   every other window, which lays itself out in what remains. It is flush,
+   with a thin title bar; minimising collapses it to that bar; it resizes
+   along its free edge; dragging it away undocks it, and dragging a window
+   to the layer's foot docks it there. An edge shows one docked window at
+   a time, and a side dock shows at the bottom of a narrow layer.
+   docs/proposals/docked-windows.md sets out the rules.
+
    Events, dispatched so a project can hook in without editing this file:
      pudl:window-place   on the layer, before a window opens with no placement
                          in the URL. A listener may set event.detail.placement
@@ -45,12 +54,16 @@
    the layout's data-md-pane to the server.
 
    window.pudlWindows offers open, replace, raise, minimize, minimizeAll,
-   restoreAll, retitle, close and state
-   to scripts, each doing what the matching link or button does. */
+   restoreAll, dock, retitle, close and state to scripts, each doing what
+   the matching link or button does. */
 (function () {
   'use strict';
 
-  var MODES = ['floating', 'maximized', 'left', 'right'];
+  var MODES = ['floating', 'maximized', 'left', 'right', 'dock-top', 'dock-bottom', 'dock-left', 'dock-right'];
+  var SIDES = ['top', 'bottom', 'left', 'right'];
+  var DOCK_SIZE = 0.25;    // a docked window's strip, as a fraction of the layer, when nothing says otherwise
+  var DOCK_MAX = 0.8;      // the most of the layer a dock may take
+  var NARROW = 640;        // at or below this layer width a side dock shows at the bottom
   var EDGES = ['n', 's', 'e', 'w', 'nw', 'ne', 'sw', 'se'];
   var KEY_RE = /^[A-Za-z0-9_-]+$/;
   var SNAP_PX = 16;        // a drag ending this close to an edge snaps to it
@@ -58,7 +71,7 @@
   var KEY_STEP = 0.02;     // arrow keys move or resize by this fraction
   var URL_DELAY = 300;     // ms of keyboard quiet before the URL is written
 
-  var layer, ghost, srcTemplate;
+  var layer, ghost, inner, srcTemplate;
   var state = { open: [], top: null, min: {}, place: {} };
   var wins = {};           // key -> window element
   var zOrder = [];         // keys, bottom to top
@@ -96,35 +109,96 @@
   }
 
   /* min, from minFractions(), may be passed in by a caller that clamps many
-     times over, since finding it reads the layer's computed style. */
+     times over, since finding it reads the layer's computed style. A
+     docked window's strip size, s, is kept, within its limits. */
   function clampPlacement(p, layerW, layerH, min) {
     min = min || minFractions(layerW, layerH);
     var w = Math.min(1, Math.max(min.w, p.w));
     var h = Math.min(1, Math.max(min.h, p.h));
-    return {
+    var out = {
       mode: p.mode, w: w, h: h,
       x: Math.min(1 - w, Math.max(0, p.x)),
       y: Math.min(1 - h, Math.max(0, p.y))
     };
+    if (p.s != null) out.s = Math.min(DOCK_MAX, Math.max(0.05, p.s));
+    return out;
   }
 
   function validPlacement(p) {
     return !!p && MODES.indexOf(p.mode) >= 0 &&
       [p.x, p.y, p.w, p.h].every(function (n) { return typeof n === 'number' && isFinite(n) && n >= 0 && n <= 1; }) &&
-      p.w > 0 && p.h > 0;
+      p.w > 0 && p.h > 0 &&
+      (p.s == null || (typeof p.s === 'number' && isFinite(p.s) && p.s > 0 && p.s <= 1));
   }
 
+  /* A placement is mode:x,y,w,h, and a docked one may add its strip's
+     size: dock-bottom:0.06,0.05,0.55,0.75,0.22. The four numbers are always
+     the floating geometry to return to. */
   function parsePlacement(value) {
-    var m = /^([a-z]+):([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)$/.exec(value || '');
+    var m = /^([a-z-]+):([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)(?:,([0-9.]+))?$/.exec(value || '');
     if (!m) return null;
     var p = { mode: m[1], x: +m[2], y: +m[3], w: +m[4], h: +m[5] };
+    if (m[6] != null) p.s = +m[6];
     return validPlacement(p) ? p : null;
   }
 
   function fmt(n) { return String(Math.round(n * 1000) / 1000); }
 
   function formatPlacement(p) {
-    return p.mode + ':' + [p.x, p.y, p.w, p.h].map(fmt).join(',');
+    var nums = [p.x, p.y, p.w, p.h];
+    if (dockEdge(p)) nums.push(p.s != null ? p.s : DOCK_SIZE);
+    return p.mode + ':' + nums.map(fmt).join(',');
+  }
+
+  /* === Docked windows ======================================================
+     A docked window holds an edge of the layer, and takes that strip from
+     every other window, which lays itself out in what remains, the inner
+     area. An edge shows one docked window at a time, the one highest in
+     the stack; the others wait behind it and come forward from the dock. */
+
+  function dockEdge(p) { return p && p.mode.indexOf('dock-') === 0 ? p.mode.slice(5) : null; }
+
+  function narrowLayer() { return !!layer && layer.clientWidth <= NARROW; }
+
+  /* The edge a docked window shows on: its own, except that a side dock
+     shows at the bottom of a layer too narrow to have room beside it. */
+  function shownEdge(st, key) {
+    var e = dockEdge(st.place[key]);
+    return e && (e === 'left' || e === 'right') && narrowLayer() ? 'bottom' : e;
+  }
+
+  /* The stacking order a state implies: the order as it stands, windows
+     new to it on top, and the state's top window above them all. */
+  function stackOf(st) {
+    var order = zOrder.filter(function (k) { return st.open.indexOf(k) >= 0; });
+    st.open.forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });
+    if (st.top && order.indexOf(st.top) >= 0) { order.splice(order.indexOf(st.top), 1); order.push(st.top); }
+    return order;
+  }
+
+  function edgeFront(st, edge) {
+    var order = stackOf(st);
+    for (var i = order.length - 1; i >= 0; i--) {
+      if (st.place[order[i]] && shownEdge(st, order[i]) === edge) return order[i];
+    }
+    return null;
+  }
+
+  /* The size of the layer's inner area, which the docks leave. */
+  function innerRect() { return inner ? inner.getBoundingClientRect() : layer.getBoundingClientRect(); }
+  function innerW() { return innerRect().width || layer.clientWidth; }
+  function innerH() { return innerRect().height || layer.clientHeight; }
+
+  /* Sets the strips the docks take, as lengths on the layer, which the
+     stylesheet lays every window out by. A collapsed dock takes its title
+     bar's height. */
+  function setDocks(st) {
+    SIDES.forEach(function (side) {
+      var k = edgeFront(st, side);
+      var v = '0px';
+      if (k) v = st.min[k] ? 'calc(var(--win-head-docked) + 1px)' : (Math.round((st.place[k].s != null ? st.place[k].s : DOCK_SIZE) * 1000) / 10) + '%';
+      layer.style.setProperty('--dock-' + side, v);
+    });
   }
 
   /* The state an address names, or null when it names no windows at all,
@@ -211,7 +285,12 @@
     return st.open.filter(function (k) { return parentOf(st, k) === key; });
   }
 
+  /* A docked window shows while it is the front of its edge, minimised or
+     not, since minimising a docked window collapses it to its title bar
+     rather than hiding it. */
   function isHidden(st, key) {
+    var edge = shownEdge(st, key);
+    if (edge) return edgeFront(st, edge) !== key;
     var p = parentOf(st, key);
     return !!(st.min[key] || (p && st.min[p]));
   }
@@ -240,6 +319,22 @@
     delete st.min[rootOf(st, key)];
     st.top = key;
     return st;
+  }
+
+  /* A press or focus in a window brings it to the front. A collapsed dock
+     it brings to the front stays collapsed; its own button or its tab in
+     the dock expands it. */
+  function fronted(st, key) {
+    if (!dockEdge(st.place[key])) return raised(st, key);
+    st = copy(st);
+    st.top = key;
+    return st;
+  }
+
+  /* The minimise button: on a docked window it collapses the window to its
+     title bar, and expands it again. */
+  function minimizeToggled(st, key) {
+    return dockEdge(st.place[key]) && st.min[key] ? raised(st, key) : minimized(st, key);
   }
 
   /* Minimising a window hides its children with it. A child has no dock tab
@@ -286,6 +381,21 @@
     return st;
   }
 
+  /* Docks a window at an edge, or with no edge, undocks it back to where
+     it floated. A window keeps its strip's size while undocked, so docking
+     it again brings it back as it was. */
+  function docked(st, key, edge) {
+    st = raised(st, key);
+    var p = st.place[key];
+    if (edge) {
+      p.mode = 'dock-' + edge;
+      if (p.s == null) p.s = DOCK_SIZE;
+    } else {
+      p.mode = 'floating';
+    }
+    return st;
+  }
+
   /* Closing a window closes its children with it. */
   function closed(st, key) {
     var gone = [key].concat(childrenOf(st, key));
@@ -323,6 +433,7 @@
     el.style.setProperty('--win-y', fmt(p.y));
     el.style.setProperty('--win-w', fmt(p.w));
     el.style.setProperty('--win-h', fmt(p.h));
+    if (p.s != null) el.style.setProperty('--win-dock-size', fmt(p.s));
   }
 
   /* The words this script writes into the page, in English unless the layer
@@ -368,14 +479,21 @@
     });
     zOrder = ordered;
 
+    /* Docked windows stack above the rest, though nothing is let into their
+       strips, so that a drag's ghost or a window's shadow never crosses one. */
     var front = active(st);
     zOrder.forEach(function (k, i) {
       var el = wins[k];
+      var edge = shownEdge(st, k);
       setPlacement(el, st.place[k]);
       el.hidden = isHidden(st, k);
       el.classList.toggle('active', k === front);
-      el.style.zIndex = String(i + 1);
+      if (edge) el.setAttribute('data-win-edge', edge);
+      else el.removeAttribute('data-win-edge');
+      el.classList.toggle('win-collapsed', !!edge && !!st.min[k]);
+      el.style.zIndex = String((edge ? zOrder.length : 0) + i + 1);
     });
+    setDocks(st);
     state = st;
     updateLinks();
     renderDocks();
@@ -388,7 +506,13 @@
   function updateLinks() {
     state.open.forEach(function (k) {
       var el = wins[k];
-      setHref(el.querySelector('[data-win-action="minimize"]'), urlFor(minimized(state, k)));
+      var mn = el.querySelector('[data-win-action="minimize"]');
+      setHref(mn, urlFor(minimizeToggled(state, k)));
+      if (mn && dockEdge(state.place[k])) {
+        var ml = state.min[k] ? text('expand', 'Expand') : text('collapse', 'Collapse');
+        mn.setAttribute('aria-label', ml);
+        mn.setAttribute('title', ml);
+      }
       setHref(el.querySelector('[data-win-action="close"]'), urlFor(closed(state, k)));
       var max = el.querySelector('[data-win-action="maximize"]');
       setHref(max, urlFor(maximizeToggled(state, k)));
@@ -396,6 +520,14 @@
         var label = state.place[k].mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore');
         max.setAttribute('aria-label', label);
         max.setAttribute('title', label);
+      }
+      var dock = el.querySelector('[data-win-action="dock"]');
+      if (dock) {
+        var isDocked = !!dockEdge(state.place[k]);
+        setHref(dock, urlFor(docked(state, k, isDocked ? null : 'bottom')));
+        var dl = isDocked ? text('undock', 'Undock') : text('dock', 'Dock at the bottom');
+        dock.setAttribute('aria-label', dl);
+        dock.setAttribute('title', dl);
       }
     });
   }
@@ -640,7 +772,9 @@
   var OPENER_STEP = 0.03;
   function fromOpener(host) {
     var p = state.place[host];
-    if (!p) return null;
+    /* A window opened from a docked one opens as it would from the page,
+       since a dock's strip belongs to the dock. */
+    if (!p || dockEdge(p)) return null;
     var x = p.x + OPENER_STEP, y = p.y + OPENER_STEP;
     if (x + p.w > 1) x = OPENER_STEP;
     if (y + p.h > 1) y = OPENER_STEP;
@@ -663,17 +797,23 @@
 
     var s = el.style;
     var mode = MODES.indexOf(el.getAttribute('data-win-mode')) >= 0 ? el.getAttribute('data-win-mode') : 'floating';
+    /* A docked window's strip comes from --win-dock-size in its style. */
+    var size = parseFloat(s.getPropertyValue('--win-dock-size'));
+    var dockSize = dockEdge({ mode: mode }) ? (isFinite(size) && size > 0 && size <= 1 ? size : DOCK_SIZE) : null;
     var fromStyle = {
       mode: mode,
       x: parseFloat(s.getPropertyValue('--win-x')), y: parseFloat(s.getPropertyValue('--win-y')),
       w: parseFloat(s.getPropertyValue('--win-w')), h: parseFloat(s.getPropertyValue('--win-h'))
     };
+    if (dockSize != null) fromStyle.s = dockSize;
     if (validPlacement(fromStyle)) return fromStyle;
 
     /* The markup's mode still counts without numbers, so a window can open
-       maximised, and the cascade gives it somewhere to restore to. */
+       maximised or docked, and the cascade gives it somewhere to restore to. */
     var step = (index % 6) * 0.04;
-    return { mode: mode, x: 0.06 + step, y: 0.05 + step, w: 0.55, h: 0.75 };
+    var cascade = { mode: mode, x: 0.06 + step, y: 0.05 + step, w: 0.55, h: 0.75 };
+    if (dockSize != null) cascade.s = dockSize;
+    return cascade;
   }
 
   function announceOpen(el) {
@@ -713,7 +853,7 @@
       var st = copy(state);
       st.open.push(key);
       st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, host && wins[host] ? host : null),
-                                     layer.clientWidth, layer.clientHeight);
+                                     innerW(), innerH());
       st.top = key;
       openers[key] = from || null;
       commit(st, true);
@@ -754,7 +894,7 @@
       var st = copy(state);
       if (!wins[oldKey] || st.open.indexOf(oldKey) < 0) {
         st.open.push(key);
-        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), layer.clientWidth, layer.clientHeight);
+        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), innerW(), innerH());
       } else {
         st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
         st.place[key] = Object.assign({}, st.place[oldKey]);
@@ -821,9 +961,13 @@
                           });
     })).then(function (failed) {
       failed.forEach(function (k) { if (k) st = closed(st, k); });
+      /* A placement the address gives keeps its size, which the address
+         has already checked, and is only brought back inside the layer; a
+         window's minimum size, measured against the room the docks leave
+         at this moment, would otherwise rewrite the address on loading. */
       st.open.forEach(function (k, i) {
-        var p = st.place[k] || initialPlacement(k, wins[k], i);
-        st.place[k] = clampPlacement(p, layer.clientWidth, layer.clientHeight);
+        st.place[k] = st.place[k] ? clampPlacement(st.place[k], innerW(), innerH(), { w: 0, h: 0 })
+                                  : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH());
       });
       if (!st.top) st.top = st.open.filter(function (k) { return !st.min[k]; }).pop() || null;
       if (!named && defaults.length) bare = windowParams(st).join('&');
@@ -833,18 +977,33 @@
 
   /* === Dragging, resizing and snapping =================================== */
 
-  function snapAt(clientX, clientY, r) {
+  /* Where a drag released here would land: docked at the bottom near the
+     layer's foot, maximised near the inner area's top, or snapped to a
+     half near its sides. */
+  function snapAt(clientX, clientY, r, outer) {
+    if (outer.bottom - clientY < SNAP_PX) return 'dock-bottom';
     if (clientY - r.top < SNAP_PX) return 'maximized';
     if (clientX - r.left < SNAP_PX) return 'left';
     if (r.right - clientX < SNAP_PX) return 'right';
     return null;
   }
 
+  /* The outline of where a window will land, in the terms the stylesheet
+     lays windows out by, so it matches the docks' strips exactly. */
+  var L = 'var(--dock-left, 0px)', R = 'var(--dock-right, 0px)', T = 'var(--dock-top, 0px)', B = 'var(--dock-bottom, 0px)';
   function showGhost(mode) {
     if (!mode) { ghost.hidden = true; return; }
-    var g = { maximized: [0, 0, 100, 100], left: [0, 0, 50, 100], right: [50, 0, 50, 100] }[mode];
-    ghost.style.left = g[0] + '%'; ghost.style.top = g[1] + '%';
-    ghost.style.width = g[2] + '%'; ghost.style.height = g[3] + '%';
+    var iw = 'calc(100% - ' + L + ' - ' + R + ')', ih = 'calc(100% - ' + T + ' - ' + B + ')';
+    var half = 'calc((100% - ' + L + ' - ' + R + ') / 2)';
+    var bottom = state.open.some(function (k) { return shownEdge(state, k) === 'bottom'; }) ? B : (DOCK_SIZE * 100) + '%';
+    var g = {
+      maximized: [L, T, iw, ih],
+      left: [L, T, half, ih],
+      right: ['calc(' + L + ' + (100% - ' + L + ' - ' + R + ') / 2)', T, half, ih],
+      'dock-bottom': ['0px', 'calc(100% - ' + bottom + ')', '100%', bottom]
+    }[mode];
+    ghost.style.left = g[0]; ghost.style.top = g[1];
+    ghost.style.width = g[2]; ghost.style.height = g[3];
     ghost.hidden = false;
   }
 
@@ -863,9 +1022,11 @@
   function gesture(e, key, edge) {
     var el = wins[key];
     var target = e.currentTarget;
-    var r = layer.getBoundingClientRect();
+    var outer = layer.getBoundingClientRect();
+    var r = innerRect();
     var min = minFractions(r.width, r.height);
     var start = Object.assign({}, state.place[key]);
+    var dockSide = shownEdge(state, key);
     var base = start, baseX = e.clientX, baseY = e.clientY;
     var lastX = baseX, lastY = baseY;
     var cur = start, snap = null, moved = false, frame = 0;
@@ -876,7 +1037,18 @@
       moved = true;
       layer.classList.add('dragging');
       if (edge) return;
-      /* Dragging a maximised or snapped window lifts it back to its
+      /* Dragging a docked window away undocks it: its strip is given back
+         to the inner area, which the rest of the drag is measured in. */
+      if (dockSide) {
+        var free = copy(state);
+        free.place[key].mode = 'floating';
+        setDocks(free);
+        el.removeAttribute('data-win-edge');
+        el.classList.remove('win-collapsed');
+        r = innerRect();
+        min = minFractions(r.width, r.height);
+      }
+      /* Dragging a maximised, snapped or docked window lifts it back to its
          floating size, under the pointer, at the same point along the
          title bar. */
       if (start.mode !== 'floating') {
@@ -885,15 +1057,29 @@
         base = {
           mode: 'floating', w: start.w, h: start.h,
           x: (baseX - r.left) / r.width - along * start.w,
-          y: (er.top - r.top) / r.height
+          y: dockSide ? (baseY - r.top - 12) / r.height : (er.top - r.top) / r.height
         };
+        if (start.s != null) base.s = start.s;
         setPlacement(el, base);
       }
       el.classList.add('win-moving');
     }
 
+    /* Resizing a docked window moves its free edge, and the strip, and
+       every other window with it, follows. */
+    function dockStep() {
+      var head = pxMin('--win-head-docked', 30);
+      var span = dockSide === 'left' || dockSide === 'right' ? outer.width : outer.height;
+      var reach = { bottom: outer.bottom - lastY, top: lastY - outer.top, left: lastX - outer.left, right: outer.right - lastX }[dockSide];
+      var s = Math.min(DOCK_MAX, Math.max((head + 60) / span, reach / span));
+      cur = Object.assign({}, start, { s: s });
+      layer.style.setProperty('--dock-' + dockSide, (Math.round(s * 1000) / 10) + '%');
+      el.style.setProperty('--win-dock-size', fmt(s));
+    }
+
     function step() {
       frame = 0;
+      if (edge && dockSide) { dockStep(); return; }
       var dx = (lastX - baseX) / r.width;
       var dy = (lastY - baseY) / r.height;
       if (edge) {
@@ -901,9 +1087,9 @@
         setPlacement(el, cur);
         return;
       }
-      cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h }, r.width, r.height, min);
+      cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h, s: base.s }, r.width, r.height, min);
       el.style.transform = 'translate(' + (cur.x - base.x) * r.width + 'px, ' + (cur.y - base.y) * r.height + 'px)';
-      var s = snapAt(lastX, lastY, r);
+      var s = snapAt(lastX, lastY, r, outer);
       if (s !== snap) { snap = s; showGhost(s); }
     }
 
@@ -937,7 +1123,11 @@
         commit(st, false);
         return;
       }
-      st.place[key] = Object.assign({}, cur, { mode: snap || 'floating' });
+      if (edge && dockSide) st.place[key] = cur;
+      else {
+        st.place[key] = Object.assign({}, cur, { mode: snap || 'floating' });
+        if (snap === 'dock-bottom' && st.place[key].s == null) st.place[key].s = DOCK_SIZE;
+      }
       commit(st, false);
     }
 
@@ -959,7 +1149,9 @@
       y = Math.max(0, Math.min(p.y + p.h - minH, p.y + dy));
       h = p.h + (p.y - y);
     }
-    return { mode: 'floating', x: x, y: y, w: w, h: h };
+    var out = { mode: 'floating', x: x, y: y, w: w, h: h };
+    if (p.s != null) out.s = p.s;
+    return out;
   }
 
   /* === Keyboard ========================================================== */
@@ -967,20 +1159,33 @@
   /* Keys pressed on the title bar itself; keys on the title link or the
      buttons inside it are theirs. */
   function onHeadKey(e, key) {
+    var side = shownEdge(state, key);
     if (e.key === 'Enter') {
       e.preventDefault();
-      commit(maximizeToggled(state, key), false);
+      commit(side ? docked(state, key, null) : maximizeToggled(state, key), false);
       return;
     }
     var d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (!d || e.altKey || e.ctrlKey || e.metaKey) return;
     e.preventDefault();
+    /* A docked window stays where it is; Shift with the arrow keys moves
+       its free edge, the arrow pointing into the workspace growing it. */
+    if (side) {
+      if (!e.shiftKey) return;
+      var grow = { bottom: -d[1], top: d[1], left: d[0], right: -d[0] }[side];
+      if (!grow) return;
+      var sd = raised(state, key);
+      var pd = sd.place[key];
+      pd.s = Math.min(DOCK_MAX, Math.max(0.05, (pd.s != null ? pd.s : DOCK_SIZE) + grow * KEY_STEP));
+      commitSoon(sd);
+      return;
+    }
     var st = raised(state, key);
     var p = st.place[key];
     p.mode = 'floating';
     if (e.shiftKey) { p.w += d[0] * KEY_STEP; p.h += d[1] * KEY_STEP; }
     else { p.x += d[0] * KEY_STEP; p.y += d[1] * KEY_STEP; }
-    st.place[key] = clampPlacement(p, layer.clientWidth, layer.clientHeight);
+    st.place[key] = clampPlacement(p, innerW(), innerH());
     commitSoon(st);
   }
 
@@ -1031,8 +1236,9 @@
     if (btn && layer.contains(btn)) {
       var action = btn.getAttribute('data-win-action');
       var wk = btn.closest('.win').getAttribute('data-win');
-      if (action === 'minimize') { e.preventDefault(); commit(minimized(state, wk), false); }
+      if (action === 'minimize') { e.preventDefault(); commit(minimizeToggled(state, wk), false); }
       else if (action === 'maximize') { e.preventDefault(); commit(maximizeToggled(state, wk), false); }
+      else if (action === 'dock') { e.preventDefault(); commit(docked(state, wk, dockEdge(state.place[wk]) ? null : 'bottom'), false); }
       else if (action === 'close') { e.preventDefault(); close(wk, 'button'); }
     }
   }
@@ -1044,7 +1250,7 @@
     var key = el.getAttribute('data-win');
 
     /* A press anywhere in a window raises it at once, before any drag. */
-    if (state.top !== key) commit(raised(state, key), false);
+    if (state.top !== key) commit(fronted(state, key), false);
 
     var handle = e.target.closest('.win-rh');
     if (handle) {
@@ -1065,7 +1271,8 @@
   function onDoubleClick(e) {
     var head = e.target.closest('.win-head');
     if (!head || !layer.contains(head) || e.target.closest('a, button, .win-chrome')) return;
-    commit(maximizeToggled(state, head.closest('.win').getAttribute('data-win')), false);
+    var k = head.closest('.win').getAttribute('data-win');
+    commit(dockEdge(state.place[k]) ? docked(state, k, null) : maximizeToggled(state, k), false);
   }
 
   /* Tabbing into a window behind others brings it to the top. */
@@ -1073,7 +1280,7 @@
     var el = e.target.closest && e.target.closest('.win');
     if (!el || !layer.contains(el)) return;
     var key = el.getAttribute('data-win');
-    if (state.top !== key && !isHidden(state, key)) commit(raised(state, key), false);
+    if (state.top !== key && !isHidden(state, key)) commit(fronted(state, key), false);
   }
 
   /* Escape closes a child window that is in front, as a lightbox does,
@@ -1102,6 +1309,13 @@
     ghost.hidden = true;
     layer.appendChild(ghost);
 
+    /* An empty box laid out as the inner area, which the docks leave, for
+       measuring it. */
+    inner = document.createElement('div');
+    inner.className = 'win-inner';
+    inner.setAttribute('aria-hidden', 'true');
+    layer.appendChild(inner);
+
     layer.querySelectorAll(':scope > .win[data-win]').forEach(function (el) {
       if (KEY_RE.test(el.getAttribute('data-win'))) adopt(el);
       else el.remove();
@@ -1122,6 +1336,13 @@
     document.addEventListener('keydown', onEscape);
     window.addEventListener('popstate', function () { sync(false); });
 
+    /* A side dock moves to the bottom when the layer grows too narrow for
+       it, and back when it widens again. */
+    var wasNarrow = narrowLayer();
+    window.addEventListener('resize', function () {
+      if (narrowLayer() !== wasNarrow) { wasNarrow = narrowLayer(); apply(state); }
+    });
+
     /* When pudl-regions.js swaps parts of the page, the new list rows and
        dock need marking and linking as the old ones were. */
     document.addEventListener('pudl:regions-swap', function () { apply(state); });
@@ -1138,6 +1359,10 @@
         focusWindow(key);
       },
       minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
+      dock: function (key, edge) {
+        if (!wins[key] || (edge != null && SIDES.indexOf(edge) < 0)) return;
+        commit(docked(state, key, edge || null), false);
+      },
       retitle: retitle,
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
