@@ -1,0 +1,51 @@
+{
+  "$description": "The light palette, PUDL's default. These are the values a theme sets; every derived token in derived.json is computed from them. A theme sets this palette and its dark counterpart, palette.dark.tokens.json, which has the same tokens.",
+  "page": {
+    "$description": "The page, its surfaces and its text.",
+    "$type": "color",
+    "bg": { "$value": { "colorSpace": "srgb", "components": [0.9529, 0.9569, 0.9647], "hex": "#f3f4f6" }, "$description": "The page behind everything." },
+    "surface": { "$value": { "colorSpace": "srgb", "components": [0.9843, 0.9843, 0.9882], "hex": "#fbfbfc" }, "$description": "Cards, panels and the content area." },
+    "surface-alt": { "$value": { "colorSpace": "srgb", "components": [0.8941, 0.9059, 0.9216], "hex": "#e4e7eb" }, "$description": "The body of a raised control, and bands set off from a surface." },
+    "text": { "$value": { "colorSpace": "srgb", "components": [0.1059, 0.1216, 0.1412], "hex": "#1b1f24" } },
+    "text-muted": { "$value": { "colorSpace": "srgb", "components": [0.3725, 0.4078, 0.451], "hex": "#5f6873" }, "$description": "Secondary text. It reaches 4.5:1 on bg, surface and surface-alt." },
+    "border": { "$value": { "colorSpace": "srgb", "components": [0.8118, 0.8314, 0.8549], "hex": "#cfd4da" }, "$description": "Hairlines between flat regions." }
+  },
+  "status": {
+    "$description": "The accent, which marks the primary action and where the reader is, and the status colours. None of them is ever the only signal of what it means.",
+    "$type": "color",
+    "accent": { "$value": { "colorSpace": "srgb", "components": [0.1725, 0.3216, 0.5098], "hex": "#2c5282" } },
+    "accent-hover": { "$value": { "colorSpace": "srgb", "components": [0.1216, 0.2392, 0.3882], "hex": "#1f3d63" } },
+    "on-accent": { "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff" }, "$description": "Text and glyphs on the accent." },
+    "warn": { "$value": { "colorSpace": "srgb", "components": [0.7216, 0.4314, 0.1098], "hex": "#b86e1c" } },
+    "danger": { "$value": { "colorSpace": "srgb", "components": [0.7059, 0.1373, 0.0941], "hex": "#b42318" } },
+    "danger-hover": { "$value": { "colorSpace": "srgb", "components": [0.5608, 0.1098, 0.0745], "hex": "#8f1c13" } },
+    "positive": { "$value": { "colorSpace": "srgb", "components": [0.1804, 0.4902, 0.3098], "hex": "#2e7d4f" }, "$description": "Done, shipped, healthy." }
+  },
+  "lighting": {
+    "$description": "The light that falls on a raised control and the shadow it casts. light is the colour of the light and shade the colour of the shadow; lit is how strongly the light shows and depth how strongly the shadow does, each from 0 to 1. A light theme wants a strong highlight and a soft shadow, and a dark theme the reverse.",
+    "light": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff" } },
+    "shade": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [0.0549, 0.0863, 0.1294], "hex": "#0e1621" } },
+    "lit": { "$type": "number", "$value": 0.9 },
+    "depth": { "$type": "number", "$value": 0.18 }
+  },
+  "topbar": {
+    "$description": "The application bar keeps colours of its own, so it can stay dark on a light page.",
+    "$type": "color",
+    "tb-bg": { "$value": { "colorSpace": "srgb", "components": [0.149, 0.1686, 0.1922], "hex": "#262b31" } },
+    "tb-fg": { "$value": { "colorSpace": "srgb", "components": [0.9529, 0.9569, 0.9647], "hex": "#f3f4f6" } }
+  },
+  "syntax": {
+    "$description": "The colours of highlighted code, in a code block or an editor. Each reaches 4.5:1 on surface, surface-alt and input-bg, and a theme that sets them keeps that.",
+    "$type": "color",
+    "syntax-keyword": { "$value": { "colorSpace": "srgb", "components": [0.6078, 0.1725, 0.3882], "hex": "#9b2c63" } },
+    "syntax-string": { "$value": { "colorSpace": "srgb", "components": [0.1137, 0.4157, 0.2235], "hex": "#1d6a39" } },
+    "syntax-number": { "$value": { "colorSpace": "srgb", "components": [0.5412, 0.2902, 0], "hex": "#8a4a00" } },
+    "syntax-comment": { "$value": { "colorSpace": "srgb", "components": [0.3412, 0.3765, 0.4196], "hex": "#57606b" } },
+    "syntax-name": { "$value": { "colorSpace": "srgb", "components": [0.1137, 0.3098, 0.5686], "hex": "#1d4f91" } },
+    "syntax-tag": { "$value": { "colorSpace": "srgb", "components": [0.4196, 0.2118, 0.6392], "hex": "#6b36a3" } },
+    "syntax-attr": { "$value": { "colorSpace": "srgb", "components": [0.4275, 0.3333, 0], "hex": "#6d5500" } },
+    "syntax-heading": { "$value": { "colorSpace": "srgb", "components": [0.1059, 0.1216, 0.1412], "hex": "#1b1f24" } },
+    "syntax-link": { "$value": { "colorSpace": "srgb", "components": [0.1725, 0.3216, 0.5098], "hex": "#2c5282" } },
+    "syntax-error": { "$value": { "colorSpace": "srgb", "components": [0.7059, 0.1373, 0.0941], "hex": "#b42318" } }
+  }
+}

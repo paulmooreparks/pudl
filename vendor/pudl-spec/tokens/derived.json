@@ -1,0 +1,60 @@
+{
+  "$description": "The derived tokens, each a formula on the palette, so a theme that sets the palette gets every one of these without setting them. Chapter 3 of the specification defines the formulas: mix, fade, gradient and shadow, and the amounts they take. An entry with light and dark members has a formula for each theme.",
+  "sunken": {
+    "$description": "An input is sunken, so it takes the surface with only a touch of light.",
+    "input-bg": { "mix": ["light", "surface"], "by": "lit" },
+    "entry-shadow": { "shadow": [{ "inset": true, "x": 0, "y": 1, "blur": 2, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.7 } } }] }
+  },
+  "raised": {
+    "$description": "A raised control is lit from the top and shades to surface-alt at its foot.",
+    "raise-top": { "mix": ["light", "surface-alt"], "by": "lit" },
+    "raise-grad": { "gradient": ["raise-top", "surface-alt"] },
+    "raise-grad-hover": { "gradient": [{ "mix": ["text", "raise-top"], "by": 0.03 }, { "mix": ["text", "surface-alt"], "by": 0.06 }] },
+    "raise-active-bg": { "mix": ["shade", "surface-alt"], "by": { "token": "depth", "times": 0.45 } },
+    "raise-border": { "mix": ["shade", "surface-alt"], "by": { "token": "depth", "times": 0.9 } },
+    "raise-border-hover": { "mix": ["shade", "surface-alt"], "by": { "token": "depth", "times": 1.6 } },
+    "raise-shadow": { "shadow": [
+      { "inset": true, "x": 0, "y": 1, "color": { "fade": "light", "by": "lit" } },
+      { "x": 0, "y": 1, "blur": 2, "color": { "fade": "shade", "by": "depth" } }
+    ] },
+    "raise-active-shadow": { "shadow": [{ "inset": true, "x": 0, "y": 1, "blur": 3, "color": { "fade": "shade", "by": { "token": "depth", "times": 1.2 } } }] },
+    "shadow-btn-primary": { "shadow": [
+      { "inset": true, "x": 0, "y": 1, "color": { "srgb": [1, 1, 1], "alpha": 0.25 } },
+      { "x": 0, "y": 1, "blur": 2, "color": { "fade": "shade", "by": { "token": "depth", "times": 1.2 } } }
+    ] }
+  },
+  "recessed": {
+    "$description": "A recessed band, such as a tab bar or a switch's track, is darker than the surface around it and shaded from above.",
+    "recess-bg": { "mix": ["shade", "surface-alt"], "by": { "token": "depth", "times": 0.35 } },
+    "recess-shadow": { "shadow": [{ "inset": true, "x": 0, "y": 2, "blur": 3, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.6 } } }] }
+  },
+  "lifted": {
+    "$description": "A card lifts off the page with a soft shadow and a faint ring. A dialog is one step brighter than the page it sits on: surface on a light page, and on a dark page, where surface is barely lighter than bg, surface-alt.",
+    "shadow-card": { "shadow": [
+      { "x": 0, "y": 1, "blur": 3, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.6 } } },
+      { "x": 0, "y": 0, "blur": 0, "spread": 1, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.25 } } }
+    ] },
+    "dialog-bg": { "light": "surface", "dark": "surface-alt" },
+    "section-current-bg": "surface"
+  },
+  "focus": {
+    "$description": "The focus rings take their colour tokens, so a theme's accent reaches focus with no further work.",
+    "focus-ring": { "fade": "accent", "by": 0.26 },
+    "focus-ring-danger": { "fade": "danger", "by": 0.26 }
+  },
+  "topbar": {
+    "$description": "The application bar's chrome, from its two colours and the accent.",
+    "tb-grad": { "gradient": [{ "mix": ["tb-fg", "tb-bg"], "by": 0.08 }, "tb-bg"] },
+    "tb-border": { "mix": ["#000", "tb-bg"], "by": 0.4 },
+    "tb-hi": { "fade": "tb-fg", "by": 0.12 },
+    "tb-brand": "tb-fg",
+    "tb-chrome-fg": { "mix": ["tb-fg", "tb-bg"], "by": 0.8 },
+    "tb-chrome-hover-fg": "tb-fg",
+    "tb-link-hover": { "mix": ["accent", "tb-fg"], "by": 0.45 },
+    "tb-chip": { "gradient": [{ "fade": "tb-fg", "by": 0.19 }, { "fade": "tb-fg", "by": 0.1 }] },
+    "tb-chip-shadow": { "shadow": [
+      { "inset": true, "x": 0, "y": 1, "color": { "fade": "tb-fg", "by": 0.22 } },
+      { "x": 0, "y": 1, "blur": 2, "color": { "fade": "#000", "by": 0.35 } }
+    ] }
+  }
+}
