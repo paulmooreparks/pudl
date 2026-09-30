@@ -35,6 +35,7 @@
     "$type": "dimension",
     "radius": { "$value": { "value": 12, "unit": "px" }, "$description": "Cards, panels, windows." },
     "radius-sm": { "$value": { "value": 7, "unit": "px" }, "$description": "Buttons, entries, tabs." },
+    "radius-xs": { "$value": { "value": 4, "unit": "px" }, "$description": "Small parts inside another control: segments, a tree's toggle, tooltips, the zones of a layout picker." },
     "radius-pill": { "$value": { "value": 999, "unit": "px" }, "$description": "Fully rounded ends, for chips and badges." }
   }
 }

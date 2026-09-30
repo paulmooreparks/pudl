@@ -28,16 +28,45 @@
     return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
+  function live(r) {
+    if (!r.hasAttribute('role')) r.setAttribute('role', 'status');
+    if (!r.hasAttribute('aria-live')) r.setAttribute('aria-live', 'polite');
+    return r;
+  }
+
   function region() {
-    var r = document.querySelector('.toast-region');
+    var r = document.querySelector('.toast-region:not(dialog .toast-region)');
     if (!r) {
       r = document.createElement('div');
       r.className = 'toast-region';
       document.body.appendChild(r);
     }
-    if (!r.hasAttribute('role')) r.setAttribute('role', 'status');
-    if (!r.hasAttribute('aria-live')) r.setAttribute('aria-live', 'polite');
+    return live(r);
+  }
+
+  /* While a modal dialog is open, everything outside it is inert and sits
+     under its backdrop, so a toast raised then goes in a region inside the
+     dialog, where the reader can see it, hear it and dismiss it. The toasts
+     still there when the dialog closes move back to the page's region. */
+  function dialogRegion(d) {
+    var r = d.querySelector(':scope > .toast-region');
+    if (r) return r;
+    r = live(document.createElement('div'));
+    r.className = 'toast-region';
+    r.setAttribute('data-toast-close-label', region().getAttribute('data-toast-close-label') || 'Dismiss');
+    d.appendChild(r);
+    d.addEventListener('close', function () {
+      var home = region();
+      Array.prototype.slice.call(r.children).forEach(function (t) { home.appendChild(t); });
+      r.remove();
+    }, { once: true });
     return r;
+  }
+
+  function openModal() {
+    var open = document.querySelectorAll('dialog[open]');
+    for (var i = open.length - 1; i >= 0; i--) if (open[i].matches(':modal')) return open[i];
+    return null;
   }
 
   function dismiss(el) {
@@ -83,7 +112,9 @@
 
   window.pudlToast = function (message, opts) {
     opts = opts || {};
-    var r = region();
+    var modal = openModal();
+    var fresh = modal && !modal.querySelector(':scope > .toast-region');
+    var r = modal ? dialogRegion(modal) : region();
     var t = document.createElement('div');
     t.className = 'toast';
     if (KINDS.indexOf(opts.kind) >= 0) t.classList.add(opts.kind);
@@ -94,8 +125,11 @@
     p.textContent = message;
     t.appendChild(p);
     t.appendChild(closeButton(r.getAttribute('data-toast-close-label') || 'Dismiss'));
-    r.appendChild(t);
-    arm(t);
+    /* A live region announces what is added to it after it exists, so a
+       region made just now for a dialog gets its first toast a moment
+       later, as the server's toasts do on load. */
+    if (fresh) setTimeout(function () { r.appendChild(t); arm(t); }, 150);
+    else { r.appendChild(t); arm(t); }
     return t;
   };
 

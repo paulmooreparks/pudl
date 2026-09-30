@@ -68,9 +68,11 @@ function check(name, ok, extra) {
     legacy.remove();
     return r;
   });
-  check('state: aria-pressed raises a segment', /gradient/.test(state.on) && state.off === 'none', JSON.stringify(state));
-  check('state: aria-current raises a view link', /gradient/.test(state.link));
-  check('state: the old .active class still works', /gradient/.test(state.legacy));
+  /* The chosen segment is pressed in, losing the lit gradient, and the
+     others stand raised with it. */
+  check('state: aria-pressed presses a segment in', state.on === 'none' && /gradient/.test(state.off), JSON.stringify(state));
+  check('state: aria-current presses a view link in', state.link === 'none');
+  check('state: the old .active class still works', state.legacy === 'none');
   check('state: aria-current marks a list row', state.rowEdge === await token('--accent') && state.rowWeight === '700', JSON.stringify(state));
 
   /* Pills. */
