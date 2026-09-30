@@ -37,6 +37,8 @@ const FIX = ROOT + '/tests/fixtures/window-sizing.html';
     return { max: shown('[data-win-action="maximize"]'), dock: shown('[data-win-action="dock"]'), rh: shown(':scope > .win-rh'), min: shown('[data-win-action="minimize"]') };
   });
   check('it has no resize edges and no maximise or dock button, and keeps minimise', !hidden.max && !hidden.dock && !hidden.rh && hidden.min, JSON.stringify(hidden));
+  const frames = await p.evaluate(() => ['tool', 'term'].map(k => getComputedStyle(document.querySelector('.win[data-win="' + k + '"]')).paddingTop));
+  check('its frame is a single hairline with no band, where a window the reader sizes keeps its band', frames[0] === '0px' && frames[1] !== '0px', JSON.stringify(frames));
 
   /* An address or a script cannot maximise, snap or dock it. */
   await p.evaluate(() => { pudlWindows.snap('tool', 'left'); });

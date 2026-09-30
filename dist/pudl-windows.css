@@ -113,6 +113,18 @@
   max-width: min(var(--win-max-w, 100000px), calc((100% - var(--dock-left, 0px) - var(--dock-right, 0px)) * (1 - var(--win-x, 0.06))));
   max-height: min(var(--win-max-h, 100000px), calc((100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)) * (1 - var(--win-y, 0.05))));
 }
+/* Its frame is a single hairline, with no band, since the band is the
+   border the reader drags to resize and this window has none. The title
+   bar and body sit flush inside the hairline. */
+.win[data-win-size="content"] { padding: 0; }
+.win[data-win-size="content"] .win-head {
+  border-width: 0 0 1px;
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+}
+.win[data-win-size="content"] .win-body {
+  border: 0;
+  border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+}
 .win[data-win-size="content"] > .win-rh,
 .win[data-win-size="content"] .win-head [data-win-action="maximize"],
 .win[data-win-size="content"] .win-head [data-win-action="dock"] { display: none; }
@@ -350,6 +362,22 @@
 .win[data-win-edge="top"] .win-rh[data-edge="s"] { left: 0; right: 0; }
 .win[data-win-edge="left"] .win-rh[data-edge="e"],
 .win[data-win-edge="right"] .win-rh[data-edge="w"] { top: 0; bottom: 0; }
+/* A docked window's free edge is a handle, so it carries the grip at rest,
+   at the middle of the edge and just outside it, on the workspace, where
+   it reads whatever colour the title bar is, and takes the accent under
+   the pointer. */
+.win[data-win-edge] .win-rh::after {
+  content: ""; position: absolute; top: 50%; left: 50%;
+  width: 16px; height: 16px; margin: -8px 0 0 -8px;
+  background: var(--text-muted); pointer-events: none;
+  -webkit-mask: var(--glyph-grip) center / 16px 16px no-repeat;
+  mask: var(--glyph-grip) center / 16px 16px no-repeat;
+}
+.win[data-win-edge="bottom"] .win-rh::after { transform: translateY(-5px) rotate(90deg); }
+.win[data-win-edge="top"] .win-rh::after { transform: translateY(5px) rotate(90deg); }
+.win[data-win-edge="left"] .win-rh::after { transform: translateX(5px); }
+.win[data-win-edge="right"] .win-rh::after { transform: translateX(-5px); }
+.win[data-win-edge] .win-rh:hover::after { background: var(--accent); }
 
 /* A dashed outline shows where a window will land while it is dragged
    towards an edge. */

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.35.1
+
+This release implements PUDL specification 0.3.2.
+
+- A window sized by its content has a frame of a single hairline, without the 5px frame band, since the band reads as a border to drag and this window cannot be resized. Its title bar and body sit flush inside the hairline.
+- A docked window's free edge carries the grip glyph at rest, just outside the window at the middle of the edge, so the reader can see that the dock resizes. Before, nothing showed it until the pointer found the edge.
+
 ## 0.35.0
 
 Windows sized by their content, from parkscomputing.com's `Architecture/pudl-proposal-window-sizing.md`. This release implements PUDL specification 0.3.0.

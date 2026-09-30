@@ -23,6 +23,12 @@ const FIX = ROOT + '/tests/fixtures/docked.html';
         site.bottom === L.bottom && site.w === L.w && Math.abs(site.h - L.h * 0.22) <= 1 && (await q()) === '', JSON.stringify({ site, L, q: await q() }));
   const head = await p.evaluate(() => Math.round(document.querySelector('.win[data-win="site"] .win-head').getBoundingClientRect().height));
   check('its title bar is thin', head === 30, String(head));
+  const grip = await p.evaluate(() => {
+    const h = document.querySelector('.win[data-win="site"] > .win-rh[data-edge="n"]');
+    const a = getComputedStyle(h, '::after');
+    return getComputedStyle(h).display !== 'none' && a.content !== 'none' && /svg/.test(a.maskImage || a.webkitMaskImage || '');
+  });
+  check('its free edge carries the grip at rest, so it can be seen to resize', grip);
   const flush = await p.evaluate(() => { const cs = getComputedStyle(document.querySelector('.win[data-win="site"]')); return cs.boxShadow === 'none' && cs.borderRadius === '0px' && cs.borderTopWidth === '1px'; });
   check('it is flush, with a hairline facing the workspace', flush);
 
