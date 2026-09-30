@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.3.2.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.4.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -514,6 +514,17 @@ An open menu is not part of the URL. It is momentary, like a hover, and everythi
 
 A menu can also be **summoned by a key**. A `.menu-panel` carrying `data-menu-key`, a single printable key such as `/`, opens when that key is pressed anywhere outside an editable field, with focus in its filter; inside any field the key types as usual. Its button, if it has one, gets a matching `aria-keyshortcuts`. A panel with no button, kept only for its key, opens as a palette near the top centre of the window. If the filter sits in a GET form and the reader presses Enter with no row left, the form submits, so a server can take the typed text to a page of its own, such as a "go to" endpoint that redirects by slug; with a row left, Enter follows it. That makes a launcher summoned by `/` a go-to palette with completion that always ends in an address.
 
+A **segmented control on a phone** can become a pop-up button, as Finder's view switcher does in a narrow window. Mark the `.seg` with `data-seg-menu` and name it with an `aria-label`:
+
+```html
+<nav class="seg" data-seg-menu aria-label="View">
+  <a href="/?view=window" aria-current="page">Window</a>
+  <a href="/?view=classic">Classic</a>
+</nav>
+```
+
+`pudl-menu.js` builds a menu button beside it, labelled with the current choice and named, for example, "View: Window", whose menu lists every choice with a tick on the current one. At 640px or narrower the stylesheet hides the segments and shows the button; wider, nothing changes, and without script the segments stay. A choice that is a link is a link to the same address in the menu too, and a choice that is a button presses its segment, so the page's own handlers run as they always do and the button's label follows the change. A project that adds such a control by script calls `pudlMenu.refresh()`.
+
 A panel a script opens from something that cannot carry `popovertarget`, such as a link, names that element's id in `data-menu-anchor`, and is placed against it as against a button. The windows' layout picker opens this way from the maximise button.
 
 A **launcher** is a menu button first in the row that holds a window dock, whose panel reaches everything a site offers: one section per category, a filter at the top, and site-wide actions at the foot. Put it in a toolbar marked `.md-site-tools` so that it stays on screen when a narrow master-detail layout shows a record, and the reader can reach everything from inside an article on a phone. `samples/article-reader.html` has one.
@@ -1010,7 +1021,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.35.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.36.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

@@ -264,6 +264,82 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', markShortcuts);
   else markShortcuts();
 
+  /* === Segmented controls on a phone ======================================
+     A segmented control marked data-seg-menu becomes, on a narrow screen, a
+     pop-up button, as Finder's view switcher does in a narrow window: the
+     button shows the current choice, and its menu lists every choice with a
+     tick on the current one. The page renders only the segments; this
+     builds the button beside them, and the stylesheet shows one or the
+     other by the width of the screen. A choice that is a link stays a link
+     to the same address, and a choice that is a button presses the
+     segment, so the page's own handlers run as they always do. */
+  var segs = 0;
+  function currentOf(seg) {
+    return seg.querySelector('[aria-pressed="true"], [aria-checked="true"], [aria-current]:not([aria-current="false"]), .active');
+  }
+  function choicesOf(seg) { return Array.prototype.slice.call(seg.querySelectorAll(':scope > button, :scope > a')); }
+
+  function segMenu(seg) {
+    if (seg.nextElementSibling && seg.nextElementSibling.classList.contains('seg-menu')) return;
+    var id = 'seg-menu-' + (++segs);
+    var wrap = document.createElement('div');
+    wrap.className = 'menu seg-menu';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm menu-btn';
+    btn.setAttribute('popovertarget', id);
+    var label = document.createElement('span');
+    label.className = 'menu-btn-label';
+    btn.appendChild(label);
+    var panel = document.createElement('div');
+    panel.className = 'menu-panel seg-menu-panel';
+    panel.id = id;
+    panel.setAttribute('popover', '');
+    var name = seg.getAttribute('aria-label');
+    if (name) panel.setAttribute('aria-label', name);
+    wrap.appendChild(btn);
+    wrap.appendChild(panel);
+    seg.parentNode.insertBefore(wrap, seg.nextSibling);
+
+    function relabel() {
+      var cur = currentOf(seg);
+      var words = cur ? cur.textContent.trim() : '';
+      label.textContent = words || (name || '');
+      if (name) btn.setAttribute('aria-label', words ? name + ': ' + words : name);
+    }
+    relabel();
+    new MutationObserver(relabel).observe(seg, { subtree: true, childList: true, characterData: true,
+      attributes: true, attributeFilter: ['aria-pressed', 'aria-checked', 'aria-current', 'class'] });
+
+    panel.addEventListener('beforetoggle', function (e) {
+      if (e.newState !== 'open') return;
+      panel.textContent = '';
+      var cur = currentOf(seg);
+      choicesOf(seg).forEach(function (c) {
+        var row;
+        if (c.tagName === 'A') {
+          row = document.createElement('a');
+          row.setAttribute('href', c.getAttribute('href') || '');
+          if (c === cur) row.setAttribute('aria-current', c.getAttribute('aria-current') || 'true');
+        } else {
+          row = document.createElement('button');
+          row.type = 'button';
+          row.setAttribute('aria-pressed', c === cur ? 'true' : 'false');
+          row.addEventListener('click', function () { c.click(); });
+          if (c.disabled) row.disabled = true;
+        }
+        row.className = 'menu-action seg-choice';
+        row.textContent = c.textContent.trim();
+        panel.appendChild(row);
+      });
+    });
+  }
+  function segMenus() { document.querySelectorAll('.seg[data-seg-menu]').forEach(segMenu); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', segMenus);
+  else segMenus();
+  document.addEventListener('pudl:regions-swap', segMenus);
+  window.pudlMenu = { refresh: segMenus };
+
   /* Choosing a row or an action closes the panel. A row that leaves the page
      would close it anyway, but a row that opens a window, or an action that
      stays on the page, would otherwise leave it open. */

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.36.0
+
+This release implements PUDL specification 0.4.0.
+
+- A segmented control marked `data-seg-menu` becomes a pop-up button on a phone, for switchers that take too much of a topbar, such as parkscomputing.com's Window/Classic. `pudl-menu.js` builds a menu button beside the segments, labelled with the current choice and named with the control's `aria-label` and that choice, whose menu lists every choice with a tick on the current one. At 640px or narrower the segments hide and the button shows; wider, nothing changes, and without script the segments stay. A link choice stays a link to the same address, and a button choice presses its segment, so the page's handlers run as before. `pudlMenu.refresh()` takes in controls added by script.
+
 ## 0.35.1
 
 This release implements PUDL specification 0.3.2.
