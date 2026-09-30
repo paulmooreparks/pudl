@@ -672,7 +672,36 @@ The active window's title bar comes from four tokens a theme may set: `--win-act
 
 A window's markup may give it a starting mode with `data-win-mode` and no position, and it opens in that mode, with a cascade position to restore to. A reading site opens its articles maximised this way.
 
-A window opened by a link inside another window opens in that window's state instead, so following a link never overturns the reader's arrangement: maximised from a maximised window, the same half from a snapped one, and from a floating window, floating one step down and to the right so the opener stays in sight, starting again near the top left when the step would run past the edge. A window opened from outside any window, from a list, a menu or the dock, keeps its markup's default. In full, a new window's placement comes from the URL if it names one, then from a `pudl:window-place` listener, then from its opener, then from a position in its markup, then from its markup's mode. The event's `detail.opener` names the opening window's key, or is null.
+A window opened by a link inside another window opens in that window's state instead, so following a link never overturns the reader's arrangement: maximised from a maximised window, the same half from a snapped one, and from a floating window, floating one step down and to the right so the opener stays in sight, starting again near the top left when the step would run past the edge. A window opened from outside any window, from a list, a menu or the dock, keeps its markup's default. In full, a new window's placement comes from the URL if it names one, then from a `pudl:window-place` listener, then from its opener, then from a position in its markup, then from its markup's mode. The event's `detail.opener` names the opening window's key, or is null. A window opened from a docked one opens as it would from the page.
+
+### Docked windows
+
+A window may be docked at an edge of the workspace, and it then belongs to the workspace's frame: it takes that strip away from every other window, which lays itself out in what remains. A maximised window ends where a dock begins, a snapped half is half of what is left, and a floating window cannot be dragged into a dock's strip, so nothing ever covers a docked window. It serves standing furniture a page opens by default, such as a site's links at the foot of the workspace, and a tool the reader keeps beside their work, such as a terminal at the bottom or a mixer at the side. A footer that never moves or closes is page layout instead, and belongs below the window host. `docs/proposals/docked-windows.md` sets out the rules.
+
+```html
+<div class="win-layer" data-win-layer data-win-src="/window/{key}" data-win-default="site" style="--dock-bottom: 22%">
+  <section class="win" data-win="site" data-win-mode="dock-bottom" data-win-edge="bottom" style="--win-dock-size: 0.22">
+    <header class="win-head">
+      <h2 class="win-title">Site</h2>
+      <nav class="win-chrome" aria-label="Window">
+        <a class="win-btn" data-win-action="dock" href="…" aria-label="Undock"></a>
+        <a class="win-btn" data-win-action="minimize" href="…" aria-label="Collapse"></a>
+        <a class="win-btn" data-win-action="close" href="…" aria-label="Close"></a>
+      </nav>
+    </header>
+    <div class="win-body">…</div>
+  </section>
+</div>
+```
+
+- **Modes.** A window's mode may be `dock-top`, `dock-bottom`, `dock-left` or `dock-right`. Top and bottom docks span the workspace's width, and side docks the height between them. In the address a docked placement adds its strip's size as a fraction of the workspace, `p.site=dock-bottom:0.06,0.05,0.55,0.75,0.22`; the four numbers before it are the floating geometry to return to. In markup the size is `--win-dock-size`, and without one a dock takes a quarter.
+- **Looks.** A docked window is flush, with no shadow, rounded corners or frame band, and a hairline on the side facing the workspace. Its title bar is thin, `--win-head-docked`, 30px, and the maximise button does not show.
+- **Collapsing.** Its minimise button collapses it to its title bar, in place, and expands it again; a collapsed side dock is a narrow strip with its title running down it.
+- **Resizing** is along its free edge only, by pointer, or with Shift and the arrow keys on its focused title bar.
+- **Docking and undocking.** Dragging a window to the foot of the workspace docks it there, with an outline showing where it will land. Dragging a docked window's title bar away, pressing Enter on it or double-clicking it undocks it. A `data-win-action="dock"` button docks a window at the bottom and undocks a docked one, so docking never depends on dragging; `pudlWindows.dock(key, 'bottom')` and `pudlWindows.dock(key, null)` do the same from script, at any edge.
+- **One edge, several windows.** An edge shows one docked window at a time, the one most recently in front; the others wait behind it and come forward from the dock of open windows. A tabbed dock, with a tab for each, is specified in the proposal and not yet built.
+- **Narrow screens.** On a layer 640px wide or less a side dock shows at the bottom, since there is no room beside the content.
+- **Rendering.** The script sets the strips as `--dock-top`, `--dock-bottom`, `--dock-left` and `--dock-right` on the layer, and `data-win-edge` on each docked window, naming the edge it shows on. A server renders the same, as above, so the page is right before the script runs.
 
 ### Child windows
 
@@ -858,6 +887,7 @@ and give the canvas no border or padding, or subtract them, since the rectangle 
 | The maximise and restore buttons' labels | `data-win-text-maximize` and `data-win-text-restore` on the window layer |
 | A minimised window's dock tab tooltip | `data-win-text-minimized` on the layer, with `{title}` for the window's title |
 | The label on a window's title bar | `data-win-text-head` on the layer, with `{title}` |
+| The dock button's labels, and a docked window's minimise button | `data-win-text-dock`, `-undock`, `-collapse` and `-expand` on the layer |
 | A menu filter's "nothing matches" | `data-menu-empty` on the `.menu-panel`, or render the `.menu-empty` element yourself |
 | The sidebar divider's label | `aria-label` on the `.md-resize` |
 | The divider's spoken width | `data-md-valuetext` on the `.md-resize`, with `{n}` for the width in pixels |
@@ -902,7 +932,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.29.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.30.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

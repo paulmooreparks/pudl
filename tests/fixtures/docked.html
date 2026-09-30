@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docked windows</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 600px; } .dock-bar { padding: 8px; }</style>
+</head>
+<body>
+  <!-- A test fixture after pudl.bytecode.news: a default Site window docked
+       at the foot of the workspace, and windows to open over the rest. -->
+  <div class="dock-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+    <a id="open-note" href="?open=site,note" data-win-open="note">Open the note</a>
+    <a id="open-tool" href="?open=site,tool" data-win-open="tool">Open the tool</a></div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="site" style="--dock-bottom: 22%">
+      <section class="win" data-win="site" data-win-mode="dock-bottom" data-win-edge="bottom" style="--win-dock-size: 0.22">
+        <header class="win-head">
+          <h2 class="win-title">Site</h2>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="dock" href="?" aria-label="Undock"></a>
+            <a class="win-btn" data-win-action="minimize" href="?" aria-label="Collapse"></a>
+            <a class="win-btn" data-win-action="close" href="?open=" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body"><p>Policies, terms of service, about.</p></div>
+      </section>
+    </div>
+  </div>
+  <template id="tpl-site">
+    <section class="win" data-win="site" data-win-mode="dock-bottom" style="--win-dock-size: 0.22">
+      <header class="win-head"><h2 class="win-title">Site</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="dock" href="?" aria-label="Undock"></a>
+          <a class="win-btn" data-win-action="minimize" href="?" aria-label="Collapse"></a>
+          <a class="win-btn" data-win-action="close" href="?open=" aria-label="Close"></a>
+        </nav></header>
+      <div class="win-body"><p>Policies, terms of service, about.</p></div>
+    </section>
+  </template>
+  <template id="tpl-note">
+    <section class="win" data-win="note" data-win-mode="maximized">
+      <header class="win-head"><h2 class="win-title">A note</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="dock" href="?" aria-label="Dock at the bottom"></a>
+          <a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a>
+          <a class="win-btn" data-win-action="maximize" href="?" aria-label="Restore"></a>
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+        </nav></header>
+      <div class="win-body"><p>An article, maximised over what the docks leave.</p></div>
+    </section>
+  </template>
+  <template id="tpl-tool">
+    <section class="win" data-win="tool">
+      <header class="win-head"><h2 class="win-title">A tool</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a>
+        </nav></header>
+      <div class="win-body"><p>A tool the reader may dock.</p></div>
+    </section>
+  </template>
+</body>
+</html>

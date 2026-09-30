@@ -28,6 +28,7 @@
   --win-hit: 10px;            /* resize hit area, wider than the band */
   --win-min-w: 320px;
   --win-min-h: 200px;
+  --win-head-docked: 30px;   /* a docked window's thin title bar */
   --win-shadow:
       0 2px 6px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.8), transparent),
       0 10px 28px color-mix(in srgb, var(--shade) calc(var(--depth) * 0.9), transparent);
@@ -72,13 +73,17 @@
   pointer-events: none;       /* the content beneath stays usable */
 }
 
-/* === The window ========================================================== */
+/* === The window ==========================================================
+   A window's fractions are of the inner area, the layer less the strips
+   that docked windows take, which the script sets on the layer as
+   --dock-top, --dock-bottom, --dock-left and --dock-right, and a server
+   renders the same. With nothing docked the inner area is the layer. */
 .win {
   position: absolute;
-  left: calc(var(--win-x, 0.06) * 100%);
-  top: calc(var(--win-y, 0.05) * 100%);
-  width: calc(var(--win-w, 0.55) * 100%);
-  height: calc(var(--win-h, 0.75) * 100%);
+  left: calc(var(--dock-left, 0px) + var(--win-x, 0.06) * (100% - var(--dock-left, 0px) - var(--dock-right, 0px)));
+  top: calc(var(--dock-top, 0px) + var(--win-y, 0.05) * (100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)));
+  width: calc(var(--win-w, 0.55) * (100% - var(--dock-left, 0px) - var(--dock-right, 0px)));
+  height: calc(var(--win-h, 0.75) * (100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)));
   min-width: min(var(--win-min-w), 100%);
   min-height: min(var(--win-min-h), 100%);
   display: flex; flex-direction: column;
@@ -103,15 +108,61 @@
 .win[data-win-mode="maximized"],
 .win[data-win-mode="left"],
 .win[data-win-mode="right"] {
-  top: 0; height: 100%;
+  top: var(--dock-top, 0px); height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
   padding: 0; border-width: 0; border-radius: 0;
   min-width: 0; min-height: 0;
 }
-.win[data-win-mode="maximized"] { left: 0; width: 100%; }
-.win[data-win-mode="left"] { left: 0; width: 50%; }
-.win[data-win-mode="right"] { left: 50%; width: 50%; }
+.win[data-win-mode="maximized"] { left: var(--dock-left, 0px); width: calc(100% - var(--dock-left, 0px) - var(--dock-right, 0px)); }
+.win[data-win-mode="left"] { left: var(--dock-left, 0px); width: calc((100% - var(--dock-left, 0px) - var(--dock-right, 0px)) / 2); }
+.win[data-win-mode="right"] { left: calc(var(--dock-left, 0px) + (100% - var(--dock-left, 0px) - var(--dock-right, 0px)) / 2); width: calc((100% - var(--dock-left, 0px) - var(--dock-right, 0px)) / 2); }
 .win[data-win-mode="left"] { border-right-width: 1px; }
 .win[data-win-mode="right"] { border-left-width: 1px; }
+
+/* === Docked windows ======================================================
+   A docked window holds an edge of the layer, and is part of its frame:
+   flush, without shadow, rounded corners or frame band, with a hairline on
+   the side facing the workspace. Top and bottom docks span the layer's
+   width; side docks span the height between them. data-win-edge names the
+   edge it shows on, which a narrow layer moves from a side to the bottom.
+   Its title bar is thin, a comfortable margin around the title, and a
+   collapsed dock is its title bar alone. */
+.win[data-win-edge] {
+  padding: 0; border: 0 solid var(--border); border-radius: 0; box-shadow: none;
+  min-width: 0; min-height: 0;
+}
+.win[data-win-edge].active { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); box-shadow: none; }
+.win[data-win-edge="bottom"] { top: auto; bottom: 0; left: 0; width: 100%; height: var(--dock-bottom, 25%); border-top-width: 1px; }
+.win[data-win-edge="top"] { top: 0; left: 0; width: 100%; height: var(--dock-top, 25%); border-bottom-width: 1px; }
+.win[data-win-edge="left"] {
+  top: var(--dock-top, 0px); left: 0; width: var(--dock-left, 25%);
+  height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)); border-right-width: 1px;
+}
+.win[data-win-edge="right"] {
+  top: var(--dock-top, 0px); left: auto; right: 0; width: var(--dock-right, 25%);
+  height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)); border-left-width: 1px;
+}
+.win[data-win-edge] .win-head {
+  min-height: 0; height: var(--win-head-docked); gap: 8px;
+  padding: 0 4px 0 10px;
+  border-width: 0 0 1px; border-radius: 0;
+}
+.win[data-win-edge] .win-title { font-size: var(--text-sm); }
+.win[data-win-edge] .win-btn { width: 20px; height: 20px; }
+.win[data-win-edge] .win-btn::before { width: 10px; height: 10px; }
+.win[data-win-edge] .win-body { border: 0; border-radius: 0; }
+.win[data-win-edge] [data-win-action="maximize"] { display: none; }
+.win-collapsed .win-body { display: none; }
+.win-collapsed .win-head { border-bottom-width: 0; }
+.win-collapsed:is([data-win-edge="left"], [data-win-edge="right"]) .win-head {
+  writing-mode: vertical-rl; height: 100%; width: var(--win-head-docked);
+  padding: 10px 0 4px;
+}
+/* The layer's inner area, laid out for the script to measure. */
+.win-inner {
+  position: absolute; visibility: hidden; pointer-events: none;
+  top: var(--dock-top, 0px); bottom: var(--dock-bottom, 0px);
+  left: var(--dock-left, 0px); right: var(--dock-right, 0px);
+}
 
 /* === Title bar ============================================================
    The title bar is what you drag, so it is raised. The active window's
@@ -177,6 +228,8 @@
 .win-btn[data-win-action="minimize"]::before { --glyph: var(--glyph-minimize); }
 .win-btn[data-win-action="maximize"]::before { --glyph: var(--glyph-maximize); }
 .win-btn[data-win-action="close"]::before { --glyph: var(--glyph-close); }
+.win-btn[data-win-action="dock"]::before { --glyph: var(--glyph-dock); }
+.win[data-win-edge] .win-btn[data-win-action="dock"]::before { --glyph: var(--glyph-undock); }
 .win:not([data-win-mode="floating"]) .win-btn[data-win-action="maximize"]::before { --glyph: var(--glyph-restore); }
 
 .win[data-win-mode="maximized"] .win-head,
@@ -217,6 +270,17 @@
 .win[data-win-mode="maximized"] .win-rh,
 .win[data-win-mode="left"] .win-rh,
 .win[data-win-mode="right"] .win-rh { display: none; }
+/* A docked window resizes only along its free edge, the one facing the
+   workspace, and a collapsed one not at all. */
+.win[data-win-edge] .win-rh { display: none; }
+.win[data-win-edge="bottom"] .win-rh[data-edge="n"] { left: 0; right: 0; }
+.win[data-win-edge="bottom"]:not(.win-collapsed) .win-rh[data-edge="n"],
+.win[data-win-edge="top"]:not(.win-collapsed) .win-rh[data-edge="s"],
+.win[data-win-edge="left"]:not(.win-collapsed) .win-rh[data-edge="e"],
+.win[data-win-edge="right"]:not(.win-collapsed) .win-rh[data-edge="w"] { display: block; }
+.win[data-win-edge="top"] .win-rh[data-edge="s"] { left: 0; right: 0; }
+.win[data-win-edge="left"] .win-rh[data-edge="e"],
+.win[data-win-edge="right"] .win-rh[data-edge="w"] { top: 0; bottom: 0; }
 
 /* A dashed outline shows where a window will land while it is dragged
    towards an edge. */

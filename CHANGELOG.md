@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.30.0
+
+Docked windows, from pudl.bytecode.news's Site window, specified in `docs/proposals/docked-windows.md`.
+
+- A window's mode may be `dock-top`, `dock-bottom`, `dock-left` or `dock-right`. A docked window holds that edge of the workspace and takes the strip from every other window, which lays itself out in what remains, so nothing covers it: a maximised window ends where the dock begins, and a floating one cannot be dragged into it.
+- A docked window is flush, with a hairline facing the workspace and a thin title bar. Its minimise button collapses it to that bar and expands it again. It resizes along its free edge, by pointer or with Shift and the arrow keys. Dragging a window to the foot of the workspace docks it there; dragging a docked one away, Enter or a double-click on its title bar undocks it; a `data-win-action="dock"` button does either; `pudlWindows.dock(key, edge)` docks at any edge from script.
+- An edge shows one docked window at a time, the others waiting behind it and coming forward from the dock of open windows. The proposal specifies a tabbed dock for an edge with several, not yet built. A side dock shows at the bottom of a layer 640px wide or less.
+- In the address a docked placement adds its strip's size, `p.site=dock-bottom:0.06,0.05,0.55,0.75,0.22`. Every window's fractions are now of the inner area the docks leave, which is the whole layer when nothing is docked, so existing addresses are unchanged.
+- Loading an address no longer rewrites a window's size to fit the room at that moment. It keeps the size the address gives, and only brings a window back inside the layer if it hangs off an edge.
+- Two glyphs, `--glyph-dock` and `--glyph-undock`.
+
 ## 0.29.2
 
 What a review of pudl.bytecode.news, the second site built on PUDL, found PUDL lacking, from the workarounds in its own stylesheet.
