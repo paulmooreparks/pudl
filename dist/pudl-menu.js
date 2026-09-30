@@ -47,8 +47,12 @@
 
     var below = vh - r.bottom - GAP - EDGE;
     var above = r.top - GAP - EDGE;
+    /* The panel's natural height is its whole rectangle, borders included
+       and unrounded, rounded up: scrollHeight leaves out the border and
+       rounds down, which left a panel a fraction short of its content and
+       showing a scrollbar it did not need. */
     panel.style.maxHeight = '';
-    var natural = panel.scrollHeight;
+    var natural = Math.ceil(panel.getBoundingClientRect().height);
     var down = narrow || below >= natural || below >= above;
     panel.style.maxHeight = Math.max(120, Math.min(natural, down ? below : above)) + 'px';
 
