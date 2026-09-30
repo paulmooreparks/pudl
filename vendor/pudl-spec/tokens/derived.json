@@ -1,8 +1,9 @@
 {
   "$description": "The derived tokens, each a formula on the palette, so a theme that sets the palette gets every one of these without setting them. Chapter 3 of the specification defines the formulas: mix, fade, gradient and shadow, and the amounts they take. An entry with light and dark members has a formula for each theme.",
   "sunken": {
-    "$description": "An input is sunken, so it takes the surface with only a touch of light.",
+    "$description": "An input is sunken, so it takes the surface with only a touch of light. Its border reaches 3:1 against the surfaces a field sits on, as WCAG 2.2 asks of a control's bounds.",
     "input-bg": { "mix": ["light", "surface"], "by": "lit" },
+    "input-border": { "mix": ["text", "surface"], "by": 0.55 },
     "entry-shadow": { "shadow": [{ "inset": true, "x": 0, "y": 1, "blur": 2, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.7 } } }] }
   },
   "raised": {
@@ -29,11 +30,17 @@
     "recess-shadow": { "shadow": [{ "inset": true, "x": 0, "y": 2, "blur": 3, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.6 } } }] }
   },
   "lifted": {
-    "$description": "A card lifts off the page with a soft shadow and a faint ring. A dialog is one step brighter than the page it sits on: surface on a light page, and on a dark page, where surface is barely lighter than bg, surface-alt.",
+    "$description": "A card lifts off the page with a soft shadow and a faint ring. A dialog lifts further, with a deep shadow as well, over a backdrop that dims the rest. It is one step brighter than the page it sits on: surface on a light page, and on a dark page, where surface is barely lighter than bg, surface-alt.",
     "shadow-card": { "shadow": [
       { "x": 0, "y": 1, "blur": 3, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.6 } } },
       { "x": 0, "y": 0, "blur": 0, "spread": 1, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.25 } } }
     ] },
+    "shadow-dialog": { "shadow": [
+      { "x": 0, "y": 1, "blur": 3, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.6 } } },
+      { "x": 0, "y": 0, "blur": 0, "spread": 1, "color": { "fade": "shade", "by": { "token": "depth", "times": 0.25 } } },
+      { "x": 0, "y": 24, "blur": 64, "color": { "fade": "shade", "by": { "token": "depth", "times": 1.8 } } }
+    ] },
+    "backdrop": { "fade": "shade", "by": 0.4 },
     "dialog-bg": { "light": "surface", "dark": "surface-alt" },
     "section-current-bg": "surface"
   },

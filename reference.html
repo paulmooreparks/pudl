@@ -81,9 +81,9 @@
     <a class="brand" href="#">PUDL</a>
     <div class="topbar-chrome">
       <button class="theme-toggle" type="button" title="Toggle light / dark"
-              onclick="pudlToggleTheme()">◐</button>
+              onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.33.1</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.34.0</a>
     </div>
   </header>
 
@@ -116,8 +116,9 @@
       <button class="btn btn-danger">Danger</button>
       <button class="btn btn-sm">Small</button>
       <button class="btn" disabled>Disabled</button>
-      <button class="icon-btn" aria-label="Drag to reorder">≡</button>
-      <button class="icon-btn danger" aria-label="Remove">✕</button>
+      <button class="icon-btn" aria-label="Drag to reorder"><span class="glyph" style="--glyph: var(--glyph-grip)" aria-hidden="true"></span></button>
+      <button class="icon-btn danger" aria-label="Remove"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button>
+      <button class="icon-btn" aria-label="Settings" disabled><span class="glyph" style="--glyph: var(--glyph-gear)" aria-hidden="true"></span></button>
     </div>
     <p>A toggle button latches. With <code>aria-pressed="true"</code> it stays pressed in until pressed again, and the same attribute tells assistive technology that it is on. A primary button may latch too, such as a flash card's Reveal: it keeps its accent and its text, and loses its lift. Press these three.</p>
     <div class="demo demo-row">
@@ -186,7 +187,7 @@
     </div>
 
     <h2>4. Segmented control</h2>
-    <p>A segmented control offers two to four choices in a sunken trough, with the chosen one raised in it: a small scale, kg or lbs, Read or Edit. Its choices are buttons marked with <code>aria-pressed</code>, or links to views marked with <code>aria-current</code>.</p>
+    <p>A segmented control offers two to four choices in a sunken trough: a small scale, kg or lbs, Read or Edit. Each choice the reader can still take stands raised, ready to be pressed, and the chosen one is pressed in, as a latched toggle is. Its choices are buttons marked with <code>aria-pressed</code>, or links to views marked with <code>aria-current</code>.</p>
     <div class="demo demo-row">
       <div class="seg"><button aria-pressed="true">Read</button><button aria-pressed="false">Edit</button></div>
       <div class="seg sm"><button aria-pressed="false">S1</button><button aria-pressed="true">S2</button><button aria-pressed="false">S3</button><button aria-pressed="false">S4</button><button aria-pressed="false">S5</button></div>
@@ -243,7 +244,7 @@
       <span class="chip">manila-oct</span>
       <span class="chip">billable</span>
       <span class="chip">RRP</span>
-      <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#tabs" aria-label="Remove the trip filter">×</a></span>
+      <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#tabs" aria-label="Remove the trip filter"></a></span>
     </div>
 
     <h2>7. Cards</h2>
@@ -450,8 +451,8 @@
             </div>
           </div>
           <div class="md-chips">
-            <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#">×</a></span>
-            <span class="filter-chip"><span class="filter-chip-kind">account</span> billable <a class="filter-chip-x" href="#">×</a></span>
+            <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#" aria-label="Remove the filter"></a></span>
+            <span class="filter-chip"><span class="filter-chip-kind">account</span> billable <a class="filter-chip-x" href="#" aria-label="Remove the filter"></a></span>
             <a class="md-chips-clear" href="#">clear</a>
           </div>
           <div class="md-body">
@@ -498,7 +499,7 @@
             <div class="md-toolbar-cmds"><button class="btn btn-sm btn-primary">+ Expense</button></div>
           </div>
           <div class="md-chips">
-            <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#md">×</a></span>
+            <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#md" aria-label="Remove the trip filter"></a></span>
           </div>
           <div class="md-body">
             <nav class="md-sidebar">

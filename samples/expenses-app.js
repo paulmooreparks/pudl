@@ -304,7 +304,7 @@
       </div>` : '';
 
     const chips = [];
-    const chip = (kind, text, drop) => chips.push(`<span class="filter-chip"><span class="filter-chip-kind">${kind}</span> ${esc(text)} <a class="filter-chip-x" href="${esc(link(drop))}" aria-label="Remove the ${kind} filter">×</a></span>`);
+    const chip = (kind, text, drop) => chips.push(`<span class="filter-chip"><span class="filter-chip-kind">${kind}</span> ${esc(text)} <a class="filter-chip-x" href="${esc(link(drop))}" aria-label="Remove the ${kind} filter"></a></span>`);
     if (f.q) chip('search', '“' + f.q + '”', { q: '' });
     if (f.trip) chip('trip', tripName(f.trip), { trip: '' });
     if (f.account) chip('account', ACCOUNTS[f.account], { account: '' });

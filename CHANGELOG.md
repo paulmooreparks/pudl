@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.34.0
+
+This release implements PUDL specification 0.2.0. Writing the specification's component sections found places where this implementation broke the grammar; Paul settled the grammar on 2026-10-01, and this release brings the web into line. Several changes are visible.
+
+- **Segmented controls.** The chosen segment is now pressed in and the others stand raised, ready to be pressed. Before, the chosen one was raised and the rest flat, the reverse of what elevation means.
+- **Fields.** A field's border is the new `--input-border`, which reaches 3:1 against every surface it sits on in both themes, as WCAG asks of a control's bounds; it was about 1.4:1. Placeholder text is `--text-muted` at full strength, about 5.5:1; it was faded to about 2:1. A disabled select keeps its sunken look and is dimmed, as every disabled field is; before, it was drawn flat. A select that is only for display should be rendered as text.
+- **Switches.** The track's border is `--input-border` too, for the same reason.
+- **Tabs and topbar pills** are pressed in while pressed, as every raised control is.
+- **Handles.** The splitter handle and the master-detail divider carry the new `grip` glyph at rest, so they can be found without hovering.
+- **Pressed and disabled states.** Glyph buttons, the notice and toast dismiss buttons, the document tab's close button, the tree toggle, the filter chip's remove button, page links, the file field's button, the switch's thumb and the layout picker's zones are pressed in while pressed. Glyph buttons, switches and segments dim when disabled and take no presses.
+- **Drawn glyphs.** The filter chip's remove button draws the close glyph, and the topbar's `.theme-toggle` draws the new `theme` glyph, so both are left empty with an `aria-label`. A character a page still puts in them is hidden. The reference page and samples no longer type glyph characters anywhere.
+- **The layout picker** marks the zone the window fills by drawing it pressed in as well as filling it with the accent, so it no longer rests on colour.
+- **Toasts over a dialog.** A toast raised while a modal dialog is open appears inside the dialog, above its backdrop, where it can be read and dismissed, and moves back to the page's toasts when the dialog closes. Before, it sat under the backdrop and could not be reached.
+- **Tokens.** New: `--input-border`, `--shadow-dialog` and `--backdrop`, which bring the theme's lighting to the dialog's shadow and backdrop, `--radius-xs` (4px) for small parts inside another control, and the glyphs `--glyph-grip` and `--glyph-theme`. Segments, the tree toggle, tooltips and the layout picker's zones take `--radius-xs` in place of radii that were off the scale.
+
 ## 0.33.1
 
 - The window menu's "Open as a page" follows the title bar's page link itself, so a link with `target="_blank"` opens the page in a new tab from the menu as it does from the button, instead of navigating away from the windows (from parkscomputing.com's `Architecture/pudl-bug-menu-page-target.md`).

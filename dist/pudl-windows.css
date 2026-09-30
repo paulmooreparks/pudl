@@ -243,20 +243,27 @@
 .win-btn[data-win-action="menu"] { margin-inline-end: var(--space-1); }
 /* The layout picker, in the window menu and on the maximise button: a
    thumbnail of each layout, whose zones are small raised buttons. The zone
-   the window fills is drawn in the accent. */
+   the window fills is pressed in, as where the reader is always is, and
+   filled with the accent as well. */
 .win-snap { display: flex; gap: 6px; padding: 6px 14px; }
 .win-snap-layout { position: relative; width: 48px; height: 32px; flex: none; }
 .win-snap .win-snap-zone {
   position: absolute; padding: 0;
   left: calc(var(--zl) / 6 * 100% + 1px); top: calc(var(--zt) / 6 * 100% + 1px);
   width: calc((var(--zr) - var(--zl)) / 6 * 100% - 2px); height: calc((var(--zb) - var(--zt)) / 6 * 100% - 2px);
-  border: 1px solid var(--raise-border); border-radius: 3px;
-  background: var(--raise-grad);
+  border: 1px solid var(--raise-border); border-radius: var(--radius-xs);
+  background: var(--raise-grad); box-shadow: var(--raise-shadow);
 }
-.win-snap .win-snap-zone:hover,
-.win-snap .win-snap-zone:focus-visible { background: color-mix(in srgb, var(--accent) 35%, var(--surface)); border-color: var(--accent); box-shadow: none; }
-.win-snap .win-snap-zone[aria-current="true"] { background: var(--accent); border-color: var(--accent); }
-.win-snap .win-snap-zone:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.win-snap .win-snap-zone:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
+.win-snap .win-snap-zone:focus-visible { background: var(--raise-grad-hover); box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); }
+.win-snap .win-snap-zone:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
+.win-snap .win-snap-zone[aria-current="true"] {
+  background: var(--accent); border-color: var(--accent-hover);
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent);
+}
+.win-snap .win-snap-zone[aria-current="true"]:focus-visible {
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent), 0 0 0 3px var(--focus-ring);
+}
 @media (forced-colors: active) {
   .win-snap .win-snap-zone { border-color: ButtonText; }
   .win-snap .win-snap-zone:hover, .win-snap .win-snap-zone[aria-current="true"] { forced-color-adjust: none; background: Highlight; }

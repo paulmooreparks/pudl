@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.1.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.2.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -501,12 +501,12 @@ A menu button opens a panel of choices. The button is raised and carries a caret
     <div class="md-section-label">Go to</div>
     <div class="md-row"><a class="md-item" href="/expenses/exp-12/receipt">Receipt</a></div>
     <hr class="menu-sep">
-    <button class="menu-action" type="submit" form="export"><span aria-hidden="true">⤓</span> Export as PDF</button>
+    <button class="menu-action" type="submit" form="export"><span class="glyph" style="--glyph: var(--glyph-download)" aria-hidden="true"></span> Export as PDF</button>
   </nav>
 </div>
 ```
 
-Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar uses, grouped under `.md-section-label` headings, and a row that opens a window is marked while its window is in front. Actions are `.menu-action` buttons below an `.menu-sep` rule, each with a leading glyph; a destructive one adds `danger` and a ⚠. The `.menu` wrapper holds the button and its panel together, and that is how the button knows to look pressed.
+Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar uses, grouped under `.md-section-label` headings, and a row that opens a window is marked while its window is in front. Actions are `.menu-action` buttons below an `.menu-sep` rule, each with a leading glyph drawn as a `.glyph`; a destructive one adds `danger` and the `stop` glyph. The `.menu` wrapper holds the button and its panel together, and that is how the button knows to look pressed.
 
 The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, above it when there is more room there, and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
 
@@ -572,7 +572,7 @@ The master-detail divider resizes a page's sidebar. A splitter does the same for
 </div>
 ```
 
-The first pane's size is a custom property on the `.split`, `--split-a` unless the handle's `data-split-prop` names another, and the stylesheet does the layout; without one the panes share the space equally. A `.split.stacked` puts the panes one above the other. The handle is drawn as the divider is, a rule that takes the accent while it is hovered, dragged or focused.
+The first pane's size is a custom property on the `.split`, `--split-a` unless the handle's `data-split-prop` names another, and the stylesheet does the layout; without one the panes share the space equally. A `.split.stacked` puts the panes one above the other. The handle is drawn as the divider is: flat, with the `grip` glyph at rest so that it can be found without hovering, and a rule that takes the accent while it is hovered, dragged or focused.
 
 With the optional `pudl-split.js`, the handle moves by pointer and by keyboard. It is a focusable separator in the ARIA window-splitter pattern. The arrow keys along its axis move it a step, and with Shift a larger one; Home and End go to its limits; Enter or a double-click returns the stylesheet's size. Its limits are `data-split-min` in pixels, 80 unless it says otherwise, and `data-split-max` in pixels or as a percentage of the split, by default all but the minimum, so the second pane never vanishes. They follow the split's own size, whatever changes it. PUDL keeps no state: when a change ends, `pudl:split` fires on the handle with `detail.size` in pixels, or null after a return to the stylesheet's size, and a project that wants the size remembered stores it and renders it in the `style` next time. `data-split-valuetext` gives the handle's spoken size in the page's words, with `{n}` for the pixels.
 
@@ -994,7 +994,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.33.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.34.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
