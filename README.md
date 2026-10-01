@@ -139,6 +139,9 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.38.0/dist/pudl-split.js" defer
         integrity="sha384-U1JbetkM4fKUp+WY9vtX2WLa5vhdDQoUC4jts1afp8q/U4BAInefX5E4TXic6w57"
         crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.38.0/dist/pudl-menubar.js" defer
+        integrity="sha384-HGy0LiZH38xgD9SzIghnauFnpyU9FUNUTGBCyxAV99845agprlQyZ9ZmtSSa8UUN"
+        crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.38.0/dist/pudl-tree.js" defer
         integrity="sha384-AdH7FeNFZ3jt9YKyB/5ih6sMZO5DYZgPf7B1/qC6q+aYaNsl2WKJYyagAffRqKe3"
         crossorigin="anonymous"></script>
