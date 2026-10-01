@@ -338,7 +338,14 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', segMenus);
   else segMenus();
   document.addEventListener('pudl:regions-swap', segMenus);
-  window.pudlMenu = { refresh: segMenus };
+  /* place(panel) places an open panel at once and shows it, for a script
+     that opens a panel and moves focus into it in the same moment, such as
+     the menu bar, since a panel is hidden until the toggle event that
+     places it, and toggle events can be merged. */
+  window.pudlMenu = {
+    refresh: segMenus,
+    place: function (panel) { if (isOpen(panel)) { place(panel); panel.classList.remove('placing'); } }
+  };
 
   /* Choosing a row or an action closes the panel. A row that leaves the page
      would close it anyway, but a row that opens a window, or an action that
