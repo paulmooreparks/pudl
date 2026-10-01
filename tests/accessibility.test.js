@@ -41,7 +41,18 @@ function check(name, ok, extra) {
   await m.emulateMedia({ reducedMotion: 'reduce' });
   await m.goto(ROOT + '/reference.html');
   const dur = await m.evaluate(() => getComputedStyle(document.querySelector('.switch-track')).transitionDuration);
-  check('reduced motion: transitions finish at once', /^1e-05s|^0\.00001s|^0s/.test(dur), dur);
+  check('reduced motion: transitions finish at once', /^0s/.test(dur), dur);
+  /* A menu opened from the keyboard takes focus into its first row: a
+     transition of even a moment would leave the panel hidden while focus
+     tries to move into it. */
+  for (const id of ['demo-menu', 'demo-launcher']) {
+    await m.evaluate(i => document.querySelector('[popovertarget="' + i + '"]').scrollIntoView({ block: 'center' }), id);
+    await m.focus('[popovertarget="' + id + '"]');
+    await m.keyboard.press('ArrowDown');
+    const inside = await m.evaluate(i => { const p = document.getElementById(i); return p.matches(':popover-open') && p.contains(document.activeElement); }, id);
+    check('reduced motion: Down on a menu button moves focus into the menu (' + id + ')', inside);
+    await m.keyboard.press('Escape');
+  }
 
   /* === Right to left ===================================================== */
   const r = await b.newPage({ viewport: { width: 1280, height: 1000 } });
