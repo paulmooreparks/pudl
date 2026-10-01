@@ -35,6 +35,24 @@ function check(name, ok, extra) {
        with, which says nothing about the page. */
     await ctx.close().catch(() => {});
   }
+  /* A hovered row shows against its panel in both themes (from
+     parkscomputing.com's menu bar notes: in the dark theme it did not). */
+  for (const theme of ['light', 'dark']) {
+    const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+    const p = await ctx.newPage();
+    p.on('pageerror', e => errors.push(e.message));
+    await p.goto(ROOT + '/reference.html');
+    await p.evaluate(t => document.documentElement.setAttribute('data-theme', t), theme);
+    await p.evaluate(() => document.querySelector('[popovertarget="demo-menu"]').scrollIntoView({ block: 'center' }));
+    await p.click('[popovertarget="demo-menu"]');
+    await p.waitForFunction(() => { const el = document.getElementById('demo-menu'); return el.matches(':popover-open') && !el.classList.contains('placing'); });
+    for (const sel of ['#demo-menu .menu-action', '#demo-menu .md-row']) {
+      await p.hover(sel);
+      const c = await p.evaluate(s => ({ row: getComputedStyle(document.querySelector(s)).backgroundColor, panel: getComputedStyle(document.getElementById('demo-menu')).backgroundColor }), sel);
+      check(theme + ': a hovered ' + (sel.includes('action') ? 'action' : 'place') + ' row differs from its panel', c.row !== c.panel && !/rgba\(0, 0, 0, 0\)|transparent/.test(c.row), JSON.stringify(c));
+    }
+    await ctx.close().catch(() => {});
+  }
   check('no errors', errors.length === 0, errors.join(' | '));
   await b.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');
