@@ -964,7 +964,10 @@
       if (typeof label !== 'string' || typeof run !== 'function') return;
       list.push({ label: label, run: run, checked: opts && opts.checked, disabled: opts && opts.disabled });
     }
-    if (window.pudlApplets && window.pudlApplets.commandsIn) {
+    /* With a menu bar on the page an applet's commands live in its menu
+       there, and the window menu keeps the window's own, so each command
+       has one home. */
+    if (window.pudlApplets && window.pudlApplets.commandsIn && !document.querySelector('[data-menubar]')) {
       window.pudlApplets.commandsIn(win).forEach(function (c) { add(c.label, c.run, c); });
     }
     win.dispatchEvent(new CustomEvent('pudl:window-menu', { bubbles: true, detail: { key: key, add: add } }));

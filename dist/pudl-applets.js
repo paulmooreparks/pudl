@@ -340,8 +340,36 @@
     return out;
   }
 
+  /* The applet a menu bar shows a menu for: the first running inside scope
+     that offers menus() or commands(), skipping those in windows when
+     outside is true. Its functions are asked afresh at each call, so the
+     menu is always current. */
+  function menuSourceIn(scope, outside) {
+    for (var i = 0; i < running.length; i++) {
+      var entry = running[i], inst = entry.instance;
+      if (!entry.root.isConnected || !inst) continue;
+      if (scope && scope !== document && scope !== entry.root && !scope.contains(entry.root)) continue;
+      if (outside && entry.root.closest('.win')) continue;
+      var hasMenus = typeof inst.menus === 'function', hasCommands = typeof inst.commands === 'function';
+      if (!hasMenus && !hasCommands) continue;
+      return {
+        name: entry.name, root: entry.root,
+        menus: hasMenus ? function (inst, name) {
+          return function () {
+            try { return inst.menus(); } catch (err) { if (window.console) console.warn('pudl-applets: ' + name + '.menus():', err); return null; }
+          };
+        }(inst, entry.name) : null,
+        commands: hasCommands ? function (e) { return function () { return commandsOf(e); }; }(entry) : null
+      };
+    }
+    return null;
+  }
+
   var rows = 0;
   function addCommandRow(entry) {
+    /* With a menu bar on the page, an applet's commands live in its menu
+       there, so they get no row of their own. */
+    if (document.querySelector('[data-menubar]')) return;
     var id = 'applet-commands-' + (++rows);
     var row = document.createElement('div');
     row.className = 'applet-commands';
@@ -526,7 +554,7 @@
   });
 
   window.pudlApplets = { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can,
-                         commandsIn: commandsIn };
+                         commandsIn: commandsIn, menuSourceIn: menuSourceIn };
 
   /* A mount with data-applet-param keeps its state in the page's query. */
   document.addEventListener('pudl:applet-change', function (e) {

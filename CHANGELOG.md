@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.38.0
+
+The menu bar, from parkscomputing.com's `Architecture/pudl-proposal-menu-bar.md`. This release implements PUDL specification 0.6.0.
+
+- The new optional `pudl-menubar.js` builds an application's menu bar in its topbar from a `nav[data-menubar]`. The host menu is the site's own, rendered as a hidden nested list in the bar, whose links and buttons are its commands, so it shows content before any script and a command does what a reader's click on its link or button would. The front menu, to its right, belongs to what is in front: the applet in the front window, through `menus()` or `commands()`, or its article, through a hidden `nav[data-page-menu]` of links; with no window in front, the page's own.
+- Each menu is one raised surface in the topbar's chip colours with the new menu glyph, `--glyph-menu`, and flat titles; the open title is pressed in. Panels hold commands, separators, headings, submenus, ticks and shortcuts.
+- A front menu may not use the host's titles and may add to them only below its name, never changing the host's commands; what breaks a rule, or claims a reserved key, is left out with a console warning naming it.
+- Shortcuts are written `Mod+S`, Ctrl or ⌘ by platform, shown in each platform's form and announced. A front menu's work while focus is in what it belongs to.
+- The bar is one tab stop and follows the WAI-ARIA menu bar pattern, with `accesskey="m"` on its first title. When it does not fit it becomes one menu button opening one level at a time.
+- With a menu bar on the page, an applet's commands live in its front menu: the window menu keeps the window's own commands, and the Commands row above an applet on its page does not appear.
+- `pudlApplets.menuSourceIn()` and `pudlMenu.place()` are new, for the menu bar.
+- Changes from the proposal, as agreed: the bar is a script of its own; the host menu comes from markup rather than a script's object; shortcuts use `Mod` for the platform's command key; and a bar that does not fit collapses straight to one button, without a middle step.
+
 ## 0.37.3
 
 - In the dark theme a menu row under the pointer, or with focus, shows again. The panel is `--dialog-bg`, which the dark theme sets to `--surface-alt`, and a hovered row was filled with `--surface-alt` too. The row now takes a shade of the panel's own colour, `--menu-row-hover`, in both themes (from parkscomputing.com's menu bar notes).

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menu bar</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-applets.js" defer></script>
+  <script src="menubar.js" defer></script>
+  <script src="../../dist/pudl-menubar.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 560px; position: relative; }</style>
+</head>
+<body>
+  <!-- A test fixture after parkscomputing.com's menu bar: a host menu,
+       and windows holding an applet with menus(), an applet with only
+       commands(), and an article with a menu of links. -->
+  <header class="topbar">
+    <nav class="menubar" data-menubar aria-label="Parks Computing">
+      <ul data-menubar-source hidden>
+        <li><span class="logo-mark" aria-hidden="true">P</span> Parks Computing
+          <ul>
+            <li><a href="#home" id="home-link">Home</a></li>
+            <li>-</li>
+            <li>Articles</li>
+            <li><a href="?open=article" data-win-open="article">Coincidences</a></li>
+          </ul></li>
+        <li>View
+          <ul>
+            <li><button type="button" id="wide" aria-pressed="false" data-shortcut="Mod+Shift+L">Wide layout</button></li>
+          </ul></li>
+        <li data-menubar-if="windows">Window
+          <ul><li><button type="button" id="all-min">Minimize all</button></li></ul></li>
+        <li>Help
+          <ul><li><a href="#about">About this site</a></li></ul></li>
+      </ul>
+      <a class="brand" href="#home" id="fallback">Parks Computing</a>
+    </nav>
+    <div class="topbar-chrome"></div>
+  </header>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="notes,counter">
+      <section class="win" data-win="notes" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.4; --win-h: 0.6">
+        <header class="win-head"><h2 class="win-title">Notes</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div data-applet="notes"></div></div>
+      </section>
+      <section class="win" data-win="counter" style="--win-x: 0.5; --win-y: 0.1; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Counter</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div data-applet="counter"></div></div>
+      </section>
+    </div>
+  </div>
+  <template id="tpl-article">
+    <section class="win" data-win="article">
+      <header class="win-head"><h2 class="win-title">Coincidences</h2>
+        <nav class="win-chrome" aria-label="Window">
+          <a class="win-btn" data-win-action="page" href="#article-page" aria-label="Open as a page"></a>
+          <a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+      <div class="win-body">
+        <nav data-page-menu hidden aria-label="Page menu">
+          <ul><li>Sections
+            <ul><li><a href="#a380">The A380 incident</a></li><li>-</li><li>Elsewhere</li><li><a href="#qantas">Qantas</a></li></ul></li></ul>
+        </nav>
+        <p>Sometimes, when you fly, it's better not to look up your plane's history.</p>
+        <div style="height: 900px"></div>
+        <h2 id="a380">The A380 incident</h2><p>The end.</p>
+      </div>
+    </section>
+  </template>
+</body>
+</html>

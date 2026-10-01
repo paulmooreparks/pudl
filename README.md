@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.5.1.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.6.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -544,6 +544,55 @@ A panel a script opens from something that cannot carry `popovertarget`, such as
 
 A **launcher** is a menu button first in the row that holds a window dock, whose panel reaches everything a site offers: one section per category, a filter at the top, and site-wide actions at the foot. Put it in a toolbar marked `.md-site-tools` so that it stays on screen when a narrow master-detail layout shows a record, and the reader can reach everything from inside an article on a phone. `samples/article-reader.html` has one.
 
+## The menu bar
+
+The optional `pudl-menubar.js` gives an application a menu bar in its topbar, as a Mac's is: one bar however many windows are open, showing the menus of what the reader is in. It holds the **host menu**, the site's own, which is always there, and to its right the **front menu**, for whatever is in front: the applet or article in the front window, or, with no window in front, the one on the page. Each menu is one raised surface in the topbar's chip colours with the menu glyph at its start, and its titles are flat words that take their press from it. Load it after `pudl-menu.js`, and after `pudl-windows.js` and `pudl-applets.js` if the page has them.
+
+The host renders its menu as a hidden list inside the bar, beside whatever should show without script, which the bar hides once it is built:
+
+```html
+<nav class="menubar" data-menubar aria-label="Parks Computing">
+  <ul data-menubar-source hidden>
+    <li><img src="/logo.svg" alt=""> Parks Computing
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li>-</li>
+        <li>Articles</li>
+        <li><a href="/?open=coincidences" data-win-open="coincidences">Coincidences</a></li>
+      </ul></li>
+    <li>View
+      <ul><li><button type="button" aria-pressed="false" data-shortcut="Mod+Shift+L">Wide layout</button></li></ul></li>
+    <li data-menubar-if="windows">Window<ul>…</ul></li>
+  </ul>
+  <a class="brand" href="/">Parks Computing</a>
+</nav>
+```
+
+Each top item is a title, its words before its list; the first is the menu's name. In a list, an item holding a link or a button is a command, `-` is a separator, plain words are a heading for the commands below, and an item with a list of its own is a submenu. A command follows its link, or presses its button, as a reader's click would, so a link with `data-win-open` opens a window and the host's own script answers a button. A button's `aria-pressed` or `aria-checked` gives its command a tick. `data-shortcut` gives a command a shortcut, and `data-menubar-if="windows"` shows a title only on a page of windows.
+
+An applet gives its front menu through `menus()` on its instance, asked afresh each time a panel opens:
+
+```js
+menus() {
+  return {
+    titles: [
+      { label: 'Notes', items: [{ label: 'About Notes', run }] },
+      { label: 'File', items: [
+        { label: 'Save', run, shortcut: 'Mod+S', disabled: !dirty },
+        '-',
+        { label: 'Change case', items: [/* a submenu */] },
+        { heading: 'Danger' },
+        { label: 'Clear the note', run, danger: true }] }],
+    into: { View: [{ label: 'Wrap lines', run, checked: wrap }] } };
+}
+```
+
+A command takes `label` and `run`, and may take `checked`, `radio` (one of a named group), `disabled`, `danger`, `shortcut` or `items` for a submenu. `'-'` is a separator and `{ heading }` labels the commands below. `into` adds commands to the host's titles by name, below a separator under the applet's name. An applet that offers only `commands()` gets one title, its window's name, holding them. An article's menu is a hidden `<nav data-page-menu>` of the same lists, of links; a link to a heading in the article moves there, in its window, without changing the address, and its first title offers Open as a page, Copy the link, Print and, in a window, Close.
+
+The rules hold the bar together. A front menu may not use a title the host has, may add to the host's titles but never change their commands, and within a panel every label is different; what breaks a rule is left out with a console warning naming it. Shortcuts are written `Mod+S`, Ctrl on Windows and Linux and ⌘ on a Mac, and shown in each platform's form. A front menu's shortcuts work while focus is in what it belongs to, and the host's anywhere. A command may not claim `Mod` with N, T, W, Q or Tab, with or without Shift, which browsers keep, or `Mod` with A, C, X or V; it keeps its place without the shortcut, with a warning. With a menu bar on the page, an applet's commands live in its front menu: the window menu holds only the window's own, and the Commands row above an applet on its page does not appear.
+
+The bar is one tab stop and follows the WAI-ARIA menu bar pattern: Left and Right run across both menus, Down, Enter and Space open a panel, Right and Left open and close submenus or move between titles, Escape closes, Tab leaves, and a letter moves to the next command that starts with it. Its first title carries `accesskey="m"`, which `data-menubar-key` changes, or turns off with an empty value. When the bar does not fit, it becomes one menu button whose panel lists each menu's titles, opening one level at a time with a Back row. `pudlMenubar.refresh()` rebuilds the bar after a change the script did not see.
+
 ## Filtering a list
 
 A master-detail toolbar's filter that applies on submission pairs its input with a raised apply button, since an action that can be pressed must look pressable. The two are drawn joined, and the button's magnifying glass comes from the stylesheet:
@@ -1018,6 +1067,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-hljs.css`, the optional stylesheet that colours highlight.js's classes from the syntax tokens
   - `pudl-code.js`, the optional script that gives code blocks Copy and Download
   - `pudl-split.js`, the optional script for splitters between two panes
+  - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
   - `fonts/`, Inter in its upright and italic variable files, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -1038,7 +1088,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.37.3, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.38.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

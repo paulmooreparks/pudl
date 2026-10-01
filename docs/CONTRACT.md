@@ -32,6 +32,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-hljs.css` | `pudl.css` | highlight.js classes coloured from the syntax tokens |
 | `pudl-code.js` | `pudl.css` | Copy and Download on code blocks |
 | `pudl-split.js` | `pudl.css` | Splitters between two panes |
+| `pudl-menubar.js` | `pudl.css`, `pudl-menu.js`; uses `pudl-windows.js` and `pudl-applets.js` when present | An application's menu bar in its topbar |
 
 ## Tokens
 
@@ -46,7 +47,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 - Adjustments with defaults derived from the above: `--dialog-bg`, `--section-current-bg`, `--win-active-bg`, `--win-active-fg`, `--win-active-border`, `--win-active-shadow`, `--win-head-docked`
 - Layout: `--md-sidebar-w` and `--md-sidebar-min` on a `.md-layout`
 
-**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-xs`, `--radius-pill`; the surface treatments `--input-bg`, `--input-border`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--shadow-dialog`, `--backdrop`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-copy`, `--glyph-diamond`, `--glyph-dock`, `--glyph-document`, `--glyph-download`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-gear`, `--glyph-grip`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-theme`, `--glyph-tick`, `--glyph-triangle`, `--glyph-undock` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
+**A project may read these** in its own styles but does not set them: the type scale `--text-2xs` to `--text-3xl`; the spacing grid `--space-1` to `--space-6`; `--radius`, `--radius-sm`, `--radius-xs`, `--radius-pill`; the surface treatments `--input-bg`, `--input-border`, `--raise-top`, `--raise-grad`, `--raise-grad-hover`, `--raise-active-bg`, `--raise-border`, `--raise-border-hover`, `--raise-shadow`, `--raise-active-shadow`, `--entry-shadow`, `--recess-bg`, `--recess-shadow`, `--shadow-card`, `--shadow-dialog`, `--backdrop`, `--focus-ring` and `--focus-ring-danger`; and the glyphs `--glyph-app`, `--glyph-back`, `--glyph-branch`, `--glyph-caret`, `--glyph-check`, `--glyph-circle`, `--glyph-close`, `--glyph-copy`, `--glyph-diamond`, `--glyph-dock`, `--glyph-document`, `--glyph-download`, `--glyph-empty`, `--glyph-file`, `--glyph-folder`, `--glyph-gear`, `--glyph-grip`, `--glyph-home`, `--glyph-info`, `--glyph-link`, `--glyph-maximize`, `--glyph-menu`, `--glyph-minimize`, `--glyph-open`, `--glyph-restore`, `--glyph-ring`, `--glyph-script`, `--glyph-search`, `--glyph-slash`, `--glyph-sort`, `--glyph-sort-down`, `--glyph-sort-up`, `--glyph-square`, `--glyph-stop`, `--glyph-theme`, `--glyph-tick`, `--glyph-triangle`, `--glyph-undock` and `--glyph-warning`, which are SVG masks to be filled with a colour. Drawing a project's own control from these tokens keeps it in the grammar.
 
 Every other custom property is internal.
 
@@ -104,6 +105,9 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-size` | a window | `pudl-windows.js`, `pudl-windows.css`, `pudl-applets.js` | `content` for a window sized by its content, or `user`, the default |
 | `data-win-min`, `data-win-max` | a window | `pudl-windows.js` | Its smallest and largest width and height, `w,h` in pixels |
 | `data-win-action` | a window button | `pudl-windows.js` | `menu`, `page`, `minimize`, `maximize`, `dock` or `close` |
+| `data-menubar`, `data-menubar-source`, `data-menubar-if`, `data-menubar-key`, `data-menubar-text-*` | the menu bar, its hidden source list, a title, the bar, the bar | `pudl-menubar.js` | The menu bar; the host menu as nested lists; `windows` to show a title only on a page of windows; the jump key, `m` unless set, none if empty; the bar's own words (`menu`, `back`, `page`, `copy-link`, `print`, `close`) |
+| `data-shortcut` | a link or button in a menu bar's list | `pudl-menubar.js` | Its command's shortcut, as `Mod+Shift+L` |
+| `data-page-menu` | a hidden `nav` in an article | `pudl-menubar.js` | The article's front menu, as nested lists of links |
 | `data-applet-text-commands`, `-no-commands` | an applet mount outside a window | `pudl-applets.js` | The label of its Commands button, and the text of an empty menu |
 | `data-win-dock`, `data-win-tab`, `data-win-back`, `data-win-restore` | the dock, a dock tab or row, a minimise-all or back link, a restore-all link | `pudl-windows.js` | The script keeps the last two's `href` current and marks them `aria-disabled` when they would change nothing |
 | `data-win-text-maximize`, `-restore`, `-minimized`, `-head`, `-dock`, `-undock`, `-collapse`, `-expand`, `-menu`, `-page`, `-minimize`, `-reset`, `-reset-position`, `-close`, `-snap`, `-layout-<name>`, `-zone-<name>` | the window layer | `pudl-windows.js` | The page's own words, with `{title}` |
@@ -154,12 +158,15 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.snap(key, zone or null)`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
 | `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |
 | `pudlApplets.request(verb, { path, kind, … }, from)`, `.can(verb, kind)` | `pudl-applets.js` | Ask for a request without naming an applet; `request` returns false when nothing serves it |
+| `pudlApplets.menuSourceIn(scope, outside)` | `pudl-applets.js` | The first running applet in `scope` offering `menus()` or `commands()`, for a menu bar |
 | `pudlApplets.commandsIn(scope)` | `pudl-applets.js` | The commands of the applets running inside `scope`, as the window menu shows them |
-| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()`, `setState(s)` and `commands()`, which returns `[{ label, run, checked, disabled }]`, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
+| `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()`, `setState(s)`, `commands()`, which returns `[{ label, run, checked, disabled }]`, and `menus()`, which returns `{ titles, into }` for a menu bar, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
+| `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
+| `pudlMenu.place(panel)` | `pudl-menu.js` | Place an open panel at once and show it, for a script that moves focus into it in the same moment |
 | `pudlMenu.refresh()` | `pudl-menu.js` | Build the pop-up button for segmented controls with `data-seg-menu` added by other means |
 | `pudlSplit.refresh()` | `pudl-split.js` | Bring the handles' values and limits up to date after a change the script did not see |
 | `pudlCode.enhance(scope or pre)`, `.names`, `.extensions`, `.words` | `pudl-code.js` | Take in code blocks added by other means; the maps and words a project extends |
