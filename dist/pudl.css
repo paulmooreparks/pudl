@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.37.2.
+   Version 0.37.3.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -1443,9 +1443,14 @@ body:has(> .md-layout) {
 .menu-panel .md-section-label { padding: 10px 14px var(--space-1); }
 .menu-panel .md-section-label:first-child { padding-top: 6px; }
 .menu-panel .md-row { border-bottom: 0; }
+/* A row under the pointer or with focus is a shade of the panel's own
+   colour. The panel is --dialog-bg, which is --surface-alt in the dark
+   theme, so --surface-alt would not show there. */
+.menu-panel { --menu-row-hover: color-mix(in srgb, var(--text) 8%, var(--dialog-bg, var(--surface))); }
+.menu-panel .md-row:hover { background: var(--menu-row-hover); }
 .menu-panel .md-item:focus-visible,
 .menu-action:focus-visible {
-  outline: none; background: var(--surface-alt);
+  outline: none; background: var(--menu-row-hover, var(--surface-alt));
   box-shadow: inset 3px 0 var(--accent);
 }
 .menu-panel .md-item:dir(rtl):focus-visible,
@@ -1462,7 +1467,7 @@ body:has(> .md-layout) {
   font: var(--text-sm)/1.5 var(--font); color: var(--text); text-align: start;
   cursor: pointer;
 }
-.menu-action:hover { background: var(--surface-alt); }
+.menu-action:hover { background: var(--menu-row-hover, var(--surface-alt)); }
 .menu-action.danger { color: var(--danger); }
 .menu-action:disabled { color: var(--text-muted); cursor: default; }
 .menu-action:disabled:hover { background: none; }
