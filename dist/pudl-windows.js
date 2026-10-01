@@ -115,6 +115,7 @@
   var closing = {};        // key -> why its window is about to close, for pudl:window-close
   var homes = {};          // key -> the placement its markup gave it, which reset returns it to
   var menuRuns = {};       // key -> the content's commands in its open window menu, by index
+  var lastFocus = {};      // key -> the element that last had focus in the window, which it gets back
 
   /* === State and URL ===================================================== */
 
@@ -587,6 +588,7 @@
       if (st.open.indexOf(k) >= 0) return;
       var gone = wins[k];
       delete wins[k];
+      delete lastFocus[k];
       gone.dispatchEvent(new CustomEvent('pudl:window-close', { bubbles: true, detail: { key: k, reason: closing[k] || 'address' } }));
       gone.remove();
     });
@@ -1196,9 +1198,29 @@
     el.dispatchEvent(new CustomEvent('pudl:window-open', { bubbles: true }));
   }
 
+  /* A window the reader brings forward takes the keyboard, as an activated
+     window does on the desktop: focus goes back to what last had it in that
+     window, or the first time, to an element marked autofocus, or else to
+     the title bar, where the keys that move and resize the window work. A
+     window that already holds focus keeps it where it is. The window's own
+     menus are not part of what it holds, since they close as they act. */
   function focusWindow(key) {
-    var head = wins[key] && wins[key].querySelector('.win-head');
-    if (head) head.focus({ preventScroll: true });
+    var el = wins[key];
+    if (!el) return;
+    var now = document.activeElement;
+    if (now && el.contains(now) && !now.closest('.menu-panel')) return;
+    var target = lastFocus[key];
+    if (!(target && target.isConnected && el.contains(target) && canFocus(target))) {
+      target = el.querySelector('.win-body [autofocus]');
+      if (target && !canFocus(target)) target = null;
+    }
+    target = target || el.querySelector('.win-head');
+    if (target) target.focus({ preventScroll: true });
+  }
+
+  function canFocus(t) {
+    if (t.disabled || t.closest('[hidden], [inert]')) return false;
+    return t.getClientRects().length > 0;
   }
 
   /* A window that has to be fetched arrives some time after the reader
@@ -1673,9 +1695,15 @@
     /* A press anywhere in a window raises it at once, before any drag. */
     if (state.top !== key) commit(fronted(state, key), false);
 
+    /* A press on the frame or the title bar is cancelled below, so that a
+       drag selects no text, and a cancelled press moves no focus, so the
+       window is given the keyboard here, or keys would still go to the
+       window behind. A press in the body focuses what it lands on, as
+       usual. */
     var handle = e.target.closest('.win-rh');
     if (handle) {
       e.preventDefault();
+      focusWindow(key);
       gesture({ currentTarget: handle, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY },
               key, handle.getAttribute('data-edge'));
       return;
@@ -1685,6 +1713,7 @@
     var head = e.target.closest('.win-head');
     if (head && !e.target.closest('button, input, select, textarea, .win-chrome')) {
       e.preventDefault();
+      focusWindow(key);
       gesture({ currentTarget: head, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY }, key, null);
     }
   }
@@ -1701,6 +1730,9 @@
     var el = e.target.closest && e.target.closest('.win');
     if (!el || !layer.contains(el)) return;
     var key = el.getAttribute('data-win');
+    /* Remembered, so that bringing the window forward later gives focus
+       back to what had it. */
+    if (!e.target.closest('.menu-panel')) lastFocus[key] = e.target;
     if (state.top !== key && !isHidden(state, key)) commit(fronted(state, key), false);
   }
 
