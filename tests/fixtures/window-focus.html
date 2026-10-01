@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window focus</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 640px; } .bar { padding: 8px; }</style>
+</head>
+<body>
+  <!-- A test fixture after parkscomputing.com's admin desktop: an editor
+       and a terminal, each with a field to type in, and a third window
+       whose field asks for focus the first time. -->
+  <div class="bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-menu data-win-default="editor,term,notes">
+      <section class="win" data-win="editor" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.4; --win-h: 0.6">
+        <header class="win-head"><h2 class="win-title">Editor</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><textarea id="ed" class="form-textarea" aria-label="Text"></textarea></div>
+      </section>
+      <section class="win" data-win="term" style="--win-x: 0.45; --win-y: 0.1; --win-w: 0.3; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Terminal</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><input id="sh" class="form-input" aria-label="Command"></div>
+      </section>
+      <section class="win" data-win="notes" style="--win-x: 0.78; --win-y: 0.2; --win-w: 0.2; --win-h: 0.4">
+        <header class="win-head"><h2 class="win-title">Notes</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><button type="button" class="btn">First</button> <input id="note" class="form-input" aria-label="Note" autofocus></div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

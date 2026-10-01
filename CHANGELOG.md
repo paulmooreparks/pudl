@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.37.1
+
+This release implements PUDL specification 0.5.1.
+
+- Pressing a window's title bar now gives it the keyboard (from parkscomputing.com's `Architecture/pudl-bug-raise-focus.md`). The press is cancelled so that a drag selects no text, which also stopped the browser moving focus, so keys still went to the window behind. A window the reader brings forward, by its title bar, frame, dock tab, a list row or its window menu, now gets focus back on whatever last had it inside, or the first time on an element marked `autofocus` in its body, or else on its title bar. A window that already holds focus keeps it, and a fetched window still takes focus only if the reader has not moved on.
+
 ## 0.37.0
 
 This release implements PUDL specification 0.5.0.

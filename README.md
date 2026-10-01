@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.5.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.5.1.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -717,6 +717,8 @@ Scripts inside a fetched window do not run. A project wires up a window's conten
 
 With a title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Double-clicking the title bar also maximises or restores it, and dragging it against the left, right or top edge of the layer snaps it to that half or maximises it.
 
+A window the reader brings forward takes the keyboard, as an activated window does on the desktop, whether they press its title bar or frame, its dock tab, a list row or its window menu. Focus goes back to whatever last had it inside that window, so a reader who was typing in a terminal, worked in the editor, and pressed the terminal's title bar carries on typing in the terminal. The first time, it goes to an element in the window's body marked `autofocus`, and otherwise to the title bar. A window that already holds focus keeps it where it is, and a press inside a window's body focuses what it lands on.
+
 ### Snap zones
 
 A window can be snapped to a zone, a rectangle of the workspace on a grid of sixths, which holds the halves, the quarters, the thirds and two thirds beside one third. A zone follows the workspace as it resizes, and it is a fraction of the area the docks leave, so it never covers a docked window. A zone window is drawn flush like a half, with a hairline where it meets another zone.
@@ -1036,7 +1038,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.37.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.37.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
