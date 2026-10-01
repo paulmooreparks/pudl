@@ -1087,7 +1087,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 ## Tests
 
-The tests drive the samples and the reference page in real browsers through Playwright. `npm ci` installs it, `npx playwright install` fetches the browsers, `npm test` runs every suite in Chromium, and `npm run test:all` runs them in Chromium, Firefox and WebKit. `node tests/run.js firefox windows` runs one engine and only the suites whose names contain `windows`. The runner serves the repository itself on port 8765. Where Playwright cannot fetch its own browsers, `PUDL_EXECUTABLE=/path/to/chromium npm test` uses one already installed. GitHub Actions runs all three engines on every push and pull request.
+The tests drive the samples and the reference page in real browsers through Playwright. `npm ci` installs it, `npx playwright install` fetches the browsers, `npm test` runs every suite in Chromium, and `npm run test:all` runs them in Chromium, Firefox and WebKit. `node tests/run.js firefox windows` runs one engine and only the suites whose names contain `windows`. The runner serves the repository itself on port 8765, and runs the suites several at a time across the engines, eight by default or `PUDL_JOBS`; a suite that runs longer than two minutes, or `PUDL_SUITE_TIMEOUT` seconds, is stopped and counted as failed. It ends by naming the slowest suites. Where Playwright cannot fetch its own browsers, `PUDL_EXECUTABLE=/path/to/chromium npm test` uses one already installed. GitHub Actions runs all three engines on every push and pull request.
 
 ## Status
 
