@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.37.1.
+   Version 0.37.2.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -1827,8 +1827,13 @@ a.seg-choice { text-decoration: none; }
    A reader who has asked their system for less motion gets none: every
    transition and animation completes at once. */
 @media (prefers-reduced-motion: reduce) {
+  /* Transitions take no time at all. A duration of a hundredth of a
+     millisecond, the usual trick, turns on a transition of every property
+     on every element, since the default property is all, and a panel made
+     visible then stays hidden for that moment, too long for focus to move
+     into it. */
   *, *::before, *::after {
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
     transition-delay: 0s !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

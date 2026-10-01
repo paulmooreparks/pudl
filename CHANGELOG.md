@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.37.2
+
+- With reduced motion asked for, a menu opened from the keyboard takes focus into its first row again. The reduced-motion rule set every transition to a hundredth of a millisecond, the usual trick, and since the default transition property is `all`, that switched on a transition of every property on every element, visibility included. A menu panel, hidden while it is placed, was still hidden for that moment when focus tried to move into it, so focus stayed on the button. Transitions now take no time at all under reduced motion. A project that listens for `transitionend` will not hear it then, which is what no transition means.
+
 ## 0.37.1
 
 This release implements PUDL specification 0.5.1.
