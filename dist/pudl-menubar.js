@@ -46,6 +46,15 @@
                   'Mod+Shift+Q', 'Mod+Shift+Tab', 'Mod+A', 'Mod+C', 'Mod+X', 'Mod+V'];
 
   var bar, source, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
+  var menuScope = null;
+  var STANDARD = ['site', 'go', 'applets', 'view', 'window', 'help'];
+  var SHARED = ['go', 'view', 'help'];
+  function menuId(label, explicit) {
+    if (explicit) return String(explicit);
+    var id = String(label).toLowerCase();
+    return STANDARD.concat(['file', 'edit']).indexOf(id) >= 0 ? id : '';
+  }
+
   var collapsed = false, needed = 0, uid = 0, warned = {};
 
   function text(name, fallback) { return (bar && bar.getAttribute('data-menubar-text-' + name)) || fallback; }
@@ -101,6 +110,8 @@
       var nested = li.querySelector(':scope > ul');
       var content = Array.prototype.filter.call(li.childNodes, function (n) { return n !== nested; });
       titles.push({
+        id: i === 0 ? 'site' : menuId(words(content), li.getAttribute('data-menubar-id')),
+        generatedWindows: li.hasAttribute('data-menubar-windows'),
         label: words(content),
         content: i === 0 ? content : null,
         items: nested ? readList(nested) : []
@@ -151,18 +162,23 @@
     if (src.kind === 'applet') {
       var m = src.applet.menus ? src.applet.menus() : null;
       if (m && Array.isArray(m.titles) && m.titles.length) {
-        titles = m.titles.map(function (t) { return { label: String(t.label || ''), items: normal(t.items || []) }; });
+        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || []) }; });
         if (m.into) Object.keys(m.into).forEach(function (k) { into[k] = normal(m.into[k] || []); });
         name = titles[0].label;
       } else {
         name = src.scope.key ? titleOfScope(src.scope) : (src.applet.root.getAttribute('aria-label') || src.applet.name);
-        titles = [{ label: name, items: normal(src.applet.commands ? src.applet.commands() : []) }];
+        titles = [{ label: name, items: articleItems(src) }];
+        var commands = normal(src.applet.commands ? src.applet.commands() : []);
+        if (commands.length) titles.push({ id: 'actions', label: text('actions', 'Actions'), items: commands });
       }
     } else {
       name = titleOfScope(src.scope);
-      titles = [{ label: name, items: articleItems(src) }].concat(
+      titles = [{ label: name, items: articleItems(src) },
+        { id: 'file', label: text('file', 'File'), items: [{ label: text('print', 'Print'), run: function () { window.print(); } }] }].concat(
         readList(src.nav.querySelector(':scope > ul') || document.createElement('ul')).filter(function (t) { return t.items; }));
     }
+    titles.forEach(function (t) { own(t.items, src); });
+    Object.keys(into).forEach(function (k) { own(into[k], src); });
     return { kind: 'front', name: name, titles: titles, into: into, src: src };
   }
 
@@ -188,50 +204,118 @@
     var page = win && win.querySelector('.win-head a[data-win-action="page"]');
     if (page) items.push({ label: text('page', 'Open as a page'), run: function () { page.click(); } });
     if (win && window.pudlWindows && window.pudlWindows.shareURL) {
-      if (window.pudlWindows.shareURL(key)) items.push({ label: text('copy-link', 'Copy the link'), run: function () {
+      if (window.pudlWindows.shareURL(key)) items.push({ label: text('copy-link', 'Copy link to this content'), run: function () {
         window.pudlWindows.copyLink(key);
       } });
     } else {
-      items.push({ label: text('copy-link', 'Copy the link'), run: function () {
+      items.push({ label: text('copy-link', 'Copy link to this content'), run: function () {
         var href = page ? page.href : location.href;
         if (navigator.clipboard) navigator.clipboard.writeText(href).catch(function () {});
       } });
     }
-    items.push({ label: text('print', 'Print'), run: function () { window.print(); } });
-    if (key) items.push('-', { label: text('close', 'Close'), run: function () { window.pudlWindows.close(key); } });
+    if (key) items.push('-', { label: text('close', 'Close window'), run: function () { window.pudlWindows.close(key); } });
     return items;
   }
 
   /* The host's titles, with the front menu's additions, and the front
      menu, each command checked against the rules. */
+  function own(items, src) {
+    items.forEach(function (c) {
+      if (!c || typeof c !== 'object') return;
+      c.owner = src;
+      if (c.items) own(c.items, src);
+    });
+  }
+
+  function sameSource(a, b) {
+    if (!a || !b) return a === b;
+    return a.kind === b.kind && a.scope.key === b.scope.key && a.scope.scope === b.scope.scope &&
+      (a.applet ? b.applet && a.applet.root === b.applet.root && a.applet._instance === b.applet._instance : a.nav === b.nav);
+  }
+
+  function currentTarget() {
+    var f = frontScope();
+    return sameSource(frontSrc, findFront()) && (!menuScope || (menuScope.key === f.key && menuScope.scope === f.scope));
+  }
+
   function assemble() {
     var host = hostMenu();
     var front = frontMenu(frontSrc);
-    var who = front ? front.name : '';
-    var taken = {};
-    host.titles.forEach(function (t, i) { if (i > 0) taken[t.label] = true; });
+    var seen = Object.create(null);
+    host.titles = host.titles.filter(function (t) {
+      if (t.id && seen[t.id]) { warn('duplicate site menu ID "' + t.id + '" is left out'); return false; }
+      if (t.id) seen[t.id] = true;
+      if (t.generatedWindows) {
+        if (t.id !== 'window') warn('data-menubar-windows requires the window menu ID');
+        else t.items = t.items.concat(windowItems());
+      }
+      return true;
+    });
+    function hostRank(t) { var n = STANDARD.indexOf(t.id); return n < 0 ? 2.5 : n; }
+    host.titles.sort(function (a, b) { return hostRank(a) - hostRank(b); });
     if (front) {
+      var frontIds = Object.create(null);
       front.titles = front.titles.filter(function (t, i) {
-        if (i > 0 && taken[t.label]) { warn(who + ': the title "' + t.label + '" is the host\'s, and is left out'); return false; }
+        if (i && t.id && frontIds[t.id]) { warn(front.name + ': duplicate applet menu ID "' + t.id + '" is left out'); return false; }
+        if (i && t.id) frontIds[t.id] = true;
+        if (i && (STANDARD.indexOf(t.id) >= 0 || host.titles.some(function (h) { return h.label === t.label; }))) {
+          warn(front.name + ': the title "' + t.label + '" is the host\'s, and is left out'); return false;
+        }
         return true;
       });
-      host.titles.forEach(function (t, i) {
-        var add = i > 0 && front.into[t.label];
-        if (!add || !add.length) return;
-        var have = {};
-        t.items.forEach(function (c) { if (c.label) have[c.label] = true; });
-        add = add.filter(function (c) {
-          if (c.label && have[c.label]) { warn(who + ': "' + c.label + '" is already in ' + t.label + ', and is left out'); return false; }
+      var identity = front.titles.shift();
+      front.titles.sort(function (a, b) {
+        function rank(t) { return t.id === 'file' ? 0 : t.id === 'edit' ? 1 : 2; }
+        return rank(a) - rank(b);
+      });
+      front.titles.unshift(identity);
+      Object.keys(front.into).forEach(function (k) {
+        var target = host.titles.find(function (t) { return t.id === k; }) || host.titles.find(function (t) { return t.label === k; });
+        if (!target) { warn(front.name + ': there is no host title "' + k + '" to add to; declare its shared slot'); return; }
+        if (SHARED.indexOf(target.id) < 0) { warn(front.name + ': contributions to "' + k + '" are not allowed'); return; }
+        var add = front.into[k].filter(function (c) {
+          if (c.label && target.items.some(function (h) { return h.label === c.label; })) {
+            warn(front.name + ': "' + c.label + '" is already in ' + target.label + ', and is left out'); return false;
+          }
           return true;
         });
-        if (add.length) t.items = t.items.concat(['-', { heading: who }], add);
-      });
-      Object.keys(front.into).forEach(function (k) {
-        if (!taken[k]) warn(who + ': there is no host title "' + k + '" to add to');
+        if (add.length) target.items = target.items.concat(target.items.length ? ['-', { heading: front.name }] : [{ heading: front.name }], add);
       });
     }
-    [host, front].forEach(function (m) { if (m) m.titles.forEach(function (t) { check(t.items, m.name); }); });
-    return front ? [host, front] : [host];
+    var all = front ? [host, front] : [host];
+    all.forEach(function (m) {
+      m.titles.forEach(function (t) { check(t.items, m.name); });
+      m.titles = m.titles.filter(function (t, i) { return i === 0 || t.items.some(function (c) { return c && c.label; }); });
+    });
+    return all;
+  }
+
+  function windowItems() {
+    var api = window.pudlWindows;
+    if (!api || !api.menuCommands) return [];
+    var st = api.state(), result = [];
+    var active = st.top && !st.min[st.top] ? st.top : null;
+    if (active) {
+      var commands = api.menuCommands(active).filter(function (c) { return ['page', 'copy-link', 'close'].indexOf(c.id) < 0; });
+      if (commands.length) result = result.concat([{ heading: text('active-window', 'Active window') }], commands, ['-']);
+    }
+    var windows = st.open.map(function (key) {
+      var node = document.querySelector('.win[data-win="' + CSS.escape(key) + '"]');
+      return { key: key, node: node };
+    }).filter(function (w) { return w.node; });
+    if (!windows.length) return [];
+    result.push({ label: text('minimize-all', 'Minimize all'), run: function () { api.minimizeAll(); } },
+      { label: text('restore-all', 'Restore all'), run: function () { api.restoreAll(); } },
+      { label: text('close-all', 'Close all windows'), danger: true, run: function () {
+        windows.forEach(function (w) { if (w.node.isConnected && document.querySelector('.win[data-win="' + CSS.escape(w.key) + '"]') === w.node) api.close(w.key); });
+      } }, '-', { heading: text('open-windows', 'Open windows') });
+    windows.forEach(function (w, i) {
+      var title = w.node.querySelector('.win-title');
+      result.push({ label: (i + 1) + '. ' + (title ? title.textContent.trim() : w.key), checked: w.key === st.top && !st.min[w.key], run: function () {
+        if (w.node.isConnected && document.querySelector('.win[data-win="' + CSS.escape(w.key) + '"]') === w.node) api.raise(w.key);
+      } });
+    });
+    return result;
   }
 
   /* Unique labels in a panel, and shortcuts off the reserved keys. */
@@ -302,6 +386,10 @@
     for (var i = 0; i < items.length; i++) {
       var c = items[i];
       if (!c || c === '-' || c.heading) continue;
+      if (c.owner) {
+        var root = c.owner.applet ? c.owner.applet.root : c.owner.scope.scope;
+        if (!sameSource(c.owner, findFront()) || (root !== document && !root.contains(document.activeElement))) continue;
+      }
       if (c.shortcut === k) return c;
       if (c.items) { var f = findShortcut(c.items, k); if (f) return f; }
     }
@@ -314,6 +402,7 @@
     var k = comboOf(e);
     var plain = k.indexOf('+') < 0 || /^Shift\+.$/.test(k);
     if (plain && editable(document.activeElement)) return;
+    if (!sameSource(frontSrc, findFront())) render();
     var all = assemble();
     /* A front menu's shortcuts work while focus is in what it belongs to;
        the host's work anywhere. */
@@ -344,6 +433,7 @@
     if (!bar) return;
     closeAll(false);
     frontSrc = findFront();
+    menuScope = frontScope();
     menus = assemble();
     var focusedIndex = -1;
     if (built && built.contains(document.activeElement)) focusedIndex = titles().indexOf(document.activeElement);
@@ -363,6 +453,7 @@
       g.appendChild(glyph);
       m.titles.forEach(function (t, ti) {
         var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
+        if (t.id) b.setAttribute('data-menu-id', t.id);
         if (t.content) t.content.forEach(function (n) { b.appendChild(n.cloneNode(true)); });
         else b.textContent = t.label;
         if (t.content) b.classList.add('menubar-brand');
@@ -411,6 +502,7 @@
       if (e.newState === 'closed' && openTitle) {
         associate(openTitle, false);
         openTitle = null;
+        soon();
       }
     });
     bar.appendChild(panel);
@@ -496,6 +588,7 @@
   }
 
   function open(title, focusWhere) {
+    if (!currentTarget()) { render(); return; }
     ensurePanel();
     closeSub();
     if (openTitle && openTitle !== title) {
@@ -609,7 +702,8 @@
      the focused thing finds it. */
   function act(c, fromMenu) {
     if (c.disabled || c.items) return;
-    var scopeEl = frontSrc && frontSrc.scope ? frontSrc.scope.scope : document;
+    if ((fromMenu && !currentTarget()) || (c.owner && !sameSource(c.owner, findFront()))) { render(); return; }
+    var scopeEl = c.owner ? c.owner.scope.scope : document;
     if (fromMenu) {
       closeAll(false);
       if (returnTo && returnTo.isConnected && returnTo !== document.body) returnTo.focus({ preventScroll: true });
@@ -651,6 +745,7 @@
   function onPanelClick(e) {
     var r = e.target.closest('.menu-action');
     if (!r || !(panel.contains(r))) return;
+    if (!currentTarget()) { e.preventDefault(); render(); return; }
     e.stopPropagation();
     if (r._back) { e.preventDefault(); r._back(); return; }
     var c = r._item;
@@ -749,12 +844,12 @@
     if (pending) return;
     pending = requestAnimationFrame(function () {
       pending = 0;
-      /* The bar is not rebuilt under a reader working in it. */
+      if (!currentTarget()) { render(); return; }
+      /* Retain a valid open menu. Command state is read afresh on opening. */
       if (panel && panel.matches(':popover-open')) return;
-      var was = frontSrc;
-      var now = findFront();
-      var same = was && now && was.kind === now.kind && (was.applet ? now.applet && was.applet.root === now.applet.root : was.nav === now.nav) && was.scope.key === now.scope.key;
-      if (!same || (!was) !== (!now)) render();
+      var wasCollapsed = collapsed;
+      fit();
+      if (wasCollapsed !== collapsed) render();
     });
   }
 
@@ -789,7 +884,9 @@
 
     document.addEventListener('pudl:windows-change', soon);
     document.addEventListener('pudl:regions-swap', function () { render(); });
-    new MutationObserver(soon).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-applet-state'] });
+    new MutationObserver(function (records) {
+      if (records.some(function (r) { return !bar.contains(r.target); })) soon();
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-applet-state', 'hidden'] });
     /* Measured on the next frame, not in the observer, since measuring
        shows the full bar for a moment and that changes what is observed. */
     var measuring = 0;

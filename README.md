@@ -549,7 +549,7 @@ A **launcher** is a menu button first in the row that holds a window dock, whose
 
 ## The menu bar
 
-The [menu-bar conventions](docs/MENU-BARS.md) define the site and applet groups, standard menu order, and command ownership. The [shared adoption guide](docs/MENU-BAR-ADOPTION.md) applies them to Parks Computing and YAVCHN. These design rules distinguish current support from planned implementation work.
+The [menu-bar conventions](docs/MENU-BARS.md) define the site and applet groups, standard menu order, and command ownership. The [shared adoption guide](docs/MENU-BAR-ADOPTION.md) applies them to Parks Computing and YAVCHN. The [0.40.0 migration guide](docs/MENU-BAR-MIGRATION.md) covers stable IDs, scoped contributions, generated window commands, and fallback menu changes.
 
 The optional `pudl-menubar.js` gives an application a menu bar in its topbar, as a Mac's is: one bar however many windows are open, showing the menus of what the reader is in. It holds the **host menu**, the site's own, which is always there, and to its right the **front menu**, for whatever is in front: the applet or article in the front window, or, with no window in front, the one on the page. Each menu is one raised surface in the topbar's chip colours with the menu glyph at its start, and its titles are flat words that take their press from it. Load it after `pudl-menu.js`, and after `pudl-windows.js` and `pudl-applets.js` if the page has them.
 
@@ -577,6 +577,8 @@ The host renders its menu as a hidden list inside the bar, beside whatever shoul
 
 Each top item is a title, its words before its list; the first is the menu's name. In a list, an item holding a link or a button is a command, `-` is a separator, plain words are a heading for the commands below, and an item with a list of its own is a submenu. A command follows its link, or presses its button, as a reader's click would, so a link with `data-win-open` opens a window and the host's own script answers a button. A button's `aria-pressed` or `aria-checked` gives its command a tick. `data-shortcut` gives a command a shortcut, and `data-menubar-if="windows"` shows a title only on a page of windows.
 
+Host titles declare `data-menubar-id="go"`, `"applets"`, `"view"`, `"window"`, or `"help"`; the first title is the site identity. IDs determine standard order and contribution routing independently of displayed labels. An empty `ul` declares a shared slot that appears when populated. Exact English standard labels are recognized when no ID is supplied. A Window title can add `data-menubar-windows` to generate capability-based window management, bulk actions, and the open-window list through `pudlWindows.menuCommands()`.
+
 An applet gives its front menu through `menus()` on its instance, asked afresh each time a panel opens:
 
 ```js
@@ -584,19 +586,19 @@ menus() {
   return {
     titles: [
       { label: 'Notes', items: [{ label: 'About Notes', run }] },
-      { label: 'File', items: [
+      { id: 'file', label: 'File', items: [
         { label: 'Save', run, shortcut: 'Mod+S', disabled: !dirty }] },
-      { label: 'Edit', items: [
+      { id: 'edit', label: 'Edit', items: [
         { label: 'Change case', items: [/* a submenu */] },
         { heading: 'Danger' },
         { label: 'Clear the note', run, danger: true }] }],
-    into: { View: [{ label: 'Wrap lines', run, checked: wrap }] } };
+    into: { view: [{ label: 'Wrap lines', run, checked: wrap }] } };
 }
 ```
 
-A command takes `label` and `run`, and may take `checked`, `radio` (one of a named group), `disabled`, `danger`, `shortcut` or `items` for a submenu. `'-'` is a separator and `{ heading }` labels the commands below. `into` adds commands to the host's titles by name, below a separator under the applet's name. An applet that offers only `commands()` gets one title, its window's name, holding them. An article's menu is a hidden `<nav data-page-menu>` of the same lists, of links; a link to a heading in the article moves there, in its window, without changing the address, and its first title offers Open as a page, Copy the link, Print and, in a window, Close.
+A command takes `label` and `run`, and may take `checked`, `radio` (one of a named group), `disabled`, `danger`, `shortcut` or `items` for a submenu. `'-'` is a separator and `{ heading }` labels the commands below. `into` adds commands by standard ID, with exact host labels retained as a compatibility fallback. Contributions appear below the site's entries under the applet's name. An applet that offers only `commands()` gets an identity menu and an Actions menu holding its commands. An article's menu is a hidden `<nav data-page-menu>` of the same lists, of links; a link to a heading in the article moves there, in its window, without changing the address, and its first title offers Open as a page, Copy link to this content and, in a window, Close window; Print lives under File.
 
-The rules hold the bar together. A front menu may not use a title the host has, may add to the host's titles but never change their commands, and within a panel every label is different; what breaks a rule is left out with a console warning naming it. Shortcuts are written `Mod+S`, Ctrl on Windows and Linux and ⌘ on a Mac, and shown in each platform's form. A front menu's shortcuts work while focus is in what it belongs to, and the host's anywhere. A command may not claim `Mod` with N, T, W, Q or Tab, with or without Shift, which browsers keep, or `Mod` with A, C, X or V; it keeps its place without the shortcut, with a warning. With a menu bar on the page, an applet's commands live in its front menu: the window menu holds only the window's own, and the Commands row above an applet on its page does not appear.
+The rules hold the bar together. A front menu may not reuse reserved site menu IDs or a title the host has. It may add commands only to Go, View, and Help, without changing site commands, and within a panel every label is different; what breaks a rule is left out with a console warning naming it. Shortcuts are written `Mod+S`, Ctrl on Windows and Linux and ⌘ on a Mac, and shown in each platform's form. An applet's shortcuts, including contributions to the site bar, work while focus is in its content; site-owned shortcuts work anywhere. A command may not claim `Mod` with N, T, W, Q or Tab, with or without Shift, which browsers keep, or `Mod` with A, C, X or V; it keeps its place without the shortcut, with a warning. With a menu bar on the page, an applet's commands live in its front menu: the window menu holds only the window's own, and the Commands row above an applet on its page does not appear.
 
 The bar is one tab stop and follows the WAI-ARIA menu bar pattern: Left and Right run across both menus, Down, Enter and Space open a panel, Right and Left open and close submenus or move between titles, Escape closes, Tab leaves, and a letter moves to the next command that starts with it. Its first title carries `accesskey="m"`, which `data-menubar-key` changes, or turns off with an empty value. When the bar does not fit, it becomes one menu button whose panel lists each menu's titles, opening one level at a time with a Back row. `pudlMenubar.refresh()` rebuilds the bar after a change the script did not see.
 
@@ -1107,7 +1109,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.39.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.40.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 

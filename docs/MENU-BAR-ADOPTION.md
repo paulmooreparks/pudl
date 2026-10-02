@@ -10,7 +10,7 @@ Both sites own their navigation, launcher catalog, identity entries, and window 
 
 Both sites should retain direct launch access through Applets. Go holds navigation between destinations; Window lists existing windows. Launch behavior must state whether it creates an instance or activates one. Neither site should require a user to discover a launcher beneath a navigation submenu.
 
-Hosts and applets should use the existing `menus()` and label-based `into` API for now. Do not introduce speculative menu IDs, copy patched PUDL internals into the sites, or implement separate ownership-routing frameworks. PUDL's [implementation follow-up](MENU-BARS.md#implementation-status-and-follow-up) records the shared work. Until shortcut ownership is fixed, contributed commands should not declare applet-scoped shortcuts through `into`; their menu commands can still work.
+Hosts and applets should adopt PUDL 0.40.0 together with the [migration guide](MENU-BAR-MIGRATION.md). Declare stable menu IDs and use them as `into` keys. Translated labels then remain independent of routing. The release preserves applet shortcut scope for contributions, so Go, View, and Help contributions may declare applet-scoped shortcuts. A host Window title can opt into shared window management with `data-menubar-windows`; remove its duplicate handwritten management commands when doing so. Agents should use the tagged release rather than copying or patching PUDL internals.
 
 ## Parks Computing
 
@@ -31,7 +31,7 @@ Editor should use **Editor, File, Edit**, plus substantial domain menus when nee
 
 Games and small tools should separate their identity entries from their working commands. For example, a game's New game and Restart belong under Game. Avoid the `commands()` fallback for newly standardized applets because it currently puts all commands into the identity menu.
 
-Articles should retain a recognizably named content group. Their current generated menu is a PUDL migration issue: Print and generic sharing/close labels should be corrected centrally, rather than independently reimplemented by each site.
+Articles should retain a recognizably named content group. PUDL 0.40.0 puts their generated Print command under File and supplies scoped sharing and close labels. Sites should review any translation overrides that retain the old generic labels.
 
 ## YAVCHN
 
@@ -59,7 +59,7 @@ The two site agents should compare their resulting menu inventories and share im
 - Each agent should record the before/after menu inventory in its change description, including where commands moved or were intentionally removed as duplicates.
 - Each agent should verify site-menu order with no window open, an article or story active, and several applet types active.
 - Each agent should verify that contributions carry the active owner's heading and that switching between two instances of the same applet targets the correct instance.
-- Each agent should test repeated title and glyph clicks, hover-switching followed by a click, keyboard navigation, and repeated mobile taps. Both sites need at least PUDL 0.39.2 for the recent glyph fixes, with its matching stylesheet and menu scripts.
+- Each agent should test repeated title and glyph clicks, hover-switching followed by a click, keyboard navigation, and repeated mobile taps. Both sites should adopt PUDL 0.40.0 with its matching window, applet, menu-bar, menu, and stylesheet files.
 - Each agent should verify that site shortcuts work at site scope and applet shortcuts do not execute while focus is elsewhere.
 - Each agent should verify that mobile menus preserve the named groups and all commands without hover, including Back navigation from submenus.
 - Each agent should verify that Copy workspace link and content-sharing commands produce their advertised URLs and that Back/Forward and direct navigation retain their established behavior.
