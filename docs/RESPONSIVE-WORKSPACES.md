@@ -49,7 +49,7 @@ The default target is 24px with a 12px glyph, or 20px with a 10px glyph when doc
 
 Set `--split-target-size: 18px` on `.split` for YAVCHN's wider target. The track occupies space between the panes and does not cover their scrollable content. `--split-rule-size` controls the visible line independently and defaults to 2px. Both options work with horizontal and `.stacked` layouts. Keyboard controls, focus indication, and minimum/maximum attributes retain their existing roles.
 
-The track is subtracted before reserving each pane's minimum. When both minima cannot fit, each minimum becomes half of the remaining pane space. A percentage maximum still refers to the whole split container but cannot consume the second pane's minimum. Pointer cancellation restores the value from before the drag and emits no completed-change event.
+PUDL measures the split's content box, excluding its border and padding, and subtracts the track before reserving each pane's minimum. When both minima cannot fit, each minimum becomes half of the remaining pane space. A percentage maximum refers to the split's content box before subtracting the track, but cannot consume the second pane's minimum. Pointer cancellation restores the value from before the drag and emits no completed-change event.
 
 Set `data-split-pane="first"` or `data-split-pane="second"` on `.split` to show one pane. Remove the attribute to restore the split. PUDL keeps both panes mounted, hides the divider, preserves the stored split value, and suspends measurements that would overwrite it. Returning to split presentation remeasures and clamps against the available space. `pudlSplit.refresh()` remains available after other host layout changes.
 

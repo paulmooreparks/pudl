@@ -18,9 +18,12 @@ const STACK = '#split ~ .demo .split.stacked';
   const info = sel => p.evaluate(s => {
     const split = document.querySelector(s), h = split.querySelector('.split-handle'), first = split.querySelector('.split-pane');
     const r = split.getBoundingClientRect(), f = first.getBoundingClientRect();
+    const css = getComputedStyle(split), stacked = split.classList.contains('stacked');
+    const inset = stacked ? parseFloat(css.borderTopWidth) + parseFloat(css.borderBottomWidth) + parseFloat(css.paddingTop) + parseFloat(css.paddingBottom)
+      : parseFloat(css.borderLeftWidth) + parseFloat(css.borderRightWidth) + parseFloat(css.paddingLeft) + parseFloat(css.paddingRight);
     return { role: h.getAttribute('role'), orient: h.getAttribute('aria-orientation'), now: +h.getAttribute('aria-valuenow'), min: +h.getAttribute('aria-valuemin'),
              max: +h.getAttribute('aria-valuemax'), controls: h.getAttribute('aria-controls') === first.id, tab: h.tabIndex,
-             first: Math.round(split.classList.contains('stacked') ? f.height : f.width), whole: Math.round(split.classList.contains('stacked') ? r.height : r.width),
+             first: Math.round(stacked ? f.height : f.width), whole: Math.round((stacked ? r.height : r.width) - inset),
              prop: split.style.getPropertyValue('--split-a') };
   }, sel);
 

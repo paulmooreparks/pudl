@@ -167,7 +167,7 @@ const assert = require('node:assert/strict');
     await p.mouse.up();
     assert.equal(await p.locator('#split-test').evaluate(s => s.style.getPropertyValue('--split-a')), saved);
     await p.evaluate(() => { const s = document.querySelector('#split-test'); s.style.width = '100px'; s.style.height = '100px'; pudlSplit.refresh(); });
-    assert.equal(await p.locator('#split-test .split-handle').getAttribute('aria-valuemax'), '41');
+    assert.equal(await p.locator('#split-test .split-handle').getAttribute('aria-valuemax'), '40');
   }
   console.log('PASS both splitter axes preserve mounted panes and respect actual track space and impossible minima');
 
