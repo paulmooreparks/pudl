@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.42.0
+
+This release implements PUDL specification 0.6.0. Update `pudl.css` to adopt the menu styling. Existing site overrides continue to take precedence.
 
 - Each menu group now forms one subtly raised surface, using the Parks Computing fill, raised border, and shadow in both themes. Menu-bar topbars use the surface background in the light theme, with readable menu and toolbar text. Existing menu-group tokens remain available for customization.
 
