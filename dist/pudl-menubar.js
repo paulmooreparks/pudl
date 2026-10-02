@@ -410,6 +410,7 @@
     panel.addEventListener('toggle', function (e) {
       if (e.newState === 'closed' && openTitle) {
         openTitle.setAttribute('aria-expanded', 'false');
+        openTitle.removeAttribute('popovertarget');
         openTitle = null;
       }
     });
@@ -487,7 +488,10 @@
   function open(title, focusWhere) {
     ensurePanel();
     closeSub();
-    if (openTitle && openTitle !== title) openTitle.setAttribute('aria-expanded', 'false');
+    if (openTitle && openTitle !== title) {
+      openTitle.setAttribute('aria-expanded', 'false');
+      openTitle.removeAttribute('popovertarget');
+    }
     menus = assemble();
     var info = title._menu;
     if (info.all) fillAll(panel);
@@ -498,6 +502,10 @@
     panel.setAttribute('aria-labelledby', title.id);
     panel.setAttribute('data-menu-anchor', title.id);
     openTitle = title;
+    /* Native light dismiss treats the active title as part of its popup.
+       Move the association on hover too, so clicking that title toggles
+       the still-open panel instead of dismissing it before click runs. */
+    title.setAttribute('popovertarget', panel.id);
     title.setAttribute('aria-expanded', 'true');
     titles().forEach(function (t) { t.tabIndex = t === title ? 0 : -1; });
     /* The panel is placed and focus moved at once, not on the toggle event,
@@ -619,7 +627,12 @@
   function onBarPointer(e) {
     var t = e.target.closest('.menubar-title');
     if (!t || !built.contains(t)) return;
-    if (e.type === 'click') { toggle(t, e.detail === 0); return; }
+    if (e.type === 'click') {
+      /* This handler owns the toggle; suppress the button's native one. */
+      e.preventDefault();
+      toggle(t, e.detail === 0);
+      return;
+    }
     /* With a panel open, moving to another title opens its panel. */
     if (e.type === 'pointerover' && openTitle && openTitle !== t && panel.matches(':popover-open') && !t._menu.all && !openTitle._menu.all) open(t, null);
   }
