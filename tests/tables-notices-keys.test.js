@@ -83,11 +83,22 @@ function check(name, ok, extra) {
   await s.goto(ROOT + '/reference.html');
   await s.setContent(`<!doctype html><html><head>
     <link rel="stylesheet" href="${ROOT}/dist/pudl.css"><script src="${ROOT}/dist/pudl-toast.js" defer></script></head>
-    <body><div class="toast-region" role="status" aria-live="polite"><div class="toast positive" data-toast-ms="800"><p class="toast-text">Expense saved.</p></div></div></body></html>`);
-  await s.waitForTimeout(60);
-  const early = await s.locator('.toast').count();
-  await s.waitForSelector('.toast', { timeout: 2000 });
-  check('toasts: a server toast is re-inserted after load so it is announced', early === 0, 'count at 60ms: ' + early);
+    <body><div class="toast-region" role="status" aria-live="polite"><div class="toast positive" data-toast-ms="800"><p class="toast-text">Expense saved.</p></div></div>
+    <script>
+      window.toastLifecycle = [];
+      const region = document.querySelector('.toast-region');
+      const toast = region.querySelector('.toast');
+      const observer = new MutationObserver(records => records.forEach(record => {
+        if (Array.from(record.removedNodes).includes(toast)) toastLifecycle.push('removed');
+        if (Array.from(record.addedNodes).includes(toast)) toastLifecycle.push('added');
+      }));
+      observer.observe(region, { childList: true });
+    </script></body></html>`);
+  /* Observe the lifecycle before the deferred script runs. A busy browser
+     may finish re-inserting the toast before a timed assertion reaches it. */
+  await s.waitForFunction(() => toastLifecycle.includes('added'), null, { timeout: 3000 });
+  const lifecycle = await s.evaluate(() => toastLifecycle.join(','));
+  check('toasts: a server toast is re-inserted after load so it is announced', lifecycle === 'removed,added', lifecycle);
   await s.waitForFunction(() => !document.querySelector('.toast'), null, { timeout: 3000 });
   check('toasts: and then leaves by itself', true);
 
