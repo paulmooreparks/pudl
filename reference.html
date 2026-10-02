@@ -127,7 +127,7 @@
     </p>
 
     <h2>1. Tokens</h2>
-    <p>A theme sets the tokens below for light and dark, and PUDL derives every other token from them. The default palette shown here is a neutral graphite, with a dark graphite topbar in both themes. A project may replace all of it. A change to the accent reaches links, primary buttons, focus rings, filter chips, accent badges, the current list row, selected table rows, a switch that is on and the active window.</p>
+    <p>A theme sets the tokens below for light and dark, and PUDL derives every other token from them. The default palette shown here is a neutral graphite. A topbar containing a menu bar uses a light surface in the light theme and dark graphite in the dark theme. Each menu group forms one slightly raised surface. A project may replace the palette. A change to the accent reaches links, primary buttons, focus rings, filter chips, accent badges, the current list row, selected table rows, a switch that is on and the active window.</p>
     <div class="demo">
       <div class="swatch-grid">
         <div><div class="swatch" style="background: var(--bg);"></div><div class="swatch-cell"><strong>--bg</strong>page</div></div>
@@ -868,7 +868,7 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       <li><span class="lbl">Numerals</span>Numerals are tabular wherever numbers are data, and running prose keeps proportional figures.</li>
       <li><span class="lbl">Tabs</span>The tab for where the reader is opens into the content below it, and every other tab is raised.</li>
       <li><span class="lbl">No breadcrumbs</span>Every full-screen page anchors to a tab somewhere in its hierarchy, marked current. A page that wants to live below the deepest tab strip is either a dialog or a sign that the tabs need another level, not a breadcrumb trail.</li>
-      <li><span class="lbl">Topbar</span>The topbar keeps its own colours, set by the theme, so that it can stay dark on a light page.</li>
+      <li><span class="lbl">Topbar</span>A menu-bar topbar follows the light or dark theme, with each menu group slightly raised. Other topbars retain their separate theme colours.</li>
       <li><span class="lbl">Dialogs</span>Dialogs are native dialog elements rendered by the server, never the browser's own <code>confirm()</code>.</li>
       <li><span class="lbl">The URL</span>The URL holds everything worth sharing, from a record in view to the arrangement of open windows, and the server renders what it names, so a page works without script and a link shows what its sender saw.</li>
       <li><span class="lbl">Glyphs</span>Every glyph in PUDL's chrome is drawn from the stylesheet's own masks, so it looks the same on every platform and never turns into a colour emoji.</li>

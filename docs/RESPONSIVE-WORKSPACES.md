@@ -1,4 +1,4 @@
-# Responsive workspaces in PUDL 0.41.0
+# Responsive workspaces in PUDL
 
 PUDL 0.41.0 adds an opt-in narrow-window placement policy, compact chrome, larger splitter tracks, and mounted single-pane presentation. Menus use the available visible viewport height and show independent arrows when more commands lie above or below the current scroll position.
 
@@ -72,7 +72,7 @@ Independent list/detail navigation remains a separate design item. `data-win-pan
 
 ## Menu surfaces and overflow
 
-Menu groups retain their current appearance unless the host supplies component tokens. YAVCHN can use its recessed surface with a raised edge:
+Each menu group is one slightly raised surface in both themes, following the Parks Computing treatment. Its border and shadow establish the elevation. A topbar containing a menu bar uses `--surface` in the light theme. Component tokens can customize the groups; these values reproduce the defaults:
 
 ```css
 .menubar {
@@ -83,7 +83,7 @@ Menu groups retain their current appearance unless the host supplies component t
 }
 ```
 
-The border width defaults to zero and supports values from 0px through 2px, compensated by reducing group padding. Background and shadow default to `--tb-chip` and `--tb-chip-shadow`. These component tokens do not change dropdown rows or the global palette. YAVCHN's choice of `--surface` for its light topbar remains a site theme decision.
+The border width defaults to 1px and supports values from 0px through 2px, compensated by reducing group padding. Background, border, and shadow default to `--recess-bg`, `--raise-border`, and `--raise-shadow`. The background token supplies the fill color; the group's raised border and shadow determine its elevation. Menu text uses the current theme's text colors. These component tokens do not change dropdown rows or the global palette.
 
 Overflow arrows appear independently above and below a menu and reserve gutters outside its commands. They do not intercept pointers. Menu placement follows `VisualViewport` resize and scroll events, uses safe-area insets, and falls back to the layout viewport when that API is absent. Replaced submenu content starts at its first row. No host scroll-arrow implementation is needed.
 

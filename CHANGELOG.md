@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Each menu group now forms one subtly raised surface, using the Parks Computing fill, raised border, and shadow in both themes. Menu-bar topbars use the surface background in the light theme, with readable menu and toolbar text. Existing menu-group tokens remain available for customization.
+
 ## 0.41.0
 
 This release implements PUDL specification 0.6.0. The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) documents the new contracts and adoption steps for YAVCHN and Parks Computing. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js`, `pudl-windows.css`, `pudl-windows.js`, and `pudl-split.js` together.

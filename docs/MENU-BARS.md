@@ -8,6 +8,8 @@ The **site bar** belongs to the site or application shell. Its commands and orde
 
 Each group begins with an identity menu bearing its owner's visible name, optionally with a logo. The hamburger glyph toggles that group's first menu. The name and glyph must not navigate to different destinations or expose different commands.
 
+Each group forms one slightly raised surface around its glyph, identity, and menu titles. Its shared border and shadow establish that elevation in both themes. This follows the Parks Computing appearance confirmed on 3 October 2026. Individual titles gain hover, open, and focus treatments within that surface.
+
 Menus describe the scope of their commands. Opening a menu does not change the active content or selection on which those commands operate. Settings labels distinguish this instance's settings from defaults for future instances where both exist.
 
 ## Site bar

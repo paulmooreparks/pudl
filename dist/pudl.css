@@ -471,17 +471,30 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 [data-menubar] { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; }
 .menubar-ready > [data-menubar-fallback] { display: none; }
 .menubar-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; overflow: hidden; }
+/* Menu groups are raised controls in both themes. */
+:root:not([data-theme="dark"]) .topbar:has([data-menubar]) {
+  background: var(--surface);
+  --tb-bg: var(--surface-alt);
+  --tb-fg: var(--text);
+  --tb-brand: var(--text);
+  --tb-chrome-fg: color-mix(in srgb, var(--text) 80%, var(--surface-alt));
+  --tb-chrome-hover-fg: var(--text);
+  --tb-link-hover: var(--accent);
+  --tb-chip: var(--raise-grad);
+  --tb-chip-shadow: var(--raise-shadow);
+  --tb-border: var(--border);
+}
 .menubar-menu {
   display: inline-flex; align-items: center; flex: none; gap: 1px;
-  padding: calc(2px - var(--menubar-group-border-width, 0px)); border-radius: var(--radius-sm);
-  border: var(--menubar-group-border-width, 0px) solid var(--menubar-group-border, transparent);
-  background: var(--menubar-group-bg, var(--tb-chip)); box-shadow: var(--menubar-group-shadow, var(--tb-chip-shadow));
+  padding: calc(2px - var(--menubar-group-border-width, 1px)); border-radius: var(--radius-sm);
+  border: var(--menubar-group-border-width, 1px) solid var(--menubar-group-border, var(--raise-border));
+  background: var(--menubar-group-bg, var(--recess-bg)); box-shadow: var(--menubar-group-shadow, var(--raise-shadow));
 }
 .menubar-glyph {
   padding: 0; border: 0; background: none;
   flex: none; width: 26px; height: 26px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--tb-chrome-fg);
+  color: color-mix(in srgb, var(--text) 80%, var(--surface-alt));
 }
 .menubar-glyph::before {
   content: ""; width: 16px; height: 16px; background: currentColor;
@@ -492,15 +505,15 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   display: inline-flex; align-items: center; gap: 6px;
   padding: 4px 10px; border: 0; border-radius: var(--radius-xs);
   background: none; cursor: pointer; white-space: nowrap;
-  font: 600 var(--text-sm) var(--font); color: var(--tb-chrome-fg);
+  font: 600 var(--text-sm) var(--font); color: color-mix(in srgb, var(--text) 80%, var(--surface-alt));
 }
-.menubar-title.menubar-brand { font: 700 var(--text-md) var(--font-display); color: var(--tb-brand); }
+.menubar-title.menubar-brand { font: 700 var(--text-md) var(--font-display); color: var(--text); }
 .menubar-title.menubar-brand img { height: 18px; width: auto; }
-.menubar-title:hover { color: var(--tb-chrome-hover-fg); background: color-mix(in srgb, var(--tb-fg) 12%, transparent); }
+.menubar-title:hover { color: var(--text); background: color-mix(in srgb, var(--text) 12%, transparent); }
 .menubar-title[aria-expanded="true"] {
-  color: var(--tb-fg);
-  background: color-mix(in srgb, #000 24%, var(--tb-bg));
-  box-shadow: inset 0 1px 3px color-mix(in srgb, #000 50%, transparent);
+  color: var(--text);
+  background: var(--raise-active-bg);
+  box-shadow: var(--raise-active-shadow);
 }
 .menubar-title:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
 .menubar-one .menubar-title { padding: 0; }
