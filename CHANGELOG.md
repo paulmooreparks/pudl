@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.39.0
+
+This release implements PUDL specification 0.6.0.
+
+- Clicking a menu group's hamburger glyph consistently opens its first menu. Opening now happens on click, after the pointer gesture, so the browser no longer dismisses the panel immediately after it opens. The glyph also preserves focus for returning to the previous control when a command finishes.
+
+- Windows can supply a crafted share URL through `data-win-href`. Copy the link is available in the window menu and uses the same address in an article's menu bar. The title bar's page link is the fallback. `pudlWindows.shareURL()` and `copyLink()` expose the behavior to hosts, with a manual-copy prompt when clipboard access fails and a `pudl:window-link-copy` result event. Sharing preserves the current workspace URL and introduces no history-only state. This addresses article sharing from issue #10; copying the address bar continues to share the full workspace.
+
 ## 0.38.0
 
 The menu bar, from parkscomputing.com's `Architecture/pudl-proposal-menu-bar.md`. This release implements PUDL specification 0.6.0.

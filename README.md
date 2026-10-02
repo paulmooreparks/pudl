@@ -842,7 +842,7 @@ A layer carrying `data-win-menu` gives every window a menu button at the left of
 
 The menu is built afresh each time it opens, in three groups:
 
-1. The window's own commands. These are Open as a page when the window has a page link, Minimize (Collapse or Expand on a docked window), Maximize or Restore, Dock at the bottom or Undock, and Reset size and position, which returns the window to the placement its markup gave it.
+1. The window's own commands. These are Open as a page when the window has a page link, Copy the link when it has a share address, Minimize (Collapse or Expand on a docked window), Maximize or Restore, Dock at the bottom or Undock, and Reset size and position, which returns the window to the placement its markup gave it.
 2. The commands of what the window holds, after a separator. An applet's come from its `commands()`, described under Applets. Any other content adds its own when `pudl:window-menu` fires on the window as the menu opens: `detail.key` names the window, and `detail.add(label, run, { checked, disabled })` adds a command.
 3. Close, last and after a separator, so it is never chosen by a slip from the command above it.
 
@@ -882,6 +882,18 @@ A link inside a window marked `data-win-replace`, as well as `data-win-open`, op
 Before a close by its button, by Escape or by `pudlWindows.close()`, `pudl:window-closing` fires on the window, and on each child that would close with it, with the same `detail`, and it can be cancelled. An editor with unsaved changes cancels it, asks, and closes the window itself if the reader says to discard them. A close by the address, by Back, Forward or a link, cannot be refused, because the address has already moved on.
 
 `window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `dock(key, edge)`, `snap(key, zone)`, `retitle(key, title)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script. `retitle` changes a window's title, as a preview does when it shows another file, and the title bar's spoken name, the dock tab and the list row follow.
+
+### Sharing a chosen state
+
+A host can give a window a crafted share address with `data-win-href="/posts/example"`. That address may open the article alone or any other state the host chooses to export. It must work independently of the sender's browser history. Copying it leaves the current workspace and its full URL intact. PUDL does not store an alternative arrangement in `history.state` or replace the address bar with a URL that omits the current state.
+
+The window menu's Copy the link command and an article's menu-bar command use this address. Without `data-win-href`, they use the title bar's Open as a page link. With neither, they omit the copy command rather than accidentally sharing unrelated windows. An explicitly empty or invalid `data-win-href` also omits it. Open as a page keeps its own destination even when the share address differs.
+
+`pudlWindows.shareURL(key)` returns the absolute share address, or `null` if none is usable. It accepts HTTP and HTTPS addresses, including another origin; relative addresses resolve against the window element's document base, just as a link does. The host's query and fragment are preserved, and PUDL adds no workspace parameters. The value is read when requested, so a host may update the attribute as the content changes. Omitting `key` selects the active, visible front window.
+
+`pudlWindows.copyLink(key)` copies that address and returns a promise resolving to `true` when the clipboard write succeeds. If the clipboard is unavailable or refuses the write, a browser prompt offers the address for manual copying and the promise resolves to `false`. No usable address returns `false` without opening a prompt. Call it from a reader's action, since browsers restrict clipboard access. After an attempted copy, `pudl:window-link-copy` bubbles from the window with `{ key, href, ok }`; `ok` reports automatic clipboard success, not whether the reader copied manually. A host can use the event to show confirmation. The layer can translate the window command and fallback prompt through `data-win-text-copy-link` and `data-win-text-copy-link-manual`.
+
+[The sharing sample](samples/shared-window.html) exports an article-only view while retaining a second window in the sender's workspace. Its article is present without JavaScript, and a visible article link also supports ordinary navigation and the browser's Copy link action.
 
 ### Windows and a list
 
@@ -1091,7 +1103,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.38.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.39.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 ## Lineage
 
