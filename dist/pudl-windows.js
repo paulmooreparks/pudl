@@ -1009,26 +1009,50 @@
     return list;
   }
 
+  /* Standard window commands shared by window chrome and site menus. */
+  function menuCommands(key) {
+    if (key == null) key = state.top && !state.min[state.top] ? state.top : null;
+    var win = key && wins[key];
+    if (!win || !win.isConnected) return [];
+    var p = state.place[key], dock = dockEdge(p), sized = contentSized(key), list = [];
+    function command(id, label, cmd, extra) {
+      return Object.assign({ id: id, label: label, run: function () {
+        if (wins[key] !== win || !win.isConnected) return;
+        var available = menuCommands(key);
+        function contains(items) { return items.some(function (c) { return c.id === id || (c.items && contains(c.items)); }); }
+        if (contains(available)) runCommand(key, cmd);
+      } }, extra || {});
+    }
+    var page = win.querySelector('.win-head a[data-win-action="page"]');
+    if (page) list.push(command('page', text('page', 'Open as a page'), 'page'));
+    if (shareURL(key)) list.push(command('copy-link', text('copy-link', 'Copy the link'), 'copy-link'));
+    var minId = dock ? (state.min[key] ? 'expand' : 'collapse') : (state.min[key] ? 'unminimize' : 'minimize');
+    list.push(command(minId, dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
+      : (state.min[key] ? text('restore', 'Restore') : text('minimize', 'Minimize')), 'minimize'));
+    if (!dock && !sized) {
+      var floating = p.mode === 'floating';
+      list.push(command(floating ? 'maximize' : 'restore', floating ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
+      var now = zoneFilled(p), here = now ? sixths(now) : '';
+      list.push({ id: 'snap', label: text('snap', 'Snap to a zone'), items: Object.keys(ZONE_WORDS).map(function (name) {
+        return command('snap:' + name, text('zone-' + name, ZONE_WORDS[name]), 'snap:' + name, { checked: here === ZONES[name].join(',') });
+      }) });
+    }
+    if (!sized) list.push(command(dock ? 'undock' : 'dock', dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
+    list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
+    list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
+    return list;
+  }
+
   function buildMenu(panel, key) {
     var win = wins[key];
     if (!win) return;
-    var p = state.place[key];
-    var dock = dockEdge(p);
     panel.textContent = '';
-    var page = win.querySelector('.win-head a[data-win-action="page"]');
-    if (page) panel.appendChild(menuItem(text('page', 'Open as a page'), 'page'));
-    if (shareURL(key)) panel.appendChild(menuItem(text('copy-link', 'Copy the link'), 'copy-link'));
-    panel.appendChild(menuItem(dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
-                                    : text('minimize', 'Minimize'), 'minimize'));
-    /* A window sized by its content has no size to change: no maximising,
-       no zones and no dock, and reset returns only its position. */
-    var sized = contentSized(key);
-    if (!dock && !sized) {
-      panel.appendChild(menuItem(p.mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
-      snapItems(panel, key);
-    }
-    if (!sized) panel.appendChild(menuItem(dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
-    panel.appendChild(menuItem(sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
+    var standard = menuCommands(key);
+    standard.filter(function (c) { return c.id !== 'close'; }).forEach(function (c) {
+      if (c.id === 'snap') { snapItems(panel, key); return; }
+      var cmd = ['expand', 'collapse', 'unminimize'].indexOf(c.id) >= 0 ? 'minimize' : c.id === 'restore' ? 'maximize' : c.id === 'undock' ? 'dock' : c.id;
+      panel.appendChild(menuItem(c.label, cmd, c));
+    });
     var own = contentCommands(win, key);
     menuRuns[key] = own;
     if (own.length) {
@@ -1878,6 +1902,7 @@
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
       close: function (key) { if (wins[key]) close(key, 'script'); },
+      menuCommands: menuCommands,
       shareURL: shareURL,
       copyLink: copyLink,
       state: function () { return copy(state); }

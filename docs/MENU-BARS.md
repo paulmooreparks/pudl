@@ -1,6 +1,6 @@
 # PUDL menu-bar conventions
 
-These conventions define where users find commands across PUDL sites. They were agreed on 2 October 2026. They complement the [web contract](CONTRACT.md) and [integration guide](../README.md#the-menu-bar). The implementation notes below distinguish the conventions from behavior enforced by PUDL 0.39.2. This document does not introduce an API or change the vendored PUDL specification.
+These conventions define where users find commands across PUDL sites. They were agreed on 2 October 2026. They complement the [web contract](CONTRACT.md) and [integration guide](../README.md#the-menu-bar). The implementation notes below describe support in PUDL 0.40.0. The API is documented in the web contract; the vendored PUDL specification is unchanged.
 
 ## Ownership and names
 
@@ -59,7 +59,7 @@ A command has one canonical menu location. Toolbar buttons and contextual menus 
 
 Shared slots have a consistent meaning even when their contents are contextual. An applet's View command still targets that applet. Moving it into the site bar must not make its keyboard shortcut global.
 
-Hosts must provide each shared menu required by their installed applets, even if the host itself has no commands for it. The menu appears when it has commands and disappears when empty. Commands must not silently vanish because a host omitted a required destination. Stable menu identifiers independent of translated labels are planned; applications must use the current documented API until that support ships.
+Hosts must provide each shared menu required by their installed applets, even if the host itself has no commands for it. The menu appears when it has commands and disappears when empty. Commands must not silently vanish because a host omitted a required destination. Hosts use `data-menubar-id` for these destinations. Applets use those IDs as `into` keys. Exact displayed labels remain a compatibility fallback; IDs are preferred for translated sites.
 
 ## Interaction and accessibility
 
@@ -74,18 +74,12 @@ Hosts must provide each shared menu required by their installed applets, even if
 - Destructive actions are separated from routine actions and follow the host's undo or confirmation policy. Menu discovery must not itself execute an action.
 - Navigation and sharing use real URLs. A crafted applet link and a workspace link can represent different states, and their labels distinguish them. Opening or closing a menu is transient interaction and need not create a history entry.
 
-## Implementation status and follow-up
+## Implementation status
 
-Sites can adopt the menu names, order, identity separation, and contribution policy with PUDL 0.39.2. Its `menus()` interface supports multiple titles and `into` contributions; native popovers, glyph toggling, keyboard navigation, named collapsed sections, and Back rows already exist. PUDL does not yet enforce all these conventions.
+PUDL 0.40.0 implements standard menu IDs and ordering, validates contribution destinations, preserves command ownership across contributions, and closes menus when their source is removed or replaced. Existing label-based contributions still resolve where their destination has a permitted standard identity. Empty declared slots appear when populated and are omitted otherwise. Missing or disallowed destinations produce console diagnostics.
 
-| Follow-up | Evidence in 0.39.2 and required outcome |
-|---|---|
-| Stable standard menu identifiers | `assemble()` matches `into` keys against displayed labels. Add identifiers independent of translation, with a documented migration for existing label-based hosts and applets. Final field and attribute names require an API design before implementation. |
-| Contribution validation | Current assembly accepts additions to any existing non-identity host title. Restrict standard contributions to Go, View, and Help, preserve owner headings, and diagnose unsupported destinations. Define how required empty shared slots are represented and displayed. |
-| Shortcut ownership | Contributions are appended to host menu items, and `onShortcut()` searches those items as host commands. Preserve contributor ownership so applet shortcuts remain scoped to their content after merging. |
-| Target lifetime | `soon()` skips rebuilding while a panel is open. Add explicit invalidation when its target is removed or changes, and ensure queued changes are reconciled when the panel closes. Prevent invocation against a disconnected or newly substituted target. |
-| Identity menus and fallbacks | The `commands()` fallback places working commands in the identity menu. Generated article menus also place Print there and use generic Copy the link and Close labels. Bring generated menus into these conventions through a documented migration; do not silently drop legacy commands. |
-| Consistent window actions | Sites currently build their Window lists. Design a shared capability-based mechanism to keep standard actions, availability, and labels consistent without arbitrary applet injection. Reuse the existing window API. |
-| Conformance coverage | Add translated-menu routing, scoped contribution shortcuts, target removal, empty-slot handling, and identity/fallback cases to the existing click, hover, touch, and keyboard tests. |
+Hosts opt into generated window management by adding `data-menubar-windows` to a title with `data-menubar-id="window"`. PUDL obtains capabilities from `pudlWindows.menuCommands()`, the same source used by window chrome, and adds bulk actions and the open-window list. Custom content commands cannot enter this generated list.
 
-These are implementation work items, not shipped API promises. The shortcut-ownership and target-lifetime items deserve priority because they concern which content an action affects. The naming and slot changes should ship together with a migration guide in a future minor release.
+Legacy `commands()` applets retain their working commands under Actions and receive a separate identity menu. Generated article menus put Print under File and use scope-specific sharing and close labels. Explicit applet `menus()` definitions remain author-controlled: PUDL cannot infer whether a command called Settings changes this instance or every instance, or whether a domain command belongs in the identity menu. Site authors must apply the placement rules above.
+
+The [migration guide](MENU-BAR-MIGRATION.md) gives the supported markup and API changes. The [implementation design](proposals/menu-bar-standardization.md) records the decisions and verification scope.

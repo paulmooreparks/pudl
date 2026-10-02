@@ -353,7 +353,7 @@
       var hasMenus = typeof inst.menus === 'function', hasCommands = typeof inst.commands === 'function';
       if (!hasMenus && !hasCommands) continue;
       return {
-        name: entry.name, root: entry.root,
+        name: entry.name, root: entry.root, _instance: inst,
         menus: hasMenus ? function (inst, name) {
           return function () {
             try { return inst.menus(); } catch (err) { if (window.console) console.warn('pudl-applets: ' + name + '.menus():', err); return null; }

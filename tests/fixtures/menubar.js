@@ -9,6 +9,7 @@ pudlApplets.register('notes', {
     root.querySelector('textarea').addEventListener('input', function () { dirty = true; });
     return {
       menus: function () {
+        if (window.__menus) return window.__menus(root);
         return {
           titles: [
             { label: 'Notes', items: [{ label: 'About Notes', run: function () { __log.push('about'); } }] },

@@ -101,13 +101,13 @@ function check(name, ok, extra) {
   check('the existing Open as a page link remains the share fallback', (await p.evaluate(() => pudlWindows.shareURL('article'))).endsWith('#article-page'));
   await p.evaluate(() => document.querySelector('.win[data-win="article"]').setAttribute('data-win-href', '../../samples/shared-window.html'));
   await p.locator('.menubar-front .menubar-title').first().click();
-  await p.locator('#menubar-panel .menu-action').filter({ hasText: /^Copy the link$/ }).click();
+  await p.locator('#menubar-panel .menu-action').filter({ hasText: /^Copy link to this content$/ }).click();
   await p.waitForFunction(() => copied.length === 1);
   check('the article menu uses the same crafted URL as the window menu', await p.evaluate(() => copied[0]) === sample);
   check('Open as a page retains its independent destination', (await p.locator('.win[data-win="article"] [data-win-action="page"]').getAttribute('href')) === '#article-page');
   await p.evaluate(() => document.querySelector('.win[data-win="article"]').setAttribute('data-win-href', ''));
   await p.locator('.menubar-front .menubar-title').first().click();
-  check('an explicit empty address also removes the article menu copy command', await p.locator('#menubar-panel .menu-action').filter({ hasText: /^Copy the link$/ }).count() === 0);
+  check('an explicit empty address also removes the article menu copy command', await p.locator('#menubar-panel .menu-action').filter({ hasText: /^Copy link to this content$/ }).count() === 0);
   check('no browser errors', errors.length === 0, errors.join(' | '));
   await browser.close();
   process.exit(failures ? 1 : 0);

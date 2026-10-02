@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.40.0
+
+This release implements PUDL specification 0.6.0. The [menu-bar migration guide](docs/MENU-BAR-MIGRATION.md) documents changes for hosts and applets.
+
+- Menu titles have stable IDs independent of translated labels. Standard menus are ordered consistently, empty declared slots appear when populated, and applet contributions are limited to Go, View, and Help. Exact-label routing remains supported for migration.
+- Contributed applet shortcuts retain their original scope, including nested commands. Open menus close when their active source changes or disappears, and stale command invocation is rejected.
+- `pudlWindows.menuCommands()` provides shared, capability-based window commands. A Window menu can opt into generated management commands and an open-window list with `data-menubar-windows`.
+- Legacy applet commands remain available in an Actions menu beside their identity menu. Generated articles place Print under File and use explicit content-link and window-close labels. Explicit applet menu definitions remain under their author's control.
+
 ## 0.39.2
 
 - Clicking a menu group's hamburger glyph again closes its first menu. The glyph is now a native button associated with the popup, and an explicit menu anchor keeps the panel aligned with its title when there are multiple invokers. Regression tests cover repeated clicks in both layouts and repeated touch taps in the collapsed mobile layout. Projects should update `pudl-menubar.js`, `pudl-menu.js`, and `pudl.css`.

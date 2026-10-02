@@ -2,7 +2,7 @@
 
 This document lists everything a project may rely on in PUDL. From 1.0 on, nothing listed here changes except in a new major version, and anything not listed is internal and may change in any release. The README explains how to use each part; this document says what is promised.
 
-The [menu-bar conventions](MENU-BARS.md) describe command placement and ownership. Their implementation follow-up is planned work, not an extension of the API contract below.
+The [menu-bar conventions](MENU-BARS.md) describe command placement and ownership. The [0.40.0 migration guide](MENU-BAR-MIGRATION.md) explains the identifiers, contribution limits, and generated-menu changes supported by the API below.
 
 ## Promises
 
@@ -108,7 +108,9 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-size` | a window | `pudl-windows.js`, `pudl-windows.css`, `pudl-applets.js` | `content` for a window sized by its content, or `user`, the default |
 | `data-win-min`, `data-win-max` | a window | `pudl-windows.js` | Its smallest and largest width and height, `w,h` in pixels |
 | `data-win-action` | a window button | `pudl-windows.js` | `menu`, `page`, `minimize`, `maximize`, `dock` or `close` |
-| `data-menubar`, `data-menubar-source`, `data-menubar-if`, `data-menubar-key`, `data-menubar-text-*` | the menu bar, its hidden source list, a title, the bar, the bar | `pudl-menubar.js` | The menu bar; the host menu as nested lists; `windows` to show a title only on a page of windows; the jump key, `m` unless set, none if empty; the bar's own words (`menu`, `back`, `page`, `copy-link`, `print`, `close`) |
+| `data-menubar`, `data-menubar-source`, `data-menubar-if`, `data-menubar-key`, `data-menubar-text-*` | the menu bar, its hidden source list, a title, the bar, the bar | `pudl-menubar.js` | The menu bar; the host menu as nested lists; `windows` to show a title only on a page of windows; the jump key, `m` unless set, none if empty; the bar's own words (`menu`, `back`, `page`, `copy-link`, `print`, `close`, `file`, `actions`, `active-window`, `minimize-all`, `restore-all`, `close-all`, `open-windows`) |
+| `data-menubar-id` | a source-list title | `pudl-menubar.js` | Stable site menu ID; standard IDs are `site`, `go`, `applets`, `view`, `window`, and `help`. The first title is always the identity; standard menus are ordered, and duplicate IDs are rejected. Empty slots appear when populated. |
+| `data-menubar-windows` | a title with ID `window` | `pudl-menubar.js` | Append generated active-window layout commands, bulk actions, and the open-window list, using the window module's capabilities. |
 | `data-shortcut` | a link or button in a menu bar's list | `pudl-menubar.js` | Its command's shortcut, as `Mod+Shift+L` |
 | `data-page-menu` | a hidden `nav` in an article | `pudl-menubar.js` | The article's front menu, as nested lists of links |
 | `data-applet-text-commands`, `-no-commands` | an applet mount outside a window | `pudl-applets.js` | The label of its Commands button, and the text of an empty menu |
@@ -172,6 +174,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
+| `pudlWindows.menuCommands(key)` | `pudl-windows.js` | Fresh standard command descriptors for a window, or the visible front window when omitted; missing windows return `[]`. Each has `id`, `label`, and `run` or nested `items`, with optional `checked` or `danger`. Callbacks bind to the original element and recheck capabilities; applet commands and extension hooks are excluded. IDs and generated-menu rules are listed in the migration guide. |
 | `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
 | `pudlMenu.place(panel)` | `pudl-menu.js` | Place an open panel at once and show it, for a script that moves focus into it in the same moment |
 | `pudlMenu.refresh()` | `pudl-menu.js` | Build the pop-up button for segmented controls with `data-seg-menu` added by other means |
@@ -200,3 +203,11 @@ These are how PUDL works today and may change in any release: the classes script
 These work until 2.0: `--pr` (now `--positive`), `.badge.pr` (`.badge.positive`), `.fc-kind` (`.filter-chip-kind`), `.active` on section tabs, segments and list rows (the ARIA attributes above), and `.dialog-backdrop` shown by a project's script (`dialog.dialog`).
 
 One name was removed outright before 1.0, for security rather than replaced: `data-applet-src` and `data-applet-css` on an applet mount, removed in 0.23.0, whose files `pudlApplets.define()` now names.
+
+## Menu ownership and routing
+
+Applet `menus()` title descriptors accept `id`. The first title is the identity; `file` and `edit` identify standard working menus and order them before domain menus. Reserved site IDs cannot be used by applet working menus. Duplicate working-menu IDs are diagnosed and omitted. Explicit menu definitions remain responsible for semantic command placement.
+
+`into` keys resolve by stable site ID first and exact displayed label second. Only `go`, `view`, and `help` accept applet contributions, under their owner's heading. Missing or disallowed destinations are diagnosed and omitted. English standard labels are recognized when an ID is absent. Contributed commands retain applet shortcut scope, including inside submenus. An invalidated active source closes its open menu; stale commands cannot execute against a removed or substituted source.
+
+Legacy `commands()` results appear under Actions beside a generated identity menu. Generated article menus place Print under File and use Copy link to this content and Close window in their identity menu. Existing translation overrides continue to apply. See the [migration guide](MENU-BAR-MIGRATION.md) for all changed defaults and stable window command IDs.
