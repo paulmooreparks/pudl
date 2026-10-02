@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.39.1
+
+- Clicking an open menu-bar title closes its menu, including a menu opened by hovering from another title and the collapsed menu button. The active title now targets its native popover, preventing light dismiss from closing it before the click handler runs. Existing keyboard navigation and outside-click dismissal are preserved. Projects need only update `pudl-menubar.js`.
+
 ## 0.39.0
 
 This release implements PUDL specification 0.6.0.
