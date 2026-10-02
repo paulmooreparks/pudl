@@ -1,6 +1,6 @@
 # Crafted window addresses
 
-Status: implemented for PUDL 0.39.0, 2026-10-02.
+Status: shipped in PUDL 0.39.0, 2026-10-02.
 
 This design addresses the article-sharing goal in [GitHub issue 10](https://github.com/paulmooreparks/pudl/issues/10). The implementation exports a host-chosen address through Copy the link. Selecting the browser address bar continues to export the current workspace.
 
@@ -38,4 +38,4 @@ The browser regression suite checks that sharing preserves the workspace URL, hi
 
 Further checks cover the page-link fallback, both menu surfaces, dynamic and invalid attributes, relative and absolute addresses, missing window keys, successful clipboard results, and refused or unavailable clipboard access. Existing window-menu expectations include the new command.
 
-All 42 suites have been verified in Chromium, Firefox and WebKit. The release run passed 125 of 126 combinations; a Firefox child-window timeout passed on an isolated rerun. The sharing, window-menu and menu-bar suites passed across all three engines, including the menu glyph regression. All 22 reference sections were inspected in both themes. `git diff --check` is clean.
+All 42 suites passed in Chromium, Firefox and WebKit in [release-commit CI](https://github.com/paulmooreparks/pudl/actions/runs/36967764008), including the sharing and menu glyph regressions. All 22 reference sections were inspected in both themes. The 18 distributed CSS and JavaScript files were verified byte-for-byte against the release tag on jsDelivr before updating the README's integrity hashes. `git diff --check` is clean.
