@@ -27,7 +27,9 @@ function check(name, ok, extra) {
   await page.waitForSelector('.win[data-win="exp-12"]');
   check('opening an expense marks its row', await page.locator('.win-demo-list .md-row.active a[data-win-open="exp-12"]').count() === 1);
 
-  await page.click('.win[data-win="exp-12"] a[data-win-open="exp-12-receipt"]');
+  /* .card-desc, not the hidden page menu, which names the same target for
+     the menu bar to read. */
+  await page.click('.win[data-win="exp-12"] .card-desc a[data-win-open="exp-12-receipt"]');
   await page.waitForSelector('.win[data-win="exp-12-receipt"]');
   let s = await q();
   check('child opens and is in the URL', /open=exp-12,exp-12-receipt/.test(s) && /top=exp-12-receipt/.test(s), s);
@@ -66,7 +68,7 @@ function check(name, ok, extra) {
   check('other expense takes the row mark', await page.locator('.win-demo-list .md-row.active a[data-win-open="exp-13"]').count() === 1 &&
     await page.locator('.win-demo-list .md-row.active a[data-win-open="exp-12"]').count() === 0);
   await page.click('.win-tab[data-win-tab="exp-12"]');
-  await page.click('.win[data-win="exp-12"] a[data-win-open="exp-12-receipt"]');
+  await page.click('.win[data-win="exp-12"] .card-desc a[data-win-open="exp-12-receipt"]');
   await page.waitForSelector('.win[data-win="exp-12-receipt"]');
   await page.click('.win-tab[data-win-tab="exp-13"]');
   check('child row stays while its parent is behind', await page.locator('.md-row-child[data-win-child="exp-12-receipt"]').count() === 1);
