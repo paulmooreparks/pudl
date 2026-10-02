@@ -77,6 +77,11 @@ function check(name, ok, extra) {
     window.__sel = 0;
     document.addEventListener('pudl:row-select', () => window.__sel++);
     history.replaceState(null, '', location.pathname);
+    /* Use real page addresses for navigation checks. The reference page's
+       placeholder fragment links intentionally stay in their examples. */
+    document.querySelectorAll('#grid ~ .demo table[role="grid"] a[href]').forEach(a => {
+      a.setAttribute('href', location.pathname + '#grid');
+    });
   });
   await p.focus('#grid ~ .demo table[role="grid"] tbody tr[aria-selected="true"]');
   await p.keyboard.press('ArrowDown');
@@ -87,9 +92,11 @@ function check(name, ok, extra) {
   }));
   check('grid: the arrow keys move the selection with focus', moved.sel === 'false,false,true,false' && moved.focus === 'build.sh' && moved.events === 2, JSON.stringify(moved));
   await p.keyboard.press('Enter');
+  await p.waitForURL(/#grid$/);
   check('grid: Enter opens the row by its first link', await p.evaluate(() => location.hash === '#grid'));
   await p.evaluate(() => history.replaceState(null, '', location.pathname));
   await p.dblclick('#grid ~ .demo tbody tr:nth-child(4) td:nth-child(2)');
+  await p.waitForURL(/#grid$/);
   check('grid: a double-click opens the row', await p.evaluate(() => location.hash === '#grid' &&
         document.querySelector('#grid ~ .demo tbody tr:nth-child(4)').getAttribute('aria-selected') === 'true'));
 
