@@ -36,6 +36,9 @@
   var MIN = 80;           // px, the smallest either pane may be by default
   var timers = new WeakMap();
   var uid = 0;
+  var cancelDrag = null;
+
+  function single(p) { return /^(first|second)$/.test(p.split.getAttribute('data-split-pane')); }
 
   function parts(handle) {
     var split = handle.parentElement;
@@ -54,13 +57,16 @@
 
   function limits(p) {
     var whole = span(p);
+    var track = p.handle.getBoundingClientRect();
+    var available = Math.max(0, whole - (p.stacked ? track.height : track.width));
     var min = parseFloat(p.handle.getAttribute('data-split-min'));
     if (!isFinite(min)) min = MIN;
+    min = Math.max(0, Math.min(min, available / 2));
     var maxAttr = p.handle.getAttribute('data-split-max');
-    var max = whole - min;
+    var max = available - min;
     if (maxAttr) {
       var n = parseFloat(maxAttr);
-      if (isFinite(n)) max = /%\s*$/.test(maxAttr) ? whole * n / 100 : n;
+      if (isFinite(n)) max = Math.min(max, /%\s*$/.test(maxAttr) ? whole * n / 100 : n);
     }
     return { min: min, max: Math.max(min, max) };
   }
@@ -103,7 +109,8 @@
 
   function handleOf(e) {
     var h = e.target.closest && e.target.closest('.split > .split-handle');
-    return h && parts(h);
+    var p = h && parts(h);
+    return p && !single(p) && span(p) > 0 ? p : null;
   }
 
   document.addEventListener('pointerdown', function (e) {
@@ -116,6 +123,7 @@
     var start = p.stacked ? e.clientY : e.clientX;
     var last = start;
     var startSize = size(p);
+    var original = p.split.style.getPropertyValue(p.prop);
     var l = limits(p);
     var dir = sign(p);
     var moved = false, frame = 0, px = startSize;
@@ -127,17 +135,25 @@
       last = p.stacked ? ev.clientY : ev.clientX;
       if (!frame) frame = requestAnimationFrame(step);
     }
-    function end() {
+    function end(ev) {
+      cancelDrag = null;
       p.handle.removeEventListener('pointermove', move);
       p.handle.removeEventListener('pointerup', end);
       p.handle.removeEventListener('pointercancel', end);
-      if (frame) { cancelAnimationFrame(frame); step(); }
+      var cancelled = ev.type === 'pointercancel' || ev.type === 'presentation';
+      if (frame) { cancelAnimationFrame(frame); if (!cancelled) step(); }
       p.handle.classList.remove('dragging');
-      if (moved) announce(p, px);
+      if (p.handle.hasPointerCapture(e.pointerId)) p.handle.releasePointerCapture(e.pointerId);
+      if (cancelled) {
+        if (original) p.split.style.setProperty(p.prop, original);
+        else p.split.style.removeProperty(p.prop);
+        if (!single(p)) sync(p);
+      } else if (moved) announce(p, px);
     }
     p.handle.addEventListener('pointermove', move);
     p.handle.addEventListener('pointerup', end);
     p.handle.addEventListener('pointercancel', end);
+    cancelDrag = function () { end({ type: 'presentation' }); };
   });
 
   function reset(p) {
@@ -181,6 +197,11 @@
       var p = parts(h);
       if (!p) return;
       if (watch) watch.observe(p.split);
+      if (single(p) || !span(p)) {
+        clearTimeout(timers.get(h));
+        if (h.classList.contains('dragging') && cancelDrag) cancelDrag();
+        return;
+      }
       var l = limits(p);
       var now = size(p);
       if (p.split.style.getPropertyValue(p.prop) && (now > l.max || now < l.min)) set(p, now, l);
@@ -189,6 +210,8 @@
   }
 
   window.pudlSplit = { refresh: syncAll };
+  new MutationObserver(syncAll).observe(document.documentElement, { subtree: true, attributes: true,
+    attributeFilter: ['data-split-pane'] });
   window.addEventListener('resize', syncAll);
   document.addEventListener('pudl:regions-swap', syncAll);
   document.addEventListener('pudl:window-open', syncAll);

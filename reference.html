@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.40.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.41.0</a>
     </div>
   </header>
 
@@ -842,6 +842,7 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
     </div>
 
     <h2 id="split">21. Splitters</h2>
+    <p>Set <code>--split-target-size: 18px</code> for a wider track that occupies its own space. <code>--split-rule-size</code> controls the visible line. Set <code>data-split-pane="first"</code> or <code>"second"</code> to show one pane while keeping both mounted and preserving the split value; remove the attribute to restore both panes. The host owns the URL state and focus transfer. The <a href="docs/RESPONSIVE-WORKSPACES.md">responsive workspace guide</a> also covers narrow window policies, compact chrome, menu overflow, and menu-group theme tokens.</p>
     <p>Two panes inside a component, with a handle between them that resizes the first, drawn as the master-detail divider is. Drag it, or focus it and use the arrow keys, Home and End; Enter or a double-click returns the stylesheet's size. The second pair is stacked.</p>
     <div class="demo">
       <div class="split" style="height: 160px; border: 1px solid var(--border); border-radius: var(--radius-sm);">

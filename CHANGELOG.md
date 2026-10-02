@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.41.0
+
+This release implements PUDL specification 0.6.0. The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) documents the new contracts and adoption steps for YAVCHN and Parks Computing. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js`, `pudl-windows.css`, `pudl-windows.js`, and `pudl-split.js` together.
+
+- Windows can opt into maximized-only narrow presentation while retaining their requested URL placement. Restrictions cover menus, keyboard controls, gestures, script calls, and stale callbacks. Widening restores saved floating or docked placement without remounting content.
+- Menus use the available visible viewport height, follow visual viewport changes, and show independent overflow arrows in reserved gutters. Replaced submenu content starts at its first row.
+- Splitter targets and visible rules have independent sizing tokens. Tracks now occupy layout space, including the default six-pixel track. Mounted single-pane presentation preserves the split value, and pointer cancellation restores the pre-drag value.
+- Compact window chrome retains the title and menu. Target and glyph sizes can be set independently, including in docked title bars.
+- Menu groups expose background, border, and shadow tokens while retaining existing defaults. The guide documents workspace-level taskbars and keeps independent list/detail navigation outside this release.
+
 ## 0.40.0
 
 This release implements PUDL specification 0.6.0. The [menu-bar migration guide](docs/MENU-BAR-MIGRATION.md) documents changes for hosts and applets.

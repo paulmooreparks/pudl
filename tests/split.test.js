@@ -67,7 +67,7 @@ const STACK = '#split ~ .demo .split.stacked';
   await p.evaluate(s => { document.querySelector(s).style.height = '150px'; }, STACK);
   await p.waitForTimeout(300);
   const narrowed = await info(STACK);
-  check('a size beyond a new limit is brought back within it', narrowed.first <= narrowed.max && narrowed.max === narrowed.whole - 60, JSON.stringify(narrowed));
+  check('a size beyond a new limit leaves the second minimum and track', narrowed.first <= narrowed.max && narrowed.max === narrowed.whole - 60 - 6, JSON.stringify(narrowed));
 
   /* Right to left. */
   await p.evaluate(s => document.querySelector(s).setAttribute('dir', 'rtl'), SIDE);

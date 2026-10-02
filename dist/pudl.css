@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.40.0.
+   Version 0.41.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -473,8 +473,9 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .menubar-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; overflow: hidden; }
 .menubar-menu {
   display: inline-flex; align-items: center; flex: none; gap: 1px;
-  padding: 2px; border-radius: var(--radius-sm);
-  background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
+  padding: calc(2px - var(--menubar-group-border-width, 0px)); border-radius: var(--radius-sm);
+  border: var(--menubar-group-border-width, 0px) solid var(--menubar-group-border, transparent);
+  background: var(--menubar-group-bg, var(--tb-chip)); box-shadow: var(--menubar-group-shadow, var(--tb-chip-shadow));
 }
 .menubar-glyph {
   padding: 0; border: 0; background: none;
@@ -1305,15 +1306,20 @@ body:has(> .md-layout) {
 .split.stacked > .split-pane:first-child { width: auto; height: var(--split-a, 50%); }
 .split > .split-pane:last-child { flex: 1; }
 .split-handle {
-  flex: none; width: 6px; margin: 0 -3px; z-index: 1; cursor: col-resize;
+  flex: none; width: var(--split-target-size, 6px); margin: 0; z-index: 1; cursor: col-resize;
   position: relative; touch-action: none;
 }
-.split.stacked > .split-handle { width: auto; height: 6px; margin: -3px 0; cursor: row-resize; }
+.split.stacked > .split-handle { width: auto; height: var(--split-target-size, 6px); cursor: row-resize; }
 .split-handle::before {
-  content: ""; position: absolute; inset: 0 2px; border-radius: 2px;
+  content: ""; position: absolute; inset: 0 calc((100% - var(--split-rule-size, 2px)) / 2); border-radius: 2px;
   background: transparent; transition: background .12s;
 }
-.split.stacked > .split-handle::before { inset: 2px 0; }
+.split.stacked > .split-handle::before { inset: calc((100% - var(--split-rule-size, 2px)) / 2) 0; }
+.split:is([data-split-pane="first"], [data-split-pane="second"]) > .split-handle,
+.split[data-split-pane="first"] > .split-pane:last-child,
+.split[data-split-pane="second"] > .split-pane:first-child { display: none; }
+.split[data-split-pane="first"] > .split-pane:first-child,
+.split[data-split-pane="second"] > .split-pane:last-child { flex: 1; width: auto; height: auto; }
 .split-handle:hover::before, .split-handle.dragging::before { background: var(--accent); }
 .split-handle:focus-visible { outline: none; }
 .split-handle:focus-visible::before { background: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
@@ -1524,6 +1530,22 @@ body:has(> .md-layout) {
   border-width: 0 0 1px; border-radius: 0 0 var(--radius) var(--radius);
 }
 .menu-panel.sheet .md-item { padding-top: 10px; padding-bottom: 10px; }
+
+/* Cue gutters are borders outside the scrolling content, so no command is covered. */
+.menu-viewport-insets {
+  position: fixed; visibility: hidden; pointer-events: none; width: 0; height: 0;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.menu-panel.menu-overflow { border-top-width: 18px; border-bottom-width: 18px; }
+.menu-panel.menu-overflow::before, .menu-panel.menu-overflow::after {
+  position: fixed; left: var(--menu-cue-left); width: var(--menu-cue-width); height: 18px;
+  pointer-events: none; text-align: center; font: 12px/18px sans-serif;
+  color: var(--text); background: var(--dialog-bg, var(--surface));
+}
+.menu-panel.menu-overflow::before { content: ''; top: var(--menu-cue-top); }
+.menu-panel.menu-overflow::after { content: ''; top: var(--menu-cue-bottom); }
+.menu-panel.menu-overflow.menu-more-above::before { content: '\25B2'; }
+.menu-panel.menu-overflow.menu-more-below::after { content: '\25BC'; }
 
 .menu-panel .md-section-label { padding: 10px 14px var(--space-1); }
 .menu-panel .md-section-label:first-child { padding-top: 6px; }
@@ -1984,8 +2006,8 @@ a.seg-choice { text-decoration: none; }
   .menu:has(> .menu-panel:popover-open) > .menu-btn::after { background: HighlightText; }
   .md-resize::before { background: CanvasText; inset: 0 2.5px; }
   .md-resize:hover::before, .md-resize.dragging::before, .md-resize:focus-visible::before { background: Highlight; }
-  .split-handle::before { background: CanvasText; inset: 0 2.5px; }
-  .split.stacked > .split-handle::before { inset: 2.5px 0; }
+  .split-handle::before { background: CanvasText; inset: 0 calc((100% - var(--split-rule-size, 1px)) / 2); }
+  .split.stacked > .split-handle::before { inset: calc((100% - var(--split-rule-size, 1px)) / 2) 0; }
   .split-handle:hover::before, .split-handle.dragging::before, .split-handle:focus-visible::before { background: Highlight; }
   .badge { border: 1px solid CanvasText; }
   .tree a[aria-current]:not([aria-current="false"]) { forced-color-adjust: none; background: Highlight; color: HighlightText; }

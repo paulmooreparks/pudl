@@ -117,6 +117,26 @@
   var homes = {};          // key -> the placement its markup gave it, which reset returns it to
   var menuRuns = {};       // key -> the content's commands in its open window menu, by index
   var lastFocus = {};      // key -> the element that last had focus in the window, which it gets back
+  var cancelGesture = null;
+  var policyStamp = '';
+  var syncing = 0;
+
+  /* Policy changes presentation without replacing the placement in the URL. */
+  function restricted(key) {
+    var el = wins[key];
+    if (!el || contentSized(key) || el.getAttribute('data-win-narrow') !== 'maximized') return false;
+    var width = Number(layer.getAttribute('data-win-narrow-width'));
+    return layer.clientWidth <= (width > 0 && isFinite(width) ? width : NARROW);
+  }
+
+  function effectivePlacement(st, key) {
+    var p = st.place[key];
+    if (!p) return null;
+    var out = Object.assign({}, p);
+    if (out.zone) out.zone = Object.assign({}, out.zone);
+    if (restricted(key)) { out.mode = 'maximized'; delete out.zone; }
+    return out;
+  }
 
   /* === State and URL ===================================================== */
 
@@ -259,7 +279,7 @@
   /* The edge a docked window shows on: its own, except that a side dock
      shows at the bottom of a layer too narrow to have room beside it. */
   function shownEdge(st, key) {
-    var e = dockEdge(st.place[key]);
+    var e = dockEdge(effectivePlacement(st, key));
     return e && (e === 'left' || e === 'right') && narrowLayer() ? 'bottom' : e;
   }
 
@@ -292,7 +312,12 @@
     SIDES.forEach(function (side) {
       var k = edgeFront(st, side);
       var v = '0px';
-      if (k) v = st.min[k] ? 'calc(var(--win-head-docked) + 1px)' : (Math.round((st.place[k].s != null ? st.place[k].s : DOCK_SIZE) * 1000) / 10) + '%';
+      if (k) {
+        var head = wins[k].querySelector('.win-head');
+        var rect = head && head.getBoundingClientRect();
+        v = st.min[k] ? ((rect ? (side === 'left' || side === 'right' ? rect.width : rect.height) : pxMin('--win-head-docked', 30)) + 1) + 'px'
+          : (Math.round((st.place[k].s != null ? st.place[k].s : DOCK_SIZE) * 1000) / 10) + '%';
+      }
       layer.style.setProperty('--dock-' + side, v);
     });
   }
@@ -471,6 +496,7 @@
   }
 
   function maximizeToggled(st, key) {
+    if (restricted(key)) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
     p.mode = p.mode === 'floating' ? 'maximized' : 'floating';
@@ -480,6 +506,7 @@
   /* Snaps a window to a zone, a name from ZONES or a rectangle, or with
      none, lets it float again. */
   function snapped(st, key, zone) {
+    if (restricted(key)) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
     if (zone == null || zone === 'floating') { p.mode = 'floating'; return st; }
@@ -492,6 +519,7 @@
      it floated. A window keeps its strip's size while undocked, so docking
      it again brings it back as it was. */
   function docked(st, key, edge) {
+    if (restricted(key)) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
     if (edge) {
@@ -619,7 +647,9 @@
     zOrder.forEach(function (k, i) {
       var el = wins[k];
       var edge = shownEdge(st, k);
-      setPlacement(el, st.place[k]);
+      setPlacement(el, effectivePlacement(st, k));
+      el.toggleAttribute('data-win-restricted', restricted(k));
+      labelHead(k);
       el.hidden = isHidden(st, k);
       el.classList.toggle('active', k === front);
       if (edge) el.setAttribute('data-win-edge', edge);
@@ -642,8 +672,8 @@
       var el = wins[k];
       var mn = el.querySelector('[data-win-action="minimize"]');
       setHref(mn, urlFor(minimizeToggled(state, k)));
-      if (mn && dockEdge(state.place[k])) {
-        var ml = state.min[k] ? text('expand', 'Expand') : text('collapse', 'Collapse');
+      if (mn) {
+        var ml = shownEdge(state, k) ? (state.min[k] ? text('expand', 'Expand') : text('collapse', 'Collapse')) : text('minimize', 'Minimize');
         mn.setAttribute('aria-label', ml);
         mn.setAttribute('title', ml);
       }
@@ -651,12 +681,14 @@
       var max = el.querySelector('[data-win-action="maximize"]');
       setHref(max, urlFor(maximizeToggled(state, k)));
       if (max) {
-        var label = state.place[k].mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore');
+        var label = restricted(k) ? text('restore-floating', 'Restore to floating') : state.place[k].mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore');
+        max.setAttribute('aria-disabled', String(restricted(k)));
         max.setAttribute('aria-label', label);
         max.setAttribute('title', label);
       }
       var dock = el.querySelector('[data-win-action="dock"]');
       if (dock) {
+        dock.setAttribute('aria-disabled', String(restricted(k)));
         var isDocked = !!dockEdge(state.place[k]);
         setHref(dock, urlFor(docked(state, k, isDocked ? null : 'bottom')));
         var dl = isDocked ? text('undock', 'Undock') : text('dock', 'Dock at the bottom');
@@ -875,9 +907,9 @@
   /* The title bar's spoken name, which carries the window's title. */
   function labelHead(key) {
     var head = wins[key] && wins[key].querySelector('.win-head');
-    if (head) head.setAttribute('aria-label', text('head',
+    if (head) head.setAttribute('aria-label', (restricted(key) ? text('head-restricted', 'Window: {title}. Placement is fixed at this workspace width. Shift F10 opens the window menu.') : text('head',
       'Window: {title}. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.')
-      .split('{title}').join(titleOf(key)));
+      ).split('{title}').join(titleOf(key)));
   }
 
   /* Gives a window a new title, which the title bar's spoken name, its
@@ -894,6 +926,7 @@
   function adopt(el) {
     var key = el.getAttribute('data-win');
     wins[key] = el;
+    if (contentSized(key) && el.hasAttribute('data-win-narrow')) console.warn('pudl-windows: data-win-narrow is ignored on content-sized window ' + key);
     if (!el.parentNode || el.parentNode !== layer) layer.insertBefore(el, ghost);
 
     EDGES.forEach(function (edge) {
@@ -952,7 +985,7 @@
 
   function addMenu(el, key, head) {
     var btn = head.querySelector('[data-win-action="menu"]');
-    if (!btn && !layer.hasAttribute('data-win-menu')) return;
+    if (!btn && !layer.hasAttribute('data-win-menu') && el.getAttribute('data-win-chrome') !== 'compact') return;
     var id = 'win-menu-' + key;
     if (!btn) {
       btn = document.createElement('button');
@@ -1014,12 +1047,12 @@
     if (key == null) key = state.top && !state.min[state.top] ? state.top : null;
     var win = key && wins[key];
     if (!win || !win.isConnected) return [];
-    var p = state.place[key], dock = dockEdge(p), sized = contentSized(key), list = [];
+    var p = effectivePlacement(state, key), dock = dockEdge(p), sized = contentSized(key), fixed = restricted(key), list = [];
     function command(id, label, cmd, extra) {
       return Object.assign({ id: id, label: label, run: function () {
         if (wins[key] !== win || !win.isConnected) return;
         var available = menuCommands(key);
-        function contains(items) { return items.some(function (c) { return c.id === id || (c.items && contains(c.items)); }); }
+        function contains(items) { return items.some(function (c) { return !c.disabled && (c.id === id || (c.items && contains(c.items))); }); }
         if (contains(available)) runCommand(key, cmd);
       } }, extra || {});
     }
@@ -1029,7 +1062,8 @@
     var minId = dock ? (state.min[key] ? 'expand' : 'collapse') : (state.min[key] ? 'unminimize' : 'minimize');
     list.push(command(minId, dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
       : (state.min[key] ? text('restore', 'Restore') : text('minimize', 'Minimize')), 'minimize'));
-    if (!dock && !sized) {
+    if (fixed) list.push(command('restore', text('restore-floating', 'Restore to floating'), 'maximize', { disabled: true }));
+    if (!dock && !sized && !fixed) {
       var floating = p.mode === 'floating';
       list.push(command(floating ? 'maximize' : 'restore', floating ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
       var now = zoneFilled(p), here = now ? sixths(now) : '';
@@ -1037,8 +1071,8 @@
         return command('snap:' + name, text('zone-' + name, ZONE_WORDS[name]), 'snap:' + name, { checked: here === ZONES[name].join(',') });
       }) });
     }
-    if (!sized) list.push(command(dock ? 'undock' : 'dock', dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
-    list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
+    if (!sized && !fixed) list.push(command(dock ? 'undock' : 'dock', dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
+    if (!fixed) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
     list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
     return list;
   }
@@ -1068,6 +1102,7 @@
      arrow keys reach them in order, and each says its zone in words. The
      zone the window fills is marked aria-current. */
   function snapItems(panel, key) {
+    if (restricted(key)) return;
     var now = zoneFilled(state.place[key]);
     var here = now ? sixths(now) : null;
     var box = document.createElement('div');
@@ -1098,6 +1133,7 @@
 
   function runCommand(key, cmd) {
     if (!wins[key]) return;
+    if (restricted(key) && (['maximize', 'dock', 'reset'].indexOf(cmd) >= 0 || cmd.indexOf('snap:') === 0)) return;
     var p = state.place[key];
     if (cmd === 'page') {
       /* The link carries the command out itself, so its target and rel
@@ -1105,7 +1141,7 @@
       var a = wins[key].querySelector('.win-head a[data-win-action="page"]');
       if (a) a.click();
     } else if (cmd === 'copy-link') copyLink(key);
-    else if (cmd === 'minimize') commit(minimizeToggled(state, key), false);
+    else if (cmd === 'minimize') commit(state.min[key] ? raised(state, key) : minimized(state, key), false);
     else if (cmd === 'maximize') commit(maximizeToggled(state, key), false);
     else if (cmd === 'dock') commit(docked(state, key, dockEdge(p) ? null : 'bottom'), false);
     else if (cmd === 'reset') commit(resetPlaced(state, key), false);
@@ -1152,7 +1188,7 @@
       stay();
       if (panel.matches(':popover-open') || dockEdge(state.place[key]) || contentSized(key)) return;
       openTimer = setTimeout(function () {
-        if (max.matches(':hover') && wins[key] && !panel.matches(':popover-open')) panel.showPopover();
+        if (max.matches(':hover') && wins[key] && !restricted(key) && !panel.matches(':popover-open')) panel.showPopover();
       }, HOVER_MS);
     });
     max.addEventListener('pointerleave', leave);
@@ -1163,6 +1199,7 @@
 
   /* Returns a window to the placement its markup gave it. */
   function resetPlaced(st, key) {
+    if (restricted(key)) return copy(st);
     st = raised(st, key);
     var home = homes[key] || markupPlacement(wins[key], 0);
     st.place[key] = clampPlacement(Object.assign({}, home), innerW(), innerH(), contentSized(key) ? { w: 0, h: 0 } : null);
@@ -1315,7 +1352,7 @@
       var st = copy(state);
       st.open.push(key);
       st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, host && wins[host] ? host : null),
-                                     innerW(), innerH());
+                                     innerW(), innerH(), el.getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
       st.top = key;
       openers[key] = from || null;
       commit(st, true);
@@ -1356,7 +1393,7 @@
       var st = copy(state);
       if (!wins[oldKey] || st.open.indexOf(oldKey) < 0) {
         st.open.push(key);
-        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), innerW(), innerH());
+        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), innerW(), innerH(), el.getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
       } else {
         st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
         st.place[key] = Object.assign({}, st.place[oldKey]);
@@ -1412,6 +1449,7 @@
   /* Brings the page in line with a URL, after Back or Forward or at start.
      An address that names no windows opens the page's default windows. */
   function sync(push) {
+    syncing++;
     var named = readURL();
     var st = named || { open: defaults.slice(), top: null, min: {}, place: {} };
     var missing = st.open.filter(function (k) { return !wins[k]; });
@@ -1422,6 +1460,7 @@
                             return k;
                           });
     })).then(function (failed) {
+      syncing--;
       failed.forEach(function (k) { if (k) st = closed(st, k); });
       /* A placement the address gives keeps its size, which the address
          has already checked, and is only brought back inside the layer; a
@@ -1429,7 +1468,7 @@
          at this moment, would otherwise rewrite the address on loading. */
       st.open.forEach(function (k, i) {
         st.place[k] = st.place[k] ? clampPlacement(st.place[k], innerW(), innerH(), { w: 0, h: 0 })
-                                  : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH());
+                                  : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH(), wins[k].getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
       });
       if (!st.top) st.top = st.open.filter(function (k) { return !st.min[k]; }).pop() || null;
       if (!named && defaults.length) bare = windowParams(st).join('&');
@@ -1493,6 +1532,7 @@
      has to be laid out, but only once a frame. The state is committed
      once, when the pointer lifts. */
   function gesture(e, key, edge) {
+    if (restricted(key)) return;
     var el = wins[key];
     var target = e.currentTarget;
     var outer = layer.getBoundingClientRect();
@@ -1585,16 +1625,31 @@
     }
 
     function end(ev) {
+      cancelGesture = null;
       target.removeEventListener('pointermove', move);
       target.removeEventListener('pointerup', end);
       target.removeEventListener('pointercancel', end);
       /* The pointer may lift before the frame that would have followed its
          last move, so that move is taken now. */
-      if (frame) { cancelAnimationFrame(frame); step(); }
+      if (frame) { cancelAnimationFrame(frame); if (ev.type !== 'policy') step(); }
       layer.classList.remove('dragging');
       showGhost(null);
       el.classList.remove('win-moving');
       el.style.transform = '';
+      if (ev.type === 'policy') {
+        if (moved) {
+          suppressClick = true;
+          function releaseClick() {
+            document.removeEventListener('pointerup', releaseClick, true);
+            document.removeEventListener('pointercancel', releaseClick, true);
+            setTimeout(function () { suppressClick = false; }, 0);
+          }
+          document.addEventListener('pointerup', releaseClick, true);
+          document.addEventListener('pointercancel', releaseClick, true);
+        }
+        if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId);
+        return;
+      }
       if (!moved) return;
       /* The click that follows a drag must not follow the title link. */
       suppressClick = true;
@@ -1618,6 +1673,7 @@
     target.addEventListener('pointermove', move);
     target.addEventListener('pointerup', end);
     target.addEventListener('pointercancel', end);
+    cancelGesture = function () { end({ type: 'policy' }); };
   }
 
   function resizeFrom(p, edge, dx, dy, min) {
@@ -1649,6 +1705,7 @@
       if (document.getElementById('win-menu-' + key)) { e.preventDefault(); openMenu(key); }
       return;
     }
+    if (restricted(key)) return;
     var side = shownEdge(state, key);
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -1867,10 +1924,20 @@
 
     /* A side dock moves to the bottom when the layer grows too narrow for
        it, and back when it widens again. */
-    var wasNarrow = narrowLayer();
-    window.addEventListener('resize', function () {
-      if (narrowLayer() !== wasNarrow) { wasNarrow = narrowLayer(); apply(state); }
-    });
+    function refreshPolicy() {
+      if (syncing || !state.open.length) return;
+      var stamp = String(narrowLayer()) + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
+      if (stamp === policyStamp) return;
+      policyStamp = stamp;
+      if (cancelGesture) cancelGesture();
+      layer.querySelectorAll('.menu-panel:popover-open').forEach(function (p) { p.hidePopover(); });
+      apply(state);
+      layer.dispatchEvent(new CustomEvent('pudl:windows-policy', { bubbles: true }));
+    }
+    window.addEventListener('resize', refreshPolicy);
+    if (window.ResizeObserver) new ResizeObserver(refreshPolicy).observe(layer);
+    new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
+      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size'] });
 
     /* When pudl-regions.js swaps parts of the page, the new list rows and
        dock need marking and linking as the old ones were. */
@@ -1889,13 +1956,13 @@
       },
       minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
       dock: function (key, edge) {
-        if (!wins[key] || (edge != null && SIDES.indexOf(edge) < 0)) return;
+        if (!wins[key] || restricted(key) || (edge != null && SIDES.indexOf(edge) < 0)) return;
         commit(docked(state, key, edge || null), false);
       },
       /* zone is a name from ZONES, a rectangle {x, y, w, h} of fractions,
          which is moved to the nearest sixths, or null to float again. */
       snap: function (key, zone) {
-        if (!wins[key] || (typeof zone === 'string' && zone !== 'floating' && !ZONES[zone])) return;
+        if (!wins[key] || restricted(key) || (typeof zone === 'string' && zone !== 'floating' && !ZONES[zone])) return;
         commit(snapped(state, key, zone), false);
       },
       retitle: retitle,
@@ -1905,6 +1972,7 @@
       menuCommands: menuCommands,
       shareURL: shareURL,
       copyLink: copyLink,
+      effectivePlacement: function (key) { return effectivePlacement(state, key); },
       state: function () { return copy(state); }
     };
 

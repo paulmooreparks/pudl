@@ -187,19 +187,19 @@
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)); border-left-width: 1px;
 }
 .win[data-win-edge] .win-head {
-  min-height: 0; height: var(--win-head-docked); gap: 8px;
+  min-height: 0; height: max(var(--win-head-docked), calc(var(--win-button-size, 20px) + 2px)); gap: 8px;
   padding: 0 4px 0 10px;
   border-width: 0 0 1px; border-radius: 0;
 }
 .win[data-win-edge] .win-title { font-size: var(--text-sm); }
-.win[data-win-edge] .win-btn { width: 20px; height: 20px; }
-.win[data-win-edge] .win-btn::before { width: 10px; height: 10px; }
+.win[data-win-edge] .win-btn { width: var(--win-button-size, 20px); height: var(--win-button-size, 20px); }
+.win[data-win-edge] .win-btn::before { width: var(--win-glyph-size, 10px); height: var(--win-glyph-size, 10px); }
 .win[data-win-edge] .win-body { border: 0; border-radius: 0; }
 .win[data-win-edge] [data-win-action="maximize"] { display: none; }
 .win-collapsed .win-body { display: none; }
 .win-collapsed .win-head { border-bottom-width: 0; }
 .win-collapsed:is([data-win-edge="left"], [data-win-edge="right"]) .win-head {
-  writing-mode: vertical-rl; height: 100%; width: var(--win-head-docked);
+  writing-mode: vertical-rl; height: 100%; width: max(var(--win-head-docked), calc(var(--win-button-size, 20px) + 2px));
   padding: 10px 0 4px;
 }
 /* The layer's inner area, laid out for the script to measure. */
@@ -245,7 +245,7 @@
    accent title bar. */
 .win-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; padding: 0;
+  width: var(--win-button-size, 24px); height: var(--win-button-size, 24px); padding: 0; flex-shrink: 0;
   border-radius: 50%;
   border: 1px solid var(--raise-border);
   background: var(--raise-grad);
@@ -264,13 +264,17 @@
    server renders each button empty with an aria-label, and the maximise
    button's glyph follows the window's mode. */
 .win-btn[data-win-action]::before {
-  content: ""; width: 12px; height: 12px;
+  content: ""; width: var(--win-glyph-size, 12px); height: var(--win-glyph-size, 12px);
   background: currentColor;
   -webkit-mask: var(--glyph) center / contain no-repeat;
   mask: var(--glyph) center / contain no-repeat;
 }
 .win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-caret); }
 .win-btn[data-win-action="menu"] { margin-inline-end: var(--space-1); }
+.win[data-win-chrome="compact"]:has([data-win-action="menu"]) .win-head [data-win-action]:not([data-win-action="menu"]) { display: none; }
+.win[data-win-restricted] > .win-rh { display: none; }
+.win[data-win-restricted] .win-head { cursor: default; }
+.win-btn[aria-disabled="true"] { opacity: .5; cursor: default; }
 /* The layout picker, in the window menu and on the maximise button: a
    thumbnail of each layout, whose zones are small raised buttons. The zone
    the window fills is pressed in, as where the reader is always is, and

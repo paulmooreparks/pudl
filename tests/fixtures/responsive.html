@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Responsive workspace</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-menubar.js" defer></script>
+  <script src="../../dist/pudl-split.js" defer></script>
+  <style>
+    body { margin: 0; }
+    .win-host { height: 500px; }
+    .win-body p { height: 1500px; }
+    .split { width: 500px; height: 300px; --split-target-size: 18px; }
+  </style>
+</head>
+<body>
+  <nav data-menubar aria-label="Menu"><ul data-menubar-source hidden><li>Site<ul><li><a href="/">Home</a></li></ul></li><li data-menubar-id="window" data-menubar-windows>Window<ul></ul></li></ul></nav>
+  <div id="taskbar"><button id="sidebar" type="button">Show list</button><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-menu data-win-src="#tpl-{key}" data-win-default="reader,tool,notes">
+      <section class="win" data-win="reader" data-win-narrow="maximized" data-win-chrome="compact" style="--win-button-size:40px;--win-glyph-size:20px;--win-x:.1;--win-y:.1;--win-w:.5;--win-h:.7">
+        <header class="win-head"><h2 class="win-title">Reader</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a><a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><input aria-label="Reader value" value="Preserved"><p>Reader content</p></div>
+      </section>
+      <section class="win" data-win="tool" data-win-size="content" data-win-narrow="maximized"><header class="win-head"><h2 class="win-title">Tool</h2></header><div class="win-body">Content-sized tool</div></section>
+      <section class="win" data-win="notes"><header class="win-head"><h2 class="win-title">Notes</h2></header><div class="win-body">Unrestricted window</div></section>
+    </div>
+  </div>
+  <template id="tpl-extra"><section class="win" data-win="extra" data-win-narrow="maximized" style="--win-x:.1;--win-y:.1;--win-w:.4;--win-h:.6"><header class="win-head"><h2 class="win-title">Another reader</h2></header><div class="win-body"><input aria-label="Another reader value"></div></section></template>
+  <button class="menu-btn" id="long-button" popovertarget="long-menu">Long menu</button><div id="long-menu" class="menu-panel" popover></div>
+  <div class="split" id="split-test" style="--split-a:200px"><div class="split-pane"><input aria-label="First pane value" value="Kept"></div><div class="split-handle" aria-label="Pane width"></div><div class="split-pane">Second pane</div></div>
+</body>
+</html>

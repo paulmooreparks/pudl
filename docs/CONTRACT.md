@@ -4,6 +4,8 @@ This document lists everything a project may rely on in PUDL. From 1.0 on, nothi
 
 The [menu-bar conventions](MENU-BARS.md) describe command placement and ownership. The [0.40.0 migration guide](MENU-BAR-MIGRATION.md) explains the identifiers, contribution limits, and generated-menu changes supported by the API below.
 
+The [responsive workspace contract and adoption guide](RESPONSIVE-WORKSPACES.md) defines narrow placement, compact chrome, menu overflow, splitter tracks, and mounted single-pane presentation introduced in 0.41.0.
+
 ## Promises
 
 - **Versions.** PUDL follows semantic versioning from 1.0. A patch release fixes behaviour without changing the contract. A minor release adds to the contract without changing or removing anything in it. A major release may change or remove what is listed here, and its changelog says what a project must do.
@@ -106,6 +108,9 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-open`, `data-win-replace` | a link | `pudl-windows.js` | Open that key's window, in place of this one |
 | `data-win-menu` | the window layer | `pudl-windows.js` | Give every window a window menu |
 | `data-win-size` | a window | `pudl-windows.js`, `pudl-windows.css`, `pudl-applets.js` | `content` for a window sized by its content, or `user`, the default |
+| `data-win-narrow`, `data-win-narrow-width` | a window, the layer | `pudl-windows.js` | `maximized` opts a window into restricted presentation at or below the layer width in CSS pixels, default 640; the URL placement is preserved; content-sized windows ignore the option |
+| `data-win-chrome` | a window | `pudl-windows.js`, `pudl-windows.css` | `compact` retains the title and menu and hides secondary chrome; `--win-button-size` and `--win-glyph-size` set independent sizes |
+| `data-split-pane` | a `.split` | `pudl-split.js`, `pudl.css` | `first` or `second` shows one mounted pane and preserves the split value; removal restores split presentation; `--split-target-size` and `--split-rule-size` set track and line sizes |
 | `data-win-min`, `data-win-max` | a window | `pudl-windows.js` | Its smallest and largest width and height, `w,h` in pixels |
 | `data-win-action` | a window button | `pudl-windows.js` | `menu`, `page`, `minimize`, `maximize`, `dock` or `close` |
 | `data-menubar`, `data-menubar-source`, `data-menubar-if`, `data-menubar-key`, `data-menubar-text-*` | the menu bar, its hidden source list, a title, the bar, the bar | `pudl-menubar.js` | The menu bar; the host menu as nested lists; `windows` to show a title only on a page of windows; the jump key, `m` unless set, none if empty; the bar's own words (`menu`, `back`, `page`, `copy-link`, `print`, `close`, `file`, `actions`, `active-window`, `minimize-all`, `restore-all`, `close-all`, `open-windows`) |
@@ -120,6 +125,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-edge` | a docked window | the stylesheet, `pudl-windows.js` | The edge it shows on, `top`, `bottom`, `left` or `right`, which the server renders and the script keeps |
 | `data-menu-key`, `data-menu-empty` | a menu panel | `pudl-menu.js` | Its summoning key, its "nothing matches" text |
 | `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |
+| `data-menu-placement` | a menu panel | `pudl-menu.js` | `beside` places a submenu beside its anchor, using the same visible viewport bounds and overflow cues |
 | `data-md-pane` | `.md-layout` | the stylesheet, `pudl-windows.js` | Which pane a narrow layout shows |
 | `data-md-valuetext` | `.md-resize` | `pudl-md.js` | The divider's spoken width, with `{n}` |
 | `data-region` | any element | `pudl-regions.js` | A region's name |
@@ -146,6 +152,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:window-menu` | the window, bubbles | `key`, and `add(label, run, { checked, disabled })` | As the window menu opens, for content to add its commands |
 | `pudl:window-link-copy` | the window, bubbles | `key`, `href`, `ok` | After a share URL copy attempt; `ok` is true only for a successful automatic clipboard write; no event when no URL is usable |
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
+| `pudl:windows-policy` | the window layer, bubbles | none | After responsive presentation changes; the URL state is unchanged |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
 | `pudl:split` | a splitter's handle, bubbles | `size` in pixels, or null after a reset | When a change to the split ends |
@@ -164,6 +171,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlSetTheme(p)`, `pudlThemePreference()`, `pudlToggleTheme()` | `pudl-theme.js` | Set, read and toggle the reader's theme |
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.snap(key, zone or null)`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
 | `pudlWindows.shareURL(key)` | `pudl-windows.js` | The window's absolute HTTP(S) share URL, or null; omitted key means the visible front window; resolves against the document base and preserves the host's query and fragment |
+| `pudlWindows.effectivePlacement(key)` | `pudl-windows.js` | Detached derived placement after responsive policy, or null for an unknown key; `state()` retains canonical URL placement |
 | `pudlWindows.copyLink(key)` | `pudl-windows.js` | Copies the share URL without changing workspace state; returns a promise of automatic-copy success; offers a manual-copy prompt on clipboard failure and returns false |
 | `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |
 | `pudlApplets.request(verb, { path, kind, … }, from)`, `.can(verb, kind)` | `pudl-applets.js` | Ask for a request without naming an applet; `request` returns false when nothing serves it |
@@ -174,7 +182,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
-| `pudlWindows.menuCommands(key)` | `pudl-windows.js` | Fresh standard command descriptors for a window, or the visible front window when omitted; missing windows return `[]`. Each has `id`, `label`, and `run` or nested `items`, with optional `checked` or `danger`. Callbacks bind to the original element and recheck capabilities; applet commands and extension hooks are excluded. IDs and generated-menu rules are listed in the migration guide. |
+| `pudlWindows.menuCommands(key)` | `pudl-windows.js` | Fresh standard command descriptors for a window, or the visible front window when omitted; missing windows return `[]`. Each has `id`, `label`, and `run` or nested `items`, with optional `checked`, `disabled`, or `danger`. Callbacks bind to the original element and recheck capabilities; applet commands and extension hooks are excluded. IDs and generated-menu rules are listed in the migration guide. |
 | `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
 | `pudlMenu.place(panel)` | `pudl-menu.js` | Place an open panel at once and show it, for a script that moves focus into it in the same moment |
 | `pudlMenu.refresh()` | `pudl-menu.js` | Build the pop-up button for segmented controls with `data-seg-menu` added by other means |
