@@ -52,7 +52,11 @@
 
   function span(p) {
     var r = p.split.getBoundingClientRect();
-    return p.stacked ? r.height : r.width;
+    var css = getComputedStyle(p.split);
+    var edges = p.stacked ? ['Top', 'Bottom'] : ['Left', 'Right'];
+    var space = p.stacked ? r.height : r.width;
+    edges.forEach(function (edge) { space -= parseFloat(css['border' + edge + 'Width']) + parseFloat(css['padding' + edge]); });
+    return Math.max(0, space);
   }
 
   function limits(p) {
