@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.42.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.43.0</a>
     </div>
   </header>
 
@@ -517,6 +517,9 @@
         </div>
       </div>
     </div>
+
+    <h3 class="ref-sub">Persistent sidebar handle</h3>
+    <p>Opt-in layouts keep a raised handle available after collapse and on narrow screens. Desktop dragging resizes the list; narrow gestures request URL navigation from the host. The <a href="samples/persistent-sidebar.html?article=sidebar&amp;pane=detail">persistent article reader</a> demonstrates both modes, click/tap resize controls, and Back/Forward navigation. The <a href="docs/PERSISTENT-SIDEBAR.md">persistent sidebar guide</a> defines the state and request contract.</p>
 
     <h3 class="ref-sub">One pane at a time</h3>
     <p>When the layout is 640 px wide or less, on a phone or in a narrow window or panel, it shows either the list or one record, never both. Each is its own URL. The server marks the layout with <code>data-md-pane="detail"</code> when the URL names a record, and the record's pane then opens with a back link to the list, which keeps the filters and names the record's row as its fragment so that the list scrolls back to where the reader left it. The list's toolbar and filter chips belong to the list and step aside while a record is showing. The back link returns to the list the record lives in, and is not a breadcrumb trail. The two layouts below are the same markup at phone width, one on each pane.</p>

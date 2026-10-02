@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Persistent article reader</title>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-theme.js"></script>
+  <script src="../dist/pudl-md.js" defer></script>
+  <script src="persistent-sidebar.js" defer></script>
+  <style>.md-layout { height: 100dvh; } .md-sidebar { padding-block: 12px; } .md-toolbar { flex-wrap: wrap; }</style>
+</head>
+<body>
+  <main class="md-layout" data-md-persistent data-md-pane="list">
+    <div class="md-toolbar md-site-tools">
+      <button class="btn" data-md-action="toggle">Toggle list</button>
+      <button class="btn" data-md-action="decrease">Narrow list</button>
+      <button class="btn" data-md-action="increase">Widen list</button>
+      <button class="btn" data-md-action="reset">Reset width</button>
+      <button class="btn" id="theme">Switch theme</button>
+      <a href="../reference.html#md">Reference</a>
+    </div>
+    <div class="md-body">
+      <aside class="md-sidebar" aria-label="Articles">
+        <div class="md-row"><a class="md-item" href="?article=sidebar&amp;pane=detail" data-article>Persistent sidebars</a></div>
+        <label class="form-label">List notes <input class="form-input" id="list-notes" value="This mounted input survives pane changes"></label>
+      </aside>
+      <div class="md-resize" aria-label="Articles"></div>
+      <article class="md-detail" tabindex="0" aria-label="Article">
+        <h1>Persistent sidebars</h1>
+        <p>The handle remains available when the list is collapsed. On a narrow layout it requests a switch between the list and this article.</p>
+        <p>The URL records the article and the visible narrow pane. Back and Forward restore navigation without replacing either pane.</p>
+        <label class="form-label">Article notes <input class="form-input" id="article-notes" value="This input also stays mounted"></label>
+        <p><a href="?article=sidebar&amp;pane=list" data-pane-link>Return to the list</a></p>
+      </article>
+    </div>
+  </main>
+</body>
+</html>
