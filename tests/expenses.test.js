@@ -24,7 +24,10 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const sortOf = name => p.$eval(`.data-table th:has(> a:text-is("${name}"))`, th => th.getAttribute('aria-sort'));
   const toast = async () => { await p.waitForSelector('.toast .toast-text', { timeout: 3000 }); return p.textContent('.toast .toast-text'); };
   const go = async (url) => { await p.goto(S + url); };
-  const submitAndWait = async (selector) => { await Promise.all([p.waitForNavigation(), p.click(selector)]); };
+  /* Every submission here loads a document. Same-address actions first
+     replace the history entry, which can satisfy waitForNavigation before
+     the subsequent reload has rendered the updated record. */
+  const submitAndWait = async (selector) => { await Promise.all([p.waitForEvent('load'), p.click(selector)]); };
 
   /* Every run starts from the seeded data. */
   await go('expenses.html');
