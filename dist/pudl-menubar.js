@@ -187,10 +187,16 @@
     var win = key ? src.scope.scope : null;
     var page = win && win.querySelector('.win-head a[data-win-action="page"]');
     if (page) items.push({ label: text('page', 'Open as a page'), run: function () { page.click(); } });
-    items.push({ label: text('copy-link', 'Copy the link'), run: function () {
-      var href = page ? page.href : location.href;
-      if (navigator.clipboard) navigator.clipboard.writeText(href).catch(function () {});
-    } });
+    if (win && window.pudlWindows && window.pudlWindows.shareURL) {
+      if (window.pudlWindows.shareURL(key)) items.push({ label: text('copy-link', 'Copy the link'), run: function () {
+        window.pudlWindows.copyLink(key);
+      } });
+    } else {
+      items.push({ label: text('copy-link', 'Copy the link'), run: function () {
+        var href = page ? page.href : location.href;
+        if (navigator.clipboard) navigator.clipboard.writeText(href).catch(function () {});
+      } });
+    }
     items.push({ label: text('print', 'Print'), run: function () { window.print(); } });
     if (key) items.push('-', { label: text('close', 'Close'), run: function () { window.pudlWindows.close(key); } });
     return items;
@@ -347,10 +353,12 @@
     menus.forEach(function (m, mi) {
       var g = el('div', 'menubar-menu' + (mi ? ' menubar-front' : ''), { role: 'group', 'aria-label': m.name });
       var glyph = el('span', 'menubar-glyph', { 'aria-hidden': 'true' });
-      glyph.addEventListener('pointerdown', function (e) {
+      /* Open after the pointer gesture, so popover light dismiss cannot
+         close a panel that was opened during the same pointer-down. */
+      glyph.addEventListener('click', function (e) {
         e.preventDefault();
         var first = g.querySelector('.menubar-title');
-        if (first) toggle(first, true);
+        if (first) open(first, 'first');
       });
       g.appendChild(glyph);
       m.titles.forEach(function (t, ti) {

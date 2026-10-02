@@ -100,6 +100,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-default` | the window layer | `pudl-windows.js` | The keys of the windows an address naming no windows opens |
 | `data-win-pane="off"` | the window layer | `pudl-windows.js` | Leave the master-detail layout's `data-md-pane` to the server |
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
+| `data-win-href` | a window | `pudl-windows.js`, `pudl-menubar.js` | The host's crafted share URL; without it, Copy the link uses the title bar's page link; an empty or invalid value disables sharing |
 | `data-win-open`, `data-win-replace` | a link | `pudl-windows.js` | Open that key's window, in place of this one |
 | `data-win-menu` | the window layer | `pudl-windows.js` | Give every window a window menu |
 | `data-win-size` | a window | `pudl-windows.js`, `pudl-windows.css`, `pudl-applets.js` | `content` for a window sized by its content, or `user`, the default |
@@ -111,6 +112,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-applet-text-commands`, `-no-commands` | an applet mount outside a window | `pudl-applets.js` | The label of its Commands button, and the text of an empty menu |
 | `data-win-dock`, `data-win-tab`, `data-win-back`, `data-win-restore` | the dock, a dock tab or row, a minimise-all or back link, a restore-all link | `pudl-windows.js` | The script keeps the last two's `href` current and marks them `aria-disabled` when they would change nothing |
 | `data-win-text-maximize`, `-restore`, `-minimized`, `-head`, `-dock`, `-undock`, `-collapse`, `-expand`, `-menu`, `-page`, `-minimize`, `-reset`, `-reset-position`, `-close`, `-snap`, `-layout-<name>`, `-zone-<name>` | the window layer | `pudl-windows.js` | The page's own words, with `{title}` |
+| `data-win-text-copy-link`, `data-win-text-copy-link-manual` | the window layer | `pudl-windows.js` | The share command label and manual-copy prompt |
 | `data-win-edge` | a docked window | the stylesheet, `pudl-windows.js` | The edge it shows on, `top`, `bottom`, `left` or `right`, which the server renders and the script keeps |
 | `data-menu-key`, `data-menu-empty` | a menu panel | `pudl-menu.js` | Its summoning key, its "nothing matches" text |
 | `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |
@@ -138,6 +140,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:window-closing` | the window, and each child closing with it, bubbles, cancelable | `key`, `reason`: `button`, `key`, `script` or `parent` | Before a reader's or a script's close; cancelling it keeps the window |
 | `pudl:window-close` | the window, bubbles | `key`, `reason`: `button`, `key`, `script`, `parent`, `replace` or `address` | Just before a window leaves the page, by any route |
 | `pudl:window-menu` | the window, bubbles | `key`, and `add(label, run, { checked, disabled })` | As the window menu opens, for content to add its commands |
+| `pudl:window-link-copy` | the window, bubbles | `key`, `href`, `ok` | After a share URL copy attempt; `ok` is true only for a successful automatic clipboard write; no event when no URL is usable |
 | `pudl:windows-change` | the window layer, bubbles | the whole state: `open`, `top`, `min`, `place` | After every change to the windows |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
@@ -156,6 +159,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 |---|---|---|
 | `pudlSetTheme(p)`, `pudlThemePreference()`, `pudlToggleTheme()` | `pudl-theme.js` | Set, read and toggle the reader's theme |
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.snap(key, zone or null)`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
+| `pudlWindows.shareURL(key)` | `pudl-windows.js` | The window's absolute HTTP(S) share URL, or null; omitted key means the visible front window; resolves against the document base and preserves the host's query and fragment |
+| `pudlWindows.copyLink(key)` | `pudl-windows.js` | Copies the share URL without changing workspace state; returns a promise of automatic-copy success; offers a manual-copy prompt on clipboard failure and returns false |
 | `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |
 | `pudlApplets.request(verb, { path, kind, … }, from)`, `.can(verb, kind)` | `pudl-applets.js` | Ask for a request without naming an applet; `request` returns false when nothing serves it |
 | `pudlApplets.menuSourceIn(scope, outside)` | `pudl-applets.js` | The first running applet in `scope` offering `menus()` or `commands()`, for a menu bar |

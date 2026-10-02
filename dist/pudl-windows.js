@@ -60,7 +60,8 @@
 
    window.pudlWindows offers open, replace, raise, minimize, minimizeAll,
    restoreAll, dock, snap, retitle, close and state to scripts, each doing what
-   the matching link or button does. */
+   the matching link or button does. shareURL and copyLink export a window's
+   host-supplied address without changing the workspace. */
 (function () {
   'use strict';
 
@@ -667,6 +668,40 @@
 
   function setHref(a, href) { if (a && a.tagName === 'A') a.setAttribute('href', href); }
 
+  /* A host may export a chosen state without changing the reader's workspace.
+     The share address is independent of the title bar's Open as a page link. */
+  function shareURL(key) {
+    key = key == null ? active(state) : key;
+    var win = Object.prototype.hasOwnProperty.call(wins, key) && wins[key];
+    if (!win) return null;
+    var page = win.querySelector('.win-head a[data-win-action="page"][href]');
+    var href = win.hasAttribute('data-win-href') ? win.getAttribute('data-win-href') : page && page.getAttribute('href');
+    if (!href || !href.trim()) return null;
+    try {
+      var url = new URL(href, win.baseURI);
+      return /^(https?:)$/.test(url.protocol) ? url.href : null;
+    } catch (err) { return null; }
+  }
+
+  function copyLink(key) {
+    key = key == null ? active(state) : key;
+    var href = shareURL(key);
+    if (!href) return Promise.resolve(false);
+    var win = wins[key];
+    function done(ok) {
+      win.dispatchEvent(new CustomEvent('pudl:window-link-copy', { bubbles: true, detail: { key: key, href: href, ok: ok } }));
+      return ok;
+    }
+    function byHand() {
+      window.prompt(text('copy-link-manual', 'Copy this link:'), href);
+      return done(false);
+    }
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return Promise.resolve(byHand());
+    try {
+      return navigator.clipboard.writeText(href).then(function () { return done(true); }, byHand);
+    } catch (err) { return Promise.resolve(byHand()); }
+  }
+
   /* The dock has a tab for each top-level window only. */
   function renderDocks() {
     var front = active(state);
@@ -982,6 +1017,7 @@
     panel.textContent = '';
     var page = win.querySelector('.win-head a[data-win-action="page"]');
     if (page) panel.appendChild(menuItem(text('page', 'Open as a page'), 'page'));
+    if (shareURL(key)) panel.appendChild(menuItem(text('copy-link', 'Copy the link'), 'copy-link'));
     panel.appendChild(menuItem(dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
                                     : text('minimize', 'Minimize'), 'minimize'));
     /* A window sized by its content has no size to change: no maximising,
@@ -1044,7 +1080,8 @@
          apply, as they do from the title bar. */
       var a = wins[key].querySelector('.win-head a[data-win-action="page"]');
       if (a) a.click();
-    } else if (cmd === 'minimize') commit(minimizeToggled(state, key), false);
+    } else if (cmd === 'copy-link') copyLink(key);
+    else if (cmd === 'minimize') commit(minimizeToggled(state, key), false);
     else if (cmd === 'maximize') commit(maximizeToggled(state, key), false);
     else if (cmd === 'dock') commit(docked(state, key, dockEdge(p) ? null : 'bottom'), false);
     else if (cmd === 'reset') commit(resetPlaced(state, key), false);
@@ -1841,6 +1878,8 @@
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
       close: function (key) { if (wins[key]) close(key, 'script'); },
+      shareURL: shareURL,
+      copyLink: copyLink,
       state: function () { return copy(state); }
     };
 

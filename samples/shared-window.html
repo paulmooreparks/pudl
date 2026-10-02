@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sharing an article, a PUDL sample</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-menu.js" defer></script>
+  <style>
+    .sample-tools { padding: 12px; display: flex; gap: 12px; align-items: center; }
+    .win-host { height: 70vh; min-height: 400px; }
+  </style>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="../reference.html">PUDL</a></header>
+  <div class="sample-tools">
+    <a class="btn" href="?open=article,notes&amp;top=notes" data-win-open="notes">Open notes</a>
+    <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+    <span role="status" id="copy-status"></span>
+  </div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-menu data-win-default="article" data-win-src="#shared-{key}">
+      <section class="win" data-win="article" data-win-href="shared-window.html" data-win-mode="maximized">
+        <header class="win-head">
+          <h1 class="win-title">Sharing an article</h1>
+          <nav class="win-chrome" aria-label="Window">
+            <a class="win-btn" data-win-action="minimize" href="?open=article&amp;min=article" aria-label="Minimize"></a>
+            <a class="win-btn" data-win-action="maximize" href="?open=article&amp;p.article=floating:0.1,0.1,0.7,0.7" aria-label="Restore"></a>
+            <a class="win-btn" data-win-action="close" href="?open=" aria-label="Close"></a>
+          </nav>
+        </header>
+        <div class="win-body">
+          <p>An article link can describe the reading view you want to share. It does not need to include the other windows in your workspace.</p>
+          <p>Open the notes, move or resize the windows, then choose Copy the link from this article's window menu. The copied address opens this article alone. Your current arrangement stays in the address bar, where you can copy it to share the whole workspace.</p>
+          <p>You can also follow or copy <a href="shared-window.html">the article link</a> directly, including without JavaScript.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+  <template id="shared-notes">
+    <section class="win" data-win="notes">
+      <header class="win-head">
+        <h2 class="win-title">Notes</h2>
+        <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?open=article" aria-label="Close"></a></nav>
+      </header>
+      <div class="win-body"><p>This window belongs to your workspace. The article link leaves it out.</p></div>
+    </section>
+  </template>
+  <script>
+    /* Keep a template so Back can reopen the server-rendered article. */
+    var articleTemplate = document.createElement('template');
+    articleTemplate.id = 'shared-article';
+    articleTemplate.content.appendChild(document.querySelector('.win[data-win="article"]').cloneNode(true));
+    document.body.appendChild(articleTemplate);
+    document.addEventListener('pudl:window-link-copy', function (e) {
+      document.getElementById('copy-status').textContent = e.detail.ok ? 'Article link copied.' : 'Copy the article link from the prompt.';
+    });
+  </script>
+</body>
+</html>
