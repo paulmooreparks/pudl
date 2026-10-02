@@ -16,6 +16,7 @@ function check(name, ok, extra) {
   p.on('pageerror', e => errors.push(e.message));
   await p.goto(ROOT + '/samples/article-reader.html?open=url-state,url-state-parse&top=url-state-parse');
   await p.waitForSelector('.win[data-win="url-state-parse"] pre.code');
+  await p.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length === 2);
   const code = await p.evaluate(() => {
     const token = n => { const s = document.createElement('span'); s.style.color = 'var(' + n + ')'; document.body.append(s); const c = getComputedStyle(s).color; s.remove(); return c; };
     const pre = document.querySelector('.win[data-win="url-state-parse"] pre.code');

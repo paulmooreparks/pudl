@@ -33,6 +33,37 @@
 
   function isOpen(panel) { return panel.matches(':popover-open'); }
 
+  var insets;
+  function viewport() {
+    if (!insets) {
+      insets = document.createElement('div');
+      insets.className = 'menu-viewport-insets';
+      insets.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(insets);
+    }
+    var css = getComputedStyle(insets), v = window.visualViewport;
+    var left = (v ? v.offsetLeft : 0) + parseFloat(css.paddingLeft);
+    var top = (v ? v.offsetTop : 0) + parseFloat(css.paddingTop);
+    return { left: left, top: top,
+      right: (v ? v.offsetLeft + v.width : document.documentElement.clientWidth) - parseFloat(css.paddingRight),
+      bottom: (v ? v.offsetTop + v.height : window.innerHeight) - parseFloat(css.paddingBottom) };
+  }
+
+  function cues(panel) {
+    panel.classList.toggle('menu-more-above', panel.scrollTop > 1);
+    panel.classList.toggle('menu-more-below', panel.scrollHeight - panel.clientHeight - panel.scrollTop > 1);
+    var r = panel.getBoundingClientRect();
+    panel.style.setProperty('--menu-cue-left', r.left + 'px');
+    panel.style.setProperty('--menu-cue-width', r.width + 'px');
+    panel.style.setProperty('--menu-cue-top', r.top + 'px');
+    panel.style.setProperty('--menu-cue-bottom', (r.bottom - 18) + 'px');
+  }
+
+  function fitHeight(panel, available, natural) {
+    panel.classList.toggle('menu-overflow', natural > available);
+    panel.style.maxHeight = Math.max(0, available) + 'px';
+  }
+
   /* Places an open panel against its button. The panel is a popover in the
      top layer, which is positioned against the window, so the button's
      rectangle is all that is needed. */
@@ -40,52 +71,70 @@
     var btn = invokerOf(panel);
     if (!btn) { placeAsPalette(panel); return; }
     var r = btn.getBoundingClientRect();
-    var vw = document.documentElement.clientWidth;
-    var vh = window.innerHeight;
-    var narrow = vw <= NARROW;
+    var v = viewport(), vw = v.right - v.left;
+    var beside = panel.getAttribute('data-menu-placement') === 'beside';
+    var narrow = !beside && vw <= NARROW;
 
     panel.classList.toggle('sheet', narrow);
     panel.style.margin = '0';
     panel.style.inset = 'auto';
     panel.style.width = narrow ? vw + 'px' : '';
-    panel.style.left = narrow ? '0px' : '';
+    panel.style.left = narrow ? v.left + 'px' : '';
+    panel.style.minWidth = '0px';
+    panel.style.maxWidth = narrow ? vw + 'px' : 'min(22rem, ' + vw + 'px)';
 
-    var below = vh - r.bottom - GAP - EDGE;
-    var above = r.top - GAP - EDGE;
+    var bottomAnchor = Math.max(v.top, Math.min(v.bottom, r.bottom + GAP));
+    var topAnchor = Math.max(v.top, Math.min(v.bottom, r.top - GAP));
+    var below = Math.max(0, v.bottom - bottomAnchor - EDGE);
+    var above = Math.max(0, topAnchor - v.top - EDGE);
     /* The panel's natural height is its whole rectangle, borders included
        and unrounded, rounded up: scrollHeight leaves out the border and
        rounds down, which left a panel a fraction short of its content and
        showing a scrollbar it did not need. */
-    panel.style.maxHeight = '';
+    panel.classList.remove('menu-overflow');
+    panel.style.maxHeight = 'none';
     var natural = Math.ceil(panel.getBoundingClientRect().height);
-    var down = narrow || below >= natural || below >= above;
-    panel.style.maxHeight = Math.max(120, Math.min(natural, down ? below : above)) + 'px';
+    if (beside) {
+      fitHeight(panel, v.bottom - v.top - EDGE * 2, natural);
+      var width = panel.offsetWidth;
+      panel.style.left = Math.max(v.left, Math.min(v.right - width, r.right + width + EDGE <= v.right ? r.right - 2 : r.left - width + 2)) + 'px';
+      panel.style.top = Math.max(v.top + EDGE, Math.min(r.top - 6, v.bottom - panel.offsetHeight - EDGE)) + 'px';
+      cues(panel);
+      return;
+    }
+    var down = below >= natural || below >= above;
+    fitHeight(panel, down ? below : above, natural);
 
     if (!narrow) {
       /* The panel lines up with the button's start edge: its left in a
          left-to-right page, its right in a right-to-left one. */
       var w = panel.offsetWidth;
       var start = getComputedStyle(btn).direction === 'rtl' ? r.right - w : r.left;
-      panel.style.left = Math.max(EDGE, Math.min(start, vw - w - EDGE)) + 'px';
+      panel.style.left = Math.max(v.left, Math.min(start, v.right - w - EDGE)) + 'px';
     }
-    panel.style.top = (down ? r.bottom + GAP : Math.max(EDGE, r.top - GAP - panel.offsetHeight)) + 'px';
+    panel.style.top = (down ? bottomAnchor : Math.max(v.top, topAnchor - panel.offsetHeight)) + 'px';
+    cues(panel);
   }
 
   /* A panel with no button, summoned only by its key, opens where keyboard
      palettes conventionally sit: centred, a little below the top of the
      window. */
   function placeAsPalette(panel) {
-    var vw = document.documentElement.clientWidth;
-    var vh = window.innerHeight;
+    var v = viewport(), vw = v.right - v.left, vh = v.bottom - v.top;
     var narrow = vw <= NARROW;
     panel.classList.toggle('sheet', narrow);
     panel.style.margin = '0';
     panel.style.inset = 'auto';
     panel.style.width = narrow ? vw + 'px' : '';
-    var top = narrow ? 0 : Math.round(vh * 0.15);
-    panel.style.maxHeight = Math.max(160, vh - top - EDGE) + 'px';
-    panel.style.left = narrow ? '0px' : Math.max(EDGE, Math.round((vw - panel.offsetWidth) / 2)) + 'px';
+    panel.style.minWidth = '0px';
+    panel.style.maxWidth = narrow ? vw + 'px' : 'min(22rem, ' + vw + 'px)';
+    var top = v.top + (narrow ? 0 : Math.round(vh * 0.15));
+    panel.classList.remove('menu-overflow');
+    panel.style.maxHeight = 'none';
+    fitHeight(panel, v.bottom - top - EDGE, Math.ceil(panel.getBoundingClientRect().height));
+    panel.style.left = (narrow ? v.left : Math.max(v.left, v.left + Math.round((vw - panel.offsetWidth) / 2))) + 'px';
     panel.style.top = top + 'px';
+    cues(panel);
   }
 
   function items(panel) {
@@ -148,13 +197,35 @@
     }
   }, true);
 
+  var watchers = new WeakMap();
   document.addEventListener('toggle', function (e) {
     var panel = e.target;
     if (!panel.classList || !panel.classList.contains('menu-panel')) return;
     if (e.newState === 'open') {
+      panel.scrollTop = 0;
       place(panel);
       panel.classList.remove('placing');
+      if (!watchers.has(panel)) {
+        var observer = new MutationObserver(function (records) {
+          if (!isOpen(panel)) return;
+          records = records.filter(function (r) {
+            var target = r.target.nodeType === 1 ? r.target : r.target.parentElement;
+            if (!target || target.closest('.menu-panel') !== panel) return false;
+            if (r.type !== 'childList') return true;
+            return Array.prototype.some.call(r.addedNodes, function (n) { return !n.classList || !n.classList.contains('menu-panel'); }) ||
+              Array.prototype.some.call(r.removedNodes, function (n) { return !n.classList || !n.classList.contains('menu-panel'); });
+          });
+          if (!records.length) return;
+          if (records.some(function (r) { return r.type === 'childList' && r.target === panel; })) panel.scrollTop = 0;
+          place(panel);
+        });
+        watchers.set(panel, observer);
+        panel.addEventListener('scroll', function () { cues(panel); });
+      }
+      watchers.get(panel).observe(panel, { childList: true, subtree: true, characterData: true,
+        attributes: true, attributeFilter: ['hidden'] });
     } else {
+      if (watchers.has(panel)) watchers.get(panel).disconnect();
       panel.classList.remove('placing');
       resetFilter(panel);
     }
@@ -174,6 +245,10 @@
   }
   window.addEventListener('resize', placeOpen);
   window.addEventListener('scroll', placeOpen, true);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', placeOpen);
+    window.visualViewport.addEventListener('scroll', placeOpen);
+  }
 
   document.addEventListener('input', function (e) {
     if (e.target.matches && e.target.matches('.menu-panel .md-filter')) applyFilter(e.target);
