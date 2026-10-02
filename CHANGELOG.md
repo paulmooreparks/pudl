@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.43.0
+
+This release implements PUDL specification 0.6.0. Update `pudl.css` and `pudl-md.js` together. The [persistent sidebar guide](docs/PERSISTENT-SIDEBAR.md) documents opt-in behavior and host adoption.
+
+- Master-detail layouts can retain an operable handle after collapse and in narrow presentation. Desktop width, collapse, and narrow pane selection remain separate, and hidden content stays mounted.
+- Host-handled pane requests support refusal and stale asynchronous completion checks. The article-reader example keeps navigation in the URL and supports Back and Forward.
+- Persistent handles provide RTL gestures, keyboard commands, focus transfer, configurable sizing, and click/tap command hooks. Container changes and pointer cancellation restore the starting requested state without saving a change.
+- Legacy sidebar pointer cancellation now rolls back instead of committing the preview width. Existing layouts and generic splitters otherwise retain their behavior.
+
 ## 0.42.0
 
 This release implements PUDL specification 0.6.0. Update `pudl.css` to adopt the menu styling. Existing site overrides continue to take precedence.

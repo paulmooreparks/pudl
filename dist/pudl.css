@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.42.0.
+   Version 0.43.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -1302,6 +1302,26 @@ body:has(> .md-layout) {
 .split.stacked > .split-handle::after { transform: rotate(90deg); }
 .md-resize:hover::after, .md-resize.dragging::after, .md-resize:focus-visible::after,
 .split-handle:hover::after, .split-handle.dragging::after, .split-handle:focus-visible::after { background: var(--accent); }
+
+/* Persistent master-detail handles retain a real, operable track. */
+@property --md-requested-w { syntax: "<length>"; inherits: true; initial-value: 260px; }
+.md-layout[data-md-persistent] { --md-requested-w: var(--md-sidebar-w, 260px); }
+.md-layout[data-md-persistent] > .md-body > .md-resize {
+  display: block; width: var(--md-target-size, 24px); margin: 0;
+  background: var(--raise-grad); box-shadow: var(--raise-shadow);
+}
+.md-layout[data-md-persistent] > .md-body > .md-resize::before {
+  inset: 0 calc((100% - var(--md-rule-size, 2px)) / 2);
+}
+.md-layout[data-md-persistent]:not([data-md-narrow]) > .md-body > .md-sidebar {
+  width: var(--md-effective-w, var(--md-sidebar-w, 260px));
+}
+.md-layout[data-md-persistent][data-md-collapsed]:not([data-md-narrow]) > .md-body > .md-sidebar {
+  width: 0; min-width: 0; border: 0; visibility: hidden; overflow: hidden;
+}
+.md-layout[data-md-persistent] > .md-body > .md-resize:focus-visible {
+  outline: 3px solid var(--focus-ring); outline-offset: -3px;
+}
 
 /* === Splitters ===========================================================
    Two panes inside a component, a folder tree beside a file list or an

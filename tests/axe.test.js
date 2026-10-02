@@ -12,6 +12,8 @@ function check(name, ok, extra) {
 }
 const RULES = ['color-contrast', 'scrollable-region-focusable', 'aria-allowed-attr', 'aria-allowed-role', 'aria-valid-attr-value', 'button-name', 'link-name'];
 const PAGES = [
+  ['/samples/persistent-sidebar.html?article=sidebar&pane=detail', { width: 1000, height: 700 }],
+  ['/samples/persistent-sidebar.html?article=sidebar&pane=list', { width: 390, height: 700 }],
   ['/reference.html', { width: 1280, height: 900 }],
   ['/samples/expenses.html', { width: 1280, height: 900 }],
   ['/samples/expense.html?id=1', { width: 1280, height: 900 }],

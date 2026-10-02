@@ -68,7 +68,7 @@ The taskbar can sit outside the detail pane and remain visible while the list is
 
 Keep host controls beside `data-win-dock`. PUDL replaces the contents of the dock element when rendering its window tabs. A tab restores and activates its window, or minimizes it if it is already in front. Keep the taskbar container outside whichever pane the host hides.
 
-Independent list/detail navigation remains a separate design item. `data-win-pane="off"` retains its existing meaning: the host owns the surrounding master-detail layout's pane state. It is not a new pane-navigation API. Do not treat minimizing every reader as the universal implementation of showing the list.
+PUDL 0.43.0 adds opt-in independent list/detail requests through the [persistent sidebar contract](PERSISTENT-SIDEBAR.md). `data-win-pane="off"` retains its existing meaning: the host owns the surrounding master-detail layout's pane state. It is not a new pane-navigation API. Do not treat minimizing every reader as the universal implementation of showing the list.
 
 ## Menu surfaces and overflow
 

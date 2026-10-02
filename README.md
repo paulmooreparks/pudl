@@ -617,6 +617,8 @@ Enter applies the filter as well. On a narrow layout the pair takes a row of the
 
 ## Resizing the master-detail sidebar
 
+An opt-in [persistent sidebar](docs/PERSISTENT-SIDEBAR.md) keeps its handle available after collapse and at narrow widths. It adds collapse/restore, host-handled pane requests, and click/tap commands while preserving mounted content. See the [article-reader example](samples/persistent-sidebar.html).
+
 The optional `pudl-md.js` makes the `.md-resize` divider between the sidebar and the detail pane move. Dragging it sets `--md-sidebar-w` on the `.md-layout`, and the stylesheet holds the sidebar between `--md-sidebar-min`, 180px by default, and half the layout, so the limits apply however the width was set and still apply when the layout narrows later. With the divider focused, Left and Right move it 16px, Shift with them 64px, and Home and End go to the limits; a double-click returns it to the default 260px. The divider follows the ARIA window-splitter pattern, and the script gives it a tab stop and keeps its `aria-valuenow`, `aria-valuemin` and `aria-valuemax` current.
 
 ```html
@@ -1109,7 +1111,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.42.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.43.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 
