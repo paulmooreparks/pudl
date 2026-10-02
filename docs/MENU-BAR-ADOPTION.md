@@ -29,7 +29,7 @@ Theme Studio should retain **Theme Studio, File, Palette**. Its identity menu al
 
 Editor should use **Editor, File, Edit**, plus substantial domain menus when needed. Move word wrap, line numbers, and preview visibility into its View contribution. Put go-to-line navigation under Go and editor help under Help. Keep document close under File and window close in the identity menu.
 
-Games and small tools should separate their identity entries from their working commands. For example, a game's New game and Restart belong under Game. Avoid the `commands()` fallback for newly standardized applets because it currently puts all commands into the identity menu.
+Games and small tools should separate their identity entries from their working commands. For example, a game's New game and Restart belong under Game. The `commands()` fallback now preserves working commands under Actions. Newly standardized applets should use `menus()` to give those commands a domain-specific title.
 
 Articles should retain a recognizably named content group. PUDL 0.40.0 puts their generated Print command under File and supplies scoped sharing and close labels. Sites should review any translation overrides that retain the old generic labels.
 
