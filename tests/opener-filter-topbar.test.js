@@ -83,19 +83,32 @@ function check(name, ok, extra) {
   await r.waitForFunction(() => /q=hotel/.test(location.search));
   check('the button submits the filter', true);
 
-  /* === Topbar link hover ================================================ */
+  /* === Topbar link hover ==================================================
+     Built as a probe rather than read from the reference page's own
+     topbar: the reference page's .brand is now the menu bar's fallback
+     content, hidden once pudl-menubar.js builds the bar, so hovering it
+     would never reach :hover. This tests the stylesheet's rule for .brand
+     directly. */
   for (const theme of ['light', 'dark']) {
     await r.evaluate(t => localStorage.setItem('pudl-theme', t), theme);
     await r.goto(ROOT + '/reference.html');
-    await r.hover('.topbar .brand');
+    await r.evaluate(() => {
+      const a = document.createElement('a');
+      a.className = 'brand'; a.href = '#'; a.textContent = 'Brand';
+      a.id = 'hover-probe-brand';
+      document.querySelector('.topbar').append(a);
+    });
+    await r.hover('#hover-probe-brand');
     const c = await r.evaluate(() => {
-      const brand = document.querySelector('.topbar .brand');
+      const a = document.getElementById('hover-probe-brand');
       const probe = document.createElement('span');
       document.querySelector('.topbar').append(probe);
       probe.style.color = 'var(--tb-link-hover)'; const want = getComputedStyle(probe).color;
       probe.style.color = 'var(--accent-hover)'; const page = getComputedStyle(probe).color;
       probe.remove();
-      return { got: getComputedStyle(brand).color, want, page };
+      const got = getComputedStyle(a).color;
+      a.remove();
+      return { got, want, page };
     });
     check(theme + ': the brand hovers in --tb-link-hover', c.got === c.want && c.got !== c.page, JSON.stringify(c));
   }

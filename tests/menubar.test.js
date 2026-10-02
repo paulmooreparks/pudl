@@ -19,7 +19,18 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   const rows = () => p.evaluate(() => Array.from(document.querySelectorAll('#menubar-panel > *')).map(r => r.matches('.menu-sep') ? '|' : r.matches('.md-section-label') ? '#' + r.textContent : r.querySelector('.menubar-label') ? r.querySelector('.menubar-label').textContent + (r.getAttribute('aria-checked') === 'true' ? '*' : '') + (r.hasAttribute('aria-disabled') ? '(off)' : '') : r.textContent.trim()));
   const active = () => p.evaluate(() => { const a = document.activeElement; return a.classList.contains('menubar-title') ? 'title:' + a.textContent.trim() : a.querySelector && a.querySelector('.menubar-label') ? 'row:' + a.querySelector('.menubar-label').textContent : a.id || a.tagName; });
   const log = () => p.evaluate(() => window.__log.slice());
-  const raise = k => p.evaluate(k => pudlWindows.raise(k), k);
+  /* Raising a window updates the bar a frame later (pudl-menubar.js debounces
+     on pudl:windows-change), so this waits for the bar to actually name the
+     raised window rather than sleeping a fixed amount, which a busy CI
+     runner can outrun. */
+  const raise = async k => {
+    await p.evaluate(k => pudlWindows.raise(k), k);
+    const name = { notes: 'Notes', counter: 'Counter' }[k];
+    await p.waitForFunction(n => {
+      const groups = document.querySelectorAll('.menubar-row > .menubar-menu');
+      return Array.from(groups).some(g => g.offsetParent && g.getAttribute('aria-label') === n);
+    }, name);
+  };
   const waitOpen = () => p.waitForFunction(() => { const m = document.getElementById('menubar-panel'); return m.matches(':popover-open') && !m.classList.contains('placing'); });
 
   /* Built, one tab stop, the fallback hidden. */
@@ -32,11 +43,11 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   check('the bar is a menubar, one tab stop, with the jump key on its first title, and the fallback hidden', shape.role === 'menubar' && shape.stops === 1 && shape.fallback === 'none' && shape.key === 'm', JSON.stringify(shape));
 
   /* The front menu follows the front window. */
-  await raise('notes'); await p.waitForTimeout(100);
+  await raise('notes');
   let bt = await bar();
   check('the host menu, and the front window\'s applet\'s titles, without a title the host has',
         bt === 'Parks Computing: P Parks Computing|View|Window|Help / Notes: Notes|File', bt);
-  await raise('counter'); await p.waitForTimeout(100);
+  await raise('counter');
   bt = await bar();
   check('an applet with only commands() gets one title, its window\'s name', bt.endsWith('/ Counter: Counter'), bt);
   check('what breaks a rule is left out with a warning naming it',
@@ -53,7 +64,7 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   check('and choosing one runs it', (await p.textContent('[data-applet="counter"]')) === '1');
 
   /* Pointer: a command runs, and focus goes back to where it was. */
-  await raise('notes'); await p.waitForTimeout(100);
+  await raise('notes');
   await p.click('#note');
   await p.click('.menubar-front .menubar-title >> text=File');
   await waitOpen();
