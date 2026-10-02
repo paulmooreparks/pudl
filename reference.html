@@ -879,5 +879,15 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       <li><span class="lbl">Recolour</span>Changing <code>--accent</code> reaches links, primary buttons, focus rings, filter chips, the dots on the dock's tabs and the active window.</li>
     </ul>
   </div>
+  <script>
+    /* Sample links illustrate controls without navigating away from the example.
+       Real window commands and links outside the demos keep their destinations. */
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest && e.target.closest('.ref .demo a[href^="#"]');
+      if (link && !link.hasAttribute('data-win-open') && !link.hasAttribute('data-win-action')) {
+        e.preventDefault();
+      }
+    });
+  </script>
 </body>
 </html>
