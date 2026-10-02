@@ -1,4 +1,4 @@
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, engine } = require('./lib');
 let failures = 0;
 function check(name, ok) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name);
@@ -25,7 +25,7 @@ function check(name, ok) {
     await p.keyboard.press('Escape');
     await p.locator(selector).click();
     await p.locator(selector).click();
-    check('clicking the same glyph again keeps its first menu open', await isOpen());
+    check('clicking the same glyph again closes its first menu', !await isOpen());
     await p.keyboard.press('Escape');
   }
   await p.locator(glyphs[0]).click();
@@ -42,6 +42,20 @@ function check(name, ok) {
   await p.waitForSelector('.menubar-collapsed');
   await p.locator('.menubar-one .menubar-glyph').click();
   check('the collapsed menu glyph still opens its menu', await isOpen());
+  await p.locator('.menubar-one .menubar-glyph').click();
+  check('the collapsed glyph toggles its menu closed', !await isOpen());
+  // Firefox's test adapter does not support touch emulation.
+  if (engine !== 'firefox') {
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 700 }, hasTouch: true });
+    await mobile.goto(ROOT + '/tests/fixtures/menubar.html');
+    await mobile.waitForFunction(() => document.querySelector('.menubar-collapsed') &&
+      document.querySelectorAll('[data-applet-state="running"]').length === 2);
+    const mobileGlyph = mobile.locator('.menubar-one .menubar-glyph');
+    await mobileGlyph.tap();
+    check('a mobile tap opens the menu', await mobile.locator('#menubar-panel').evaluate(el => el.matches(':popover-open')));
+    await mobileGlyph.tap();
+    check('a second mobile tap closes the menu', !await mobile.locator('#menubar-panel').evaluate(el => el.matches(':popover-open')));
+  }
   await browser.close();
   process.exit(failures ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

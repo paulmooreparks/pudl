@@ -22,15 +22,13 @@
   var NARROW = 640;     // at or below this window width the panel is a sheet
   var ITEMS = 'a.md-item, .menu-action, .md-filter';
 
-  /* The element a panel is placed against: the button that opens it, or,
-     for a panel a script opens from an element that cannot carry
-     popovertarget, such as a link, the element its data-menu-anchor names
-     by id. */
+  /* An explicit anchor selects the placement when several controls target
+     one panel. Otherwise use its native popover invoker. */
   function invokerOf(panel) {
-    var btn = panel.id ? document.querySelector('[popovertarget="' + CSS.escape(panel.id) + '"]') : null;
-    if (btn) return btn;
     var anchor = panel.getAttribute('data-menu-anchor');
-    return anchor ? document.getElementById(anchor) : null;
+    var explicit = anchor ? document.getElementById(anchor) : null;
+    if (explicit) return explicit;
+    return panel.id ? document.querySelector('[popovertarget="' + CSS.escape(panel.id) + '"]') : null;
   }
 
   function isOpen(panel) { return panel.matches(':popover-open'); }

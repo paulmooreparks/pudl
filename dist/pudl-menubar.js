@@ -352,13 +352,13 @@
     /* The full bar: each menu a raised group, its glyph first. */
     menus.forEach(function (m, mi) {
       var g = el('div', 'menubar-menu' + (mi ? ' menubar-front' : ''), { role: 'group', 'aria-label': m.name });
-      var glyph = el('span', 'menubar-glyph', { 'aria-hidden': 'true' });
+      var glyph = el('button', 'menubar-glyph', { type: 'button', tabindex: '-1', role: 'menuitem', 'aria-label': m.name, 'aria-haspopup': 'menu', 'aria-expanded': 'false' });
       /* Open after the pointer gesture, so popover light dismiss cannot
          close a panel that was opened during the same pointer-down. */
       glyph.addEventListener('click', function (e) {
         e.preventDefault();
         var first = g.querySelector('.menubar-title');
-        if (first) open(first, 'first');
+        if (first) toggle(first, true);
       });
       g.appendChild(glyph);
       m.titles.forEach(function (t, ti) {
@@ -409,8 +409,7 @@
     panel = el('div', 'menu-panel menubar-panel', { popover: '', role: 'menu', id: 'menubar-panel' });
     panel.addEventListener('toggle', function (e) {
       if (e.newState === 'closed' && openTitle) {
-        openTitle.setAttribute('aria-expanded', 'false');
-        openTitle.removeAttribute('popovertarget');
+        associate(openTitle, false);
         openTitle = null;
       }
     });
@@ -485,12 +484,22 @@
     });
   }
 
+  /* The group glyph is another native invoker for its first title. */
+  function associate(title, expanded) {
+    var glyph = title.previousElementSibling;
+    var controls = glyph && glyph.classList.contains('menubar-glyph') ? [title, glyph] : [title];
+    controls.forEach(function (control) {
+      control.setAttribute('aria-expanded', String(expanded));
+      if (expanded) control.setAttribute('popovertarget', panel.id);
+      else control.removeAttribute('popovertarget');
+    });
+  }
+
   function open(title, focusWhere) {
     ensurePanel();
     closeSub();
     if (openTitle && openTitle !== title) {
-      openTitle.setAttribute('aria-expanded', 'false');
-      openTitle.removeAttribute('popovertarget');
+      associate(openTitle, false);
     }
     menus = assemble();
     var info = title._menu;
@@ -505,8 +514,7 @@
     /* Native light dismiss treats the active title as part of its popup.
        Move the association on hover too, so clicking that title toggles
        the still-open panel instead of dismissing it before click runs. */
-    title.setAttribute('popovertarget', panel.id);
-    title.setAttribute('aria-expanded', 'true');
+    associate(title, true);
     titles().forEach(function (t) { t.tabIndex = t === title ? 0 : -1; });
     /* The panel is placed and focus moved at once, not on the toggle event,
        which a quick close and reopen can merge away. */
