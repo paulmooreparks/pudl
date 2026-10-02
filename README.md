@@ -549,6 +549,8 @@ A **launcher** is a menu button first in the row that holds a window dock, whose
 
 ## The menu bar
 
+The [menu-bar conventions](docs/MENU-BARS.md) define the site and applet groups, standard menu order, and command ownership. The [shared adoption guide](docs/MENU-BAR-ADOPTION.md) applies them to Parks Computing and YAVCHN. These design rules distinguish current support from planned implementation work.
+
 The optional `pudl-menubar.js` gives an application a menu bar in its topbar, as a Mac's is: one bar however many windows are open, showing the menus of what the reader is in. It holds the **host menu**, the site's own, which is always there, and to its right the **front menu**, for whatever is in front: the applet or article in the front window, or, with no window in front, the one on the page. Each menu is one raised surface in the topbar's chip colours with the menu glyph at its start, and its titles are flat words that take their press from it. Load it after `pudl-menu.js`, and after `pudl-windows.js` and `pudl-applets.js` if the page has them.
 
 The host renders its menu as a hidden list inside the bar, beside whatever should show without script, which the bar hides once it is built:
@@ -559,7 +561,9 @@ The host renders its menu as a hidden list inside the bar, beside whatever shoul
     <li><img src="/logo.svg" alt=""> Parks Computing
       <ul>
         <li><a href="/">Home</a></li>
-        <li>-</li>
+      </ul></li>
+    <li>Go
+      <ul>
         <li>Articles</li>
         <li><a href="/?open=coincidences" data-win-open="coincidences">Coincidences</a></li>
       </ul></li>
@@ -581,8 +585,8 @@ menus() {
     titles: [
       { label: 'Notes', items: [{ label: 'About Notes', run }] },
       { label: 'File', items: [
-        { label: 'Save', run, shortcut: 'Mod+S', disabled: !dirty },
-        '-',
+        { label: 'Save', run, shortcut: 'Mod+S', disabled: !dirty }] },
+      { label: 'Edit', items: [
         { label: 'Change case', items: [/* a submenu */] },
         { heading: 'Danger' },
         { label: 'Clear the note', run, danger: true }] }],

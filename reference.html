@@ -82,35 +82,29 @@
     <nav class="menubar" data-menubar aria-label="PUDL reference">
       <ul data-menubar-source hidden>
         <li>PUDL
+          <ul><li><a href="#">Reference home</a></li></ul>
+        </li>
+        <li>Go
           <ul>
-            <li><a href="#">Reference home</a></li>
-            <li><a href="#menus">Menus</a></li>
-            <li><a href="#menu-bar">Menu bar</a></li>
+            <li>Components</li>
+            <li><a href="#menus">Popup menus</a></li>
+            <li><a href="#menu-bar">Application menu bar</a></li>
+            <li><a href="#windows">Floating windows</a></li>
             <li>-</li>
             <li>Samples</li>
             <li><a href="samples/article-reader.html">Article reader</a></li>
             <li><a href="samples/files.html">Files</a></li>
+            <li><a href="?open=exp-12#windows" data-win-open="exp-12">Open hotel expense</a></li>
           </ul>
         </li>
         <li>View
-          <ul>
-            <li><button type="button" onclick="pudlToggleTheme()" data-shortcut="Mod+Shift+L">Toggle light / dark</button></li>
-            <li>Components
-              <ul>
-                <li><a href="#menus">Popup menus</a></li>
-                <li><a href="#menu-bar">Application menu bar</a></li>
-                <li><a href="#windows">Floating windows</a></li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-        <li data-menubar-if="windows">Window
-          <ul><li><a href="?open=exp-12#windows" data-win-open="exp-12">Open hotel expense</a></li></ul>
+          <ul><li><button type="button" onclick="pudlToggleTheme()" data-shortcut="Mod+Shift+L">Toggle light / dark</button></li></ul>
         </li>
         <li>Help
           <ul>
             <li><a href="README.md#the-menu-bar">Menu bar integration</a></li>
             <li><a href="docs/CONTRACT.md">Web contract</a></li>
+            <li><a href="docs/MENU-BARS.md">Menu-bar conventions</a></li>
           </ul>
         </li>
       </ul>
@@ -602,7 +596,8 @@
     <p>A menu can also be summoned from the keyboard. A panel carrying <code>data-menu-key="/"</code> opens when <kbd>/</kbd> is pressed anywhere outside a text field, with focus in its filter, so the reader can type part of a name and press Enter to go there. On this page, <kbd>/</kbd> opens the expenses launcher. If nothing matches and the filter sits in a form, Enter submits the form, so a server can take the typed text to a page of its own, which makes the menu a "go to" palette that still ends in an ordinary address. A panel with no button of its own opens near the top of the window, as a palette.</p>
 
     <h3 class="ref-sub" id="menu-bar">Application menu bar</h3>
-    <p>The menu bar at the top of this page is a working example. A bar holds at most two menus. The <strong>host menu</strong> belongs to the application and stays in place. The <strong>front menu</strong> belongs to the applet or article in front and appears to its right. Each menu is one raised group with a menu glyph at its start. Its titles share that raised surface, and the open title looks pressed. A title opens a panel of commands, which can include links, actions, checked or disabled commands, headings, separators and submenus.</p>
+    <p>The <a href="docs/MENU-BARS.md">menu-bar conventions</a> define the site bar and applet bar. Standard site menus appear in the order <strong>Site name, Go, Applets, View, Window, Help</strong>, with unused menus omitted. Applets is a direct launcher beside Go. Each group begins with an identity menu; working commands have their own menus. The <a href="docs/MENU-BAR-ADOPTION.md">shared site adoption guide</a> applies these rules to Parks Computing and YAVCHN.</p>
+    <p>The menu bar at the top of this page is a working example. A bar holds at most two menu groups. The <strong>host menu</strong> belongs to the application and stays in place. The <strong>front menu</strong> belongs to the applet or article in front and appears to its right. Each menu is one raised group with a menu glyph at its start. Its titles share that raised surface, and the open title looks pressed. A title opens a panel of commands, which can include links, actions, checked or disabled commands, headings, separators and submenus.</p>
     <p>Try View to change the theme or open the Components submenu. Choose Window, then Open hotel expense to see a front menu appear for the hotel window. Its Receipt title opens the receipt through the same link used inside the window. Bringing another expense forward removes the hotel's menu, while the host menu stays available. Resize the page to see the bar become one menu button when it runs out of room. In that form, choosing a title or submenu replaces the panel's rows and adds a Back row.</p>
     <p>Load <code>pudl-menubar.js</code> after <code>pudl-menu.js</code>, and after <code>pudl-windows.js</code> and <code>pudl-applets.js</code> when those are used. The host supplies a hidden nested list inside <code>nav.menubar[data-menubar]</code>. Each top-level item supplies a title and its commands. Links keep their addresses, and choosing a button command clicks the source button so the application's handler runs. Keep ordinary navigation beside the source list for readers without script; PUDL hides that fallback when it builds the bar.</p>
     <pre class="code"><code>&lt;nav class="menubar" data-menubar aria-label="My application"&gt;

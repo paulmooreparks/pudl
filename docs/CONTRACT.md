@@ -2,6 +2,8 @@
 
 This document lists everything a project may rely on in PUDL. From 1.0 on, nothing listed here changes except in a new major version, and anything not listed is internal and may change in any release. The README explains how to use each part; this document says what is promised.
 
+The [menu-bar conventions](MENU-BARS.md) describe command placement and ownership. Their implementation follow-up is planned work, not an extension of the API contract below.
+
 ## Promises
 
 - **Versions.** PUDL follows semantic versioning from 1.0. A patch release fixes behaviour without changing the contract. A minor release adds to the contract without changing or removing anything in it. A major release may change or remove what is listed here, and its changelog says what a project must do.
