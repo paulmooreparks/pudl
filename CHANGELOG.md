@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.39.2
+
+- Clicking a menu group's hamburger glyph again closes its first menu. The glyph is now a native button associated with the popup, and an explicit menu anchor keeps the panel aligned with its title when there are multiple invokers. Regression tests cover repeated clicks in both layouts and repeated touch taps in the collapsed mobile layout. Projects should update `pudl-menubar.js`, `pudl-menu.js`, and `pudl.css`.
+
 ## 0.39.1
 
 - Clicking an open menu-bar title closes its menu, including a menu opened by hovering from another title and the collapsed menu button. The active title now targets its native popover, preventing light dismiss from closing it before the click handler runs. Existing keyboard navigation and outside-click dismissal are preserved. Projects need only update `pudl-menubar.js`.

@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.39.1.
+   Version 0.39.2.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -477,6 +477,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
 }
 .menubar-glyph {
+  padding: 0; border: 0; background: none;
   flex: none; width: 26px; height: 26px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--tb-chrome-fg);
