@@ -25,7 +25,8 @@ function check(name, ok, extra) {
       await p.waitForFunction(i => { const el = document.getElementById(i); return el.matches(':popover-open') && !el.classList.contains('placing'); }, id);
       const r = await p.evaluate(i => {
         const el = document.getElementById(i);
-        return { id: i, scroll: el.scrollHeight, client: el.clientHeight, fits: el.scrollHeight <= el.clientHeight };
+        return { id: i, scroll: el.scrollHeight, client: el.clientHeight,
+          fits: el.scrollHeight <= el.clientHeight && el.getBoundingClientRect().width >= 14 * parseFloat(getComputedStyle(document.documentElement).fontSize) - 1 };
       }, id);
       if (!r.fits) over.push(JSON.stringify(r));
       await p.keyboard.press('Escape');

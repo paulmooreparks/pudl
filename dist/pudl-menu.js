@@ -83,7 +83,7 @@
     panel.style.inset = 'auto';
     panel.style.width = narrow ? vw + 'px' : '';
     panel.style.left = narrow ? v.left + 'px' : '';
-    panel.style.minWidth = '0px';
+    panel.style.minWidth = 'min(14rem, ' + vw + 'px)';
     panel.style.maxWidth = narrow ? vw + 'px' : 'min(22rem, ' + vw + 'px)';
 
     var bottomAnchor = Math.max(v.top, Math.min(v.bottom, r.bottom + GAP));
@@ -131,7 +131,7 @@
     panel.style.margin = '0';
     panel.style.inset = 'auto';
     panel.style.width = narrow ? vw + 'px' : '';
-    panel.style.minWidth = '0px';
+    panel.style.minWidth = 'min(14rem, ' + vw + 'px)';
     panel.style.maxWidth = narrow ? vw + 'px' : 'min(22rem, ' + vw + 'px)';
     var top = v.top + (narrow ? 0 : Math.round(vh * 0.15));
     panel.classList.remove('menu-overflow');
