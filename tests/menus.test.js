@@ -103,9 +103,9 @@ function check(name, ok, extra) {
   check('launcher marks the window in front', await page.locator('#demo-launcher .md-row.active a[data-win-open="exp-14"]').count() === 1);
   await page.keyboard.press('Escape');
 
-  await page.click('a[data-win-open="exp-12"] >> nth=1');
+  await page.click('.win-demo-list a[data-win-open="exp-12"]');
   await page.waitForSelector('.win[data-win="exp-12"]');
-  await page.click('.win[data-win="exp-12"] a[data-win-open="exp-12-receipt"]');
+  await page.click('.win[data-win="exp-12"] .card-desc a[data-win-open="exp-12-receipt"]');
   await page.waitForSelector('.win[data-win="exp-12-receipt"]');
   check('child rows appear in the sidebar only', await page.locator('.win-demo-list .md-row-child').count() === 1 &&
     await page.locator('#demo-launcher .md-row-child').count() === 0);

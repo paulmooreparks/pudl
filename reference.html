@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="dist/pudl-hljs.css">
   <script src="dist/pudl-windows.js" defer></script>
   <script src="dist/pudl-menu.js" defer></script>
+  <script src="dist/pudl-menubar.js" defer></script>
   <script src="dist/pudl-md.js" defer></script>
   <script src="dist/pudl-dialog.js" defer></script>
   <script src="dist/pudl-toast.js" defer></script>
@@ -78,7 +79,44 @@
 <body>
 
   <header class="topbar">
-    <a class="brand" href="#">PUDL</a>
+    <nav class="menubar" data-menubar aria-label="PUDL reference">
+      <ul data-menubar-source hidden>
+        <li>PUDL
+          <ul>
+            <li><a href="#">Reference home</a></li>
+            <li><a href="#menus">Menus</a></li>
+            <li><a href="#menu-bar">Menu bar</a></li>
+            <li>-</li>
+            <li>Samples</li>
+            <li><a href="samples/article-reader.html">Article reader</a></li>
+            <li><a href="samples/files.html">Files</a></li>
+          </ul>
+        </li>
+        <li>View
+          <ul>
+            <li><button type="button" onclick="pudlToggleTheme()" data-shortcut="Mod+Shift+L">Toggle light / dark</button></li>
+            <li>Components
+              <ul>
+                <li><a href="#menus">Popup menus</a></li>
+                <li><a href="#menu-bar">Application menu bar</a></li>
+                <li><a href="#windows">Floating windows</a></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li data-menubar-if="windows">Window
+          <ul><li><a href="?open=exp-12#windows" data-win-open="exp-12">Open hotel expense</a></li></ul>
+        </li>
+        <li>Help
+          <ul>
+            <li><a href="README.md#the-menu-bar">Menu bar integration</a></li>
+            <li><a href="docs/CONTRACT.md">Web contract</a></li>
+          </ul>
+        </li>
+      </ul>
+      <a class="brand" href="#">PUDL</a>
+      <a class="topbar-pill" href="#menus">Menus</a>
+    </nav>
     <div class="topbar-chrome">
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
@@ -563,6 +601,36 @@
     <p>A launcher is a menu button at the start of the row that holds a window dock, with a panel that reaches everything a site offers, grouped by category, with a filter at the top. The windows demo below has one, and so does <a href="samples/article-reader.html">the article reader sample</a>.</p>
     <p>A menu can also be summoned from the keyboard. A panel carrying <code>data-menu-key="/"</code> opens when <kbd>/</kbd> is pressed anywhere outside a text field, with focus in its filter, so the reader can type part of a name and press Enter to go there. On this page, <kbd>/</kbd> opens the expenses launcher. If nothing matches and the filter sits in a form, Enter submits the form, so a server can take the typed text to a page of its own, which makes the menu a "go to" palette that still ends in an ordinary address. A panel with no button of its own opens near the top of the window, as a palette.</p>
 
+    <h3 class="ref-sub" id="menu-bar">Application menu bar</h3>
+    <p>The menu bar at the top of this page is a working example. A bar holds at most two menus. The <strong>host menu</strong> belongs to the application and stays in place. The <strong>front menu</strong> belongs to the applet or article in front and appears to its right. Each menu is one raised group with a menu glyph at its start. Its titles share that raised surface, and the open title looks pressed. A title opens a panel of commands, which can include links, actions, checked or disabled commands, headings, separators and submenus.</p>
+    <p>Try View to change the theme or open the Components submenu. Choose Window, then Open hotel expense to see a front menu appear for the hotel window. Its Receipt title opens the receipt through the same link used inside the window. Bringing another expense forward removes the hotel's menu, while the host menu stays available. Resize the page to see the bar become one menu button when it runs out of room. In that form, choosing a title or submenu replaces the panel's rows and adds a Back row.</p>
+    <p>Load <code>pudl-menubar.js</code> after <code>pudl-menu.js</code>, and after <code>pudl-windows.js</code> and <code>pudl-applets.js</code> when those are used. The host supplies a hidden nested list inside <code>nav.menubar[data-menubar]</code>. Each top-level item supplies a title and its commands. Links keep their addresses, and choosing a button command clicks the source button so the application's handler runs. Keep ordinary navigation beside the source list for readers without script; PUDL hides that fallback when it builds the bar.</p>
+    <pre class="code"><code>&lt;nav class="menubar" data-menubar aria-label="My application"&gt;
+  &lt;ul data-menubar-source hidden&gt;
+    &lt;li&gt;My application
+      &lt;ul&gt;&lt;li&gt;&lt;a href="/"&gt;Home&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
+    &lt;/li&gt;
+    &lt;li&gt;Help
+      &lt;ul&gt;&lt;li&gt;&lt;a href="/help"&gt;User guide&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;a class="brand" href="/"&gt;My application&lt;/a&gt;
+  &lt;a href="/help"&gt;User guide&lt;/a&gt;
+&lt;/nav&gt;</code></pre>
+    <p>An applet supplies its front menu through <code>menus()</code>, returning <code>{ titles, into }</code>. Each title has a <code>label</code> and an <code>items</code> list. Commands have a <code>label</code> and <code>run</code>, with optional <code>checked</code>, <code>radio</code>, <code>disabled</code>, <code>danger</code> and <code>shortcut</code> fields, or an <code>items</code> list for a submenu. A string <code>'-'</code> supplies a separator, and <code>{ heading }</code> labels a group. PUDL asks for the menu again whenever a panel opens, so its state stays current. An applet that supplies only <code>commands()</code> gets one title containing those commands.</p>
+    <p>A front menu cannot reuse a host title. Its <code>into</code> entries can add commands to a host title by name, below a separator and a heading naming the applet, without changing the host's commands. Command labels must be unique within a panel. PUDL omits clashes and reports them in the console. With a menu bar present, applet commands live there; the window menu retains the window's own controls.</p>
+    <p>An article supplies a hidden <code>nav[data-page-menu]</code> containing the same nested lists, with links for its commands. PUDL adds a first title named after the article, with Open as a page, Copy the link, Print and, in a window, Close. The hotel example uses this form for its Receipt title. A heading link scrolls inside the article's window; a link carrying <code>data-win-open</code> opens its target window.</p>
+    <table class="kv-table">
+      <caption>Menu bar keyboard controls</caption>
+      <tr><th>Tab</th><td>Enter the bar at its single tab stop, or leave an open menu.</td></tr>
+      <tr><th>Left / Right</th><td>Move between titles across both menus; inside a panel, open or close a submenu or move to the adjacent title.</td></tr>
+      <tr><th>Down / Enter / Space</th><td>Open the focused title's panel.</td></tr>
+      <tr><th>Up / Down</th><td>Move between commands in a panel.</td></tr>
+      <tr><th>Letter</th><td>Move to the next command beginning with that letter.</td></tr>
+      <tr><th>Escape</th><td>Close the menu.</td></tr>
+    </table>
+    <p>The first title has <code>accesskey="m"</code>; the browser determines its modifier keys. Set <code>data-menubar-key</code> on the bar to change it, or use an empty value to disable it. A command's <code>data-shortcut</code>, or an applet command's <code>shortcut</code>, uses <code>Mod</code> for Ctrl on Windows and Linux or Command on a Mac. This page uses <kbd>Mod+Shift+L</kbd> to change the theme. Host shortcuts work anywhere; front-menu shortcuts work while focus is in their content. Browser window and tab shortcuts, and the standard select, copy, cut and paste shortcuts, are reserved. See <a href="README.md#the-menu-bar">the integration guide</a> for the complete markup and command contract.</p>
+
     <h2 id="windows">17. Floating windows</h2>
     <p>Records can open as windows floating above a list, from the optional <code>pudl-windows.css</code> and <code>pudl-windows.js</code>. Open a few of the expenses below, then drag a window by its title bar, resize it from any edge or corner, drag it against the left, right or top edge to snap it, and double-click its title bar to maximise it. The dock above the list has one tab per open window. Everything you do is written into this page's URL, so reloading puts every window back where it was, and Back undoes the last window you opened.</p>
     <p>The frame around a window is a band of the raised tint between two hairlines, and the whole band is the resize border. The active window's title bar takes the accent. With the title bar focused, the arrow keys move the window, Shift with the arrow keys resizes it, and Enter maximises or restores it. Without script, each link opens the record's own page, and the server renders whichever windows the URL names where the URL puts them.</p>
@@ -609,6 +677,13 @@
           </nav>
         </header>
         <div class="win-body">
+          <nav data-page-menu hidden>
+            <ul>
+              <li>Receipt
+                <ul><li><a href="?open=exp-12,exp-12-receipt#windows" data-win-open="exp-12-receipt">View the receipt</a></li></ul>
+              </li>
+            </ul>
+          </nav>
           <p class="card-desc">Receipt attached; charged to the customer's billing account. <a href="#windows" data-win-open="exp-12-receipt">View the receipt</a>.</p>
           <table class="kv-table">
             <tr><th>Created</th><td>2026-10-19 07:00 UTC</td></tr>
