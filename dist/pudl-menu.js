@@ -32,6 +32,7 @@
   }
 
   function isOpen(panel) { return panel.matches(':popover-open'); }
+  var opening = new WeakSet();
 
   var insets;
   function viewport() {
@@ -68,8 +69,10 @@
      top layer, which is positioned against the window, so the button's
      rectangle is all that is needed. */
   function place(panel) {
+    var scroll = opening.has(panel) ? 0 : panel.scrollTop;
+    opening.delete(panel);
     var btn = invokerOf(panel);
-    if (!btn) { placeAsPalette(panel); return; }
+    if (!btn) { placeAsPalette(panel, scroll); return; }
     var r = btn.getBoundingClientRect();
     var v = viewport(), vw = v.right - v.left;
     var beside = panel.getAttribute('data-menu-placement') === 'beside';
@@ -99,6 +102,7 @@
       var width = panel.offsetWidth;
       panel.style.left = Math.max(v.left, Math.min(v.right - width, r.right + width + EDGE <= v.right ? r.right - 2 : r.left - width + 2)) + 'px';
       panel.style.top = Math.max(v.top + EDGE, Math.min(r.top - 6, v.bottom - panel.offsetHeight - EDGE)) + 'px';
+      panel.scrollTop = scroll;
       cues(panel);
       return;
     }
@@ -113,13 +117,14 @@
       panel.style.left = Math.max(v.left, Math.min(start, v.right - w - EDGE)) + 'px';
     }
     panel.style.top = (down ? bottomAnchor : Math.max(v.top, topAnchor - panel.offsetHeight)) + 'px';
+    panel.scrollTop = scroll;
     cues(panel);
   }
 
   /* A panel with no button, summoned only by its key, opens where keyboard
      palettes conventionally sit: centred, a little below the top of the
      window. */
-  function placeAsPalette(panel) {
+  function placeAsPalette(panel, scroll) {
     var v = viewport(), vw = v.right - v.left, vh = v.bottom - v.top;
     var narrow = vw <= NARROW;
     panel.classList.toggle('sheet', narrow);
@@ -134,6 +139,7 @@
     fitHeight(panel, v.bottom - top - EDGE, Math.ceil(panel.getBoundingClientRect().height));
     panel.style.left = (narrow ? v.left : Math.max(v.left, v.left + Math.round((vw - panel.offsetWidth) / 2))) + 'px';
     panel.style.top = top + 'px';
+    panel.scrollTop = scroll;
     cues(panel);
   }
 
@@ -192,6 +198,7 @@
        fires for every opening, whereas the toggle events of a quick close
        and reopen can be merged into one, so the clearing belongs here. */
     if (e.newState === 'open') {
+      opening.add(panel);
       panel.classList.add('placing');
       resetFilter(panel);
     }
@@ -202,7 +209,6 @@
     var panel = e.target;
     if (!panel.classList || !panel.classList.contains('menu-panel')) return;
     if (e.newState === 'open') {
-      panel.scrollTop = 0;
       place(panel);
       panel.classList.remove('placing');
       if (!watchers.has(panel)) {
