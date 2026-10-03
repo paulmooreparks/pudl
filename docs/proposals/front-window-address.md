@@ -30,7 +30,7 @@ The windows module owns URL resolution and copying. The menu-bar module delegate
 
 The sharing sample renders its article directly at `samples/shared-window.html`. Opening notes and arranging the windows produces a full workspace URL. Copy the link on the article exports its article-only address without changing that workspace. The sample also provides an ordinary article link, which works without JavaScript, and reports the copy result in a status region.
 
-The README and web contract describe the public attribute, functions and event. The changelog explicitly distinguishes this solution from the original request to change what copying the address bar exports. No issue comment has been posted and the issue has not been closed.
+The README and web contract describe the public attribute, functions and event. The changelog explicitly distinguishes this solution from the original request to change what copying the address bar exports. The 0.44.0 issue review retains this resolution and rechecks the sharing regressions; the originally proposed history-only mode remains excluded.
 
 ## Verification
 
