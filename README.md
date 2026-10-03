@@ -187,7 +187,9 @@ The topbar can hold a site's main sections as **tabs**, as a browser puts its ta
 
 The row stands on the topbar's bottom edge. The tabs the reader can go to are raised in the topbar's chip colours, and the tab marked `aria-current` stands flat and taller, covers the topbar's bottom border and takes the colour of what lies below it, so it opens into the page as a section tab opens into its content. That colour is `--bg`; a page whose content directly below the topbar sits on another colour sets `--section-current-bg` on the `.topbar-tabs`. On a phone the tabs take the topbar's last row and scroll sideways.
 
-PUDL sets text in Inter, which it ships in `dist/fonts/` as one variable file for each style, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
+PUDL sets text in Inter, which it ships in `dist/fonts/` as variable upright and italic subsets selected by Unicode range, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
+
+An English page downloads only the Latin upright subset (162,060 bytes); italic text adds the Latin italic subset (178,340 bytes). Other scripts load on demand, and a remainder subset preserves characters outside the named script ranges. All fonts retain the weight and optical-size axes. Copy the complete `fonts/` directory with `pudl.css` when upgrading to 0.44.0. The original whole files remain available for existing direct links and preloads, but the default stylesheet no longer requests them. Remove any whole-font preload to obtain the download saving. See [font subsetting](docs/FONTS.md) for rebuilding and verification.
 
 ## What a project may change
 
@@ -1091,7 +1093,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-code.js`, the optional script that gives code blocks Copy and Download
   - `pudl-split.js`, the optional script for splitters between two panes
   - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
-  - `fonts/`, Inter in its upright and italic variable files, with its licence
+  - `fonts/`, Inter script subsets and retained whole variable fonts, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
 - `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; `applet-article.html`, the same applet embedded in an article; `applets/`, the applet and the registry that names it; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage; and `files.html`, the file browser, whose `files-app.js` does the same for it, with its editor and preview applets in `applets/` and pages of their own in `editor.html` and `preview.html`. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
@@ -1111,7 +1113,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.43.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.44.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 
