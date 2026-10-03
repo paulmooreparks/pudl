@@ -73,7 +73,16 @@ def generate():
         kept_features = {table: set() for table in ("GSUB", "GPOS")}
         for name, points in groups.items():
             assert points, f"Empty subset: {style}/{name}"
-            font = TTFont(FONTS / source, recalcTimestamp=False)
+            # Auto-hinters derive alignment zones from representative letters.
+            # Keep basic alphabets inside the file without advertising them in
+            # this face's CSS range. See docs/FONTS.md for the FreeType contract.
+            context = codepoints("0020-007E")
+            if name.startswith("greek"):
+                context |= codepoints(RANGES["greek"])
+            if name.startswith("cyrillic"):
+                context |= codepoints(RANGES["cyrillic"])
+            file_points = points | (context & covered)
+            font = TTFont(FONTS / source, recalcTimestamp=False, recalcBBoxes=False)
             options = subset.Options()
             options.layout_features = ["*"]
             options.name_IDs = ["*"]
@@ -83,19 +92,19 @@ def generate():
             options.recalc_timestamp = False
             options.harfbuzz_repacker = False
             worker = subset.Subsetter(options=options)
-            worker.populate(unicodes=points)
+            worker.populate(unicodes=file_points)
             worker.subset(font)
             data = io.BytesIO()
             font.flavor = "woff2"
             font.save(data)
             # Verify serialized files, not just the subsetter's in-memory result.
             result = TTFont(io.BytesIO(data.getvalue()))
-            assert set(result.getBestCmap()) == points, f"Coverage: {style}/{name}"
+            assert set(result.getBestCmap()) == file_points, f"Coverage: {style}/{name}"
             assert axes(result) == axes(original), f"Variable axes: {style}/{name}"
             assert result["post"].formatType == original["post"].formatType
             for table in kept_features:
                 kept_features[table].update(features(result, table))
-            retained.update(result.getBestCmap())
+            retained.update(points)
             filename = f"{prefix}-{name}.woff2"
             outputs[FONTS / filename] = data.getvalue()
             css.extend(["@font-face {", '  font-family: "Inter";',
