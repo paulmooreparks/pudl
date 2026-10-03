@@ -17,8 +17,8 @@ Preloading is optional. A page that overrides the Inter family or does not rende
 
 | Style | Whole font | Latin subset | Reduction |
 |---|---:|---:|---:|
-| Upright | 352,240 bytes | 162,060 bytes | 54.0% |
-| Italic | 387,976 bytes | 178,340 bytes | 54.0% |
+| Upright | 352,240 bytes | 162,188 bytes | 54.0% |
+| Italic | 387,976 bytes | 179,156 bytes | 53.8% |
 
 The total installed font directory grows because script subsets share glyphs and the original files are retained. The saving applies to a visitor's downloads. A page using many scripts can download more than one whole font would have required.
 
@@ -32,9 +32,11 @@ python build/fonts.py
 python build/fonts.py --check
 ```
 
-The script uses the whole files in `dist/fonts/` as inputs and writes sixteen WOFF2 files plus the marked font-face block in `pudl.css`. It retains glyph names, hinting, name records, layout features, and both variable axes. It disables timestamp recalculation and the optional HarfBuzz repacker so the pinned toolchain produces consistent bytes. Commit the generated assets with any input or generator change.
+The script uses the whole files in `dist/fonts/` as inputs and writes sixteen WOFF2 files plus the marked font-face block in `pudl.css`. It retains glyph names, hinting, name records, layout features, and both variable axes. It preserves the source glyph bounds and disables timestamp recalculation and the optional HarfBuzz repacker so the pinned toolchain produces consistent bytes. Commit the generated assets with any input or generator change.
 
 Each script range is intersected with the source font's character map. A computed remainder covers everything outside those ranges. Every subset also retains all combining marks supported by the source font. This follows the [CSS cluster-matching rules](https://www.w3.org/TR/css-fonts-4/#cluster-matching), which prefer one face for a base character and its marks. Without that addition, the ranges proposed in the issue changed the metrics of decomposed accented text in Chromium and WebKit. The extra coverage accounts for the larger Latin subset compared with the issue's estimate. Shared characters may appear in several subsets; Latin is declared last so ordinary punctuation uses the common subset. Glyphs required by shaping rules are retained even when they have no directly addressable Unicode character.
+
+The font files also retain basic Latin letters as internal hinting context, with basic Greek and Cyrillic retained in their respective extended subsets. These extra characters stay outside the subset's advertised CSS range unless they already belong there. FreeType documents that its [auto-hinter derives alignment zones from representative characters](https://freetype.org/ttfautohint/doc/ttfautohint.html#blue-zones). Removing that context changed bold extended-Latin widths by one pixel in Linux Chromium, even though the design-space advances were unchanged. Retaining it restores the tested metrics without loading additional files.
 
 ## Verification
 

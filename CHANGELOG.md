@@ -4,7 +4,7 @@
 
 This release implements PUDL specification 0.6.0. Update `pudl.css` and copy the complete `fonts/` directory together. Remove preloads of the original whole fonts to obtain the saving.
 
-- Inter now loads by script through Unicode-range font faces. English text downloads 162,060 bytes upright and 178,340 bytes italic, about 54% less than the corresponding whole fonts. The Latin subset includes footnote arrows. Both variable axes, OpenType features, and the original character coverage are retained. This addresses issue #11.
+- Inter now loads by script through Unicode-range font faces. English text downloads 162,188 bytes upright and 179,156 bytes italic, about 54% less than the corresponding whole fonts. The Latin subset includes footnote arrows. Both variable axes, OpenType features, and the original character coverage are retained. This addresses issue #11.
 - The committed subsets have a reproducible fontTools build and verification check. Browser regressions cover demand loading for every subset and text metrics against the whole fonts. The whole files remain available for existing direct links.
 - Issue #10 remains addressed by the crafted sharing URLs shipped in 0.39.0. The sharing regressions verify that copying an article link preserves the full workspace URL; no history-only address mode is introduced.
 
