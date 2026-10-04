@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.44.1</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.44.2</a>
     </div>
   </header>
 
@@ -825,7 +825,7 @@
     </div>
 
     <h2 id="docs">20. Document tabs and code</h2>
-    <p>Document tabs come and go, one per open file, and look like every other tab. An unsaved document's tab carries a dot, whose word is heard rather than seen, and each tab has a small raised close button; Delete closes the focused tab. The host decides, through <code>pudl:tab-close</code>. A code block is flat, because it is for reading, and an editor's surface is sunken, because it takes input; highlighted code in both takes the theme's <code>--syntax</code> colours. A block marked <code>data-code-actions</code> gains a strip naming its language, with raised buttons to copy the code and to download it as a file.</p>
+    <p>Document tabs come and go, one per open file, and look like every other tab. An unsaved document's tab carries a dot, whose word is heard rather than seen, and each tab has a small raised close button; Delete closes the focused tab. The host decides, through <code>pudl:tab-close</code>. A code block is flat, because it is for reading, and an editor's surface is sunken, because it takes input; highlighted code in both takes the theme's <code>--syntax</code> colours. Both show every character as written, with the monospace face's ligatures turned off. A block marked <code>data-code-actions</code> gains a strip naming its language, with raised buttons to copy the code and to download it as a file.</p>
     <div class="demo">
       <div class="tablist doc-tabs" role="tablist" aria-label="Open files">
         <button role="tab" type="button" aria-selected="true" aria-controls="doc-panel">today.md<span class="doc-tab-dirty">unsaved</span><span class="doc-tab-close" aria-hidden="true"></span></button>

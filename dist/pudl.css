@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.44.1.
+   Version 0.44.2.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -1218,6 +1218,10 @@ pre.code:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-
   box-shadow: var(--entry-shadow);
 }
 .code-surface:focus-within { border-color: var(--accent); box-shadow: var(--entry-shadow), 0 0 0 3px var(--focus-ring); }
+/* Monospace text is read character for character, so ligatures are off
+   wherever PUDL sets it. Cascadia Code, first in --mono on Windows, joins
+   "|---|" into one line and "!=" into a single sign by default. */
+pre.code, .code-surface, .path.mono { font-variant-ligatures: none; }
 
 /* === Dialogs ==============================================================
    A dialog is a native <dialog class="dialog">, rendered by the server and
