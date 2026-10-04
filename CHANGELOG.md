@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.44.2
+
+This release implements PUDL specification 0.6.0. Update `pudl.css`.
+
+- Code blocks, code surfaces and monospace paths now turn the monospace face's ligatures off. On Windows `--mono` resolves to Cascadia Code, which joins characters by default, so a Markdown table's `|---|` was drawn as one line and `!=` as a single sign. Text that is read character for character now shows each character as written, and an editor inside a code surface inherits the setting.
+- The reference page says so under Document tabs and code, and a new test checks the setting on each of the three, and on text inside a code surface.
+
+Found while building PUDL Desktop.
+
 ## 0.44.1
 
 This release implements PUDL specification 0.6.0. Update `pudl.css`. A project that carries its own stopgap rule for disabled buttons, as YAVCHN does, can delete it.
