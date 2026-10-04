@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.44.1
+
+This release implements PUDL specification 0.6.0. Update `pudl.css`. A project that carries its own stopgap rule for disabled buttons, as YAVCHN does, can delete it.
+
+- A disabled button of any kind now looks like a disabled plain button. The disabled rules set no text colour or border, so a disabled `.btn-primary` kept its accent text on the neutral face, white on light grey in the light theme and dark on dark in the dark theme, faded to almost nothing; a disabled `.btn-danger` kept its danger text and border. They now set the ordinary text colour and border, and come after the button kinds, so no kind's own rules, hovered, pressed or latched, show through.
+- A button disabled by its `<fieldset disabled>` now looks disabled. The rules matched only the `disabled` attribute, so such a button was drawn enabled and did nothing when pressed; they now match `:disabled`.
+- The reference page says, under Buttons, that a disabled button of any kind looks like a disabled plain button. A new test compares disabled primary, danger, latched, fieldset-disabled, `.is-disabled` and `aria-disabled` link buttons with a disabled plain button in both themes.
+
+Reported by YAVCHN on 0.43.0.
+
 ## 0.44.0
 
 This release implements PUDL specification 0.6.0. Update `pudl.css` and copy the complete `fonts/` directory together. Remove preloads of the original whole fonts to obtain the saving.

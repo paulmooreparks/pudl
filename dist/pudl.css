@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.44.0.
+   Version 0.44.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -854,18 +854,6 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .btn[aria-pressed="true"]:focus-visible {
   box-shadow: var(--raise-active-shadow), 0 0 0 3px var(--focus-ring);
 }
-.btn[disabled], .btn.is-disabled {
-  opacity: .45; cursor: not-allowed;
-  box-shadow: var(--raise-shadow);
-  background: var(--raise-grad);
-}
-/* A link styled as a button cannot be disabled, so it is marked
-   aria-disabled, and it then looks disabled and takes no clicks. */
-.btn[aria-disabled="true"] {
-  opacity: .45; pointer-events: none;
-  box-shadow: var(--raise-shadow);
-  background: var(--raise-grad);
-}
 .btn-sm { padding: 4px 10px; font-size: var(--text-xs); }
 .btn-primary {
   color: var(--on-accent);
@@ -904,6 +892,21 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   background: linear-gradient(color-mix(in srgb, var(--danger) 78%, #fff), var(--danger));
   border-color: color-mix(in srgb, var(--danger) 62%, #000);
 }
+
+/* A disabled button of any kind looks like a disabled plain button: the
+   neutral raised face, the ordinary text colour and border, dimmed. It
+   matches :disabled, so a button disabled by its fieldset is included,
+   and it comes after the kinds, with a second selector for the hovered,
+   pressed and latched states, so that nothing a kind sets shows through.
+   A link styled as a button cannot be disabled, so it is marked
+   aria-disabled, and it then also takes no clicks. */
+.btn:is(:disabled, .is-disabled, [aria-disabled="true"]),
+.btn:is(:disabled, .is-disabled, [aria-disabled="true"]):is(:hover, :active, [aria-pressed="true"]) {
+  opacity: .45; cursor: not-allowed;
+  color: var(--text); border-color: var(--raise-border);
+  background: var(--raise-grad); box-shadow: var(--raise-shadow);
+}
+.btn[aria-disabled="true"] { pointer-events: none; }
 
 /* Icon button: raised square for row actions (drag, remove, archive). */
 .icon-btn {
