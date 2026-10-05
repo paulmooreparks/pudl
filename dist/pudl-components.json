@@ -75,10 +75,11 @@
       "name": "Select",
       "kind": "sunken",
       "spec": "08-components/fields.md",
-      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"choice\">Label</label><select class=\"form-select\" id=\"choice\" name=\"choice\"><option>First</option><option>Second</option></select></div>",
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"choice\">Label</label><span class=\"form-select-wrap\"><select class=\"form-select\" id=\"choice\" name=\"choice\"><option>First</option><option>Second</option></select></span></div>",
       "parts": [
         { "selector": ".form-label", "surface": "flat" },
-        { "selector": ".form-select", "surface": "sunken" }
+        { "selector": ".form-select", "surface": "sunken" },
+        { "selector": ".form-select-wrap", "pseudo": "::after", "surface": "flat" }
       ],
       "states": [
         { "name": "Required", "attribute": "required", "on": ".form-select" },

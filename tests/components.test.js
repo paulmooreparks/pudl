@@ -19,9 +19,7 @@ const { engine: ENGINE } = require('./lib');
 /* Parts known not to look like their category in an engine, each with
    the reason, listed in docs/COMPONENTS.md under "Known gaps". A part that
    starts to pass should come off this list. */
-const KNOWN = {
-  'webkit select .form-select': 'WebKit draws a select itself, with a gradient and no inner shadow, so it does not read as sunken'
-};
+const KNOWN = {};
 
 (async () => {
   const all = list.components.concat(list.structure);
