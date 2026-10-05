@@ -21,11 +21,13 @@
       "variants": [
         { "name": "Primary", "class": "btn-primary", "group": "kind" },
         { "name": "Danger", "class": "btn-danger", "group": "kind" },
+        { "name": "Disclosure", "class": "disclosure", "group": "kind" },
         { "name": "Small", "class": "btn-sm" }
       ],
       "states": [
         { "name": "Disabled", "attribute": "disabled" },
-        { "name": "Latched", "attribute": "aria-pressed", "value": "true" }
+        { "name": "Latched", "attribute": "aria-pressed", "value": "true" },
+        { "name": "Expanded, for a disclosure", "attribute": "aria-expanded", "value": "true", "off": "false" }
       ]
     },
     {
@@ -214,6 +216,18 @@
       "template": "<div class=\"card\"><h3 class=\"card-title\">Title</h3><p class=\"card-subtitle\">Subtitle</p><p class=\"card-desc\">What the card is about.</p></div>",
       "parts": [{ "selector": ".card", "surface": "flat" }],
       "slots": [{ "selector": ".card", "name": "Content" }]
+    },
+    {
+      "id": "settings-panel",
+      "name": "Settings panel",
+      "kind": "layout",
+      "spec": "08-components/cards.md",
+      "template": "<div class=\"settings-panel\"><section class=\"card\"><h2 class=\"card-title\">Group</h2><p class=\"card-desc\">What these settings change.</p><label class=\"check\"><input type=\"checkbox\"> A setting</label><div class=\"settings-actions\"><button class=\"btn btn-primary\" type=\"submit\">Save</button></div><p class=\"settings-status\" role=\"status\"></p></section></div>",
+      "parts": [
+        { "selector": ".settings-panel", "surface": "layout" },
+        { "selector": ".settings-panel > .card", "surface": "flat" }
+      ],
+      "slots": [{ "selector": ".settings-panel", "name": "Cards" }]
     },
     {
       "id": "key-value-table",

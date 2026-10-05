@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.50.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.51.0</a>
     </div>
   </header>
 
@@ -148,11 +148,13 @@
       <button class="btn btn-primary">Primary</button>
       <button class="btn btn-danger">Danger</button>
       <button class="btn btn-sm">Small</button>
+      <button class="btn disclosure" type="button" aria-expanded="false" aria-controls="ref-note" onclick="var o = this.getAttribute('aria-expanded') !== 'true'; this.setAttribute('aria-expanded', String(o)); document.getElementById('ref-note').hidden = !o;">Note</button>
       <button class="btn" disabled>Disabled</button>
       <button class="icon-btn" aria-label="Drag to reorder"><span class="glyph" style="--glyph: var(--glyph-grip)" aria-hidden="true"></span></button>
       <button class="icon-btn danger" aria-label="Remove"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button>
       <button class="icon-btn" aria-label="Settings" disabled><span class="glyph" style="--glyph: var(--glyph-gear)" aria-hidden="true"></span></button>
     </div>
+    <p id="ref-note" hidden>A disclosure button shows or hides content in place, like this line. Its chevron points down while the content is hidden and up while it is shown, and it does not latch.</p>
     <p>A toggle button latches. With <code>aria-pressed="true"</code> it stays pressed in until pressed again, and the same attribute tells assistive technology that it is on. A primary button may latch too, such as a flash card's Reveal: it keeps its accent and its text, and loses its lift. Press these three.</p>
     <div class="demo demo-row">
       <button class="btn" type="button" aria-pressed="true" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') === 'true' ? 'false' : 'true')">Hints</button>
