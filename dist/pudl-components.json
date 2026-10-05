@@ -1,0 +1,423 @@
+{
+  "$comment": "PUDL's components, for tools: each one's markup, the grammar of its parts, its variants and its states. docs/COMPONENTS.md describes this file; docs/CONTRACT.md is the contract it formalises, and tests/components.test.js keeps the two and the stylesheet in step.",
+  "grammar": {
+    "raised": "Can be pressed: lit along its top, shading to its foot, bounded by a hairline, casting a small shadow.",
+    "sunken": "Takes input: below its surroundings, with a shadow inside its top edge.",
+    "flat": "There to be read.",
+    "list": "A list of places or choices: flat rows that respond under the pointer and mark the current one.",
+    "handle": "Dragged, such as the divider between two panes; flat, with the grip glyph.",
+    "link": "Goes somewhere; underlined in running text.",
+    "tab": "Raised, except the current tab, which stands flat and open into the content below it.",
+    "layout": "Arranges other components and has no surface of its own."
+  },
+  "components": [
+    {
+      "id": "button",
+      "name": "Button",
+      "kind": "raised",
+      "spec": "08-components/buttons.md",
+      "template": "<button type=\"button\" class=\"btn\">Button</button>",
+      "parts": [{ "selector": ".btn", "surface": "raised" }],
+      "variants": [
+        { "name": "Primary", "class": "btn-primary", "group": "kind" },
+        { "name": "Danger", "class": "btn-danger", "group": "kind" },
+        { "name": "Small", "class": "btn-sm" }
+      ],
+      "states": [
+        { "name": "Disabled", "attribute": "disabled" },
+        { "name": "Latched", "attribute": "aria-pressed", "value": "true" }
+      ]
+    },
+    {
+      "id": "icon-button",
+      "name": "Icon button",
+      "kind": "raised",
+      "spec": "08-components/glyph-buttons.md",
+      "template": "<button type=\"button\" class=\"icon-btn\" aria-label=\"Settings\"><span class=\"glyph\" style=\"--glyph: var(--glyph-gear)\" aria-hidden=\"true\"></span></button>",
+      "parts": [{ "selector": ".icon-btn", "surface": "raised" }],
+      "variants": [{ "name": "Danger", "class": "danger" }],
+      "states": [{ "name": "Disabled", "attribute": "disabled" }],
+      "properties": [{ "name": "Label", "attribute": "aria-label", "required": true }]
+    },
+    {
+      "id": "link-button",
+      "name": "Link-styled button",
+      "kind": "link",
+      "spec": "08-components/buttons.md",
+      "template": "<button type=\"button\" class=\"link\">Show more</button>",
+      "parts": [{ "selector": ".link", "surface": "link" }],
+      "variants": [{ "name": "Muted", "class": "link-muted", "replaces": "link" }]
+    },
+    {
+      "id": "text-field",
+      "name": "Text field",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"field\">Label</label><input class=\"form-input\" id=\"field\" name=\"field\"><p class=\"form-help\">Help for the field.</p></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".form-input", "surface": "sunken" },
+        { "selector": ".form-help", "surface": "flat" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": ".form-input" },
+        { "name": "Invalid", "attribute": "aria-invalid", "value": "true", "on": ".form-input" },
+        { "name": "Read-only", "attribute": "readonly", "on": ".form-input" },
+        { "name": "Disabled", "attribute": "disabled", "on": ".form-input" }
+      ],
+      "properties": [
+        { "name": "Type", "attribute": "type", "on": ".form-input", "values": ["text", "email", "number", "date", "search", "url", "tel", "password"] },
+        { "name": "Name", "attribute": "name", "on": ".form-input" }
+      ]
+    },
+    {
+      "id": "select",
+      "name": "Select",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"choice\">Label</label><select class=\"form-select\" id=\"choice\" name=\"choice\"><option>First</option><option>Second</option></select></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".form-select", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": ".form-select" },
+        { "name": "Invalid", "attribute": "aria-invalid", "value": "true", "on": ".form-select" },
+        { "name": "Disabled", "attribute": "disabled", "on": ".form-select" }
+      ]
+    },
+    {
+      "id": "text-area",
+      "name": "Text area",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"notes\">Label</label><textarea class=\"form-textarea\" id=\"notes\" name=\"notes\"></textarea></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".form-textarea", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": ".form-textarea" },
+        { "name": "Invalid", "attribute": "aria-invalid", "value": "true", "on": ".form-textarea" },
+        { "name": "Read-only", "attribute": "readonly", "on": ".form-textarea" },
+        { "name": "Disabled", "attribute": "disabled", "on": ".form-textarea" }
+      ]
+    },
+    {
+      "id": "options",
+      "name": "Check boxes and radio buttons",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "template": "<fieldset class=\"form-fieldset\"><legend>Legend</legend><div class=\"form-options\"><label class=\"check\"><input type=\"radio\" name=\"option\" checked> First</label><label class=\"check\"><input type=\"radio\" name=\"option\"> Second</label></div></fieldset>",
+      "parts": [
+        { "selector": ".form-fieldset", "surface": "layout" },
+        { "selector": "label.check", "surface": "flat" }
+      ],
+      "variants": [{ "name": "In a row", "class": "inline", "on": ".form-options" }],
+      "states": [{ "name": "Disabled", "attribute": "disabled", "on": ".form-fieldset" }]
+    },
+    {
+      "id": "file-field",
+      "name": "File field",
+      "kind": "raised",
+      "spec": "08-components/fields.md",
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"upload\">Label</label><input class=\"form-file\" type=\"file\" id=\"upload\" name=\"upload\"></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".form-file", "surface": "flat" },
+        { "selector": ".form-file", "pseudo": "::file-selector-button", "surface": "raised" }
+      ],
+      "states": [{ "name": "Disabled", "attribute": "disabled", "on": ".form-file" }]
+    },
+    {
+      "id": "switch",
+      "name": "Switch",
+      "kind": "sunken",
+      "spec": "08-components/switches.md",
+      "template": "<button type=\"button\" class=\"switch\" role=\"switch\" aria-checked=\"false\"><span class=\"switch-track\"><span class=\"switch-thumb\"></span></span> Label</button>",
+      "parts": [
+        { "selector": ".switch-track", "surface": "sunken" },
+        { "selector": ".switch-thumb", "surface": "raised" }
+      ],
+      "states": [
+        { "name": "On", "attribute": "aria-checked", "value": "true", "off": "false" },
+        { "name": "Disabled", "attribute": "disabled" }
+      ]
+    },
+    {
+      "id": "segmented",
+      "name": "Segmented control",
+      "kind": "sunken",
+      "spec": "08-components/segmented-controls.md",
+      "requires": ["pudl-menu.js"],
+      "template": "<div class=\"seg\" role=\"group\" aria-label=\"View\"><button type=\"button\" aria-pressed=\"true\">First</button><button type=\"button\" aria-pressed=\"false\">Second</button></div>",
+      "parts": [
+        { "selector": ".seg", "surface": "sunken" },
+        { "selector": ".seg > [aria-pressed=\"true\"]", "surface": "raised" }
+      ],
+      "variants": [
+        { "name": "Pill", "class": "pill" },
+        { "name": "Small", "class": "sm" }
+      ],
+      "properties": [{ "name": "Collapses on a phone", "attribute": "data-seg-menu", "boolean": true }]
+    },
+    {
+      "id": "badge",
+      "name": "Badge",
+      "kind": "flat",
+      "spec": "08-components/badges-and-chips.md",
+      "template": "<span class=\"badge\">Draft</span>",
+      "parts": [{ "selector": ".badge", "surface": "flat" }],
+      "variants": [
+        { "name": "Needs attention", "class": "warn", "group": "status" },
+        { "name": "Failed", "class": "danger", "group": "status" },
+        { "name": "Done", "class": "positive", "group": "status" },
+        { "name": "Accent", "class": "accent", "group": "status" }
+      ]
+    },
+    {
+      "id": "chip",
+      "name": "Chip",
+      "kind": "flat",
+      "spec": "08-components/badges-and-chips.md",
+      "template": "<span class=\"chip\">travel</span>",
+      "parts": [{ "selector": ".chip", "surface": "flat" }]
+    },
+    {
+      "id": "filter-chip",
+      "name": "Filter chip",
+      "kind": "flat",
+      "spec": "08-components/badges-and-chips.md",
+      "template": "<span class=\"filter-chip\"><span class=\"filter-chip-kind\">trip</span> manila <a class=\"filter-chip-x\" href=\"?\" aria-label=\"Remove the trip filter\"></a></span>",
+      "parts": [{ "selector": ".filter-chip", "surface": "flat" }]
+    },
+    {
+      "id": "card",
+      "name": "Card",
+      "kind": "flat",
+      "spec": "08-components/cards.md",
+      "template": "<div class=\"card\"><h3 class=\"card-title\">Title</h3><p class=\"card-subtitle\">Subtitle</p><p class=\"card-desc\">What the card is about.</p></div>",
+      "parts": [{ "selector": ".card", "surface": "flat" }],
+      "slots": [{ "selector": ".card", "name": "Content" }]
+    },
+    {
+      "id": "key-value-table",
+      "name": "Key/value table",
+      "kind": "flat",
+      "spec": "08-components/key-value-tables.md",
+      "template": "<table class=\"kv-table\"><tr><th>Key</th><td>Value</td></tr><tr><th>Another</th><td>Value</td></tr></table>",
+      "parts": [{ "selector": ".kv-table", "surface": "flat" }]
+    },
+    {
+      "id": "data-table",
+      "name": "Data table",
+      "kind": "flat",
+      "spec": "08-components/data-tables.md",
+      "template": "<div class=\"data-table-wrap\"><table class=\"data-table\"><thead><tr><th scope=\"col\">Name</th><th scope=\"col\" class=\"num\">Amount</th></tr></thead><tbody><tr><td data-label=\"Name\">Hotel</td><td class=\"num\" data-label=\"Amount\">21,600</td></tr></tbody></table></div>",
+      "parts": [{ "selector": ".data-table", "surface": "flat" }],
+      "variants": [{ "name": "Rows stack on a phone", "class": "stack", "on": ".data-table" }]
+    },
+    {
+      "id": "grid",
+      "name": "Grid",
+      "kind": "list",
+      "spec": "08-components/data-tables.md",
+      "requires": ["pudl-grid.js"],
+      "template": "<div class=\"data-table-wrap\"><table class=\"data-table\" role=\"grid\" aria-label=\"Expenses\"><thead><tr><th scope=\"col\">Name</th></tr></thead><tbody><tr aria-selected=\"true\"><td><a href=\"?row=1\">Hotel</a></td></tr><tr><td><a href=\"?row=2\">Taxi</a></td></tr></tbody></table></div>",
+      "parts": [{ "selector": ".data-table[role=\"grid\"]", "surface": "list" }]
+    },
+    {
+      "id": "notice",
+      "name": "Notice",
+      "kind": "flat",
+      "spec": "08-components/notices-and-toasts.md",
+      "requires": ["pudl-toast.js"],
+      "template": "<div class=\"notice\" role=\"status\"><div class=\"notice-content\"><p class=\"notice-title\">Title</p><p class=\"notice-body\">What the reader should know.</p></div><button class=\"notice-close\" type=\"button\" aria-label=\"Dismiss\"></button></div>",
+      "parts": [
+        { "selector": ".notice", "surface": "flat" },
+        { "selector": ".notice-close", "surface": "raised" }
+      ],
+      "variants": [
+        { "name": "Done", "class": "positive", "group": "status" },
+        { "name": "Needs attention", "class": "warn", "group": "status" },
+        { "name": "Failed", "class": "danger", "group": "status" }
+      ]
+    },
+    {
+      "id": "empty-state",
+      "name": "Empty state",
+      "kind": "flat",
+      "spec": "08-components/empty-and-loading.md",
+      "template": "<div class=\"empty-state\"><p class=\"empty-state-title\">Nothing here yet</p><p class=\"empty-state-body\">What would appear here, and how to add it.</p><div class=\"empty-state-actions\"><a class=\"btn btn-primary\" href=\"?new\">Add one</a></div></div>",
+      "parts": [{ "selector": ".empty-state", "surface": "flat" }]
+    },
+    {
+      "id": "loading",
+      "name": "Loading",
+      "kind": "flat",
+      "spec": "08-components/empty-and-loading.md",
+      "template": "<div class=\"loading\" role=\"status\"><span class=\"spinner\" aria-hidden=\"true\"></span> Loading…</div>",
+      "parts": [{ "selector": ".loading", "surface": "flat" }]
+    },
+    {
+      "id": "pagination",
+      "name": "Pagination",
+      "kind": "raised",
+      "spec": "08-components/pagination.md",
+      "template": "<nav class=\"pagination\" aria-label=\"Pages\"><span class=\"pagination-summary\">Showing 1 to 20 of 45</span><a class=\"page-link\" href=\"?page=1\" aria-current=\"page\">1</a><a class=\"page-link\" href=\"?page=2\">2</a><a class=\"page-link\" href=\"?page=2\" rel=\"next\">Next</a></nav>",
+      "parts": [
+        { "selector": ".pagination-summary", "surface": "flat" },
+        { "selector": ".page-link:not([aria-current])", "surface": "raised" }
+      ]
+    },
+    {
+      "id": "tabs",
+      "name": "Tabs within a page",
+      "kind": "tab",
+      "spec": "08-components/tabs.md",
+      "requires": ["pudl-tabs.js"],
+      "template": "<div class=\"tabs\"><div class=\"tablist\" role=\"tablist\" aria-label=\"Sections\"><button type=\"button\" role=\"tab\" id=\"tab-a\" aria-controls=\"panel-a\" aria-selected=\"true\">First</button><button type=\"button\" role=\"tab\" id=\"tab-b\" aria-controls=\"panel-b\" aria-selected=\"false\">Second</button></div><section role=\"tabpanel\" id=\"panel-a\" aria-labelledby=\"tab-a\">First panel</section><section role=\"tabpanel\" id=\"panel-b\" aria-labelledby=\"tab-b\" hidden>Second panel</section></div>",
+      "parts": [
+        { "selector": "[role=\"tab\"][aria-selected=\"true\"]", "surface": "tab" },
+        { "selector": "[role=\"tab\"][aria-selected=\"false\"]", "surface": "raised" }
+      ],
+      "slots": [{ "selector": "[role=\"tabpanel\"]", "name": "Panel" }]
+    },
+    {
+      "id": "section-tabs",
+      "name": "Section tabs",
+      "kind": "tab",
+      "spec": "08-components/tabs.md",
+      "context": "page-top",
+      "template": "<nav class=\"app-section-bar\" aria-label=\"Sections\"><a class=\"section-tab\" href=\"/trips\" aria-current=\"page\">Trips</a><a class=\"section-tab\" href=\"/reports\">Reports</a></nav>",
+      "parts": [
+        { "selector": ".section-tab[aria-current]", "surface": "tab" },
+        { "selector": ".section-tab:not([aria-current])", "surface": "raised" }
+      ]
+    },
+    {
+      "id": "document-tabs",
+      "name": "Document tabs",
+      "kind": "tab",
+      "spec": "08-components/tabs.md",
+      "requires": ["pudl-tabs.js"],
+      "template": "<div class=\"tablist doc-tabs\" role=\"tablist\" aria-label=\"Open documents\"><button type=\"button\" role=\"tab\" aria-selected=\"true\">notes.md<span class=\"doc-tab-close\" aria-hidden=\"true\"></span></button><button type=\"button\" role=\"tab\" aria-selected=\"false\">todo.md<span class=\"doc-tab-dirty\">unsaved</span><span class=\"doc-tab-close\" aria-hidden=\"true\"></span></button></div>",
+      "parts": [
+        { "selector": "[role=\"tab\"][aria-selected=\"true\"]", "surface": "tab" },
+        { "selector": "[role=\"tab\"][aria-selected=\"false\"]", "surface": "raised" }
+      ]
+    },
+    {
+      "id": "menu",
+      "name": "Menu",
+      "kind": "raised",
+      "spec": "08-components/menus.md",
+      "requires": ["pudl-menu.js"],
+      "template": "<div class=\"menu\"><button type=\"button\" class=\"btn menu-btn\" popovertarget=\"menu-panel\">Menu</button><div class=\"menu-panel\" id=\"menu-panel\" popover role=\"menu\"><button type=\"button\" class=\"menu-action\" role=\"menuitem\">First</button><div class=\"menu-sep\" role=\"separator\"></div><button type=\"button\" class=\"menu-action danger\" role=\"menuitem\">Delete</button></div></div>",
+      "parts": [
+        { "selector": ".menu-btn", "surface": "raised" },
+        { "selector": ".menu-action", "surface": "list" }
+      ]
+    },
+    {
+      "id": "dialog",
+      "name": "Dialog",
+      "kind": "flat",
+      "spec": "08-components/dialogs.md",
+      "requires": ["pudl-dialog.js"],
+      "template": "<dialog class=\"dialog\" id=\"dialog\" aria-labelledby=\"dialog-title\"><h3 class=\"dialog-title\" id=\"dialog-title\">Question?</h3><p class=\"dialog-body\">What happens next.</p><form class=\"dialog-actions\" method=\"dialog\"><button class=\"btn\" value=\"cancel\" autofocus>Cancel</button><button class=\"btn btn-primary\" value=\"ok\">OK</button></form></dialog>",
+      "opener": "<button type=\"button\" class=\"btn\" command=\"show-modal\" commandfor=\"dialog\">Open</button>",
+      "parts": [{ "selector": ".dialog", "surface": "flat" }],
+      "states": [{ "name": "Open", "attribute": "open" }]
+    },
+    {
+      "id": "tree",
+      "name": "Tree",
+      "kind": "list",
+      "spec": "08-components/trees-and-path-bars.md",
+      "requires": ["pudl-tree.js"],
+      "template": "<ul class=\"tree\" aria-label=\"Folders\"><li><a href=\"?f=site\" aria-expanded=\"true\">site</a><ul><li><a href=\"?f=site/articles\" aria-current=\"page\">articles</a></li></ul></li></ul>",
+      "parts": [{ "selector": ".tree a", "surface": "list" }]
+    },
+    {
+      "id": "path-bar",
+      "name": "Path bar",
+      "kind": "list",
+      "spec": "08-components/trees-and-path-bars.md",
+      "template": "<nav class=\"path\" aria-label=\"Location\"><ol><li><a href=\"/\">site</a></li><li><span aria-current=\"location\">articles</span></li></ol></nav>",
+      "parts": [{ "selector": ".path", "surface": "list" }],
+      "variants": [{ "name": "Monospace", "class": "mono" }]
+    },
+    {
+      "id": "code-block",
+      "name": "Code block",
+      "kind": "flat",
+      "spec": "08-components/code.md",
+      "requires": ["pudl-code.js"],
+      "template": "<pre class=\"code\" tabindex=\"0\" data-code-actions><code class=\"language-js\">console.log('hello');</code></pre>",
+      "parts": [{ "selector": "pre.code", "surface": "flat" }]
+    },
+    {
+      "id": "code-surface",
+      "name": "Code editor surface",
+      "kind": "sunken",
+      "spec": "08-components/code.md",
+      "template": "<div class=\"code-surface\"></div>",
+      "parts": [{ "selector": ".code-surface", "surface": "sunken" }]
+    },
+    {
+      "id": "splitter",
+      "name": "Splitter",
+      "kind": "layout",
+      "spec": "08-components/splitters.md",
+      "requires": ["pudl-split.js"],
+      "template": "<div class=\"split\" style=\"height: 240px\"><div class=\"split-pane\">First</div><div class=\"split-handle\" aria-label=\"Resize the panes\"></div><div class=\"split-pane\">Second</div></div>",
+      "parts": [
+        { "selector": ".split", "surface": "layout" },
+        { "selector": ".split-handle", "surface": "handle" }
+      ],
+      "variants": [{ "name": "Stacked", "class": "stacked" }],
+      "slots": [{ "selector": ".split-pane", "name": "Pane" }]
+    },
+    {
+      "id": "drop-zone",
+      "name": "Drop zone",
+      "kind": "flat",
+      "spec": "08-components/drop-targets.md",
+      "template": "<div class=\"drop-zone\"><p class=\"drop-hint\">Drop files here</p></div>",
+      "parts": [{ "selector": ".drop-zone", "surface": "flat" }],
+      "states": [{ "name": "Something over it", "attribute": "data-drop-over" }]
+    },
+    {
+      "id": "glyph",
+      "name": "Glyph",
+      "kind": "flat",
+      "spec": "05-glyphs.md",
+      "template": "<span class=\"glyph\" style=\"--glyph: var(--glyph-info)\" aria-hidden=\"true\"></span>",
+      "parts": [{ "selector": ".glyph", "surface": "flat" }]
+    },
+    {
+      "id": "master-detail",
+      "name": "Master-detail",
+      "kind": "layout",
+      "spec": "08-components/master-detail.md",
+      "requires": ["pudl-md.js"],
+      "template": "<div class=\"md-layout\" style=\"height: 320px\"><div class=\"md-body\"><nav class=\"md-sidebar\" aria-label=\"Items\"><div class=\"md-row\"><a class=\"md-item\" href=\"?item=1\" aria-current=\"true\">First</a></div><div class=\"md-row\"><a class=\"md-item\" href=\"?item=2\">Second</a></div></nav><div class=\"md-resize\" aria-label=\"Resize the list\"></div><section class=\"md-detail\" tabindex=\"0\">Detail</section></div></div>",
+      "parts": [
+        { "selector": ".md-item", "surface": "list" },
+        { "selector": ".md-resize", "surface": "handle" }
+      ],
+      "slots": [{ "selector": ".md-detail", "name": "Detail" }]
+    }
+  ],
+  "structure": [
+    { "id": "topbar", "name": "Application bar", "spec": "08-components/application-bar.md", "markup": "header.topbar" },
+    { "id": "menu-bar", "name": "Menu bar", "spec": "08-components/menu-bar.md", "markup": "nav[data-menubar]", "requires": ["pudl-menu.js", "pudl-menubar.js"] },
+    { "id": "windows", "name": "Windows", "spec": "08-components/windows.md", "markup": ".win-layer[data-win-layer]", "requires": ["pudl-windows.js"] },
+    { "id": "applet", "name": "Applet mount", "spec": "09-applets.md", "markup": "[data-applet]", "requires": ["pudl-applets.js"] },
+    { "id": "region", "name": "Region", "markup": "[data-region]", "requires": ["pudl-regions.js"] },
+    { "id": "toast", "name": "Toast", "spec": "08-components/notices-and-toasts.md", "markup": ".toast-region", "requires": ["pudl-toast.js"] },
+    { "id": "tooltip", "name": "Tooltip", "spec": "08-components/tooltips.md", "markup": "[data-tooltip]", "requires": ["pudl-tooltip.js"] },
+    { "id": "visually-hidden", "name": "Visually hidden", "markup": ".visually-hidden" }
+  ]
+}
