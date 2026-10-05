@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.45.0
+
+This release implements PUDL specification 0.7.0, which adds the pins group and the `pin` glyph. Update `pudl.css` and `pudl-menubar.js`. Nothing changes for a site that does not add a pins list.
+
+- The menu bar can have a pins group, proposed by parkscomputing.com. A host adds a hidden `ul[data-menubar-pins]` beside its menu's source list. The group stands between the site group and the applet group, so it stays put as the front applet changes. Its first control is the Pins menu, marked by the new `--glyph-pin`, holding the host's pinning commands; `pudl:pins-menu` is sent as it opens so the host can set them for what is in front. After it comes a button for each pin, a link with the pin's icon and title. A plain press presses the host's link, so the host can open the item its own way; a modified press opens a new tab.
+- When the pins' buttons do not fit, they give way together to one Items menu before the bar itself collapses, and the collapsed bar's menu has a Pins section with the commands and then the pins. The arrow keys reach the pins between the menus, and Space or Enter opens one. With nothing pinned, the Pins menu stands alone. The bar redraws when the host changes its list.
+- The README, the web contract and the menu-bar conventions describe the group, and a new test covers its order, presses, keyboard, both narrowing steps, a host's changes and the empty group.
+
+The proposal suggested `data-pins-commands`, `data-pin-icon` and `data-pin-glyph`. The group reads the same nested-list markup as the site menu instead: the Pins menu is a title with its list, and a pin's icon is the content of its link, as a site identity's logo is.
+
 ## 0.44.2
 
 This release implements PUDL specification 0.6.0. Update `pudl.css`.

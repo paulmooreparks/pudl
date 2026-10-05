@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.6.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.7.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -579,6 +579,18 @@ The host renders its menu as a hidden list inside the bar, beside whatever shoul
 
 Each top item is a title, its words before its list; the first is the menu's name. In a list, an item holding a link or a button is a command, `-` is a separator, plain words are a heading for the commands below, and an item with a list of its own is a submenu. A command follows its link, or presses its button, as a reader's click would, so a link with `data-win-open` opens a window and the host's own script answers a button. A button's `aria-pressed` or `aria-checked` gives its command a tick. `data-shortcut` gives a command a shortcut, and `data-menubar-if="windows"` shows a title only on a page of windows.
 
+A host can give the bar a **pins group** for the few things its readers go to most. It is a third raised group, between the host menu and the front menu, so it stays put as the front changes. The host renders it as a second hidden list in the bar:
+
+```html
+<ul data-menubar-pins hidden>
+  <li>Pins<ul><li><button type="button">Pin “About”</button></li></ul></li>
+  <li><a href="/page/about"><img src="/about.png" alt=""> About</a></li>
+  <li><a href="/page/terminal"><span class="glyph" style="--glyph: var(--glyph-app)" aria-hidden="true"></span> Terminal</a></li>
+</ul>
+```
+
+The first item is the Pins menu, marked by the pin glyph and holding the host's pinning commands; the bar sends `pudl:pins-menu` on the list as it opens, so the host can set them for whatever is in front at that moment. Each later item is a pin, a link whose icon and words become a button in the bar. A plain press on the button presses the host's link, so the host can open the item its own way, such as raising its window; a press with a modifier opens the link in a new tab, as any link's would. When the buttons do not fit they all give way together to one Items menu that lists them, and when the whole bar collapses, its menu has a Pins section with the commands and then the pins. With nothing pinned, the Pins menu stands alone. Storing the pins and deciding what can be pinned are the host's; the bar redraws when the host changes the list.
+
 Host titles declare `data-menubar-id="go"`, `"applets"`, `"view"`, `"window"`, or `"help"`; the first title is the site identity. IDs determine standard order and contribution routing independently of displayed labels. An empty `ul` declares a shared slot that appears when populated. Exact English standard labels are recognized when no ID is supplied. A Window title can add `data-menubar-windows` to generate capability-based window management, bulk actions, and the open-window list through `pudlWindows.menuCommands()`.
 
 An applet gives its front menu through `menus()` on its instance, asked afresh each time a panel opens:
@@ -1113,7 +1125,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.44.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.45.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 

@@ -31,6 +31,16 @@ The identity menu groups related entries with separators. It is not a general na
 
 Applets launches tools; Window selects and manages existing windows. Sites with multiple instances must make launch behavior clear, using labels such as New editor window when a command always creates another instance. Reusing an existing instance must not discard its work.
 
+## Pins group
+
+A site may add a pins group between the site bar and the applet bar, for the applets and articles its readers go to most, one press away in both the window and classic views. It was proposed by parkscomputing.com on 5 October 2026. The group stands after the site bar so that it stays put as the active applet changes.
+
+Its first control is the Pins menu, marked by the pin glyph as an identity is marked by the menu glyph. The menu holds the site's pinning commands, such as Pin "About" and Unpin "About" for whatever is in front, disabled when nothing pinnable is. After it come buttons, not menus, one for each pinned item, showing the icon and title the item shows elsewhere, such as in the taskbar. Each is a link to the item's page, so a modified click opens a new tab, and the site may handle a plain press itself, as a window view does by opening or raising the item's window.
+
+When the buttons do not fit, they all give way together to one menu, Items, which lists them, so the bar never shows an arbitrary subset. That happens before the bar itself collapses. In the collapsed bar, the Pins section lists the pinning commands and then the pins. A group with nothing pinned keeps its Pins menu, so the reader can see where pins go.
+
+Storing pins and deciding what can be pinned are the site's. Pinning a particular item is an operation on that item, so a Pin command also belongs in the item's own domain menu or window menu, where the reader works with it; the Pins menu offers the same command for whatever is in front.
+
 ## Applet bar
 
 The standard order is **Applet name, File, Edit, domain menus**. File and Edit appear only when the applet supports their functions. Domain menus use familiar nouns or verbs from the applet's work, such as Palette, Game, Story, Discussion, Query, or Run. An applet must not create its own Go, Applets, View, Window, or Help menu; the contribution rules below provide shared destinations where appropriate.

@@ -32,6 +32,27 @@
    to the host's titles through menus().into, and may not use a title the
    host has; what breaks a rule is left out, with a warning naming it.
 
+   A host may give the bar a pins group, for the few things its readers go
+   to most, as a second hidden list. It stands between the host menu and
+   the front menu, so it stays put as the front changes:
+
+     <ul data-menubar-pins hidden>
+       <li>Pins<ul><li><button type="button">Pin “About”</button></li></ul></li>
+       <li><a href="/page/about"><img src="/about.png" alt=""> About</a></li>
+       <li><a href="/page/terminal"><span class="glyph" style="--glyph: var(--glyph-app)"
+             aria-hidden="true"></span> Terminal</a></li>
+     </ul>
+
+   Its first item is the Pins menu, the host's pinning commands, read as
+   any title is. Each later item is a pin: a link, whose content, an icon
+   and a title, becomes a button in the bar. A plain press on it presses
+   the host's link, so the host's own script may open the item its own
+   way; a press with a modifier is the browser's. When the buttons do not
+   fit they give way, all together, to one Items menu listing them. The
+   list is the host's to change: the bar redraws when it changes, and
+   pudl:pins-menu is sent on the list as the Pins menu opens, so the host
+   can set its commands for what is in front at that moment.
+
    The bar is one tab stop and follows the WAI-ARIA menu bar pattern. When
    it does not fit, it becomes one menu button whose panel lists each
    menu's titles, opening one level at a time. Shortcuts are written
@@ -45,7 +66,7 @@
   var RESERVED = ['Mod+N', 'Mod+T', 'Mod+W', 'Mod+Q', 'Mod+Tab', 'Mod+Shift+N', 'Mod+Shift+T', 'Mod+Shift+W',
                   'Mod+Shift+Q', 'Mod+Shift+Tab', 'Mod+A', 'Mod+C', 'Mod+X', 'Mod+V'];
 
-  var bar, source, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
+  var bar, source, pinsSource, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
   var menuScope = null;
   var STANDARD = ['site', 'go', 'applets', 'view', 'window', 'help'];
   var SHARED = ['go', 'view', 'help'];
@@ -55,7 +76,7 @@
     return STANDARD.concat(['file', 'edit']).indexOf(id) >= 0 ? id : '';
   }
 
-  var collapsed = false, needed = 0, uid = 0, warned = {};
+  var collapsed = false, level = 0, needed = 0, uid = 0, warned = {};
 
   function text(name, fallback) { return (bar && bar.getAttribute('data-menubar-text-' + name)) || fallback; }
 
@@ -118,6 +139,27 @@
       });
     });
     return { kind: 'host', name: titles.length ? titles[0].label : '', titles: titles };
+  }
+
+  /* The pins group: the Pins menu's commands, and each pin's link, words
+     and content. */
+  function pinsMenu() {
+    if (!pinsSource) return null;
+    var name = text('pins', 'Pins'), commands = [], pins = [];
+    Array.prototype.forEach.call(pinsSource.children, function (li, i) {
+      if (li.tagName !== 'LI') return;
+      var nested = li.querySelector(':scope > ul');
+      if (i === 0 && nested) {
+        var said = words(Array.prototype.filter.call(li.childNodes, function (n) { return n !== nested; }));
+        if (said) name = said;
+        commands = readList(nested);
+        return;
+      }
+      var a = li.querySelector(':scope > a[href]');
+      if (!a) { warn('a pin is a link; an item of the pins list that is not one is left out'); return; }
+      pins.push({ label: words([a]), href: a.getAttribute('href'), el: a, content: Array.prototype.slice.call(a.childNodes) });
+    });
+    return { kind: 'pins', name: name, titles: [{ id: 'pins', label: name, items: commands }], pins: pins };
   }
 
   /* What is in front, and the scope a front menu is found in. */
@@ -282,7 +324,7 @@
         if (add.length) target.items = target.items.concat(target.items.length ? ['-', { heading: front.name }] : [{ heading: front.name }], add);
       });
     }
-    var all = front ? [host, front] : [host];
+    var all = [host, pinsMenu(), front].filter(Boolean);
     all.forEach(function (m) {
       m.titles.forEach(function (t) { check(t.items, m.name); });
       m.titles = m.titles.filter(function (t, i) { return i === 0 || t.items.some(function (c) { return c && c.label; }); });
@@ -405,14 +447,16 @@
     if (!sameSource(frontSrc, findFront())) render();
     var all = assemble();
     /* A front menu's shortcuts work while focus is in what it belongs to;
-       the host's work anywhere. */
-    var front = all[1];
+       the host's, and its Pins menu's, work anywhere. */
+    var front = all.find(function (m) { return m.kind === 'front'; });
     var inFront = front && front.src.scope && (front.src.kind === 'applet' ? front.src.applet.root : front.src.scope.scope);
     var hit = null;
     if (front && inFront && (inFront === document || inFront.contains(document.activeElement))) {
       front.titles.forEach(function (t) { hit = hit || findShortcut(t.items, k); });
     }
-    if (!hit) all[0].titles.forEach(function (t) { hit = hit || findShortcut(t.items, k); });
+    all.forEach(function (m) {
+      if (m !== front) m.titles.forEach(function (t) { hit = hit || findShortcut(t.items, k); });
+    });
     if (!hit || hit.disabled) return;
     e.preventDefault();
     act(hit, false);
@@ -427,7 +471,40 @@
     return n;
   }
 
-  function titles() { return Array.prototype.slice.call(built.querySelectorAll('.menubar-title')).filter(function (t) { return t.offsetParent !== null; }); }
+  /* The bar's items in the arrow keys' order: its titles, and its pins. */
+  function titles() { return Array.prototype.slice.call(built.querySelectorAll('.menubar-title, .menubar-pin')).filter(function (t) { return t.offsetParent !== null; }); }
+
+  function titleButton(t, m) {
+    var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
+    if (t.id) b.setAttribute('data-menu-id', t.id);
+    if (t.content) t.content.forEach(function (n) { b.appendChild(n.cloneNode(true)); });
+    else b.textContent = t.label;
+    if (t.content) b.classList.add('menubar-brand');
+    b._menu = { menu: m, title: t };
+    return b;
+  }
+
+  /* A pin in the bar: a link to the item, with the host's icon and words. */
+  function pinLink(p) {
+    var a = el('a', 'menubar-pin', { role: 'menuitem', tabindex: '-1', href: p.href, title: p.label });
+    p.content.forEach(function (n) {
+      var c = n.cloneNode(true);
+      if (c.nodeType === 3) {
+        if (!c.textContent.trim()) return;
+        var s = el('span');
+        s.textContent = c.textContent.trim();
+        c = s;
+      }
+      a.appendChild(c);
+    });
+    a._pin = p;
+    return a;
+  }
+
+  /* A pin as a menu row, in Items and in the collapsed bar's panel. */
+  function pinRow(p) {
+    return { label: p.label, href: p.href, el: p.el, icon: p.content.filter(function (n) { return n.nodeType === 1; }) };
+  }
 
   function render() {
     if (!bar) return;
@@ -440,8 +517,8 @@
     built.textContent = '';
 
     /* The full bar: each menu a raised group, its glyph first. */
-    menus.forEach(function (m, mi) {
-      var g = el('div', 'menubar-menu' + (mi ? ' menubar-front' : ''), { role: 'group', 'aria-label': m.name });
+    menus.forEach(function (m) {
+      var g = el('div', 'menubar-menu' + (m.kind === 'front' ? ' menubar-front' : m.kind === 'pins' ? ' menubar-pins' : ''), { role: 'group', 'aria-label': m.name });
       var glyph = el('button', 'menubar-glyph', { type: 'button', tabindex: '-1', role: 'menuitem', 'aria-label': m.name, 'aria-haspopup': 'menu', 'aria-expanded': 'false' });
       /* Open after the pointer gesture, so popover light dismiss cannot
          close a panel that was opened during the same pointer-down. */
@@ -451,15 +528,13 @@
         if (first) toggle(first, true);
       });
       g.appendChild(glyph);
-      m.titles.forEach(function (t, ti) {
-        var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
-        if (t.id) b.setAttribute('data-menu-id', t.id);
-        if (t.content) t.content.forEach(function (n) { b.appendChild(n.cloneNode(true)); });
-        else b.textContent = t.label;
-        if (t.content) b.classList.add('menubar-brand');
-        b._menu = { menu: m, title: t };
-        g.appendChild(b);
-      });
+      m.titles.forEach(function (t) { g.appendChild(titleButton(t, m)); });
+      if (m.kind === 'pins' && m.pins.length) {
+        m.pins.forEach(function (p) { g.appendChild(pinLink(p)); });
+        var more = titleButton({ id: 'pins-items', label: text('items', 'Items'), items: m.pins.map(pinRow) }, m);
+        more.classList.add('menubar-pins-more');
+        g.appendChild(more);
+      }
       built.appendChild(g);
     });
 
@@ -483,14 +558,28 @@
 
   /* Whether the full bar fits, measured with it showing, in one pass, so
      nothing is painted in between. */
+  /* First the pins' buttons give way to Items, all together; then, if
+     the bar still does not fit, it collapses to one menu. */
   function fit() {
-    built.classList.remove('menubar-collapsed');
+    built.classList.remove('menubar-collapsed', 'menubar-pins-collapsed');
+    var room = bar.getBoundingClientRect().width;
+    var pinsCollapsed = false;
+    needed = width();
+    if (needed > room + 0.5 && built.querySelector('.menubar-pin')) {
+      built.classList.add('menubar-pins-collapsed');
+      pinsCollapsed = true;
+      needed = width();
+    }
+    collapsed = needed > room + 0.5;
+    level = collapsed ? 2 : pinsCollapsed ? 1 : 0;
+    built.classList.toggle('menubar-pins-collapsed', pinsCollapsed && !collapsed);
+    built.classList.toggle('menubar-collapsed', collapsed);
+  }
+
+  function width() {
     var groups = built.querySelectorAll('.menubar-menu:not(.menubar-one)');
     var gap = parseFloat(getComputedStyle(built).columnGap) || 0;
-    needed = Array.prototype.reduce.call(groups, function (s, g) { return s + g.getBoundingClientRect().width; }, 0) + gap * Math.max(0, groups.length - 1);
-    var room = bar.getBoundingClientRect().width;
-    collapsed = needed > room + 0.5;
-    built.classList.toggle('menubar-collapsed', collapsed);
+    return Array.prototype.reduce.call(groups, function (s, g) { return s + g.getBoundingClientRect().width; }, 0) + gap * Math.max(0, groups.length - 1);
   }
 
   /* === Panels ============================================================ */
@@ -520,6 +609,11 @@
       r = el('a', 'menu-action', { role: 'menuitem', href: c.href });
     } else {
       r = el('button', 'menu-action', { type: 'button', role: 'menuitem' });
+    }
+    if (c.icon && c.icon.length) {
+      var icon = el('span', 'menubar-icon', { 'aria-hidden': 'true' });
+      c.icon.forEach(function (n) { icon.appendChild(n.cloneNode(true)); });
+      r.appendChild(icon);
     }
     var label = el('span', 'menubar-label');
     label.textContent = c.label;
@@ -568,6 +662,14 @@
       var h = el('div', 'md-section-label', { role: 'presentation' });
       h.textContent = m.name;
       p.appendChild(h);
+      /* The Pins menu is short, so its commands stand in the section
+         itself, and the pins after them, each one press away. */
+      if (m.kind === 'pins') {
+        m.titles[0].items.forEach(function (c) { p.appendChild(row(c)); });
+        if (m.titles[0].items.length && m.pins.length) p.appendChild(el('div', 'menu-sep', { role: 'separator' }));
+        m.pins.forEach(function (pin) { p.appendChild(row(pinRow(pin))); });
+        return;
+      }
       m.titles.forEach(function (t) {
         var r = row({ label: t.label, items: t.items });
         r._title = t;
@@ -594,10 +696,18 @@
     if (openTitle && openTitle !== title) {
       associate(openTitle, false);
     }
-    menus = assemble();
     var info = title._menu;
+    /* The host sets its pinning commands for what is in front now, before
+       the list is read. */
+    if (pinsSource && (info.all || (info.menu.kind === 'pins' && info.title.id === 'pins'))) {
+      pinsSource.dispatchEvent(new CustomEvent('pudl:pins-menu', { bubbles: true }));
+    }
+    menus = assemble();
     if (info.all) fillAll(panel);
-    else {
+    else if (info.title.id === 'pins-items') {
+      var pins = menus.find(function (m) { return m.kind === 'pins'; });
+      fill(panel, pins ? pins.pins.map(pinRow) : []);
+    } else {
       var fresh = findTitle(info.menu.kind, info.title.label);
       fill(panel, fresh ? fresh.items : info.title.items);
     }
@@ -620,7 +730,7 @@
 
   function findTitle(kind, label) {
     for (var i = 0; i < menus.length; i++) {
-      if ((menus[i].kind === 'host') !== (kind === 'host')) continue;
+      if (menus[i].kind !== kind) continue;
       for (var j = 0; j < menus[i].titles.length; j++) if (menus[i].titles[j].label === label) return menus[i].titles[j];
     }
     return null;
@@ -721,6 +831,16 @@
   /* === Events ============================================================ */
 
   function onBarPointer(e) {
+    var pin = e.target.closest('.menubar-pin');
+    if (pin && built.contains(pin)) {
+      /* A plain press is the host's, through its own link; a press with a
+         modifier, or another button, is the browser's to follow. */
+      if (e.type !== 'click' || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      closeAll(false);
+      act(pin._pin, false);
+      return;
+    }
     var t = e.target.closest('.menubar-title');
     if (!t || !built.contains(t)) return;
     if (e.type === 'click') {
@@ -759,6 +879,9 @@
     else closeSub();
   }
 
+  /* From an open panel the arrows go from menu to menu, past the pins. */
+  function menuTitles(list) { return list.filter(function (x) { return !x.classList.contains('menubar-pin'); }); }
+
   function step(list, cur, d) {
     var i = list.indexOf(cur);
     return list[(i + d + list.length) % list.length];
@@ -767,18 +890,27 @@
   function onKey(e) {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     var t = e.target;
-    var title = t.closest && t.closest('.menubar-title');
+    var title = t.closest && t.closest('.menubar-title, .menubar-pin');
     var inSub = sub && sub.contains(t);
     var r = t.closest && t.closest('.menubar-panel .menu-action');
     var list = titles();
 
     if (title && built.contains(title)) {
+      var isPin = title.classList.contains('menubar-pin');
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
         var next = step(list, title, e.key === 'ArrowRight' ? 1 : -1);
         list.forEach(function (x) { x.tabIndex = x === next ? 0 : -1; });
         next.focus();
-        if (openTitle) open(next, null);
+        /* Moving onto a pin closes an open menu, since a pin has none. */
+        if (openTitle && panel.matches(':popover-open')) {
+          if (next.classList.contains('menubar-pin')) closeAll(false);
+          else open(next, null);
+        }
+      } else if (isPin) {
+        /* Enter follows the link as a press does; Space does too, as it
+           would on a button. */
+        if (e.key === ' ') { e.preventDefault(); title.click(); }
       } else if (e.key === 'Home' || e.key === 'End') {
         e.preventDefault();
         var to = e.key === 'Home' ? list[0] : list[list.length - 1];
@@ -802,13 +934,13 @@
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       if (r.classList.contains('menubar-has-sub')) { openSub(r, true); return; }
-      if (openTitle && !openTitle._menu.all) { var n = step(list, openTitle, 1); n.focus(); open(n, 'first'); }
+      if (openTitle && !openTitle._menu.all) { var n = step(menuTitles(list), openTitle, 1); n.focus(); open(n, 'first'); }
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       if (inSub) { var from = sub._from; closeSub(); if (from) from.focus(); return; }
       var back = host.querySelector(':scope > .menubar-back');
       if (back) { back._back(); return; }
-      if (openTitle && !openTitle._menu.all) { var p = step(list, openTitle, -1); p.focus(); open(p, 'first'); }
+      if (openTitle && !openTitle._menu.all) { var p = step(menuTitles(list), openTitle, -1); p.focus(); open(p, 'first'); }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
@@ -833,17 +965,19 @@
 
   /* === Starting ========================================================== */
 
-  var pending = 0;
+  var pending = 0, pinsChanged = false;
   function soon() {
     if (pending) return;
     pending = requestAnimationFrame(function () {
       pending = 0;
       if (!currentTarget()) { render(); return; }
-      /* Retain a valid open menu. Command state is read afresh on opening. */
+      /* Retain a valid open menu. Command state is read afresh on opening,
+         and a change to the pins is drawn once it closes. */
       if (panel && panel.matches(':popover-open')) return;
-      var wasCollapsed = collapsed;
+      if (pinsChanged) { pinsChanged = false; render(); return; }
+      var wasLevel = level;
       fit();
-      if (wasCollapsed !== collapsed) render();
+      if (wasLevel !== level) render();
     });
   }
 
@@ -852,8 +986,9 @@
     if (!bar) return;
     source = bar.querySelector('[data-menubar-source]');
     if (!source) return;
+    pinsSource = bar.querySelector('[data-menubar-pins]');
     built = el('div', 'menubar-row', { role: 'menubar', 'aria-label': bar.getAttribute('aria-label') || text('menu', 'Menu') });
-    Array.prototype.forEach.call(bar.children, function (c) { if (c !== source) c.setAttribute('data-menubar-fallback', ''); });
+    Array.prototype.forEach.call(bar.children, function (c) { if (c !== source && c !== pinsSource) c.setAttribute('data-menubar-fallback', ''); });
     bar.appendChild(built);
     bar.classList.add('menubar-ready');
     ensurePanel();
@@ -882,6 +1017,9 @@
     new MutationObserver(function (records) {
       if (records.some(function (r) { return !bar.contains(r.target); })) soon();
     }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-applet-state', 'hidden'] });
+    /* The host changes its pins list as the reader pins and unpins. */
+    if (pinsSource) new MutationObserver(function () { pinsChanged = true; soon(); })
+      .observe(pinsSource, { subtree: true, childList: true, characterData: true, attributes: true });
     /* Measured on the next frame, not in the observer, since measuring
        shows the full bar for a moment and that changes what is observed. */
     var measuring = 0;
@@ -890,9 +1028,9 @@
       measuring = requestAnimationFrame(function () {
         measuring = 0;
         if (panel && panel.matches(':popover-open')) return;
-        var was = collapsed;
+        var was = level;
         fit();
-        if (was !== collapsed) render();
+        if (was !== level) render();
       });
     }).observe(bar);
   }
