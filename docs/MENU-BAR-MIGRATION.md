@@ -71,9 +71,9 @@ The generated site menu omits page, sharing, and individual close commands, whic
 
 An applet exposing only `commands()` now receives an identity menu and an Actions menu containing its existing commands. No working commands are discarded. Migrate to `menus()` to replace Actions with a domain-specific title. Supported page, sharing, and window-close commands populate the generated identity menu.
 
-Generated article menus put Print under File. Their identity commands use Open as a page, Copy link to this content, and Close window where applicable. Existing `data-menubar-text-copy-link` and `data-menubar-text-close` overrides still apply; update translations that currently obscure the scope. Explicit applet `menus()` definitions are not automatically supplied with identity commands or semantically rewritten.
+Generated article menus put Print under File from 0.40.0 to 0.48.0; since 0.49.0 they have no File menu, and Print is an identity command only where the page menu carries `data-page-print`. Their identity commands use Open as a page, Copy link to this content, and Close window where applicable. Existing `data-menubar-text-copy-link` and `data-menubar-text-close` overrides still apply; update translations that currently obscure the scope. Explicit applet `menus()` definitions are not automatically supplied with identity commands or semantically rewritten.
 
-Additional `data-menubar-text-*` suffixes are `actions`, `file`, `active-window`, `minimize-all`, `restore-all`, `close-all`, and `open-windows`. They change displayed labels only. Standard IDs and routing remain unchanged.
+Additional `data-menubar-text-*` suffixes are `actions`, `file` (unused since 0.49.0, when articles lost their File menu), `active-window`, `minimize-all`, `restore-all`, `close-all`, and `open-windows`. They change displayed labels only. Standard IDs and routing remain unchanged.
 
 ## Verify the migration
 

@@ -215,8 +215,11 @@
       }
     } else {
       name = titleOfScope(src.scope);
-      titles = [{ label: name, items: articleItems(src) },
-        { id: 'file', label: text('file', 'File'), items: [{ label: text('print', 'Print'), run: function () { window.print(); } }] }].concat(
+      /* An article has no File title of PUDL's: its one command, Print,
+         is in its own menu, and only where the host marks its page menu
+         data-page-print, since printing a page of windows prints the
+         desktop rather than the article. */
+      titles = [{ label: name, items: articleItems(src) }].concat(
         readList(src.nav.querySelector(':scope > ul') || document.createElement('ul')).filter(function (t) { return t.items; }));
     }
     titles.forEach(function (t) { own(t.items, src); });
@@ -255,6 +258,7 @@
         if (navigator.clipboard) navigator.clipboard.writeText(href).catch(function () {});
       } });
     }
+    if (src.nav && src.nav.hasAttribute('data-page-print')) items.push({ label: text('print', 'Print'), run: function () { window.print(); } });
     if (key) items.push('-', { label: text('close', 'Close window'), run: function () { window.pudlWindows.close(key); } });
     return items;
   }
