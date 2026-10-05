@@ -140,17 +140,48 @@
     dismiss(b.closest('.notice, .toast'));
   });
 
+  /* Toasts that arrive in content, rather than in the region: a window's
+     body fetched after the page loaded, or regions swapped in, can carry
+     .toast elements, usually hidden, as a page carries them in its region
+     (from YAVCHN's PUDL-PROPOSAL.md, B5). They move into the region, shown,
+     and are announced, so the same markup serves a page and a window. */
+  function takeIn(scope) {
+    if (!scope || !scope.querySelectorAll) return;
+    var found = Array.prototype.filter.call(scope.querySelectorAll('.toast'), function (t) { return !t.closest('.toast-region'); });
+    if (scope.classList && scope.classList.contains('toast') && !scope.closest('.toast-region')) found.push(scope);
+    if (!found.length) return;
+    var fresh = !document.querySelector('.toast-region:not(dialog .toast-region)');
+    var r = region();
+    found.forEach(function (t) {
+      t.remove();
+      t.hidden = false;
+      if (!t.querySelector('.toast-close')) t.appendChild(closeButton(r.getAttribute('data-toast-close-label') || 'Dismiss'));
+    });
+    setTimeout(function () { found.forEach(function (t) { r.appendChild(t); arm(t); }); }, fresh ? 150 : 0);
+  }
+
   function init() {
     var r = document.querySelector('.toast-region');
-    if (!r) return;
-    region();
-    var server = Array.prototype.slice.call(r.querySelectorAll(':scope > .toast'));
-    if (!server.length) return;
-    server.forEach(function (t) { t.remove(); });
-    setTimeout(function () {
-      server.forEach(function (t) { r.appendChild(t); arm(t); });
-    }, 150);
+    if (r) {
+      region();
+      var server = Array.prototype.slice.call(r.querySelectorAll(':scope > .toast'));
+      if (server.length) {
+        server.forEach(function (t) { t.remove(); });
+        setTimeout(function () {
+          server.forEach(function (t) { r.appendChild(t); arm(t); });
+        }, 150);
+      }
+    }
+    /* Windows the server rendered into the page carry theirs too. */
+    setTimeout(function () { document.querySelectorAll('.win').forEach(takeIn); }, 150);
   }
+
+  document.addEventListener('pudl:window-open', function (e) { takeIn(e.target); });
+  document.addEventListener('pudl:regions-swap', function (e) {
+    (e.detail && e.detail.regions || []).forEach(function (name) {
+      takeIn(document.querySelector('[data-region="' + CSS.escape(name) + '"]'));
+    });
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

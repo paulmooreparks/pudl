@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.51.0
+
+This release implements PUDL specification 0.12.0. It takes in the patterns YAVCHN and parkscomputing.com each built for themselves (YAVCHN's `PUDL-PROPOSAL.md`, B1, B2, B4, B5 and B6), so both can delete their copies. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js` and `pudl-toast.js`.
+
+- **A filter menu (B1).** A `label.check.menu-check` is a checkbox row in a menu panel, which the arrow keys reach. With `data-filter-menu` on a panel that has an id, changing a box sends its form, and after the region swap that causes, the panel opens again with focus on the same box.
+- **A settings panel (B2).** `.settings-panel` is a column of `.card`s, 12px apart and at most 720px wide, each with a `.settings-actions` row and an optional `.settings-status` line that takes no room while empty.
+- **A disclosure button (B4).** `.btn.disclosure` with `aria-expanded` carries the new `--glyph-chevron` after its words, pointing down while its content is hidden and up while shown, turning without motion under reduced motion.
+- **Toasts in content loaded later (B5).** A `.toast`, usually `hidden`, in a window's content or in regions swapped in moves into the toast region, shown and announced, so a server renders one the same way for a page and a window.
+- **A window's default identity menu (B6).** A window whose content offers no menu gets an identity menu under its own title, with Open as a page, Copy link to this content and Close window, so a host needs no stub applet for it.
+
 ## 0.50.0
 
 This release implements PUDL specification 0.11.0. It takes in the four runtime features YAVCHN patched into its copies of PUDL, and two of its other requests (YAVCHN's `PUDL-PROPOSAL.md`, A1 to A4, B3 and B7). Update `pudl.css`, `pudl-windows.js` and `pudl-regions.js`; YAVCHN can replace its patched files with these.

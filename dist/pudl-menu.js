@@ -20,7 +20,7 @@
   var GAP = 4;          // px between the button and the panel
   var EDGE = 8;         // px the panel keeps from the edges of the window
   var NARROW = 640;     // at or below this window width the panel is a sheet
-  var ITEMS = 'a.md-item, .menu-action, .md-filter';
+  var ITEMS = 'a.md-item, .menu-action, .md-filter, .menu-check input';
 
   /* An explicit anchor selects the placement when several controls target
      one panel. Otherwise use its native popover invoker. */
@@ -436,5 +436,38 @@
     if (!chosen) return;
     var panel = chosen.closest('.menu-panel');
     if (panel && isOpen(panel)) panel.hidePopover();
+  });
+
+  /* A filter menu (from YAVCHN's PUDL-PROPOSAL.md, B1): a panel marked
+     data-filter-menu holds checkbox rows, each box belonging to the
+     filter's form, by its form attribute or by sitting in it. Ticking a box
+     sends the form at once. Where pudl-regions.js turns that into a swap of
+     the regions that hold the menu, the panel with the same id opens again
+     on the new page, once every other listener has rebuilt it, with focus
+     on the same box, so several boxes can be ticked in a row. Where the
+     form loads a whole page, the browser does. */
+  var reopen = null;
+  document.addEventListener('change', function (e) {
+    var box = e.target;
+    if (!box || box.type !== 'checkbox' || !box.closest) return;
+    var panel = box.closest('.menu-panel[data-filter-menu]');
+    if (!panel || !panel.id || !box.form) return;
+    reopen = { panel: panel.id, name: box.name, value: box.value };
+    if (box.form.requestSubmit) box.form.requestSubmit(); else box.form.submit();
+  });
+  document.addEventListener('pudl:regions-swap', function () {
+    var was = reopen;
+    reopen = null;
+    if (!was) return;
+    requestAnimationFrame(function () {
+      var panel = document.getElementById(was.panel);
+      if (!panel || !panel.showPopover || isOpen(panel)) return;
+      panel.showPopover();
+      /* A panel hidden for placing cannot take focus, so it is placed now. */
+      place(panel);
+      panel.classList.remove('placing');
+      var box = panel.querySelector('input[type="checkbox"][name="' + CSS.escape(was.name) + '"][value="' + CSS.escape(was.value) + '"]');
+      if (box) box.focus();
+    });
   });
 })();

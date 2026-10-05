@@ -103,7 +103,10 @@ function check(name, ok, detail) {
   await front.filter({ hasText: /^Actions$/ }).click();
   await p.evaluate(() => pudlWindows.close('counter'));
   await p.waitForFunction(() => !document.querySelector('#menubar-panel').matches(':popover-open'));
-  check('closing an active window invalidates its open popup', await front.count() === 0);
+  /* The window left in front has no applet any more, so it has the
+     default identity menu under its own title, not Counter's menus. */
+  const left = await p.evaluate(() => { const g = document.querySelector('.menubar-front'); return g ? g.getAttribute('aria-label') : null; });
+  check('closing an active window invalidates its open popup', left !== 'Counter', String(left));
 
   await p.evaluate(() => {
     document.querySelector('.win[data-win="notes"]').addEventListener('pudl:window-closing', e => e.preventDefault(), { once: true });

@@ -193,6 +193,9 @@
       return !outside || !n.closest('.win');
     });
     if (navs.length) return { kind: 'article', scope: f, nav: navs[0] };
+    /* A window whose content offers no menu still has what every window
+       offers, under its title (from YAVCHN's PUDL-PROPOSAL.md, B6). */
+    if (f.key) return { kind: 'window', scope: f };
     return null;
   }
 
@@ -213,6 +216,9 @@
         var commands = normal(src.applet.commands ? src.applet.commands() : []);
         if (commands.length) titles.push({ id: 'actions', label: text('actions', 'Actions'), items: commands });
       }
+    } else if (src.kind === 'window') {
+      name = titleOfScope(src.scope);
+      titles = [{ label: name, items: articleItems(src) }];
     } else {
       name = titleOfScope(src.scope);
       /* An article has no File title of PUDL's: its one command, Print,

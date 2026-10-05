@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.11.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.12.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -238,6 +238,22 @@ The status area holds the icons of what runs in the background of an application
 ```
 
 A badge that is empty, or `hidden`, is not shown, so a count of nothing is never drawn as 0. The badge is hidden from assistive technology, so the item's `aria-label` says what it means, and the host keeps the two in step; PUDL redraws nothing, since the stylesheet alone follows the host's changes. A badge on the topbar takes its colours from the topbar, so it reads whether the bar is dark or lightened by a menu bar. Running the work behind an item is the host's.
+
+## Settings panels
+
+A settings panel is a column of cards, one for each group of settings, 12px apart and at most 720px wide, centred in a page or filling a window. Each card has its title, a muted description, its controls and a row of the buttons that act on that group; a status line under the row says what the last action did and takes no room while it is empty.
+
+```html
+<div class="settings-panel">
+  <form class="card" method="post" action="/settings/reading">
+    <h2 class="card-title">Reading</h2>
+    <p class="card-desc">How stories open.</p>
+    <label class="check"><input type="checkbox" name="windows" checked> Open stories in windows</label>
+    <div class="settings-actions"><button class="btn btn-primary">Save</button></div>
+    <p class="settings-status" role="status"></p>
+  </form>
+</div>
+```
 
 ## Badges, chips and filter chips
 
@@ -496,6 +512,8 @@ The close button is optional. An error the reader must act on is always a notice
 
 Toasts gather in a `.toast-region` at the foot of the window, a live region, so screen readers announce each one. With the optional `pudl-toast.js`, a script raises one with `pudlToast('Expense saved.', { kind: 'positive' })`, and a server renders one as `<div class="toast positive"><p class="toast-text">Expense saved.</p></div>` inside the region, typically after a form posts and redirects. A toast leaves after five seconds, or `data-toast-ms`, and waits while the pointer or focus is on it; `data-toast-sticky` keeps it until dismissed. A live region does not announce what was on the page when it loaded, so the script re-inserts the server's toasts a moment after load, which makes them heard.
 
+Content that arrives later can carry toasts too. A window's body fetched after the page loaded, or regions swapped in, may hold a `.toast`, usually `hidden` so it does not flash where it stands; the script moves it into the region, shows it and announces it, adding a dismiss button if it has none. A server can then render the same toast after a redirect whether the reader is on a page or in a window.
+
 ## Dialogs
 
 A dialog is a native `<dialog class="dialog">` that the server renders into the page, opened with `showModal()`, or by a button carrying `command="show-modal"` and `commandfor` naming it. The browser keeps focus inside it, closes it on Escape and draws its backdrop, which PUDL dims to 40% while the panel's shadow does the lifting. A `<form method="dialog">` inside it closes it on submission, with the pressed button's value as the dialog's `returnValue`, and needs no script.
@@ -528,7 +546,14 @@ These old names keep working until 2.0, and new work should use the new ones.
 
 Pin a release rather than tracking the default branch. A change to PUDL reaches a project when that project copies a newer tag, and never by surprise.
 
-## Toggle buttons and hidden elements
+## Toggle buttons, disclosure buttons and hidden elements
+
+A **disclosure button** shows or hides content in place, such as a note under a toolbar. It is a `.btn.disclosure` with `aria-expanded` and `aria-controls`, and it carries the chevron glyph after its words, pointing down while the content is hidden and up while it is shown, turning without motion when the reader asks for reduced motion. It does not latch, since the chevron says its state. The project's script flips `aria-expanded` and the content's `hidden`.
+
+```html
+<button class="btn btn-sm disclosure" type="button" aria-expanded="false" aria-controls="note">Note</button>
+<div id="note" hidden>…</div>
+```
 
 A button that latches, such as a mode switch, is a `.btn` with `aria-pressed`. While the attribute is `"true"` the button stays pressed in, and the same attribute tells assistive technology that it is on. The project's own script flips it; a group of mutually exclusive choices is a segmented control instead. A primary button may latch too, such as a flash card's Reveal: latched, it keeps its accent fill and its text and loses its lift, pressed in rather than darkened, so its label reads in both themes.
 
@@ -555,6 +580,19 @@ Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar 
 The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, above it when there is more room there, and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
 
 An open menu is not part of the URL. It is momentary, like a hover, and everything it leads to has an address of its own.
+
+A **filter menu** holds checkbox rows that filter a list, and applies each at once. Each row is a `label.check.menu-check` holding a checkbox that belongs to the filter's GET form, by its `form` attribute or by sitting in it, so the filter works without script as an ordinary form. With `data-filter-menu` on a panel that has an id, `pudl-menu.js` sends the form when a box changes, and where `pudl-regions.js` turns that into a swap of the regions holding the menu, the panel opens again on the new page with focus on the same box, so the reader can tick several in a row. The arrow keys move between the boxes as between any rows.
+
+```html
+<form id="filter" method="get" action="/stories"></form>
+<div class="menu">
+  <button class="btn menu-btn" popovertarget="show-menu">Show</button>
+  <div class="menu-panel" id="show-menu" popover aria-label="Filter by site" data-filter-menu>
+    <label class="check menu-check"><input type="checkbox" form="filter" name="source" value="hn" checked> Hacker News</label>
+    <label class="check menu-check"><input type="checkbox" form="filter" name="show" value="unread"> Only unread</label>
+  </div>
+</div>
+```
 
 A menu can also be **summoned by a key**. A `.menu-panel` carrying `data-menu-key`, a single printable key such as `/`, opens when that key is pressed anywhere outside an editable field, with focus in its filter; inside any field the key types as usual. Its button, if it has one, gets a matching `aria-keyshortcuts`. A panel with no button, kept only for its key, opens as a palette near the top centre of the window. If the filter sits in a GET form and the reader presses Enter with no row left, the form submits, so a server can take the typed text to a page of its own, such as a "go to" endpoint that redirects by slug; with a row left, Enter follows it. That makes a launcher summoned by `/` a go-to palette with completion that always ends in an address.
 
@@ -634,7 +672,7 @@ menus() {
 }
 ```
 
-A command takes `label` and `run`, and may take `checked`, `radio` (one of a named group), `disabled`, `danger`, `shortcut` or `items` for a submenu. `'-'` is a separator and `{ heading }` labels the commands below. `into` adds commands by standard ID, with exact host labels retained as a compatibility fallback. Contributions appear below the site's entries under the applet's name. An applet that offers only `commands()` gets an identity menu and an Actions menu holding its commands. An article's menu is a hidden `<nav data-page-menu>` of the same lists, of links; a link to a heading in the article moves there, in its window, without changing the address, and its first title offers Open as a page, Copy link to this content and, in a window, Close window. An article has no File menu of PUDL's. Print is in the first title, after Copy link, only when the nav carries `data-page-print`, which a host adds once its printed article is worth having, since printing a page of windows prints the desktop around the article; a host that wants a File menu for an article adds one to its list.
+A command takes `label` and `run`, and may take `checked`, `radio` (one of a named group), `disabled`, `danger`, `shortcut` or `items` for a submenu. `'-'` is a separator and `{ heading }` labels the commands below. `into` adds commands by standard ID, with exact host labels retained as a compatibility fallback. Contributions appear below the site's entries under the applet's name. An applet that offers only `commands()` gets an identity menu and an Actions menu holding its commands. A window whose content offers no menu at all, neither an applet's nor an article's, gets an identity menu under its own title, with Open as a page, Copy link to this content and Close window, so a host needs no stub applet for it. An article's menu is a hidden `<nav data-page-menu>` of the same lists, of links; a link to a heading in the article moves there, in its window, without changing the address, and its first title offers Open as a page, Copy link to this content and, in a window, Close window. An article has no File menu of PUDL's. Print is in the first title, after Copy link, only when the nav carries `data-page-print`, which a host adds once its printed article is worth having, since printing a page of windows prints the desktop around the article; a host that wants a File menu for an article adds one to its list.
 
 The rules hold the bar together. A front menu may not reuse reserved site menu IDs or a title the host has. It may add commands only to Go, View, and Help, without changing site commands, and within a panel every label is different; what breaks a rule is left out with a console warning naming it. Shortcuts are written `Mod+S`, Ctrl on Windows and Linux and ⌘ on a Mac, and shown in each platform's form. An applet's shortcuts, including contributions to the site bar, work while focus is in its content; site-owned shortcuts work anywhere. A command may not claim `Mod` with N, T, W, Q or Tab, with or without Shift, which browsers keep, or `Mod` with A, C, X or V; it keeps its place without the shortcut, with a warning. With a menu bar on the page, an applet's commands live in its front menu: the window menu holds only the window's own, and the Commands row above an applet on its page does not appear.
 
@@ -1158,7 +1196,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.50.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.51.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 

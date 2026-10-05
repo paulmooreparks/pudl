@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filter menu</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-regions.js" defer></script>
+  <style>body { margin: 0; padding: 16px; }</style>
+</head>
+<body>
+  <!-- A filter menu after YAVCHN's Show menu: its boxes belong to a GET form
+       by their form attribute, and the form and the menu sit in a region,
+       so ticking a box swaps the region. The page is static, so the boxes'
+       state is not carried; the test counts swaps and checks the menu
+       comes back open with focus on the same box. -->
+  <div data-region="list">
+    <form id="filter" method="get" action="filter-menu.html"></form>
+    <div class="menu">
+      <button class="btn menu-btn" type="button" popovertarget="show-menu">Show</button>
+      <div class="menu-panel" id="show-menu" popover aria-label="Filter by site" data-filter-menu>
+        <label class="check menu-check"><input type="checkbox" form="filter" name="source" value="hn"> Hacker News</label>
+        <label class="check menu-check"><input type="checkbox" form="filter" name="source" value="lobsters"> Lobsters</label>
+        <label class="check menu-check"><input type="checkbox" form="filter" name="show" value="unread"> Only unread</label>
+      </div>
+    </div>
+    <p id="marker">List</p>
+  </div>
+</body>
+</html>
