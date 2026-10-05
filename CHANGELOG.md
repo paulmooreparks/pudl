@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.52.0
+
+This release implements PUDL specification 0.13.0, from two of parkscomputing.com's proposals, for it and YAVCHN. Update `pudl.css` and `pudl-md.js`. Nothing changes for a layout without the new attributes.
+
+- **The sidebar's side.** `data-md-side="end"` puts a master-detail sidebar at the end edge of the writing direction, mirrored, with dragging and the arrow keys following it as in a right-to-left page. The document order is unchanged, and changing the attribute moves the sidebar at once with its width and collapsed state.
+- **Peeking at a collapsed sidebar.** On a persistent layout with `data-md-peek`, resting the pointer on the collapsed sidebar's handle for 200ms, or focusing it from the keyboard, draws the sidebar over the detail pane from its edge, at its width, above the windows, with the handle at its side; nothing behind it moves. It closes 300ms after the pointer leaves, when focus leaves, on Escape and when a link in it is chosen, and stays while one of its popovers is open or a drag in it goes on. Down on the handle moves into the list. A peek never changes the collapsed state or the width; pressing the handle, Enter on it or an expand command expands the sidebar for good where the peek stood. `pudl:md-peek` fires with `detail.open`. A peek needs a pointer that can hover and a wide layout.
+
 ## 0.51.0
 
 This release implements PUDL specification 0.12.0. It takes in the patterns YAVCHN and parkscomputing.com each built for themselves (YAVCHN's `PUDL-PROPOSAL.md`, B1, B2, B4, B5 and B6), so both can delete their copies. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js` and `pudl-toast.js`.

@@ -30,6 +30,16 @@ Before a pane is hidden, focus inside it moves to the persistent handle. A host 
 
 The handle's `aria-label` names its pane. Translate `data-md-valuetext` (`{n} pixels wide`), `data-md-collapsed-text` (`Sidebar collapsed`), `data-md-list-text` (`List shown`), and `data-md-detail-text` (`Detail shown`) on the handle. Provide mode-specific instructions through `data-md-wide-help` and `data-md-narrow-help`; PUDL renders them as its title and accessible description. Narrow separator values are 0 for detail and 100 for list; desktop values use pixels.
 
+## The sidebar's side
+
+Since 0.52.0, `data-md-side="end"` on the layout puts the sidebar at the end edge of the writing direction: the right in a left-to-right page, the left in a right-to-left one. `start`, or no attribute, keeps it at the start. At the end edge the sidebar, its handle and its border are mirrored, and dragging and the arrow keys follow it as they follow a right-to-left page. The document order is unchanged, so the keyboard and assistive technology meet the sidebar first wherever it stands. Changing the attribute moves the sidebar at once, keeping its width and its collapsed state; a host that keeps the reader's choice sets the attribute before the first paint, as it renders `--md-sidebar-w` and `data-md-collapsed`. The side applies to plain master-detail layouts too, and a narrow layout, which shows one pane, ignores it.
+
+## Peeking at a collapsed sidebar
+
+Since 0.52.0, `data-md-peek` on a persistent layout lets the reader look into a collapsed sidebar without expanding it. Resting a pointer on the handle for 200ms opens a peek; a pointer that only crosses the handle opens nothing. Focusing the handle from the keyboard opens it too, Down on the handle moves into the list, and Escape closes it with focus back on the handle. The peek draws the sidebar over the detail pane, from its edge, at its effective width, raised above the windows there, with the handle at its side; nothing behind it moves. It closes 300ms after the pointer leaves it, when focus leaves it, and when a link in it is chosen, and stays while one of its own popovers is open or a drag that started in it goes on.
+
+A peek never sets `data-md-collapsed` or `--md-sidebar-w`, and it fires no `pudl:md-change` or `pudl:md-resize`. Pressing the handle of a peek, Enter on it, or any expand command expands the sidebar for good where the peek stood, through the usual commit. PUDL marks an open peek with `data-md-peek-open` on the layout and the handle's offset in `--md-peek-shift`; both are PUDL's, and a host must not set them. `pudl:md-peek` bubbles from the layout with `detail.open` true or false as a peek opens and closes. A peek applies only to a wide layout and to a pointer that can hover, `(hover: hover)`; touch and narrow layouts keep their own behaviour.
+
 ## Host adoption
 
 An independently controlled window workspace must set `data-win-pane="off"` on its window layer. Otherwise the window manager owns `data-md-pane`, and the host must route requests through that existing policy. Do not give both components independent authority over pane selection.

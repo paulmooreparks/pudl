@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.12.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.13.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -693,7 +693,7 @@ Enter applies the filter as well. On a narrow layout the pair takes a row of the
 
 ## Resizing the master-detail sidebar
 
-An opt-in [persistent sidebar](docs/PERSISTENT-SIDEBAR.md) keeps its handle available after collapse and at narrow widths. It adds collapse/restore, host-handled pane requests, and click/tap commands while preserving mounted content. See the [article-reader example](samples/persistent-sidebar.html).
+An opt-in [persistent sidebar](docs/PERSISTENT-SIDEBAR.md) keeps its handle available after collapse and at narrow widths. It adds collapse/restore, host-handled pane requests, and click/tap commands while preserving mounted content. See the [article-reader example](samples/persistent-sidebar.html). With `data-md-peek`, resting the pointer on a collapsed sidebar's handle, or focusing it from the keyboard, opens a peek that draws the list over the detail pane without moving it, and closes again when the pointer or focus leaves. With `data-md-side="end"` on any master-detail layout, the sidebar stands at the end edge, mirrored.
 
 The optional `pudl-md.js` makes the `.md-resize` divider between the sidebar and the detail pane move. Dragging it sets `--md-sidebar-w` on the `.md-layout`, and the stylesheet holds the sidebar between `--md-sidebar-min`, 180px by default, and half the layout, so the limits apply however the width was set and still apply when the layout narrows later. With the divider focused, Left and Right move it 16px, Shift with them 64px, and Home and End go to the limits; a double-click returns it to the default 260px. The divider follows the ARIA window-splitter pattern, and the script gives it a tab stop and keeps its `aria-valuenow`, `aria-valuemin` and `aria-valuemax` current.
 
@@ -1196,7 +1196,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.51.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.52.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 

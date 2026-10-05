@@ -44,9 +44,10 @@
 
   function width(p) { return Math.round(p.side.getBoundingClientRect().width); }
 
-  /* In a right-to-left layout the sidebar is on the right, so the divider
-     widens it by moving left, and the arrow keys follow what they point at. */
-  function rtl(p) { return getComputedStyle(p.body).direction === 'rtl'; }
+  /* With the sidebar on the right, in a right-to-left layout or at the end
+     edge by data-md-side="end", the divider widens it by moving left, and
+     the arrow keys follow what they point at. */
+  function rtl(p) { return (getComputedStyle(p.body).direction === 'rtl') !== (p.layout.getAttribute('data-md-side') === 'end'); }
 
   /* Brings the divider's attributes up to date. l and now, the limits and
      the width, may be passed in by a caller that already knows them, since
@@ -188,6 +189,12 @@
     var c = getComputedStyle(el);
     return Math.max(0, el.clientWidth - parseFloat(c.paddingLeft) - parseFloat(c.paddingRight));
   }
+  /* Whether the sidebar is on the right: the end edge of a left-to-right
+     page, or the start edge of a right-to-left one. Dragging and the arrow
+     keys mirror with it. */
+  function mirrored(p) {
+    return (getComputedStyle(p.body).direction === 'rtl') !== (p.layout.getAttribute('data-md-side') === 'end');
+  }
   function config(p) {
     var whole = contentWidth(p.body), track = p.handle.getBoundingClientRect().width;
     var available = Math.max(0, whole - track);
@@ -219,7 +226,7 @@
   }
   function sync(p) {
     var w = contentWidth(p.layout), bodyWidth = contentWidth(p.body), narrow = w <= 640;
-    var direction = getComputedStyle(p.body).direction;
+    var direction = getComputedStyle(p.body).direction + ' ' + (p.layout.getAttribute('data-md-side') === 'end' ? 'end' : 'start');
     var pane = p.layout.getAttribute('data-md-pane') === 'detail' ? 'detail' : 'list';
     var changed = p.narrow !== undefined && narrow !== p.narrow;
     if ((p.span !== undefined && (p.span !== w || p.bodySpan !== bodyWidth || p.direction !== direction)) || changed) {
@@ -229,8 +236,9 @@
     if (p.pane !== undefined && pane !== p.pane) p.request = ++requestId;
     p.span = w; p.bodySpan = bodyWidth; p.direction = direction; p.narrow = narrow; p.pane = pane;
     var c = config(p), collapsed = p.layout.hasAttribute('data-md-collapsed');
+    if (p.peek && (narrow || !collapsed || !p.layout.hasAttribute('data-md-peek'))) { closePeek(p); return; }
     // Move focus before applying the derived classes that hide content.
-    hide(p, p.side, narrow ? pane === 'detail' : collapsed);
+    hide(p, p.side, narrow ? pane === 'detail' : collapsed && !p.peek);
     hide(p, p.detail, narrow && pane === 'list');
     p.layout.toggleAttribute('data-md-narrow', narrow);
     var effective = Math.min(c.max, Math.max(c.min, requested(p))) + 'px';
@@ -279,6 +287,7 @@
   function command(p, action, source, step) {
     if (!p || !/^(toggle|expand|collapse|increase|decrease|reset|maximum)$/.test(action)) return false;
     if (p.cancel) p.cancel();
+    if (p.peek) closePeek(p);
     sync(p);
     if (p.narrow) {
       var pane = /^(expand|increase|maximum)$/.test(action) ? 'list' : /^(collapse|decrease)$/.test(action) ? 'detail' : p.pane === 'list' ? 'detail' : 'list';
@@ -311,7 +320,7 @@
   document.addEventListener('keydown', function (e) {
     var p = fromHandle(e);
     if (!p || e.target !== p.handle || e.altKey || e.ctrlKey || e.metaKey) return;
-    var rtl = getComputedStyle(p.body).direction === 'rtl';
+    var rtl = mirrored(p);
     var action = e.key === 'Enter' ? 'toggle' : e.key === 'Home' ? 'collapse' : e.key === 'End' ? 'maximum' :
       e.key === 'ArrowLeft' ? (rtl ? 'increase' : 'decrease') : e.key === 'ArrowRight' ? (rtl ? 'decrease' : 'increase') : null;
     if (action) { e.preventDefault(); command(p, action, 'keyboard', e.shiftKey ? 64 : 16); }
@@ -320,10 +329,16 @@
   document.addEventListener('pointerdown', function (e) {
     var p = fromHandle(e);
     if (!p || e.button !== 0 || p.cancel) return;
+    /* A press on the handle of a peeked sidebar expands it where the peek
+       stood: the sidebar joins the layout at the peek's width, and a drag
+       carries on from there. Its requested width is not touched. */
+    var peekW = p.peek ? Math.round(p.side.getBoundingClientRect().width) : 0;
+    if (peekW) closePeek(p);
     sync(p); e.preventDefault(); p.handle.focus({ preventScroll: true });
     var start = state(p), original = p.layout.style.getPropertyValue('--md-sidebar-w');
+    if (peekW) { p.layout.removeAttribute('data-md-collapsed'); sync(p); start.effectiveWidth = peekW; }
     var priority = p.layout.style.getPropertyPriority('--md-sidebar-w');
-    var x = e.clientX, last = x, sign = getComputedStyle(p.body).direction === 'rtl' ? -1 : 1;
+    var x = e.clientX, last = x, sign = mirrored(p) ? -1 : 1;
     var c = config(p), moved = false, ended = false;
     p.handle.setPointerCapture(e.pointerId); p.handle.classList.add('dragging');
     function restore() {
@@ -359,6 +374,8 @@
           request(p, start.pane === 'detail' ? 'list' : 'detail', 'pointer');
       } else if (moved || last !== x) {
         preview(); commit(p, 'pointer', p.layout.hasAttribute('data-md-collapsed') !== start.collapsed ? 'collapse' : 'width');
+      } else if (peekW) {
+        commit(p, 'pointer', 'collapse');
       }
     }
     p.cancel = function () { end({ type: 'cancel' }); };
@@ -367,11 +384,120 @@
     p.handle.addEventListener('pointercancel', end);
     p.handle.addEventListener('lostpointercapture', end);
   });
+  /* === Peeking at a collapsed sidebar ==================================
+     From parkscomputing.com's proposal. On a layout marked data-md-peek, a
+     collapsed sidebar can be looked into without expanding it: resting a
+     pointer on its handle for a moment, or focusing the handle from the
+     keyboard, draws the sidebar over the detail pane at its own width,
+     from its edge, with the handle at its side where an expanded sidebar
+     would put it. Nothing behind it moves. It closes when the pointer has
+     been off it for a moment, when focus leaves it, on Escape, and when a
+     link in it is chosen, and stays while a menu of its own is open or a
+     drag in it goes on. It never changes the collapsed state or the width:
+     expanding from a peek, by the handle or a command, expands for good,
+     where the peek stood. A peek is only for a wide layout and a pointer
+     that can hover; touch and narrow layouts keep their own ways. */
+  var PEEK_OPEN = 200, PEEK_CLOSE = 300;
+  var hover = window.matchMedia ? window.matchMedia('(hover: hover)') : null;
+  var byKeyboard = false;
+  document.addEventListener('keydown', function () { byKeyboard = true; }, true);
+  document.addEventListener('pointerdown', function () { byKeyboard = false; }, true);
+  function canPeek(p) {
+    return p.layout.hasAttribute('data-md-peek') && !p.narrow && p.layout.hasAttribute('data-md-collapsed') && !p.cancel;
+  }
+  function openPeek(p) {
+    clearTimeout(p.peekTimer);
+    if (p.peek || !canPeek(p)) return;
+    p.peek = true;
+    var w = parseFloat(p.layout.style.getPropertyValue('--md-effective-w')) || requested(p);
+    p.layout.style.setProperty('--md-peek-shift', (mirrored(p) ? -w : w) + 'px');
+    p.layout.setAttribute('data-md-peek-open', '');
+    sync(p);
+    p.layout.dispatchEvent(new CustomEvent('pudl:md-peek', { bubbles: true, detail: { open: true } }));
+  }
+  function closePeek(p, focusHandle) {
+    clearTimeout(p.peekTimer);
+    if (!p.peek) return;
+    p.peek = false;
+    p.layout.removeAttribute('data-md-peek-open');
+    p.layout.style.removeProperty('--md-peek-shift');
+    /* Focus inside the peek goes back to the handle as it closes, which
+       must not open it again. */
+    p.closing = true;
+    sync(p);
+    if (focusHandle) p.handle.focus({ preventScroll: true });
+    p.closing = false;
+    p.layout.dispatchEvent(new CustomEvent('pudl:md-peek', { bubbles: true, detail: { open: false } }));
+  }
+  function stays(p) {
+    return p.side.matches(':hover') || p.handle.matches(':hover') || p.dragging ||
+      !!p.side.querySelector(':popover-open') || (byKeyboard && (p.side.contains(document.activeElement) || p.handle === document.activeElement));
+  }
+  function closeSoon(p) {
+    clearTimeout(p.peekTimer);
+    p.peekTimer = setTimeout(function () { if (p.peek && !stays(p)) closePeek(p); }, PEEK_CLOSE);
+  }
+  function watchPeek(p) {
+    p.handle.addEventListener('pointerenter', function (e) {
+      if (e.pointerType !== 'mouse' || (hover && !hover.matches)) return;
+      clearTimeout(p.peekTimer);
+      if (p.peek || !canPeek(p)) return;
+      p.peekTimer = setTimeout(function () { if (p.handle.matches(':hover')) openPeek(p); }, PEEK_OPEN);
+    });
+    p.side.addEventListener('pointerenter', function () { if (p.peek) clearTimeout(p.peekTimer); });
+    [p.handle, p.side].forEach(function (el) {
+      el.addEventListener('pointerleave', function (e) {
+        if (e.pointerType !== 'mouse') return;
+        if (!p.peek) { clearTimeout(p.peekTimer); return; }
+        var to = e.relatedTarget;
+        if (to && to.nodeType === 1 && (p.side.contains(to) || p.handle.contains(to))) return;
+        closeSoon(p);
+      });
+    });
+    /* A drag that starts in the peek, such as on its scroll bar, keeps it
+       open until the button is let go. */
+    p.side.addEventListener('pointerdown', function () {
+      if (!p.peek) return;
+      p.dragging = true;
+      document.addEventListener('pointerup', function () { p.dragging = false; if (p.peek && !stays(p)) closeSoon(p); }, { once: true });
+    });
+    /* A menu of the sidebar's own keeps the peek while it is open. */
+    p.side.addEventListener('toggle', function (e) {
+      if (p.peek && e.newState === 'closed' && !stays(p)) closeSoon(p);
+    }, true);
+    /* Choosing a link in the peek closes it, since what the link opens is
+       what the reader came for; the click is carried out first. */
+    p.side.addEventListener('click', function (e) {
+      if (!p.peek || !e.target.closest || !e.target.closest('a[href]')) return;
+      setTimeout(function () { closePeek(p); }, 0);
+    });
+    p.handle.addEventListener('focus', function () { if (byKeyboard && !p.closing) openPeek(p); });
+  }
+  document.addEventListener('focusin', function (e) {
+    records.forEach(function (p) {
+      if (p.peek && !p.side.contains(e.target) && e.target !== p.handle && !(e.target.closest && e.target.closest('[popover]') && p.side.contains(e.target.closest('[popover]')))) closePeek(p);
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    records.forEach(function (p) {
+      if (!p.peek || e.defaultPrevented) return;
+      var inside = p.side.contains(document.activeElement) || document.activeElement === p.handle;
+      if (!inside) return;
+      if (e.key === 'Escape') { e.preventDefault(); closePeek(p, true); }
+      /* Down on the handle goes into the peeked list. */
+      else if (e.key === 'ArrowDown' && document.activeElement === p.handle) {
+        var first = p.side.querySelector('a[href], button:not([disabled]), input:not([disabled]), [tabindex="0"]');
+        if (first) { e.preventDefault(); first.focus(); }
+      }
+    });
+  });
   var observer = new ResizeObserver(function () { refresh(); });
   function refresh() {
     records.forEach(function (p, el) {
       if (!el.isConnected || !el.hasAttribute('data-md-persistent') || !p.handle.isConnected || p.handle.closest('[data-md-persistent]') !== el || !p.side.isConnected || !p.detail.isConnected) {
         if (p.cancel) p.cancel();
+        clearTimeout(p.peekTimer);
+        el.removeAttribute('data-md-peek-open'); el.style.removeProperty('--md-peek-shift');
         p.inert.forEach(function (old, pane) { pane.inert = old; });
         observer.unobserve(el); observer.unobserve(p.body); records.delete(el);
         el.removeAttribute('data-md-narrow'); el.style.removeProperty('--md-effective-w');
@@ -388,6 +514,7 @@
         if (el.hasAttribute('data-md-default-width') && !el.style.getPropertyValue('--md-sidebar-w'))
           el.style.setProperty('--md-sidebar-w', number(el, 'data-md-default-width', 260) + 'px');
         records.set(el, p); observer.observe(el); observer.observe(body);
+        watchPeek(p);
       }
       sync(p);
     });
@@ -405,7 +532,7 @@
     }
   };
   new MutationObserver(refresh).observe(document.documentElement, { subtree: true, childList: true, attributes: true,
-    attributeFilter: ['data-md-persistent', 'data-md-pane', 'data-md-collapsed', 'data-md-min', 'data-md-max', 'dir', 'style'] });
+    attributeFilter: ['data-md-persistent', 'data-md-pane', 'data-md-collapsed', 'data-md-min', 'data-md-max', 'data-md-side', 'data-md-peek', 'dir', 'style'] });
   document.addEventListener('pudl:regions-swap', refresh);
   window.addEventListener('resize', refresh);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh); else refresh();
