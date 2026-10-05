@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.47.0
+
+This release implements PUDL specification 0.8.0, which settles that a select's opener is PUDL's. Update `pudl.css`, and put each `.form-select` in a `span.form-select-wrap`. A select left without the wrap looks as it did before.
+
+- A select in a `.form-select-wrap` is drawn by PUDL. The browser's own drawing is turned off, and the wrap draws the opener, the caret glyph in the select's text colour, 11px in from the end edge, which is the left in a right-to-left page; the select's text stops short of it. WebKit drew a select itself, raised and lit, which broke the rule that a field is sunken, and clipped its text; with the wrap a select is sunken and 36px tall in every engine. A disabled select's opener dims with it, a select showing several rows has no opener, and in high-contrast mode the opener takes the system's text colour.
+- The reference page, the expense tracker sample, the README and the component list use the wrap, and the web contract lists it. The component list's test has no known gaps left, and a new test checks the opener's glyph, colour and place in both themes and both directions.
+
 ## 0.46.0
 
 This release implements PUDL specification 0.7.0. Nothing changes for a page; the new file is for tools.

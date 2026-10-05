@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.46.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.47.0</a>
     </div>
   </header>
 
@@ -161,7 +161,7 @@
     </div>
 
     <h2>3. Forms</h2>
-    <p>A field that takes input is sunken. A read-only value is flat, with no field around it, so it never pretends to be editable. A switch is a raised thumb in a sunken track, and when it is on, the track fills with the accent and the thumb sits at the far end, so its position says so as well as its colour. An error leads with its warning glyph.</p>
+    <p>A field that takes input is sunken. A read-only value is flat, with no field around it, so it never pretends to be editable. A switch is a raised thumb in a sunken track, and when it is on, the track fills with the accent and the thumb sits at the far end, so its position says so as well as its colour. A select is sunken like any field, drawn by PUDL in a <code>.form-select-wrap</code> with the caret glyph as its opener, so it looks the same in every browser. An error leads with its warning glyph.</p>
     <div class="demo demo-grid">
       <span class="demo-label">Text input</span>
       <div><input class="form-input" placeholder="Trip name or destination"></div>
@@ -171,9 +171,9 @@
 
       <span class="demo-label">Select</span>
       <div>
-        <select class="form-select" aria-label="Account">
+        <span class="form-select-wrap"><select class="form-select" aria-label="Account">
           <option>Billable</option><option>Non-billable</option><option>Internal</option>
-        </select>
+        </select></span>
       </div>
 
       <span class="demo-label">Textarea</span>

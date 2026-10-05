@@ -40,9 +40,9 @@ The test measures every part in both themes and in Chromium, Firefox and WebKit.
 
 ## Known gaps
 
-The measurement found one part that does not look like its category in one engine, and the test lists it as known rather than passing it silently:
+The test keeps a list of parts known not to look like their category in an engine, each with its reason, so that none passes silently. The list is empty.
 
-- **A select in WebKit.** WebKit draws a select itself, with a gradient and no inner shadow, so it reads as raised rather than sunken, and it clips the select's text vertically. `appearance: menulist-button` does not change that. The documented fix is `appearance: none` with PUDL drawing the select's caret, which needs either a wrapper element to carry the caret glyph or a caret that cannot follow the theme's colours, so it is a decision for PUDL rather than a change made here. The engine tested is Playwright's WebKit on Windows, not Safari on a Mac, which has not been checked.
+Its first entry was a select in WebKit, which drew the select itself, raised and lit, and clipped its text. Specification 0.8.0 settled that a select's opener is PUDL's, and 0.47.0 draws a select in a `.form-select-wrap` with the browser's drawing turned off and the caret glyph as its opener. The engine tested is Playwright's WebKit on Windows; Safari on a Mac has not been checked.
 
 ## What Studio will need that PUDL does not have
 

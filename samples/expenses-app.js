@@ -604,14 +604,14 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label" for="trip">Trip</label>
-          <select class="form-select" id="trip" name="trip" required${err('trip', 'trip')}>
+          <span class="form-select-wrap"><select class="form-select" id="trip" name="trip" required${err('trip', 'trip')}>
             <option value="">Choose a trip</option>${opts(Object.fromEntries(openTrips.map(t => [t.id, t.name])), v.trip)}
-          </select>
+          </select></span>
           ${msg('trip', 'trip')}
         </div>
         <div class="form-group">
           <label class="form-label" for="category">Category</label>
-          <select class="form-select" id="category" name="category">${opts(CATEGORIES, v.category)}</select>
+          <span class="form-select-wrap"><select class="form-select" id="category" name="category">${opts(CATEGORIES, v.category)}</select></span>
         </div>
       </div>
       <div class="form-row">
@@ -623,7 +623,7 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="currency">Currency</label>
-          <select class="form-select" id="currency" name="currency">${opts(Object.fromEntries(CURRENCIES.map(c => [c, c])), v.currency)}</select>
+          <span class="form-select-wrap"><select class="form-select" id="currency" name="currency">${opts(Object.fromEntries(CURRENCIES.map(c => [c, c])), v.currency)}</select></span>
         </div>
       </div>
       <fieldset class="form-fieldset">
@@ -860,7 +860,7 @@
         ${field('customer', 'Billable to', ' aria-describedby="customer-help"').replace('</div>', '<p class="form-help" id="customer-help">The customer, if any of the trip is charged to one.</p></div>')}
         <div class="form-group">
           <label class="form-label" for="currency">Local currency</label>
-          <select class="form-select" id="currency" name="currency">${CURRENCIES.map(c => `<option${c === v.currency ? ' selected' : ''}>${c}</option>`).join('')}</select>
+          <span class="form-select-wrap"><select class="form-select" id="currency" name="currency">${CURRENCIES.map(c => `<option${c === v.currency ? ' selected' : ''}>${c}</option>`).join('')}</select></span>
         </div>
       </div>
       <div class="dialog-actions form-actions">

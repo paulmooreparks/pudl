@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.7.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.8.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -248,6 +248,14 @@ A form the server has refused comes back with every value the reader typed, a no
 - `.form-help` is a field's help text, sometimes called a hint: muted text under the field, tied to it by `aria-describedby`.
 - `.form-fieldset` with a `legend` groups related choices, and `.form-options`, or `.form-options.inline`, lays out their `.check` labels, radio buttons included.
 - `.form-file` on a file input makes its button raised like any other.
+- A `.form-select` inside a `span.form-select-wrap` is drawn by PUDL: the browser's own drawing is turned off, and the wrap draws the opener, the caret glyph in the select's text colour, at its end edge. Without the wrap, the browser draws the select, and WebKit draws it raised and lit and clips its text, so every select should have one. A select with `multiple` or `size` shows its rows in the page and has no opener.
+
+```html
+<div class="form-group">
+  <label class="form-label" for="trip">Trip</label>
+  <span class="form-select-wrap"><select class="form-select" id="trip" name="trip">…</select></span>
+</div>
+```
 
 ## Tabs within a page
 
@@ -1127,7 +1135,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.46.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.47.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 
