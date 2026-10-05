@@ -37,6 +37,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-code.js` | `pudl.css` | Copy and Download on code blocks |
 | `pudl-split.js` | `pudl.css` | Splitters between two panes |
 | `pudl-menubar.js` | `pudl.css`, `pudl-menu.js`; uses `pudl-windows.js` and `pudl-applets.js` when present | An application's menu bar in its topbar |
+| `pudl-components.json` | | The components, their templates, the grammar of their parts, variants and states, for tools; [described here](COMPONENTS.md). It agrees with the component table below. Until 1.0 its fields may change in a minor release. |
 
 ## Tokens
 

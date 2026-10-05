@@ -1105,6 +1105,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-code.js`, the optional script that gives code blocks Copy and Download
   - `pudl-split.js`, the optional script for splitters between two panes
   - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
+  - `pudl-components.json`, the components described for tools, which `docs/COMPONENTS.md` explains; a page never loads it
   - `fonts/`, Inter script subsets and retained whole variable fonts, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -1113,6 +1114,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 - `vendor/pudl-spec/`, the specification's tokens and glyphs at the version this release implements, copied from a tag of pudl-spec and never edited here
 - `build/tokens.js`, which writes the token block of `dist/pudl.css` from them, the repository's only build step; a project never runs it
 - `docs/CONTRACT.md`, everything a project may rely on
+- `docs/COMPONENTS.md`, the component list for tools, the grammar categories its test measures, and the gaps it has found
 - `docs/proposals/`, design proposals and the decisions taken on them
 - `tests/`, the browser tests, their runner `run.js`, and in `fixtures/` the pages some of them need beyond the samples
 - `package.json`, which installs Playwright and axe for the tests, and `.github/workflows/test.yml`, which runs them in three engines on every push
@@ -1125,7 +1127,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.45.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.46.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 

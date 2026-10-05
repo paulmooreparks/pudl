@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.46.0
+
+This release implements PUDL specification 0.7.0. Nothing changes for a page; the new file is for tools.
+
+- `dist/pudl-components.json` describes every component in the web contract for tools, starting with PUDL Studio: each one's template, the grammar category of each of its parts, its variants, its states, the attributes a tool should offer and where other components may be placed in it. `docs/COMPONENTS.md` explains its fields. A component's category comes from the specification's grammar chapter, which has more than the three elevations: lists of places, handles, links, tabs and layout as well.
+- A new test renders every template in both themes and three engines and measures each part against its category: a gradient and a shadow for raised, an inner shadow alone for sunken, neither for the flat categories. It also checks that every component in the contract's table is in the list, that every variant's class is in `pudl.css` and that every file a component needs is in `dist/`.
+- The measurement found that WebKit draws a select itself, with a gradient and without the inner shadow, so a select reads as raised there and its text is clipped. The documented fix needs a decision about how PUDL draws a select's caret, so this release records it as a known gap in `docs/COMPONENTS.md` instead of changing selects.
+- `docs/COMPONENTS.md` also lists what a development tool needs that PUDL lacks: layout for forms and panes, a slider, a progress bar, a combo box, a list box and an image.
+
 ## 0.45.0
 
 This release implements PUDL specification 0.7.0, which adds the pins group and the `pin` glyph. Update `pudl.css` and `pudl-menubar.js`. Nothing changes for a site that does not add a pins list.
