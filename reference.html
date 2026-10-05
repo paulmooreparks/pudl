@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.52.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.53.0</a>
     </div>
   </header>
 
@@ -306,6 +306,15 @@
           <span class="chip">billable</span>
         </div>
       </div>
+    </div>
+    <p>Layout arranges components without a surface of its own. A <code>.vstack</code> places them one above another, an <code>.hstack</code> side by side, wrapping rather than widening the page, and an <code>.auto-grid</code> in as many 224px columns as fit, one on a phone. Each keeps document order, with a gap from the spacing grid. Narrow the window to see these cards fall into one column and the buttons wrap.</p>
+    <div class="demo vstack">
+      <div class="auto-grid">
+        <div class="card"><h3 class="card-title">Trips</h3><p class="card-desc">Three this quarter.</p></div>
+        <div class="card"><h3 class="card-title">Expenses</h3><p class="card-desc">Two waiting for receipts.</p></div>
+        <div class="card"><h3 class="card-title">Reports</h3><p class="card-desc">One sent.</p></div>
+      </div>
+      <div class="hstack align-center"><button class="btn btn-primary">New trip</button><button class="btn">New expense</button><button class="btn push-end">Settings</button></div>
     </div>
 
     <h2>8. Key/value table</h2>

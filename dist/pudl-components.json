@@ -218,6 +218,51 @@
       "slots": [{ "selector": ".card", "name": "Content" }]
     },
     {
+      "id": "stack",
+      "name": "Stack",
+      "kind": "layout",
+      "spec": "08-components/layout.md",
+      "template": "<div class=\"vstack\"><p>First</p><p>Second</p></div>",
+      "parts": [{ "selector": ".vstack", "surface": "layout" }],
+      "variants": [
+        { "name": "No gap", "class": "gap-0", "group": "gap" }, { "name": "Gap 1", "class": "gap-1", "group": "gap" },
+        { "name": "Gap 2", "class": "gap-2", "group": "gap" }, { "name": "Gap 4", "class": "gap-4", "group": "gap" },
+        { "name": "Gap 5", "class": "gap-5", "group": "gap" }, { "name": "Gap 6", "class": "gap-6", "group": "gap" }
+      ],
+      "slots": [{ "selector": ".vstack", "name": "Components" }]
+    },
+    {
+      "id": "row",
+      "name": "Row",
+      "kind": "layout",
+      "spec": "08-components/layout.md",
+      "template": "<div class=\"hstack\"><span>First</span><span>Second</span></div>",
+      "parts": [{ "selector": ".hstack", "surface": "layout" }],
+      "variants": [
+        { "name": "Centred", "class": "align-center", "group": "align" }, { "name": "To the end", "class": "align-end", "group": "align" },
+        { "name": "On the first line of text", "class": "align-baseline", "group": "align" },
+        { "name": "No gap", "class": "gap-0", "group": "gap" }, { "name": "Gap 1", "class": "gap-1", "group": "gap" },
+        { "name": "Gap 2", "class": "gap-2", "group": "gap" }, { "name": "Gap 4", "class": "gap-4", "group": "gap" },
+        { "name": "Gap 5", "class": "gap-5", "group": "gap" }, { "name": "Gap 6", "class": "gap-6", "group": "gap" }
+      ],
+      "slots": [{ "selector": ".hstack", "name": "Components" }]
+    },
+    {
+      "id": "column-grid",
+      "name": "Grid of columns",
+      "kind": "layout",
+      "spec": "08-components/layout.md",
+      "template": "<div class=\"auto-grid\"><div>First</div><div>Second</div><div>Third</div></div>",
+      "parts": [{ "selector": ".auto-grid", "surface": "layout" }],
+      "variants": [
+        { "name": "No gap", "class": "gap-0", "group": "gap" }, { "name": "Gap 1", "class": "gap-1", "group": "gap" },
+        { "name": "Gap 2", "class": "gap-2", "group": "gap" }, { "name": "Gap 4", "class": "gap-4", "group": "gap" },
+        { "name": "Gap 5", "class": "gap-5", "group": "gap" }, { "name": "Gap 6", "class": "gap-6", "group": "gap" }
+      ],
+      "properties": [{ "name": "Least column width", "attribute": "style", "values": ["--grid-min: 160px", "--grid-min: 224px", "--grid-min: 320px"] }],
+      "slots": [{ "selector": ".auto-grid", "name": "Components" }]
+    },
+    {
       "id": "settings-panel",
       "name": "Settings panel",
       "kind": "layout",
