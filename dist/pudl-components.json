@@ -193,6 +193,20 @@
       "parts": [{ "selector": ".filter-chip", "surface": "flat" }]
     },
     {
+      "id": "status-area",
+      "name": "Status area",
+      "kind": "raised",
+      "spec": "08-components/application-bar.md",
+      "context": "topbar-chrome",
+      "template": "<nav class=\"status-area\" aria-label=\"Status\"><a class=\"status-item\" href=\"?queue\" aria-label=\"Queue: 3 waiting\" title=\"Queue: 3 waiting\"><span class=\"glyph\" style=\"--glyph: var(--glyph-comments)\" aria-hidden=\"true\"></span><span class=\"badge warn\" aria-hidden=\"true\">3</span></a></nav>",
+      "parts": [
+        { "selector": ".status-area", "surface": "raised" },
+        { "selector": ".status-item", "surface": "flat" }
+      ],
+      "properties": [{ "name": "Label", "attribute": "aria-label", "on": ".status-item", "required": true }],
+      "slots": [{ "selector": ".status-area", "name": "Items" }]
+    },
+    {
       "id": "card",
       "name": "Card",
       "kind": "flat",
