@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.48.0
+
+This release implements PUDL specification 0.9.0, from two of parkscomputing.com's proposals. Update `pudl.css` and `pudl-windows.js`.
+
+- **A status area in the topbar.** `nav.status-area`, last in `.topbar-chrome`, is one raised group in the topbar's own colours, holding `.status-item` links or buttons that are flat, highlight under the pointer and press in, as a menu bar's titles do. An item holds a glyph or a 24px picture, which may be round since the group is what is raised, and optionally a `.badge`. A badge that is empty or `hidden` is not shown, and a badge on the topbar mixes its status colour with the topbar's text colour, so its count reads on a dark bar and on one a menu bar has lightened. No script is needed: the host sets the badge and the item's `aria-label`, and the stylesheet follows.
+- **A new glyph, `--glyph-comments`**, for comments and messages.
+- **The window menu docks at every edge.** Dock at the bottom becomes a Dock list of Top, Bottom, Left and Right, ticking the edge the window is docked at, and on a docked window ending with Undock. In a window's own menu it stands under a Dock heading, as the layout picker stands in it; in a menu bar's Window menu it is a submenu. The title bar's dock button still docks at the bottom. New words are `data-win-text-dock-menu` and `-dock-top`, `-dock-bottom`, `-dock-left` and `-dock-right`.
+- **A change for a script that reads `pudlWindows.menuCommands()`:** `dock` is now a submenu with `dock:top`, `dock:bottom`, `dock:left` and `dock:right` children, and `undock` is its last child on a docked window, where before both were leaves. Neither parkscomputing.com nor YAVCHN reads them. The migration guide lists the IDs.
+
+The proposal for docking asked whether a window sized by its content should dock too, taking its natural height or width as its strip. It is left out of this release, which follows the specification's rule that such a window cannot be docked.
+
 ## 0.47.0
 
 This release implements PUDL specification 0.8.0, which settles that a select's opener is PUDL's. Update `pudl.css`, and put each `.form-select` in a `span.form-select-wrap`. A select left without the wrap looks as it did before.

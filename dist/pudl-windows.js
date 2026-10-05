@@ -82,6 +82,9 @@
     'left-third': 'Left third', 'middle-third': 'Middle third', 'right-third': 'Right third',
     'left-two-thirds': 'Left two thirds', 'right-two-thirds': 'Right two thirds'
   };
+  /* The edges the window menu docks at, in the order it lists them. */
+  var DOCK_EDGES = ['top', 'bottom', 'left', 'right'];
+  var DOCK_WORDS = { top: 'Top', bottom: 'Bottom', left: 'Left', right: 'Right' };
   /* The layouts the picker offers, each a set of zones that fill the area. */
   var LAYOUTS = [
     ['halves', 'Halves', ['left', 'right']],
@@ -1071,7 +1074,15 @@
         return command('snap:' + name, text('zone-' + name, ZONE_WORDS[name]), 'snap:' + name, { checked: here === ZONES[name].join(',') });
       }) });
     }
-    if (!sized && !fixed) list.push(command(dock ? 'undock' : 'dock', dock ? text('undock', 'Undock') : text('dock', 'Dock at the bottom'), 'dock'));
+    /* Docking at any of the four edges, the one the window is docked at
+       ticked, and Undock last on a docked window. */
+    if (!sized && !fixed) {
+      var edges = DOCK_EDGES.map(function (edge) {
+        return command('dock:' + edge, text('dock-' + edge, DOCK_WORDS[edge]), 'dock:' + edge, { checked: dock === edge });
+      });
+      if (dock) edges.push('-', command('undock', text('undock', 'Undock'), 'undock'));
+      list.push({ id: 'dock', label: text('dock-menu', 'Dock'), items: edges });
+    }
     if (!fixed) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
     list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
     return list;
@@ -1084,6 +1095,17 @@
     var standard = menuCommands(key);
     standard.filter(function (c) { return c.id !== 'close'; }).forEach(function (c) {
       if (c.id === 'snap') { snapItems(panel, key); return; }
+      /* The Dock list stands in the menu under its heading, as the layout
+         picker does, since this menu has no submenus. */
+      if (c.id === 'dock') {
+        var head = document.createElement('div');
+        head.className = 'md-section-label';
+        head.setAttribute('role', 'presentation');
+        head.textContent = c.label;
+        panel.appendChild(head);
+        c.items.forEach(function (d) { panel.appendChild(d === '-' ? sep() : menuItem(d.label, d.id, d)); });
+        return;
+      }
       var cmd = ['expand', 'collapse', 'unminimize'].indexOf(c.id) >= 0 ? 'minimize' : c.id === 'restore' ? 'maximize' : c.id === 'undock' ? 'dock' : c.id;
       panel.appendChild(menuItem(c.label, cmd, c));
     });
@@ -1133,7 +1155,7 @@
 
   function runCommand(key, cmd) {
     if (!wins[key]) return;
-    if (restricted(key) && (['maximize', 'dock', 'reset'].indexOf(cmd) >= 0 || cmd.indexOf('snap:') === 0)) return;
+    if (restricted(key) && (['maximize', 'dock', 'undock', 'reset'].indexOf(cmd) >= 0 || /^(snap|dock):/.test(cmd))) return;
     var p = state.place[key];
     if (cmd === 'page') {
       /* The link carries the command out itself, so its target and rel
@@ -1144,6 +1166,11 @@
     else if (cmd === 'minimize') commit(state.min[key] ? raised(state, key) : minimized(state, key), false);
     else if (cmd === 'maximize') commit(maximizeToggled(state, key), false);
     else if (cmd === 'dock') commit(docked(state, key, dockEdge(p) ? null : 'bottom'), false);
+    else if (cmd === 'undock') { if (dockEdge(p)) commit(docked(state, key, null), false); }
+    else if (cmd.indexOf('dock:') === 0) {
+      var edge = cmd.slice(5);
+      if (DOCK_EDGES.indexOf(edge) >= 0 && dockEdge(p) !== edge) commit(docked(state, key, edge), false);
+    }
     else if (cmd === 'reset') commit(resetPlaced(state, key), false);
     else if (cmd === 'close') close(key, 'button');
     else if (cmd.indexOf('content:') === 0) {

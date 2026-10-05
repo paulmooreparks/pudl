@@ -32,7 +32,7 @@ const assert = require('node:assert/strict');
   assert(warnings.some(w => w.includes('ignored on content-sized')));
   await p.evaluate(() => {
     savedCommands.find(c => c.id === 'maximize').run();
-    savedCommands.find(c => c.id === 'dock').run();
+    savedCommands.find(c => c.id === 'dock').items.find(c => c.id === 'dock:bottom').run();
     savedCommands.find(c => c.id === 'reset').run();
     savedCommands.find(c => c.id === 'snap').items[0].run();
     pudlWindows.snap('reader', 'right'); pudlWindows.dock('reader', 'bottom');

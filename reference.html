@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.47.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.48.0</a>
     </div>
   </header>
 
@@ -278,6 +278,18 @@
       <span class="chip">billable</span>
       <span class="chip">RRP</span>
       <span class="filter-chip"><span class="filter-chip-kind">trip</span> manila-oct <a class="filter-chip-x" href="#tabs" aria-label="Remove the trip filter"></a></span>
+    </div>
+    <p>A badge also counts what is waiting in the topbar's status area, the last thing in the topbar's chrome: one raised group of flat items, each a glyph or a picture, for what runs in the background of an application, with the reader's account last. The badge takes its colours from the topbar, and a badge with nothing to say is not shown.</p>
+    <div class="demo">
+      <div class="topbar" style="position: static">
+        <span class="brand">Parks Computing</span>
+        <div class="topbar-chrome">
+          <nav class="status-area" aria-label="Status (example)">
+            <a class="status-item" href="#tabs" aria-label="Moderation: 3 waiting" title="Moderation: 3 waiting"><span class="glyph" style="--glyph: var(--glyph-comments)" aria-hidden="true"></span><span class="badge warn" aria-hidden="true">3</span></a>
+            <a class="status-item" href="#tabs" aria-label="Your account" title="Your account"><img alt="" style="border-radius: 50%" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23c0712a'/%3E%3Ccircle cx='12' cy='9' r='4' fill='%23fff'/%3E%3Cpath d='M4 22c1-5 5-7 8-7s7 2 8 7z' fill='%23fff'/%3E%3C/svg%3E"></a>
+          </nav>
+        </div>
+      </div>
     </div>
 
     <h2>7. Cards</h2>

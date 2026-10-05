@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.8.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.9.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -222,6 +222,22 @@ The section bar is a notebook, after the widget of the same name in desktop tool
 ```
 
 A section's own page marks its tab `aria-current="page"`, and a page inside the section, such as one article, marks it `aria-current="true"`, so every page shows which section it belongs to. The current tab takes `--section-current-bg`, which defaults to `--surface`, the colour of a master-detail toolbar; a page whose content sits directly on the page background sets it to `var(--bg)`, so that the tab still opens into what lies below it.
+
+## The status area
+
+The status area holds the icons of what runs in the background of an application, such as a queue waiting for the reader, and the reader's account. It is one raised group, last in the topbar's chrome, in the topbar's own colours, holding flat items that highlight under the pointer and press in, as a menu bar's titles do. Each item is a link or a button holding a glyph or a 24px picture, which may be round, since the group is what is raised, and optionally a badge. The account goes last.
+
+```html
+<nav class="status-area" aria-label="Status">
+  <a class="status-item" href="/moderation" aria-label="Moderation: 3 waiting" title="Moderation: 3 waiting">
+    <span class="glyph" style="--glyph: var(--glyph-comments)" aria-hidden="true"></span>
+    <span class="badge warn" aria-hidden="true">3</span>
+  </a>
+  <a class="status-item" href="/account" aria-label="Your account"><img src="/me.png" alt=""></a>
+</nav>
+```
+
+A badge that is empty, or `hidden`, is not shown, so a count of nothing is never drawn as 0. The badge is hidden from assistive technology, so the item's `aria-label` says what it means, and the host keeps the two in step; PUDL redraws nothing, since the stylesheet alone follows the host's changes. A badge on the topbar takes its colours from the topbar, so it reads whether the bar is dark or lightened by a menu bar. Running the work behind an item is the host's.
 
 ## Badges, chips and filter chips
 
@@ -872,7 +888,7 @@ A layer carrying `data-win-menu` gives every window a menu button at the left of
 
 The menu is built afresh each time it opens, in three groups:
 
-1. The window's own commands. These are Open as a page when the window has a page link, Copy the link when it has a share address, Minimize (Collapse or Expand on a docked window), Maximize or Restore, Dock at the bottom or Undock, and Reset size and position, which returns the window to the placement its markup gave it.
+1. The window's own commands. These are Open as a page when the window has a page link, Copy the link when it has a share address, Minimize (Collapse or Expand on a docked window), Maximize or Restore, a Dock list of Top, Bottom, Left and Right, ticking the edge the window is docked at and ending with Undock on a docked window, and Reset size and position, which returns the window to the placement its markup gave it. A menu bar's Window menu shows the Dock list as a submenu.
 2. The commands of what the window holds, after a separator. An applet's come from its `commands()`, described under Applets. Any other content adds its own when `pudl:window-menu` fires on the window as the menu opens: `detail.key` names the window, and `detail.add(label, run, { checked, disabled })` adds a command.
 3. Close, last and after a separator, so it is never chosen by a slip from the command above it.
 
@@ -1085,6 +1101,7 @@ and give the canvas no border or padding, or subtract them, since the rectangle 
 | A minimised window's dock tab tooltip | `data-win-text-minimized` on the layer, with `{title}` for the window's title |
 | The label on a window's title bar | `data-win-text-head` on the layer, with `{title}` |
 | The dock button's labels, and a docked window's minimise button | `data-win-text-dock`, `-undock`, `-collapse` and `-expand` on the layer |
+| The window menu's Dock list | `data-win-text-dock-menu`, and `-dock-top`, `-dock-bottom`, `-dock-left` and `-dock-right` for its edges, on the layer |
 | A menu filter's "nothing matches" | `data-menu-empty` on the `.menu-panel`, or render the `.menu-empty` element yourself |
 | The sidebar divider's label | `aria-label` on the `.md-resize` |
 | The divider's spoken width | `data-md-valuetext` on the `.md-resize`, with `{n}` for the width in pixels |
@@ -1135,7 +1152,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.47.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.48.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 

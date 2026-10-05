@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Status area</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <style>body { margin: 0; }</style>
+</head>
+<body>
+  <!-- The status area after parkscomputing.com's: a queue with a count,
+       one with nothing waiting, words to sign in, and the account last. -->
+  <header class="topbar">
+    <a class="brand" href="#home">Parks Computing</a>
+    <div class="topbar-chrome">
+      <nav class="status-area" aria-label="Status">
+        <a class="status-item" id="moderation" href="#moderation" aria-label="Moderation: 3 waiting" title="Moderation: 3 waiting">
+          <span class="glyph" style="--glyph: var(--glyph-comments)" aria-hidden="true"></span>
+          <span class="badge warn" aria-hidden="true">3</span>
+        </a>
+        <a class="status-item" id="mail" href="#mail" aria-label="Mail: nothing new" title="Mail: nothing new">
+          <span class="glyph" style="--glyph: var(--glyph-document)" aria-hidden="true"></span>
+          <span class="badge" aria-hidden="true"></span>
+        </a>
+        <a class="status-item" id="signin" href="#signin">Sign in</a>
+        <a class="status-item" id="account" href="#account" aria-label="Your account">
+          <img alt="" style="border-radius: 50%" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23c0712a'/%3E%3Ccircle cx='12' cy='9' r='4' fill='%23fff'/%3E%3Cpath d='M4 22c1-5 5-7 8-7s7 2 8 7z' fill='%23fff'/%3E%3C/svg%3E">
+        </a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Switch light and dark"></button>
+    </div>
+  </header>
+  <main class="page" style="padding: 16px">Content</main>
+</body>
+</html>

@@ -34,7 +34,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await openMenu('counter');
   let r = await rows('counter');
   check('the window commands come first, then the applet\'s, then Close after a separator',
-        r.join(',') === 'Open as a page,Copy the link,Minimize,Maximize,picker,Dock at the bottom,Reset size and position,|,Add one,Wrap lines[false],Clear(off),|,Close', r.join(','));
+        r.join(',') === 'Open as a page,Copy the link,Minimize,Maximize,picker,Dock,Top[false],Bottom[false],Left[false],Right[false],Reset size and position,|,Add one,Wrap lines[false],Clear(off),|,Close', r.join(','));
   const placed = await p.evaluate(([bs, ps]) => {
     const a = document.querySelector(bs).getBoundingClientRect(), m = document.querySelector(ps).getBoundingClientRect();
     return Math.abs(m.left - a.left) <= 2 && m.top >= a.bottom - 1;
@@ -93,17 +93,34 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
 
   await openMenu('notes');
   r = await rows('notes');
-  check('plain content adds its commands through pudl:window-menu', r.join(',') === 'Minimize,Maximize,picker,Dock at the bottom,Reset size and position,|,Shout,|,Close', r.join(','));
+  check('plain content adds its commands through pudl:window-menu', r.join(',') === 'Minimize,Maximize,picker,Dock,Top[false],Bottom[false],Left[false],Right[false],Reset size and position,|,Shout,|,Close', r.join(','));
   await p.click(panel('notes') + ' .menu-action >> text="Shout"');
   check('and they run', (await p.textContent('#notes-text')) === 'PLAIN CONTENT.');
 
-  await choose('notes', 'Dock at the bottom');
-  check('Dock at the bottom docks it', await p.evaluate(() => /p\.notes=dock-bottom/.test(location.search)));
+  /* The Dock list docks at every edge (from parkscomputing.com's
+     Architecture/pudl-proposal-dock-edges.md). */
+  await choose('notes', 'Bottom');
+  check('Dock, Bottom docks it at the bottom', await p.evaluate(() => /p\.notes=dock-bottom/.test(location.search)));
   await openMenu('notes');
   r = await rows('notes');
-  check('a docked window\'s menu offers Collapse and Undock, and no Maximize', r.join(',') === 'Collapse,Undock,Reset size and position,|,Shout,|,Close', r.join(','));
+  check('a docked window\'s menu offers Collapse, ticks its edge, ends the list with Undock, and has no Maximize',
+        r.join(',') === 'Collapse,Dock,Top[false],Bottom[true],Left[false],Right[false],|,Undock,Reset size and position,|,Shout,|,Close', r.join(','));
   await p.keyboard.press('Escape');
+  for (const [edge, mode] of [['Left', 'dock-left'], ['Top', 'dock-top'], ['Right', 'dock-right']]) {
+    await choose('notes', edge);
+    check('Dock, ' + edge + ' moves it to that edge', await p.evaluate(m => new RegExp('p\\.notes=' + m).test(location.search), mode), await p.evaluate(() => location.search));
+  }
   await choose('notes', 'Undock');
+  check('Undock floats it again', await p.evaluate(() => pudlWindows.state().place.notes.mode === 'floating'));
+  const fromBar = await p.evaluate(() => {
+    const dock = pudlWindows.menuCommands('notes').find(c => c.id === 'dock');
+    dock.items.find(c => c.id === 'dock:left').run();
+    const after = pudlWindows.menuCommands('notes').find(c => c.id === 'dock').items;
+    const ids = after.map(c => c === '-' ? '-' : c.id + (c.checked ? '*' : ''));
+    after.find(c => c.id === 'undock').run();
+    return ids.join(',') + ' ' + pudlWindows.state().place.notes.mode;
+  });
+  check('menuCommands gives the Dock list as a submenu for a menu bar, with the same edges and Undock', fromBar === 'dock:top,dock:bottom,dock:left*,dock:right,-,undock floating', fromBar);
 
   /* The keyboard: the context-menu keys on the title bar, arrows through the rows. */
   await p.focus('.win[data-win="notes"] .win-head');
