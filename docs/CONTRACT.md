@@ -133,6 +133,8 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |
 | `data-menu-placement` | a menu panel | `pudl-menu.js` | `beside` places a submenu beside its anchor, using the same visible viewport bounds and overflow cues |
 | `data-md-pane` | `.md-layout` | the stylesheet, `pudl-windows.js` | Which pane a narrow layout shows |
+| `data-md-side` | `.md-layout` | the stylesheet, `pudl-md.js` | `end` puts the sidebar at the end edge of the writing direction, mirrored; `start`, the default, at the start |
+| `data-md-peek` | a persistent `.md-layout` | `pudl-md.js`, the stylesheet | Let the reader peek at the collapsed sidebar by resting the pointer on, or keyboard-focusing, its handle; PUDL marks an open peek with `data-md-peek-open` and `--md-peek-shift`, which are its own |
 | `data-md-valuetext` | `.md-resize` | `pudl-md.js` | The divider's spoken width, with `{n}` |
 | `data-region` | any element | `pudl-regions.js` | A region's name |
 | `data-region-link` | a link, or an element holding links | `pudl-regions.js` | Links outside every region that swap regions as if inside one |
@@ -169,6 +171,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
 | `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
+| `pudl:md-peek` | the `.md-layout`, bubbles | `open` | As a peek at a collapsed sidebar opens and closes |
 | `pudl:applet-state` | the applet's mount, bubbles | `name`, `instance`, `host`, `fit`, `param`, and `state` for a listener to set; a request's state wins over it | Just before `init`; what `state` holds then is `opts.state` |
 | `pudl:applet-change` | the applet's mount, bubbles | `state`, a string or null | When the applet calls `opts.changed()` |
 
