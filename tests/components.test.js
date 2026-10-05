@@ -36,7 +36,7 @@ const KNOWN = {};
   const rows = contract.split('## Components')[1].split('## ')[0].split('\n').filter(l => /^\| [A-Z]/.test(l) && !l.startsWith('| Component')).map(l => l.split('|')[1].trim());
   const covered = {
     'Topbar': 'topbar', 'Status area': 'status-area', 'Section tabs': 'section-tabs', 'Buttons': 'button', 'Form fields': 'text-field', 'Switch': 'switch',
-    'Segmented control': 'segmented', 'Badges and chips': 'badge', 'Card': 'card', 'Settings panel': 'settings-panel','Key/value table': 'key-value-table',
+    'Segmented control': 'segmented', 'Badges and chips': 'badge', 'Card': 'card', 'Settings panel': 'settings-panel', 'Layout': 'stack', 'Key/value table': 'key-value-table',
     'Data table': 'data-table', 'Notices': 'notice', 'Toasts': 'toast', 'Tabs within a page': 'tabs', 'Empty and loading': 'empty-state',
     'Pagination': 'pagination', 'Dialog': 'dialog', 'Menu': 'menu', 'Master-detail': 'master-detail', 'Windows': 'windows',
     'Applets': 'applet', 'Regions': 'region', 'Grid': 'grid', 'Tree': 'tree', 'Path bar': 'path-bar', 'Glyph': 'glyph',

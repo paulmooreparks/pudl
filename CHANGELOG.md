@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.53.0
+
+This release implements PUDL specification 0.14.0, which adds layout. Update `pudl.css`. Nothing changes for a page that does not use the new classes.
+
+- **Layout.** `.vstack` places components one above another; `.hstack` places them side by side and wraps them rather than widening its space, with `.align-center`, `.align-end` or `.align-baseline`, and `.push-end` to push its last component to the end; `.auto-grid` places them in as many equal columns as fit at `--grid-min`, 224px, one column below it, with `.span-all` for a component that spans its line. Each keeps document order, puts `--space-3` between its components unless `.gap-0` to `.gap-6` chooses another step, and adds nothing around them. A `.form-group` inside one drops its own bottom margin, so the gap alone separates fields.
+- The component list has them as `stack`, `row` and `column-grid`, for PUDL Studio's canvas, and the reference page shows them under Cards. A new test checks order, gaps, wrapping and columns, and that nothing widens a 320px page.
+
 ## 0.52.0
 
 This release implements PUDL specification 0.13.0, from two of parkscomputing.com's proposals, for it and YAVCHN. Update `pudl.css` and `pudl-md.js`. Nothing changes for a layout without the new attributes.

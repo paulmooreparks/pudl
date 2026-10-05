@@ -26,6 +26,9 @@ function check(name, ok) {
   }
   const next = p.locator('.page-link[rel="next"]');
   await next.focus();
+  /* Focusing scrolls the link into view, and Firefox can settle that by a
+     pixel a moment later; the position is read once it is still. */
+  await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 100)))));
   const before = await position();
   await p.keyboard.press('Enter');
   await p.waitForTimeout(50);

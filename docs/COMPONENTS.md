@@ -48,7 +48,7 @@ Its first entry was a select in WebKit, which drew the select itself, raised and
 
 Building a palette from the list shows what a development tool needs and PUDL lacks. These are gaps in the language, to be designed in the specification first, not workarounds for Studio:
 
-- **Layout.** PUDL has splitters, master-detail and tabs, but nothing for the ordinary arrangement of a form or a pane: a stack, a row that wraps, a grid of fields. Every project writes its own, as PUDL Desktop already has. Studio cannot offer flow layout without them, so they come first.
+- **Layout**, done in 0.53.0: `.vstack`, `.hstack` and `.auto-grid`, in the list as `stack`, `row` and `column-grid`.
 - **A slider**, for a value in a range.
 - **A progress bar.** The specification mentions progress in its chapter on empty and loading states but does not define a component.
 - **A combo box**, a text field that suggests values as the reader types.

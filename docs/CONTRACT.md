@@ -71,6 +71,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Segmented control | `.seg`, with `.pill`, `.sm`, of `button` or `a`; with `data-seg-menu` and an `aria-label`, a pop-up `.seg-menu` beside it on a phone | `aria-pressed`, `aria-checked` or aria-current |
 | Badges and chips | `.badge`, with `.warn`, `.danger`, `.positive`, `.accent`; `.chip`; `.filter-chip` holding `.filter-chip-kind` and `.filter-chip-x` | |
 | Card | `.card` holding `.card-title`, `.card-subtitle`, `.card-desc` | |
+| Layout | `.vstack`, `.hstack` (with `.align-center`, `.align-end`, `.align-baseline`; `.push-end` on a component), `.auto-grid` (with `--grid-min`, default 224px; `.span-all` on a component); `.gap-0` to `.gap-6` on any of them | |
 | Settings panel | `.settings-panel` holding `.card`s, each with its controls, a `.settings-actions` row of buttons and optionally a `p.settings-status[role="status"]`, which takes no room while empty | |
 | Key/value table | `table.kv-table` of `th` and `td` rows | |
 | Data table | `.data-table-wrap` holding `table.data-table`, with `.stack`; `th[aria-sort]` holding `a` or `button`; `.num`; `.data-table-check`; `tr.data-table-empty`; `td[data-label]` | `aria-sort`; `aria-selected="true"` in a grid, or a checked `.data-table-check` checkbox |

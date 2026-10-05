@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.13.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.14.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -238,6 +238,20 @@ The status area holds the icons of what runs in the background of an application
 ```
 
 A badge that is empty, or `hidden`, is not shown, so a count of nothing is never drawn as 0. The badge is hidden from assistive technology, so the item's `aria-label` says what it means, and the host keeps the two in step; PUDL redraws nothing, since the stylesheet alone follows the host's changes. A badge on the topbar takes its colours from the topbar, so it reads whether the bar is dark or lightened by a menu bar. Running the work behind an item is the host's.
+
+## Layout
+
+Three classes arrange components in a page, a pane or a window, so a project need not write its own. `.vstack` places them one above another; `.hstack` places them side by side and wraps them onto further lines rather than widening its space; `.auto-grid` places them in equal columns, as many as fit at `--grid-min` (224px), and becomes one column below it. Each keeps its components in document order, puts `--space-3` between them unless `.gap-0` to `.gap-6` chooses another step of the spacing grid, and adds nothing around them. A row aligns its components with `.align-center`, `.align-end` or `.align-baseline`, which lines up fields of different heights by their labels, and `.push-end` on its last component pushes it to the end. `.span-all` makes a grid's component span its line. Layout has no surface, so nothing in it looks pressable.
+
+```html
+<form class="vstack">
+  <div class="auto-grid">
+    <div class="form-group"><label class="form-label" for="from">From</label><input class="form-input" id="from" type="date"></div>
+    <div class="form-group"><label class="form-label" for="to">To</label><input class="form-input" id="to" type="date"></div>
+  </div>
+  <div class="hstack"><button class="btn btn-primary">Save</button><button class="btn push-end" type="reset">Clear</button></div>
+</form>
+```
 
 ## Settings panels
 
@@ -1196,7 +1210,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.52.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.53.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 
