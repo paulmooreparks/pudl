@@ -22,7 +22,20 @@ function check(name, ok, extra) {
       await p.goto(ROOT + '/tests/fixtures/status-area.html');
       const got = await p.evaluate(([t, m]) => {
         document.documentElement.setAttribute('data-theme', t);
-        if (m) { const n = document.createElement('nav'); n.setAttribute('data-menubar', ''); document.querySelector('.topbar').prepend(n); }
+        if (m) {
+          const n = document.createElement('nav');
+          n.setAttribute('data-menubar', '');
+          n.innerHTML = '<div class="menubar-row"><div class="menubar-menu" id="group"><button class="menubar-glyph" type="button" aria-label="View"></button><button class="menubar-title" id="title" type="button">View</button></div></div>';
+          document.querySelector('.topbar').prepend(n);
+        }
+        const status = document.querySelector('.status-area');
+        const acc = document.createElement('a');
+        acc.className = 'status-item';
+        acc.href = '#account';
+        acc.setAttribute('aria-label', 'Your account');
+        acc.innerHTML = '<span class="glyph status-picture" id="placeholder" style="--glyph: var(--glyph-account)" aria-hidden="true"></span><span>Sign in</span>';
+        status.appendChild(acc);
+        function surface(el) { const s = getComputedStyle(el); return { bg: s.backgroundColor + ' ' + s.backgroundImage, border: s.borderTopColor + ' ' + s.borderTopWidth, shadow: s.boxShadow, height: Math.round(el.getBoundingClientRect().height) }; }
         function rgb(c) {
           const probe = document.createElement('canvas').getContext('2d');
           probe.fillStyle = c; probe.fillRect(0, 0, 1, 1);
@@ -43,25 +56,40 @@ function check(name, ok, extra) {
         const item = document.querySelector('#moderation');
         return {
           last: chrome.lastElementChild === area || [...chrome.children].every(c => c === area || +getComputedStyle(c).order < +cs.order),
-          raised: cs.boxShadow !== 'none' && cs.backgroundImage !== 'none',
+          raised: cs.boxShadow !== 'none' && !/^inset/.test(cs.boxShadow),
           itemFlat: getComputedStyle(item).boxShadow === 'none' && getComputedStyle(item).backgroundImage === 'none',
           badgeGlyph: getComputedStyle(badge, '::before').content !== 'none',
           badgeContrast: ratio(over(rgb(getComputedStyle(badge).color), badgeBg), badgeBg),
           itemContrast: ratio(rgb(getComputedStyle(item).color), ground),
           emptyHidden: getComputedStyle(document.querySelector('#mail .badge')).display === 'none',
           picture: (() => { const r = document.querySelector('#account img').getBoundingClientRect(); return Math.round(r.width) + 'x' + Math.round(r.height); })(),
-          height: Math.round(item.getBoundingClientRect().height)
+          height: Math.round(item.getBoundingClientRect().height),
+          areaHeight: Math.round(area.getBoundingClientRect().height),
+          placeholder: (() => { const r = document.getElementById('placeholder').getBoundingClientRect(); return Math.round(r.width) + 'x' + Math.round(r.height); })(),
+          areaLook: surface(area),
+          group: m ? surface(document.getElementById('group')) : null,
+          titleColor: m ? getComputedStyle(document.getElementById('title')).color : null,
+          itemColor: getComputedStyle(item).color
         };
       }, [theme, menubar]);
       check(where + 'the area is last in the chrome', got.last);
       check(where + 'the area is raised', got.raised);
       check(where + 'an item at rest is flat', got.itemFlat);
-      check(where + 'an item is 26px tall at the least', got.height >= 26, String(got.height));
+      check(where + 'an item is 26px tall', got.height === 26, String(got.height));
       check(where + 'a picture is 24px across', got.picture === '24x24', got.picture);
       check(where + 'a badge leads with its status glyph', got.badgeGlyph);
       check(where + 'a badge\'s count reaches 4.5:1 on the bar', got.badgeContrast >= 4.5, got.badgeContrast.toFixed(2));
       check(where + 'an item\'s glyph reaches 3:1 on the bar', got.itemContrast >= 3, got.itemContrast.toFixed(2));
       check(where + 'a badge with nothing to say is not shown', got.emptyHidden);
+      check(where + 'the area is 30px tall, as a menu bar\'s group is', got.areaHeight === 30, String(got.areaHeight));
+      check(where + 'the account glyph stands in for a picture at 24px', got.placeholder === '24x24', got.placeholder);
+      if (menubar) {
+        /* Beside a menu bar, exactly a menu bar group and its titles
+           (from YAVCHN's PUDL-PROPOSAL.md, B7). */
+        const same = ['bg', 'border', 'shadow', 'height'].filter(k => got.group[k] !== got.areaLook[k]);
+        check(where + 'the area looks exactly like a menu bar group', !same.length, same.map(k => k + ': ' + got.group[k] + ' / ' + got.areaLook[k]).join('; '));
+        check(where + 'an item is in a menu bar title\'s colour', got.titleColor === got.itemColor, got.titleColor + ' / ' + got.itemColor);
+      }
 
       const before = await p.$eval('#moderation', e => getComputedStyle(e).backgroundColor);
       await p.hover('#moderation');

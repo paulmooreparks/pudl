@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.10.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.11.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -225,7 +225,7 @@ A section's own page marks its tab `aria-current="page"`, and a page inside the 
 
 ## The status area
 
-The status area holds the icons of what runs in the background of an application, such as a queue waiting for the reader, and the reader's account. It is one raised group, last in the topbar's chrome, in the topbar's own colours, holding flat items that highlight under the pointer and press in, as a menu bar's titles do. Each item is a link or a button holding a glyph or a 24px picture, which may be round, since the group is what is raised, and optionally a badge. The account goes last.
+The status area holds the icons of what runs in the background of an application, such as a queue waiting for the reader, and the reader's account. It is one raised group, last in the topbar's chrome, holding flat items that highlight under the pointer and press in. On a topbar with a menu bar it looks exactly like the menu bar's groups, and its items like their titles; without one, it takes the topbar's own colours, since the bar may be dark in the light theme. It is 30px tall either way, as a group is. Each item is a link or a button holding a glyph or a 24px picture, which may be round, since the group is what is raised, and optionally a badge or words in a `span`. An account with no picture shows the account glyph in the picture's place, as `<span class="glyph status-picture" style="--glyph: var(--glyph-account)" aria-hidden="true"></span>`. The account goes last.
 
 ```html
 <nav class="status-area" aria-label="Status">
@@ -929,6 +929,10 @@ Before a close by its button, by Escape or by `pudlWindows.close()`, `pudl:windo
 
 `window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `dock(key, edge)`, `snap(key, zone)`, `retitle(key, title)`, `close(key)` and `state()`. Each does exactly what the matching link or button does, the URL and history included, so a project never needs to click PUDL's own buttons from script. `retitle` changes a window's title, as a preview does when it shows another file, and the title bar's spoken name, the dock tab and the list row follow.
 
+`rekey(oldKey, key, push)` gives an open window a new key and keeps everything else: its element, placement, place in the stack, focus and running content. It is for a window that stays while what it shows changes, such as a reader turning to another story, where `replace(oldKey, key)` opens a new window in place of the old one and loses all of that. The change is a new history entry unless `push` is `false`, and `pudl:window-rekey` fires on the window with both keys. It returns `false`, changing nothing, onto a key that is open or loading, and re-keying to the window's own key brings it forward.
+
+A page can keep some state of each window in its address, beside PUDL's own parameters, by naming prefixes on the layer: with `data-win-params="r"`, a parameter `r.<key>`, such as the story a reader window shows, belongs to window `<key>`. It travels with the windows through region swaps and Back and Forward, moves with the window when it is re-keyed, and is dropped when the window closes. A window's share link is its `data-win-href`, which the host writes, so the host includes such a parameter there itself.
+
 ### Sharing a chosen state
 
 A host can give a window a crafted share address with `data-win-href="/posts/example"`. That address may open the article alone or any other state the host chooses to export. It must work independently of the sender's browser history. Copying it leaves the current workspace and its full URL intact. PUDL does not store an alternative arrangement in `history.state` or replace the address bar with a URL that omits the current state.
@@ -976,7 +980,9 @@ Because a swap needs a counterpart for every region, a region that is sometimes 
 
 The script asks the server for nothing special. It fetches the same address a bookmark would, so the server renders what the address names, as it always does, and the swap reads the regions out of that page.
 
-Same-page links that swap regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. A link's own parameters are kept as written. A page that renders links into a region by script calls `pudlRegions.refresh()` afterwards, so they carry the windows too. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
+Same-page links that swap regions, and the window fields a server renders into a region's GET forms, are kept up to date with the open windows as they change, so a middle-click or a copied link carries the windows as they are. A link's own parameters are kept as written. A page that renders links into a region by script calls `pudlRegions.refresh()` afterwards, so they carry the windows too. A segmented control in a region that folds into a menu on a phone swaps regions from its menu's choices as it does from its segments.
+
+`pudlRegions.reload()` fetches the current address again, past any cache, and swaps its regions in place, with no new history entry, as a Refresh command wants. Where following a link would fall back to loading the whole page, a reload never navigates: if the request fails, or the page that comes back has other regions, it rejects and leaves the regions as they were. It resolves `true` once swapped, or `false` if a navigation that started meanwhile superseded it. After a swap, focus returns to the matching element in the new region, the title follows the new page, and `pudl:regions-swap` fires on the document; the windows module listens for it to mark the new list's rows. A region being replaced dims a little if the answer takes more than a moment.
 
 `samples/article-reader.html` and its two category pages use regions for their category tabs and article list. Open an article, restore it, scroll it, set the colour mixer, and move between categories: only the list changes.
 
@@ -1152,7 +1158,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.49.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.50.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the Andoneer Design Language v2 reference page, and the floating windows are a rewrite of Andoneer's card windows as a general module. parkscomputing.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for YAVCHN and Parks Computing.
 

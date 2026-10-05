@@ -50,8 +50,15 @@
      on an element holding it, such as a window's body. */
   var LINKS = '[data-region] a[href], [data-region-link] a[href], a[data-region-link][href]';
 
+  /* The windows' own parameters, and those the window layer declares as
+     belonging to a window with data-win-params, such as r.<key>. */
   function isWinParam(name) {
-    return name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0;
+    if (name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0) return true;
+    var layer = document.querySelector('[data-win-layer]');
+    var raw = layer ? layer.getAttribute('data-win-params') || '' : '';
+    return raw.split(/[\s,]+/).some(function (p) {
+      return /^[A-Za-z][A-Za-z0-9_-]*$/.test(p) && p !== 'p' && name.indexOf(p + '.') === 0 && /^[A-Za-z0-9_-]+$/.test(name.slice(p.length + 1));
+    });
   }
 
   /* The parameters that belong to what stays on screen rather than to what
@@ -121,13 +128,23 @@
      the live windows, since that is the page it names; on another path it
      is fetched as named, and if it proves compatible the pushed address
      carries the live windows, because they stay on screen. */
-  function swap(target, push) {
+  /* A reload (from YAVCHN's PUDL-PROPOSAL.md, A2) fetches the current
+     address afresh, past any cache, and swaps its regions in place with no
+     new history entry. Where a link's swap would fall back to loading the
+     page, a reload never navigates: it rejects and leaves the regions as
+     they were. It resolves true once swapped, or false when a navigation
+     that started meanwhile superseded it. */
+  function swap(target, push, reload) {
     var current = regionsIn(document);
     var names = Object.keys(current);
     var parsed = new URL(target, location.href);
     var shown = withLiveWindows(parsed);
     var url = parsed.pathname === location.pathname ? shown : parsed.pathname + parsed.search + parsed.hash;
-    if (!names.length) { location.assign(url); return; }
+    if (!names.length) {
+      if (reload) return Promise.reject(new Error('The page has no regions to reload.'));
+      location.assign(url);
+      return Promise.resolve(false);
+    }
 
     if (busy) busy.abort();
     var ctl = busy = new AbortController();
@@ -137,19 +154,26 @@
        refuses another origin, a redirect to one included; the page then
        loads as an ordinary navigation, where the browser keeps origins
        apart. */
-    fetch(url, { mode: 'same-origin', credentials: 'same-origin', headers: { Accept: 'text/html' }, signal: ctl.signal })
+    var init = { mode: 'same-origin', credentials: 'same-origin', headers: { Accept: 'text/html' }, signal: ctl.signal };
+    if (reload) { init.cache = 'no-cache'; init.headers['Cache-Control'] = 'no-cache'; }
+    return fetch(url, init)
       .then(function (r) {
         var type = r.headers.get('content-type') || '';
         if (!r.ok || type.indexOf('text/html') < 0) throw new Error('not a page');
         return r.text();
       })
       .then(function (html) {
-        if (ctl !== busy) return;
-        busy = null;
+        if (ctl !== busy) return false;
         var doc = new DOMParser().parseFromString(html, 'text/html');
         var next = regionsIn(doc);
         var fits = names.every(function (n) { return next[n]; }) && layerSrc(doc) === layerSrc(document);
-        if (!fits) { location.assign(url); return; }
+        if (!fits) {
+          if (reload) throw new Error('The page fetched again does not have the same regions.');
+          busy = null;
+          location.assign(url);
+          return false;
+        }
+        busy = null;
 
         var active = document.activeElement;
         var focusIn = null;
@@ -168,12 +192,15 @@
         if (focusIn) restoreFocus(regionsIn(document)[focusIn], focusId, focusHref);
         refreshLinks();
         document.dispatchEvent(new CustomEvent('pudl:regions-swap', { detail: { url: url, regions: names } }));
+        return true;
       })
       .catch(function (err) {
-        if (err && err.name === 'AbortError') return;
-        busy = null;
+        if (err && err.name === 'AbortError') return false;
+        if (ctl === busy) busy = null;
         names.forEach(function (n) { if (current[n].isConnected) current[n].removeAttribute('aria-busy'); });
+        if (reload) throw err;
         location.assign(url);
+        return false;
       });
   }
 
@@ -239,7 +266,10 @@
     /* Links that act on windows or menus belong to those scripts, and links
        meant for another tab or a download to the browser. */
     if (a.matches('[data-win-open], [data-win-tab], [data-win-back], [data-win-action], [target]:not([target="_self"]), [download]')) return;
-    if (a.closest('.menu-panel')) return;
+    /* A segmented control folded into a menu on a phone repeats each of
+       its links as a .seg-choice, which swaps regions as the segment it
+       stands for does (from YAVCHN's PUDL-PROPOSAL.md, A3). */
+    if (a.closest('.menu-panel') && !a.classList.contains('seg-choice')) return;
     var url = new URL(a.href);
     if (url.origin !== location.origin) return;
     /* A link to what the regions already show would reload the page and
@@ -285,7 +315,10 @@
 
   /* A page that renders a region's links by script, after a swap or at
      any other time, asks for them to carry the live windows again. */
-  window.pudlRegions = { refresh: refreshLinks };
+  window.pudlRegions = {
+    refresh: refreshLinks,
+    reload: function () { return swap(location.pathname + location.search + location.hash, false, true); }
+  };
 
   function init() {
     listPart = withoutWindows(new URL(location.href));

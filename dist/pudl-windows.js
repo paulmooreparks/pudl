@@ -367,19 +367,47 @@
     return bare !== null && windowParams(st).join('&') === bare;
   }
 
+  /* Window-scoped parameters (from YAVCHN's PUDL-PROPOSAL.md, A1): the
+     layer's data-win-params names prefixes, such as "r", and a parameter
+     <prefix>.<key> then belongs to window <key>, as the article a reader
+     window shows does. "p" is PUDL's own placement prefix and is never a
+     host's. */
+  function scopedPrefixes() {
+    var raw = layer ? layer.getAttribute('data-win-params') || '' : '';
+    return raw.split(/[\s,]+/).filter(function (p) { return /^[A-Za-z][A-Za-z0-9_-]*$/.test(p) && p !== 'p'; });
+  }
+
+  function scopedOwner(name) {
+    var prefixes = scopedPrefixes();
+    for (var i = 0; i < prefixes.length; i++) {
+      var head = prefixes[i] + '.';
+      if (name.indexOf(head) === 0 && KEY_RE.test(name.slice(head.length))) return { prefix: prefixes[i], key: name.slice(head.length) };
+    }
+    return null;
+  }
+
   /* The URL for a state, keeping every query parameter that is not ours.
      On a page with default windows, the default state is written as no
      window parameters at all, so the page's plain address stays plain, and
      a state with no windows open is written as an empty open=, since no
      parameters would bring the defaults back. */
-  function urlFor(st) {
+  function urlFor(st, rename) {
     /* The page's own parameters are kept exactly as written, so that a
-       readable ?path=/notes stays readable rather than becoming %2F. */
-    var parts = location.search.replace(/^\?/, '').split('&').filter(function (seg) {
-      if (!seg) return false;
-      var k = seg.split('=')[0];
+       readable ?path=/notes stays readable rather than becoming %2F. A
+       window-scoped parameter goes with its window: it is dropped when the
+       window is not open, and follows it when it is re-keyed. */
+    var parts = [];
+    location.search.replace(/^\?/, '').split('&').forEach(function (seg) {
+      if (!seg) return;
+      var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      return !(k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0);
+      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0) return;
+      var owner = scopedOwner(k);
+      if (owner) {
+        if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
+        if (st.open.indexOf(owner.key) < 0) return;
+      }
+      parts.push(seg);
     });
     var mine = windowParams(st);
     if (defaults.length) {
@@ -826,10 +854,10 @@
 
   /* Applies a state and records it in the URL. Opening a window pushes a
      history entry; everything else replaces the current one. */
-  function commit(st, push) {
+  function commit(st, push, rename) {
     clearTimeout(urlTimer);
     apply(st);
-    var url = urlFor(st);
+    var url = urlFor(st, rename);
     if (url !== location.pathname + location.search + location.hash) {
       /* Firefox and Safari throw once a page changes its address too often
          in a short time, which quick clicking between windows can reach.
@@ -1210,12 +1238,16 @@
       clearTimeout(openTimer);
       closeTimer = setTimeout(function () { if (panel.matches(':popover-open')) panel.hidePopover(); }, 300);
     }
+    /* The key is read from the panel each time, since a re-keyed window
+       keeps its panel. */
     max.addEventListener('pointerenter', function (e) {
       if (e.pointerType !== 'mouse') return;
       stay();
-      if (panel.matches(':popover-open') || dockEdge(state.place[key]) || contentSized(key)) return;
+      var k = panel.getAttribute('data-win-menu-for');
+      if (panel.matches(':popover-open') || dockEdge(state.place[k]) || contentSized(k)) return;
       openTimer = setTimeout(function () {
-        if (max.matches(':hover') && wins[key] && !restricted(key) && !panel.matches(':popover-open')) panel.showPopover();
+        var k = panel.getAttribute('data-win-menu-for');
+        if (max.matches(':hover') && wins[k] && !restricted(k) && !panel.matches(':popover-open')) panel.showPopover();
       }, HOVER_MS);
     });
     max.addEventListener('pointerleave', leave);
@@ -1438,6 +1470,70 @@
       if (window.console) console.warn('pudl-windows:', err.message);
       if (from && from.href) location.href = from.href;
     });
+  }
+
+  /* Gives an open window a new key and keeps everything else (from
+     YAVCHN's PUDL-PROPOSAL.md, A4): its element, placement, place in the
+     stack, focus and running content, where replaceWith opens a new window
+     and closes the old. A reader window that turns to another story is
+     the case. Every record kept by key moves to the new one, and so do the
+     window's own panels and its window-scoped parameters. The change is a
+     new history entry unless push is false. Re-keying to its own key
+     brings the window forward; onto a key that is open or loading, it is
+     refused. */
+  function rekey(oldKey, key, push) {
+    if (!wins[oldKey] || state.open.indexOf(oldKey) < 0) return false;
+    if (oldKey === key) {
+      commit(raised(state, key), false);
+      focusWindow(key);
+      return true;
+    }
+    if (wins[key] || pending[key]) return false;
+    var el = wins[oldKey];
+    var st = copy(state);
+    st.open[st.open.indexOf(oldKey)] = key;
+    if (st.top === oldKey) st.top = key;
+    [st.min, st.place].forEach(function (m) { move(m, oldKey, key); });
+    [wins, openers, closing, homes, menuRuns, lastFocus].forEach(function (m) { move(m, oldKey, key); });
+    var z = zOrder.indexOf(oldKey);
+    if (z >= 0) zOrder[z] = key;
+    layer.querySelectorAll('.win[data-win-parent="' + CSS.escape(oldKey) + '"]').forEach(function (child) {
+      child.setAttribute('data-win-parent', key);
+    });
+    el.setAttribute('data-win', key);
+    renameIds(el, oldKey, key);
+    commit(st, push !== false, { from: oldKey, to: key });
+    el.dispatchEvent(new CustomEvent('pudl:window-rekey', { bubbles: true, detail: { oldKey: oldKey, key: key } }));
+    return true;
+  }
+
+  function move(map, from, to) {
+    if (!Object.prototype.hasOwnProperty.call(map, from)) return;
+    map[to] = map[from];
+    delete map[from];
+  }
+
+  /* The ids PUDL gives a window's parts carry its key, and the window's
+     menu panels name it, so they follow it, with every reference to them
+     inside the window. */
+  function renameIds(el, oldKey, key) {
+    [['win-menu-', ''], ['win-snap-', ''], ['win-max-', ''], ['win-', '-title']].forEach(function (pair) {
+      var from = pair[0] + oldKey + pair[1], to = pair[0] + key + pair[1];
+      var part = el.querySelector('#' + CSS.escape(from));
+      if (!part) return;
+      part.id = to;
+      ['popovertarget', 'data-menu-anchor', 'aria-labelledby', 'aria-describedby', 'aria-controls'].forEach(function (attr) {
+        el.querySelectorAll('[' + attr + ']').forEach(function (n) {
+          var words = n.getAttribute(attr).split(/\s+/);
+          var i = words.indexOf(from);
+          if (i >= 0) { words[i] = to; n.setAttribute(attr, words.join(' ')); }
+        });
+        if (el.getAttribute(attr) && el.getAttribute(attr).split(/\s+/).indexOf(from) >= 0) {
+          el.setAttribute(attr, el.getAttribute(attr).split(/\s+/).map(function (w) { return w === from ? to : w; }).join(' '));
+        }
+      });
+    });
+    el.querySelectorAll('[data-win-menu-for="' + CSS.escape(oldKey) + '"]').forEach(function (p) { p.setAttribute('data-win-menu-for', key); });
   }
 
   /* Notes why a window and its children are about to close, which
@@ -1976,6 +2072,7 @@
     window.pudlWindows = {
       open: function (key, opener) { if (KEY_RE.test(key)) open(key, opener || null); },
       replace: function (oldKey, key) { if (KEY_RE.test(key)) replaceWith(oldKey, key, null); },
+      rekey: function (oldKey, key, push) { return KEY_RE.test(key) && rekey(oldKey, key, push); },
       raise: function (key) {
         if (!wins[key]) return;
         commit(raised(state, key), false);

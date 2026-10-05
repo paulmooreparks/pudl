@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.50.0
+
+This release implements PUDL specification 0.11.0. It takes in the four runtime features YAVCHN patched into its copies of PUDL, and two of its other requests (YAVCHN's `PUDL-PROPOSAL.md`, A1 to A4, B3 and B7). Update `pudl.css`, `pudl-windows.js` and `pudl-regions.js`; YAVCHN can replace its patched files with these.
+
+- **Window-scoped address parameters (A1).** `data-win-params="r"` on the window layer makes `r.<key>` belong to window `<key>`: it travels with the windows through region swaps and Back and Forward, moves with the window when it is re-keyed, and is dropped when the window closes. `p` stays PUDL's.
+- **`pudlRegions.reload()` (A2)** fetches the current address again, past any cache, and swaps its regions in place with no new history entry. It resolves `true`, or `false` when a navigation superseded it, and rejects without navigating when the request fails or the page has other regions.
+- **A collapsed segmented control's choices swap regions (A3)**, as its segments do, instead of loading the whole page and every window with it.
+- **`pudlWindows.rekey(oldKey, key, push)` (A4)** gives an open window a new key and keeps its element, placement, place in the stack, focus and running content, moving every record PUDL keeps by key, the window's own panels and its window-scoped parameters with it. `pudl:window-rekey` fires with both keys. YAVCHN's version left the stacking order, the reset placement and the window menu's panels under the old key; the maximise button's layout picker also read a key it had captured, and now reads the current one.
+- **The status area matches the menu bar's groups (B7).** Beside a menu bar, the status area now has the groups' surface, border, shadow and 30px height, and its items the titles' colours and states; on a topbar with no menu bar it keeps the topbar's own colours. Items are 26px tall either way. 0.48.0 drew it lighter, 2px taller and greyer than the groups beside it.
+- **The account glyph (B3).** `--glyph-account` is the head-and-shoulders placeholder for an account with no picture, drawn at a picture's 24px in a status item as `.glyph.status-picture`.
+
 ## 0.49.0
 
 This release implements PUDL specification 0.10.0, from parkscomputing.com's proposal. Update `pudl-menubar.js`. An article in front loses its File menu; a host that wants Print offered marks its page menu, once its printed article is worth having.
