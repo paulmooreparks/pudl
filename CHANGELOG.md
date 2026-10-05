@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.49.0
+
+This release implements PUDL specification 0.10.0, from parkscomputing.com's proposal. Update `pudl-menubar.js`. An article in front loses its File menu; a host that wants Print offered marks its page menu, once its printed article is worth having.
+
+- **An article has no File menu of PUDL's.** Its only command was Print, and in a page of windows `window.print()` prints the whole desktop, so the command did not do what it said. An article's own menu offers Open as a page, Copy link to this content and, in a window, Close window, as before.
+- **Print is the host's to offer.** A `nav[data-page-menu]` with `data-page-print` puts Print in the article's own menu, after Copy link and before Close window. A host that wants a File menu for an article adds one to its page menu list, which the menu bar already reads.
+- The `file` word override, `data-menubar-text-file`, is no longer used. The README, the reference page, the contract and the menu-bar conventions, adoption guide and migration guide say so.
+
 ## 0.48.0
 
 This release implements PUDL specification 0.9.0, from two of parkscomputing.com's proposals. Update `pudl.css` and `pudl-windows.js`.

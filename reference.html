@@ -116,7 +116,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.48.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.49.0</a>
     </div>
   </header>
 
@@ -630,7 +630,7 @@
 &lt;/nav&gt;</code></pre>
     <p>An applet supplies its front menu through <code>menus()</code>, returning <code>{ titles, into }</code>. Each title has a <code>label</code> and an <code>items</code> list. Commands have a <code>label</code> and <code>run</code>, with optional <code>checked</code>, <code>radio</code>, <code>disabled</code>, <code>danger</code> and <code>shortcut</code> fields, or an <code>items</code> list for a submenu. A string <code>'-'</code> supplies a separator, and <code>{ heading }</code> labels a group. PUDL asks for the menu again whenever a panel opens, so its state stays current. An applet that supplies only <code>commands()</code> gets one title containing those commands.</p>
     <p>Host titles declare <code>data-menubar-id</code> independently of their displayed labels. The first title is the site identity. A front menu cannot reuse a reserved site ID or host title. Its <code>into</code> entries add commands only to <code>go</code>, <code>view</code>, and <code>help</code>, below the site commands under a heading naming the applet. Exact host labels remain a compatibility fallback. Empty shared slots appear when populated. A Window title with <code>data-menubar-windows</code> generates standard window management. See the <a href="docs/MENU-BAR-MIGRATION.md">0.40.0 migration guide</a> for the API and generated identity-menu changes. Command labels must be unique within a panel. PUDL omits clashes and reports them in the console. With a menu bar present, applet commands live there; the window menu retains the window's own controls.</p>
-    <p>An article supplies a hidden <code>nav[data-page-menu]</code> containing the same nested lists, with links for its commands. PUDL adds a first title named after the article, with Open as a page, Copy link to this content and, in a window, Close window. Print appears under File. The hotel example uses this form for its Receipt title. A heading link scrolls inside the article's window; a link carrying <code>data-win-open</code> opens its target window.</p>
+    <p>An article supplies a hidden <code>nav[data-page-menu]</code> containing the same nested lists, with links for its commands. PUDL adds a first title named after the article, with Open as a page, Copy link to this content and, in a window, Close window. Print joins them, after Copy link, only where the host marks its menu <code>data-page-print</code>, since printing a page of windows prints the desktop rather than the article. The hotel example uses this form for its Receipt title. A heading link scrolls inside the article's window; a link carrying <code>data-win-open</code> opens its target window.</p>
     <table class="kv-table">
       <caption>Menu bar keyboard controls</caption>
       <tr><th>Tab</th><td>Enter the bar at its single tab stop, or leave an open menu.</td></tr>

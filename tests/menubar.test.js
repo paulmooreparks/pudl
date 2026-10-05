@@ -133,10 +133,17 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   await p.waitForSelector('.win[data-win="article"]');
   await p.waitForTimeout(150);
   bt = await bar();
-  check('a host link to a window opens it, and an article gets its own menu', bt.endsWith('/ Coincidences: Coincidences|File|Sections'), bt);
+  check('a host link to a window opens it, and an article gets its own menu and no File menu of PUDL\'s', bt.endsWith('/ Coincidences: Coincidences|Sections'), bt);
   await p.click('.menubar-front .menubar-title >> text=Coincidences');
   await waitOpen();
-  check('its first title offers what every article offers', (await rows()).join(',') === 'Open as a page,Copy link to this content,|,Close window', (await rows()).join(','));
+  check('its first title offers what every article offers, and no Print unless the host marks it', (await rows()).join(',') === 'Open as a page,Copy link to this content,|,Close window', (await rows()).join(','));
+  await p.keyboard.press('Escape');
+  /* A host whose printed article is worth having marks its page menu
+     (from parkscomputing.com's Architecture/pudl-proposal-article-file-menu.md). */
+  await p.evaluate(() => { document.querySelector('.win[data-win="article"] nav[data-page-menu]').setAttribute('data-page-print', ''); pudlMenubar.refresh(); });
+  await p.click('.menubar-front .menubar-title >> text=Coincidences');
+  await waitOpen();
+  check('with data-page-print, Print follows Copy link, before Close window', (await rows()).join(',') === 'Open as a page,Copy link to this content,Print,|,Close window', (await rows()).join(','));
   await p.keyboard.press('Escape');
   const url = p.url();
   await p.click('.menubar-front .menubar-title >> text=Sections');
@@ -153,7 +160,7 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   await p.click('.menubar-one .menubar-title');
   await waitOpen();
   const sections = await rows();
-  check('whose panel lists each menu\'s titles', sections.join(',') === '#Parks Computing,Parks Computing,View,Window,Help,|,#Coincidences,Coincidences,File,Sections', sections.join(','));
+  check('whose panel lists each menu\'s titles', sections.join(',') === '#Parks Computing,Parks Computing,View,Window,Help,|,#Coincidences,Coincidences,Sections', sections.join(','));
   await p.click('#menubar-panel .menu-action >> text=View');
   const drilled = await rows();
   check('and a title shows its commands in place, with a Back row', drilled[0] === 'Back' && drilled.includes('Wide layout*') || drilled.includes('Wide layout'), drilled.join(','));

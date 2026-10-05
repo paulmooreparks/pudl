@@ -31,7 +31,7 @@ Editor should use **Editor, File, Edit**, plus substantial domain menus when nee
 
 Games and small tools should separate their identity entries from their working commands. For example, a game's New game and Restart belong under Game. The `commands()` fallback now preserves working commands under Actions. Newly standardized applets should use `menus()` to give those commands a domain-specific title.
 
-Articles should retain a recognizably named content group. PUDL 0.40.0 puts their generated Print command under File and supplies scoped sharing and close labels. Sites should review any translation overrides that retain the old generic labels.
+Articles should retain a recognizably named content group. PUDL 0.40.0 supplies scoped sharing and close labels. Since 0.49.0 an article has no File menu of PUDL's, and its identity menu offers Print only where the site marks its page menu `data-page-print`, once its printed article is worth having. Sites should review any translation overrides that retain the old generic labels.
 
 ## YAVCHN
 
