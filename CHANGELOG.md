@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.54.0
+
+This release implements PUDL specification 0.15.0. Update `pudl.css`.
+
+- **Menu groups are raised.** A menu bar's groups, and the status area beside a menu bar, are now filled with `--tb-chip`, as the specification has always said, where they were filled with `--recess-bg` and drew darker than the buttons around them. In the light theme beside a menu bar `--tb-chip` is `--raise-grad`, an ordinary button's fill; in the dark theme it is the top bar's chip fill. `--menubar-group-bg` still overrides it. A project that set `--menubar-group-bg: var(--raise-grad)` to get this can delete that line; one that wants the old look sets `--menubar-group-bg: var(--recess-bg)`.
+- **A narrower sidebar divider.** A persistent master-detail divider is 12px wide where the pointer is fine, half its old 24px, and 20px where it is coarse, so a finger can still take it. `--md-target-size` still sets it; a project that wants the old width sets it to 24px.
+- **A pencil glyph.** `--glyph-pencil`, for editing or renaming something in place, in the same 16px grid and stroke as the other glyphs.
+
 ## 0.53.0
 
 This release implements PUDL specification 0.14.0, which adds layout. Update `pudl.css`. Nothing changes for a page that does not use the new classes.

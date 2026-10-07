@@ -40,9 +40,9 @@ function check(name, ok, extra) {
   await settle(p);
   check('Left on the handle widens it, as in a right-to-left page', (await rect(p, '.md-sidebar')).w === startW + 16, String((await rect(p, '.md-sidebar')).w));
   const h = await rect(p, '.md-resize');
-  await p.mouse.move(h.l + 12, 300);
+  await p.mouse.move(h.l + h.w / 2, 300);
   await p.mouse.down();
-  await p.mouse.move(h.l - 28, 300, { steps: 5 });
+  await p.mouse.move(h.l + h.w / 2 - 40, 300, { steps: 5 });
   await p.mouse.up();
   await settle(p);
   check('dragging the handle toward the middle widens it', (await rect(p, '.md-sidebar')).w === startW + 16 + 40, String((await rect(p, '.md-sidebar')).w));
@@ -71,13 +71,13 @@ function check(name, ok, extra) {
     const peeking = () => p.evaluate(() => document.querySelector('.md-layout').hasAttribute('data-md-peek-open'));
 
     /* A pointer that only crosses the handle opens nothing. */
-    await p.mouse.move(hd.l + 12, 200);
+    await p.mouse.move(hd.l + hd.w / 2, 200);
     await p.waitForTimeout(80);
     await p.mouse.move(end ? hd.l - 300 : hd.r + 300, 200);
     await p.waitForTimeout(250);
     check(where + 'a pointer that only crosses the handle opens nothing', !(await peeking()));
 
-    await p.mouse.move(hd.l + 12, 250);
+    await p.mouse.move(hd.l + hd.w / 2, 250);
     await p.waitForTimeout(350);
     check(where + 'resting on the handle opens a peek', await peeking());
     const s = await rect(p, '.md-sidebar'), d = await rect(p, '.md-detail'), hh = await rect(p, '.md-resize'), bb = await rect(p, '.md-body');
@@ -99,10 +99,10 @@ function check(name, ok, extra) {
     check(where + 'the sidebar is still collapsed', await p.evaluate(() => pudlMd.state(document.querySelector('.md-layout')).collapsed));
 
     /* Pressing the handle of a peek expands it where it stood. */
-    await p.mouse.move(hd.l + 12, 250);
+    await p.mouse.move(hd.l + hd.w / 2, 250);
     await p.waitForTimeout(350);
     const at = await rect(p, '.md-sidebar');
-    await p.mouse.click(hd.l + 12 + (end ? -width : width), 250);
+    await p.mouse.click(hd.l + hd.w / 2 + (end ? -width : width), 250);
     await settle(p);
     const after = await rect(p, '.md-sidebar');
     check(where + 'pressing the handle of a peek expands the sidebar for good, where the peek stood', !(await peeking()) && !(await p.evaluate(() => pudlMd.state(document.querySelector('.md-layout')).collapsed)) && after.l === at.l && after.w === at.w, JSON.stringify({ at, after }));
@@ -135,7 +135,7 @@ function check(name, ok, extra) {
   await p.evaluate(() => pudlMd.command(document.querySelector('.md-layout'), 'collapse'));
   await settle(p);
   const hz = await rect(p, '.md-resize');
-  await p.mouse.move(hz.l + 12, 250);
+  await p.mouse.move(hz.l + hz.w / 2, 250);
   await p.waitForTimeout(350);
   check('a layout without data-md-peek does not peek', !(await p.evaluate(() => document.querySelector('.md-layout').hasAttribute('data-md-peek-open'))));
   await p.close();

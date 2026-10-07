@@ -76,14 +76,14 @@ Each menu group is one slightly raised surface in both themes, following the Par
 
 ```css
 .menubar {
-  --menubar-group-bg: var(--recess-bg);
+  --menubar-group-bg: var(--tb-chip);
   --menubar-group-border-width: 1px;
   --menubar-group-border: var(--raise-border);
   --menubar-group-shadow: var(--raise-shadow);
 }
 ```
 
-The border width defaults to 1px and supports values from 0px through 2px, compensated by reducing group padding. Background, border, and shadow default to `--recess-bg`, `--raise-border`, and `--raise-shadow`. The background token supplies the fill color; the group's raised border and shadow determine its elevation. Menu text uses the current theme's text colors. These component tokens do not change dropdown rows or the global palette.
+The border width defaults to 1px and supports values from 0px through 2px, compensated by reducing group padding. Background, border, and shadow default to `--tb-chip`, `--raise-border`, and `--raise-shadow`. Beside a menu bar in the light theme, `--tb-chip` is `--raise-grad`, the fill of an ordinary button; in the dark theme it is the top bar's own chip fill, which the top bar's buttons also use. A group is pressable, so it is raised like the controls around it. Before 0.54.0 the default was `--recess-bg`, which drew the group darker than its neighbours. Menu text uses the current theme's text colors. These component tokens do not change dropdown rows or the global palette.
 
 Overflow arrows appear independently above and below a menu and reserve gutters outside its commands. They do not intercept pointers. Menu placement follows `VisualViewport` resize and scroll events, uses safe-area insets, and falls back to the layout viewport when that API is absent. Replaced submenu content starts at its first row. No host scroll-arrow implementation is needed.
 
