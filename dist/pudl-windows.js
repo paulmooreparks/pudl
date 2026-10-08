@@ -131,6 +131,7 @@
   function sharedDocks() { return !!layer && layer.hasAttribute('data-win-dock-tabs'); }
   function sharedEdge(edge) { return sharedDocks() && (edge === 'left' || edge === 'right'); }
   function requiredWindow(key) { return required.indexOf(key) >= 0; }
+  function dockOnly(key) { return !!wins[key] && wins[key].hasAttribute('data-win-dock-only'); }
   function railThreshold() {
     var n = Number(layer.getAttribute('data-win-dock-rail-width'));
     return n > 0 && isFinite(n) ? n : 960;
@@ -157,7 +158,7 @@
     delete dockPeek[edge];
     commit(st, false);
     var hiddenFocus = document.activeElement && document.activeElement.closest('.win[hidden]');
-    if (hiddenFocus && dockGroups[edge]) dockGroups[edge].lastChild.focus();
+    if (hiddenFocus && dockGroups[edge]) dockGroups[edge].querySelector('.win-dock-toggle').focus();
   }
 
   function normalizeDocks(st) {
@@ -166,6 +167,8 @@
       var members = dockMembers(st, edge), d = dockRecord(st, edge);
       if (members.indexOf(st.top) >= 0) d.selected = st.top;
       if (members.indexOf(d.selected) < 0) d.selected = members[0] || null;
+      if (d.size == null && members.length) d.size = st.place[d.selected].s || DOCK_SIZE;
+      if (d.size != null) members.forEach(function (key) { st.place[key].s = d.size; });
       if (dockPeek[edge] !== d.selected || !railMode(st, edge) || st.min[d.selected]) delete dockPeek[edge];
     });
   }
@@ -221,6 +224,19 @@
     node.title = label;
   }
 
+  function positionDockMenus(group) {
+    var bounds = group.getBoundingClientRect(), list = group.querySelector('.win-dock-tablist'), clip = list.getBoundingClientRect();
+    group.querySelectorAll('[data-dock-menu]').forEach(function (button) {
+      var entry = list.querySelector('[data-dock-entry="' + CSS.escape(button.getAttribute('data-dock-menu')) + '"]');
+      if (!entry) { button.remove(); return; }
+      var rail = group.hasAttribute('data-dock-rail');
+      var rect = entry.getBoundingClientRect();
+      button.hidden = rail || rect.right > clip.right + 1 || rect.left < clip.left - 1 || rect.bottom > clip.bottom + 1 || rect.top < clip.top - 1;
+      button.style.left = (rect.right - bounds.left - (rail ? 13 : 23)) + 'px';
+      button.style.top = (rect.top - bounds.top + (rect.height - 18) / 2) + 'px';
+    });
+  }
+
   function renderDockGroups() {
     if (!sharedDocks()) return;
     ['left', 'right'].forEach(function (edge) {
@@ -232,22 +248,43 @@
         group.innerHTML = '<div class="tablist win-dock-tablist" role="tablist"></div><button type="button" class="icon-btn win-dock-toggle"><span class="glyph" aria-hidden="true"></span></button>';
         layer.appendChild(group);
         dockGroups[edge] = group;
-        group.firstChild.setAttribute('aria-label', text('dock-' + edge, DOCK_WORDS[edge]));
+        if (window.ResizeObserver) new ResizeObserver(function () {
+          var selectedTab = group.querySelector('[role="tab"][aria-selected="true"]');
+          if (selectedTab) selectedTab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          positionDockMenus(group);
+        }).observe(group);
+        group.querySelector('.win-dock-tablist').addEventListener('scroll', function () { positionDockMenus(group); });
+        group.querySelector('.win-dock-tablist').setAttribute('aria-label', text('dock-' + edge, DOCK_WORDS[edge]));
         group.addEventListener('click', function (e) {
+          var menu = e.target.closest('[data-dock-menu]');
+          if (menu) {
+            var menuKey = menu.getAttribute('data-dock-menu');
+            if (railMode(state, edge)) dockPeek[edge] = menuKey;
+            commit(raised(state, menuKey), false);
+            var panel = document.getElementById('win-menu-' + menuKey);
+            panel.setAttribute('data-menu-anchor', menu.id);
+            openMenu(menuKey);
+            return;
+          }
           var tab = e.target.closest('[data-dock-key]');
           if (tab) {
             var key = tab.getAttribute('data-dock-key');
-            if (e.target.closest('.doc-tab-close')) closeDockTab(key, edge, 'button');
-            else {
-              if (railMode(state, edge)) dockPeek[edge] = key;
-              commit(raised(state, key), false);
-              focusWindow(key);
-            }
+            if (railMode(state, edge)) dockPeek[edge] = key;
+            commit(raised(state, key), false);
+            focusWindow(key);
           } else if (e.target.closest('.win-dock-toggle')) dockMode(edge, railMode(state, edge) ? 'open' : 'rail');
         });
         group.addEventListener('keydown', function (e) {
+          var menu = e.target.closest('[data-dock-menu]');
+          if (menu && e.key === 'ArrowDown') { e.preventDefault(); menu.click(); return; }
           var tab = e.target.closest('[data-dock-key]');
           if (!tab || e.altKey || e.ctrlKey || e.metaKey) return;
+          if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
+            e.preventDefault();
+            group.querySelector('[data-dock-menu="' + CSS.escape(tab.getAttribute('data-dock-key')) + '"]').click();
+            return;
+          }
+          if (e.shiftKey) { onHeadKey(e, tab.getAttribute('data-dock-key')); return; }
           var tabs = Array.from(group.querySelectorAll('[role="tab"]')), i = tabs.indexOf(tab), next;
           var rail = railMode(state, edge), rtl = getComputedStyle(group).direction === 'rtl';
           if (e.key === 'Home') next = tabs[0];
@@ -264,31 +301,51 @@
         });
       }
       group.hidden = !members.length;
-      var rail = railMode(state, edge), selected = edgeFront(state, edge), list = group.firstChild;
+      var rail = railMode(state, edge), selected = edgeFront(state, edge), list = group.querySelector('.win-dock-tablist');
+      var dockToggle = group.querySelector('.win-dock-toggle');
+      if (edge === 'left' || rail) {
+        if (group.firstElementChild !== dockToggle) group.insertBefore(dockToggle, list);
+      } else if (list.nextElementSibling !== dockToggle) group.insertBefore(dockToggle, list.nextElementSibling);
       group.toggleAttribute('data-dock-rail', rail);
       group.style.zIndex = String(2 * state.open.length + 2);
       list.setAttribute('aria-orientation', rail ? 'vertical' : 'horizontal');
       Array.from(list.children).forEach(function (tab) {
-        if (members.indexOf(tab.getAttribute('data-dock-key')) < 0) tab.remove();
+        if (members.indexOf(tab.getAttribute('data-dock-entry')) < 0) tab.remove();
       });
       members.forEach(function (key, i) {
         var tab = list.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
         if (!tab) {
+          var entry = document.createElement('div');
+          entry.className = 'section-tab win-dock-entry';
+          entry.setAttribute('role', 'presentation');
+          entry.setAttribute('data-dock-entry', key);
           tab = document.createElement('button');
           tab.type = 'button';
           tab.setAttribute('role', 'tab');
           tab.setAttribute('data-dock-key', key);
           tab.id = 'pudl-dock-tab-' + key;
+          entry.appendChild(tab);
+          var menuButton = document.createElement('button');
+          menuButton.type = 'button';
+          menuButton.className = 'win-dock-menu';
+          menuButton.id = 'pudl-dock-menu-' + key;
+          menuButton.setAttribute('data-dock-menu', key);
+          menuButton.setAttribute('aria-haspopup', 'menu');
+          group.appendChild(menuButton);
         }
-        if (list.children[i] !== tab) list.insertBefore(tab, list.children[i] || null);
+        var wrapper = tab.parentElement;
+        wrapper.classList.toggle('section-tab', !rail);
+        tab.classList.toggle('icon-btn', rail);
+        tab.toggleAttribute('data-dock-peek', rail && dockPeek[edge] === key && !state.min[key]);
+        if (list.children[i] !== wrapper) list.insertBefore(wrapper, list.children[i] || null);
+        wrapper.toggleAttribute('data-selected', key === selected);
+        wrapper.toggleAttribute('data-dock-only', dockOnly(key));
+        var menuControl = group.querySelector('[data-dock-menu="' + CSS.escape(key) + '"]');
+        menuControl.toggleAttribute('data-dock-only', dockOnly(key));
+        menuControl.tabIndex = key === selected ? 0 : -1;
+        menuControl.setAttribute('aria-label', titleOf(key) + ': ' + text('menu', 'Window menu'));
+        menuControl.title = menuControl.getAttribute('aria-label');
         windowMark(tab, key);
-        if (!requiredWindow(key) && !tab.querySelector('.doc-tab-close')) {
-          var closeMark = document.createElement('span');
-          closeMark.className = 'doc-tab-close';
-          closeMark.setAttribute('aria-hidden', 'true');
-          closeMark.title = text('close', 'Close');
-          tab.appendChild(closeMark);
-        }
         var win = wins[key];
         if (!win.id) win.id = 'pudl-dock-panel-' + key;
         tab.setAttribute('aria-controls', win.id);
@@ -299,10 +356,16 @@
         win.setAttribute('role', 'tabpanel');
         win.setAttribute('aria-labelledby', tab.id);
       });
-      var toggle = group.lastChild, label = rail ? text('dock-pin', 'Pin dock open') : text('dock-collapse', 'Collapse dock');
+      if (group.getAttribute('data-dock-selected') !== selected) {
+        group.setAttribute('data-dock-selected', selected);
+        var selectedTab = list.querySelector('[role="tab"][aria-selected="true"]');
+        if (selectedTab) selectedTab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+      var toggle = group.querySelector('.win-dock-toggle'), label = rail ? text('dock-pin', 'Pin dock open') : text('dock-collapse', 'Collapse dock');
       toggle.title = label;
       toggle.setAttribute('aria-label', label);
       toggle.firstChild.style.setProperty('--glyph', 'var(--glyph-' + (rail ? 'pin' : 'minimize') + ')');
+      positionDockMenus(group);
     });
     state.open.forEach(function (key) {
       var win = wins[key], saved = dockRoles.get(win);
@@ -529,10 +592,12 @@
     if (!q.has('open')) return null;
     var st = { open: keyList(q.get('open')), top: null, min: {}, place: {} };
     if (sharedDocks()) ['left', 'right'].forEach(function (edge) {
-      var m = /^(auto|open|rail):([A-Za-z0-9_-]*)$/.exec(q.get('d.' + edge) || '');
+      var m = /^(auto|open|rail):([A-Za-z0-9_-]*)(?::([0-9.]+))?$/.exec(q.get('d.' + edge) || '');
       if (m) {
         if (!st.docks) st.docks = {};
         st.docks[edge] = { mode: m[1], selected: m[2] || null };
+        var size = Number(m[3]);
+        if (size > 0 && size <= DOCK_MAX) st.docks[edge].size = size;
       }
     });
     keyList(q.get('min')).forEach(function (k) {
@@ -552,7 +617,7 @@
   /* A state's window parameters. Keys, modes and numbers need no escaping,
      so they are written out by hand and stay readable. */
   function windowParams(st) {
-    var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto'; });
+    var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto' || st.docks[edge].size != null; });
     if (!st.open.length && !dockPreference) return [];
     var parts = ['open=' + st.open.join(',')];
     if (st.top) parts.push('top=' + st.top);
@@ -563,7 +628,7 @@
     });
     if (st.docks) ['left', 'right'].forEach(function (edge) {
       var d = st.docks[edge];
-      if (d) parts.push('d.' + edge + '=' + d.mode + ':' + (d.selected || ''));
+      if (d) parts.push('d.' + edge + '=' + d.mode + ':' + (d.selected || '') + (d.size != null ? ':' + fmt(d.size) : ''));
     });
     return parts;
   }
@@ -743,7 +808,7 @@
   }
 
   function maximizeToggled(st, key) {
-    if (restricted(key)) return copy(st);
+    if (restricted(key) || dockOnly(key)) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
     p.mode = p.mode === 'floating' ? 'maximized' : 'floating';
@@ -753,7 +818,7 @@
   /* Snaps a window to a zone, a name from ZONES or a rectangle, or with
      none, lets it float again. */
   function snapped(st, key, zone) {
-    if (restricted(key)) return copy(st);
+    if (restricted(key) || dockOnly(key)) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
     if (zone == null || zone === 'floating') { p.mode = 'floating'; return st; }
@@ -766,7 +831,7 @@
      it floated. A window keeps its strip's size while undocked, so docking
      it again brings it back as it was. */
   function docked(st, key, edge) {
-    if (restricted(key)) return copy(st);
+    if (restricted(key) || (dockOnly(key) && edge !== 'left' && edge !== 'right')) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
     if (edge) {
@@ -852,6 +917,10 @@
   function apply(st) {
     st.open.forEach(function (k) {
       var p = st.place[k];
+      if (p && dockOnly(k) && p.mode !== 'dock-left' && p.mode !== 'dock-right') {
+        p.mode = 'dock-left';
+        delete p.zone;
+      }
       if (p && p.mode !== 'floating' && contentSized(k)) {
         st.place[k] = Object.assign({}, p, { mode: 'floating' });
         delete st.place[k].zone;
@@ -996,6 +1065,7 @@
       dock.textContent = '';
       state.open.forEach(function (k) {
         if (parentOf(state, k)) return;
+        if (dock.hasAttribute('data-win-dock-omit-docked') && shownEdge(state, k)) return;
         var a = document.createElement('a');
         a.className = 'win-tab' + (state.min[k] ? ' minimized' : '');
         a.href = urlFor(tabbed(state, k));
@@ -1240,7 +1310,7 @@
 
   function addMenu(el, key, head) {
     var btn = head.querySelector('[data-win-action="menu"]');
-    if (!btn && !layer.hasAttribute('data-win-menu') && el.getAttribute('data-win-chrome') !== 'compact') return;
+    if (!btn && !sharedDocks() && !layer.hasAttribute('data-win-menu') && el.getAttribute('data-win-chrome') !== 'compact') return;
     var id = 'win-menu-' + key;
     if (!btn) {
       btn = document.createElement('button');
@@ -1329,13 +1399,13 @@
     /* Docking at any of the four edges, the one the window is docked at
        ticked, and Undock last on a docked window. */
     if (!sized && !fixed) {
-      var edges = DOCK_EDGES.map(function (edge) {
+      var edges = (dockOnly(key) ? ['left', 'right'] : DOCK_EDGES).map(function (edge) {
         return command('dock:' + edge, text('dock-' + edge, DOCK_WORDS[edge]), 'dock:' + edge, { checked: dock === edge });
       });
-      if (dock) edges.push('-', command('undock', text('undock', 'Undock'), 'undock'));
+      if (dock && !dockOnly(key)) edges.push('-', command('undock', text('undock', 'Undock'), 'undock'));
       list.push({ id: 'dock', label: text('dock-menu', 'Dock'), items: edges });
     }
-    if (!fixed) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
+    if (!fixed && !dockOnly(key)) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
     if (!requiredWindow(key)) list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
     return list;
   }
@@ -1364,11 +1434,13 @@
     var own = contentCommands(win, key);
     menuRuns[key] = own;
     if (own.length) {
-      panel.appendChild(sep());
+      if (panel.children.length) panel.appendChild(sep());
       own.forEach(function (c, i) { panel.appendChild(menuItem(c.label, 'content:' + i, c)); });
     }
-    panel.appendChild(sep());
-    panel.appendChild(menuItem(text('close', 'Close'), 'close', { danger: true }));
+    if (standard.some(function (c) { return c.id === 'close'; })) {
+      if (panel.children.length) panel.appendChild(sep());
+      panel.appendChild(menuItem(text('close', 'Close'), 'close', { danger: true }));
+    }
   }
 
   /* The layout picker: a thumbnail of each layout, each of its zones a
@@ -1424,7 +1496,11 @@
       if (DOCK_EDGES.indexOf(edge) >= 0 && dockEdge(p) !== edge) commit(docked(state, key, edge), false);
     }
     else if (cmd === 'reset') commit(resetPlaced(state, key), false);
-    else if (cmd === 'close') close(key, 'button');
+    else if (cmd === 'close') {
+      var side = shownEdge(state, key);
+      if (sharedEdge(side)) closeDockTab(key, side, 'button');
+      else close(key, 'button');
+    }
     else if (cmd.indexOf('content:') === 0) {
       var c = (menuRuns[key] || [])[+cmd.slice(8)];
       if (c && !c.disabled) c.run();
@@ -1603,7 +1679,10 @@
       target = el.querySelector('.win-body [autofocus]');
       if (target && !canFocus(target)) target = null;
     }
-    target = target || el.querySelector('.win-head');
+    if (!target) {
+      var head = el.querySelector('.win-head');
+      target = head && canFocus(head) ? head : el.querySelector('.win-body');
+    }
     if (target) target.focus({ preventScroll: true });
   }
 
@@ -1899,7 +1978,7 @@
      has to be laid out, but only once a frame. The state is committed
      once, when the pointer lifts. */
   function gesture(e, key, edge) {
-    if (restricted(key)) return;
+    if (restricted(key) || (dockOnly(key) && !edge)) return;
     var el = wins[key];
     var target = e.currentTarget;
     var outer = layer.getBoundingClientRect();
@@ -2026,7 +2105,10 @@
         commit(st, false);
         return;
       }
-      if (edge && dockSide) st.place[key] = cur;
+      if (edge && dockSide) {
+        st.place[key] = cur;
+        if (sharedEdge(dockSide)) dockRecord(st, dockSide).size = cur.s;
+      }
       else {
         st.place[key] = Object.assign({}, cur, { mode: 'floating' });
         if (snap === 'dock-bottom') {
@@ -2091,6 +2173,7 @@
       var sd = raised(state, key);
       var pd = sd.place[key];
       pd.s = Math.min(DOCK_MAX, Math.max(0.05, (pd.s != null ? pd.s : DOCK_SIZE) + grow * KEY_STEP));
+      if (sharedEdge(side)) dockRecord(sd, side).size = pd.s;
       commitSoon(sd);
       return;
     }
@@ -2283,7 +2366,13 @@
     layer.addEventListener('beforetoggle', function (e) {
       var panel = e.target;
       if (e.newState !== 'open' || !panel.classList) return;
-      if (panel.classList.contains('win-menu')) buildMenu(panel, panel.getAttribute('data-win-menu-for'));
+      if (panel.classList.contains('win-menu')) {
+        var key = panel.getAttribute('data-win-menu-for'), edge = shownEdge(state, key);
+        var useTab = sharedEdge(edge) && (!railMode(state, edge) || dockOnly(key));
+        if (useTab) panel.setAttribute('data-menu-anchor', (railMode(state, edge) ? 'pudl-dock-tab-' : 'pudl-dock-menu-') + key);
+        else panel.removeAttribute('data-menu-anchor');
+        buildMenu(panel, key);
+      }
       else if (panel.classList.contains('win-snap-panel')) {
         panel.textContent = '';
         snapItems(panel, panel.getAttribute('data-win-menu-for'));
