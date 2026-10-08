@@ -209,6 +209,53 @@
   left: var(--dock-left, 0px); right: var(--dock-right, 0px);
 }
 
+/* Shared side docks opt in on the layer. Their tabs remain mounted while
+   the chosen window changes, so status updates preserve keyboard focus. */
+.win-dock-group {
+  position: absolute; top: var(--dock-top, 0px); height: 40px;
+  pointer-events: auto;
+  display: flex; align-items: stretch; background: var(--recess-bg);
+  border-bottom: 1px solid var(--border); box-sizing: border-box;
+}
+.win-dock-group[data-dock-edge="left"] { left: 0; width: var(--dock-left); }
+.win-dock-group[data-dock-edge="right"] { right: 0; width: var(--dock-right); }
+.win-dock-tablist { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; margin: 0; }
+.win-dock-tablist > [role="tab"] { display: inline-flex; flex: none; align-items: center; gap: 4px; min-width: 0; padding-inline: 8px; }
+.win-dock-tablist .win-item-title { max-width: 12em; overflow: hidden; text-overflow: ellipsis; }
+.win-dock-toggle { flex: none; align-self: center; margin: 4px; }
+.win[data-win-dock-shared]:not([data-win-dock-peek]) {
+  top: calc(var(--dock-top, 0px) + 40px);
+  height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px) - 40px);
+}
+.win-dock-group[data-dock-rail] {
+  flex-direction: column; width: 40px;
+  height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
+}
+.win-dock-group[data-dock-rail] .win-dock-tablist {
+  display: flex; flex-direction: column; align-items: stretch;
+  padding: 4px 2px; overflow-x: hidden; overflow-y: auto; border: 0;
+}
+.win-dock-group[data-dock-rail] [role="tab"] { position: relative; flex: none; justify-content: center; min-height: 36px; padding: 6px; border-radius: var(--radius-sm); }
+.win-dock-group[data-dock-rail] .win-item-title,
+.win-dock-group[data-dock-rail] .win-item-progress,
+.win-dock-group[data-dock-rail] .doc-tab-close { display: none; }
+.win-dock-group[data-dock-rail] .win-item-attention { position: absolute; top: 0; right: 0; padding: 0 3px; font-size: var(--text-2xs); }
+.win-dock-group[data-dock-rail] .win-item-attention::before { display: none; }
+.win-dock-group[data-dock-rail] .win-item-running { position: absolute; bottom: 2px; right: 2px; }
+.win[data-win-dock-peek] {
+  top: var(--dock-top, 0px);
+  height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
+  width: min(max(280px, var(--win-dock-panel-size)), calc(100% - 80px));
+  box-shadow: var(--shadow-dialog);
+}
+.win[data-win-dock-peek][data-win-edge="left"] { left: 40px; }
+.win[data-win-dock-peek][data-win-edge="right"] { right: 40px; }
+.win-item-running { display: inline-block; flex: none; width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%; background: var(--positive); }
+.win-item-progress { font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
+.win-tab .win-item-glyph { flex: none; }
+.win-tab .win-item-title { overflow: hidden; text-overflow: ellipsis; }
+.win-tab:has(.win-item-glyph:not([hidden]))::before { display: none; }
+
 /* === Title bar ============================================================
    The title bar is what you drag, so it is raised. The active window's
    title bar takes the accent. */

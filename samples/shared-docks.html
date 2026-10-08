@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shared Side Docks</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar, .win-dock { flex: none; }
+    .win-host { flex: 1; min-height: 0; }
+    .win-dock { min-height: 42px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="../reference.html#windows">PUDL Shared Docks</a><div class="topbar-chrome"><button type="button" class="theme-toggle" aria-label="Toggle Theme" title="Toggle Theme"></button></div></header>
+  <main class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="chats,workspace,flows,note" data-win-required="workspace" data-win-dock-tabs data-win-menu>
+      <section class="win" data-win="workspace" data-win-mode="dock-left" data-win-glyph="folder" style="--win-dock-size: .24">
+        <header class="win-head"><h2 class="win-title">Workspace</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="minimize" aria-label="Collapse"></button><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body"><h3>Customers</h3><p>This window stays available.</p><label class="form-label" for="workspace-search">Find a Document</label><input class="form-input" id="workspace-search"></div>
+      </section>
+      <section class="win" data-win="chats" data-win-mode="dock-left" data-win-glyph="comments" data-win-attention="3" data-win-running style="--win-dock-size: .24">
+        <header class="win-head"><h2 class="win-title">Chats</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="minimize" aria-label="Collapse"></button><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body"><h3>Chats</h3><p>Three chats need an answer.</p><label class="form-label" for="chat-search">Find a Chat</label><input class="form-input" id="chat-search"></div>
+      </section>
+      <section class="win" data-win="flows" data-win-mode="dock-right" data-win-glyph="branch" style="--win-dock-size: .24">
+        <header class="win-head"><h2 class="win-title">Flows</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body"><h3>Flows</h3><button class="btn" id="new-flow">New Flow</button></div>
+      </section>
+      <section class="win" data-win="note" data-win-mode="maximized" data-win-glyph="document">
+        <header class="win-head"><h2 class="win-title">Document</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body"><h3>The Document</h3><p>The document fills the area between the docks.</p><label class="form-label" for="editor">Notes</label><textarea class="form-textarea" id="editor" rows="8"></textarea></div>
+      </section>
+    </div>
+  </main>
+  <nav class="win-dock" data-win-dock aria-label="Open Windows"></nav>
+  <script>
+    document.querySelectorAll('.win[data-win]').forEach(function (win) {
+      var template = document.createElement('template');
+      template.id = 'tpl-' + win.dataset.win;
+      template.content.appendChild(win.cloneNode(true));
+      document.body.appendChild(template);
+    });
+  </script>
+</body>
+</html>
