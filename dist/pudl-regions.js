@@ -54,6 +54,7 @@
      belonging to a window with data-win-params, such as r.<key>. */
   function isWinParam(name) {
     if (name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0) return true;
+    if (/^d\.(left|right)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs]')) return true;
     var layer = document.querySelector('[data-win-layer]');
     var raw = layer ? layer.getAttribute('data-win-params') || '' : '';
     return raw.split(/[\s,]+/).some(function (p) {

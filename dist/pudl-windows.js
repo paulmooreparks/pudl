@@ -123,6 +123,195 @@
   var cancelGesture = null;
   var policyStamp = '';
   var syncing = 0;
+  var required = [];
+  var dockGroups = {};
+  var dockPeek = {};
+  var dockRoles = new WeakMap();
+
+  function sharedDocks() { return !!layer && layer.hasAttribute('data-win-dock-tabs'); }
+  function sharedEdge(edge) { return sharedDocks() && (edge === 'left' || edge === 'right'); }
+  function requiredWindow(key) { return required.indexOf(key) >= 0; }
+  function railThreshold() {
+    var n = Number(layer.getAttribute('data-win-dock-rail-width'));
+    return n > 0 && isFinite(n) ? n : 960;
+  }
+  function railMode(st, edge) {
+    var d = st.docks && st.docks[edge];
+    var mode = d ? d.mode : 'auto';
+    return !!st.min[edgeFront(st, edge)] || mode === 'rail' || (mode === 'auto' && layer.clientWidth <= railThreshold());
+  }
+  function dockRecord(st, edge) {
+    if (!st.docks) st.docks = {};
+    return st.docks[edge] || (st.docks[edge] = { mode: 'auto', selected: null });
+  }
+  function dockMembers(st, edge) {
+    var members = st.open.filter(function (k) { return shownEdge(st, k) === edge; });
+    return required.filter(function (k) { return members.indexOf(k) >= 0; })
+      .concat(members.filter(function (k) { return !requiredWindow(k); }));
+  }
+  function dockMode(edge, mode) {
+    if (!sharedEdge(edge) || ['auto', 'open', 'rail'].indexOf(mode) < 0) return;
+    var st = copy(state);
+    dockRecord(st, edge).mode = mode;
+    dockMembers(st, edge).forEach(function (key) { delete st.min[key]; });
+    delete dockPeek[edge];
+    commit(st, false);
+    var hiddenFocus = document.activeElement && document.activeElement.closest('.win[hidden]');
+    if (hiddenFocus && dockGroups[edge]) dockGroups[edge].lastChild.focus();
+  }
+
+  function normalizeDocks(st) {
+    if (!sharedDocks()) return;
+    ['left', 'right'].forEach(function (edge) {
+      var members = dockMembers(st, edge), d = dockRecord(st, edge);
+      if (members.indexOf(st.top) >= 0) d.selected = st.top;
+      if (members.indexOf(d.selected) < 0) d.selected = members[0] || null;
+      if (dockPeek[edge] !== d.selected || !railMode(st, edge) || st.min[d.selected]) delete dockPeek[edge];
+    });
+  }
+
+  function closeDockTab(key, edge, reason) {
+    close(key, reason);
+    if (wins[key]) return;
+    var tab = dockGroups[edge].querySelector('[aria-selected="true"]');
+    if (tab) tab.focus();
+  }
+
+  function dismissDockPeek(e) {
+    if (!Object.keys(dockPeek).length || !e.target.closest) return;
+    if (e.target.closest('[popover]:popover-open, dialog[open]')) return;
+    var group = e.target.closest('.win-dock-group');
+    var win = e.target.closest('.win'), key = win && win.getAttribute('data-win');
+    var changed = false;
+    Object.keys(dockPeek).forEach(function (edge) {
+      if (group && group.getAttribute('data-dock-edge') === edge) return;
+      if (dockPeek[edge] !== key) { delete dockPeek[edge]; changed = true; }
+    });
+    if (changed) apply(state);
+  }
+
+  function windowMark(node, key) {
+    var win = wins[key];
+    if (!win) return;
+    var glyph = win.getAttribute('data-win-glyph') || 'app';
+    if (!/^[a-z][a-z0-9-]*$/.test(glyph)) glyph = 'app';
+    var count = Number(win.getAttribute('data-win-attention'));
+    count = Number.isSafeInteger(count) && count > 0 ? count : 0;
+    var running = win.hasAttribute('data-win-running');
+    var progressText = (win.getAttribute('data-win-progress') || '').trim();
+    var progress = progressText ? Number(progressText) : NaN;
+    progress = isFinite(progress) && progress >= 0 && progress <= 100 ? Math.round(progress) : null;
+    var icon = node.querySelector('.win-item-glyph');
+    if (!icon) {
+      node.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span><span class="win-item-progress" aria-hidden="true"></span>';
+      icon = node.firstChild;
+    }
+    icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
+    icon.hidden = !win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key');
+    node.querySelector('.win-item-title').textContent = titleOf(key);
+    var badge = node.querySelector('.win-item-attention');
+    badge.hidden = !count;
+    badge.textContent = count ? String(count) : '';
+    node.querySelector('.win-item-running').hidden = !running;
+    var meter = node.querySelector('.win-item-progress');
+    meter.hidden = progress === null;
+    meter.textContent = progress === null ? '' : progress + '%';
+    var label = titleOf(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (running ? ', ' + text('running', 'running') : '') + (progress === null ? '' : ', ' + progress + '%');
+    node.setAttribute('aria-label', label);
+    node.title = label;
+  }
+
+  function renderDockGroups() {
+    if (!sharedDocks()) return;
+    ['left', 'right'].forEach(function (edge) {
+      var members = dockMembers(state, edge), group = dockGroups[edge];
+      if (!group) {
+        group = document.createElement('div');
+        group.className = 'win-dock-group';
+        group.setAttribute('data-dock-edge', edge);
+        group.innerHTML = '<div class="tablist win-dock-tablist" role="tablist"></div><button type="button" class="icon-btn win-dock-toggle"><span class="glyph" aria-hidden="true"></span></button>';
+        layer.appendChild(group);
+        dockGroups[edge] = group;
+        group.firstChild.setAttribute('aria-label', text('dock-' + edge, DOCK_WORDS[edge]));
+        group.addEventListener('click', function (e) {
+          var tab = e.target.closest('[data-dock-key]');
+          if (tab) {
+            var key = tab.getAttribute('data-dock-key');
+            if (e.target.closest('.doc-tab-close')) closeDockTab(key, edge, 'button');
+            else {
+              if (railMode(state, edge)) dockPeek[edge] = key;
+              commit(raised(state, key), false);
+              focusWindow(key);
+            }
+          } else if (e.target.closest('.win-dock-toggle')) dockMode(edge, railMode(state, edge) ? 'open' : 'rail');
+        });
+        group.addEventListener('keydown', function (e) {
+          var tab = e.target.closest('[data-dock-key]');
+          if (!tab || e.altKey || e.ctrlKey || e.metaKey) return;
+          var tabs = Array.from(group.querySelectorAll('[role="tab"]')), i = tabs.indexOf(tab), next;
+          var rail = railMode(state, edge), rtl = getComputedStyle(group).direction === 'rtl';
+          if (e.key === 'Home') next = tabs[0];
+          else if (e.key === 'End') next = tabs[tabs.length - 1];
+          else if (e.key === (rail ? 'ArrowDown' : rtl ? 'ArrowLeft' : 'ArrowRight')) next = tabs[(i + 1) % tabs.length];
+          else if (e.key === (rail ? 'ArrowUp' : rtl ? 'ArrowRight' : 'ArrowLeft')) next = tabs[(i + tabs.length - 1) % tabs.length];
+          else if (e.key === 'Delete') { e.preventDefault(); closeDockTab(tab.getAttribute('data-dock-key'), edge, 'key'); return; }
+          if (next) { e.preventDefault(); tabs.forEach(function (t) { t.tabIndex = t === next ? 0 : -1; }); next.focus(); }
+        });
+        group.addEventListener('focusout', function (e) {
+          if (!group.contains(e.relatedTarget)) group.querySelectorAll('[role="tab"]').forEach(function (t) {
+            t.tabIndex = t.getAttribute('aria-selected') === 'true' ? 0 : -1;
+          });
+        });
+      }
+      group.hidden = !members.length;
+      var rail = railMode(state, edge), selected = edgeFront(state, edge), list = group.firstChild;
+      group.toggleAttribute('data-dock-rail', rail);
+      group.style.zIndex = String(2 * state.open.length + 2);
+      list.setAttribute('aria-orientation', rail ? 'vertical' : 'horizontal');
+      Array.from(list.children).forEach(function (tab) {
+        if (members.indexOf(tab.getAttribute('data-dock-key')) < 0) tab.remove();
+      });
+      members.forEach(function (key, i) {
+        var tab = list.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+        if (!tab) {
+          tab = document.createElement('button');
+          tab.type = 'button';
+          tab.setAttribute('role', 'tab');
+          tab.setAttribute('data-dock-key', key);
+          tab.id = 'pudl-dock-tab-' + key;
+        }
+        if (list.children[i] !== tab) list.insertBefore(tab, list.children[i] || null);
+        windowMark(tab, key);
+        if (!requiredWindow(key) && !tab.querySelector('.doc-tab-close')) {
+          var closeMark = document.createElement('span');
+          closeMark.className = 'doc-tab-close';
+          closeMark.setAttribute('aria-hidden', 'true');
+          closeMark.title = text('close', 'Close');
+          tab.appendChild(closeMark);
+        }
+        var win = wins[key];
+        if (!win.id) win.id = 'pudl-dock-panel-' + key;
+        tab.setAttribute('aria-controls', win.id);
+        tab.setAttribute('aria-selected', String(key === selected));
+        var focused = list.contains(document.activeElement) ? document.activeElement.closest('[role="tab"]') : null;
+        tab.tabIndex = (focused ? tab === focused : key === selected) ? 0 : -1;
+        if (!dockRoles.has(win)) dockRoles.set(win, { role: win.getAttribute('role'), label: win.getAttribute('aria-labelledby') });
+        win.setAttribute('role', 'tabpanel');
+        win.setAttribute('aria-labelledby', tab.id);
+      });
+      var toggle = group.lastChild, label = rail ? text('dock-pin', 'Pin dock open') : text('dock-collapse', 'Collapse dock');
+      toggle.title = label;
+      toggle.setAttribute('aria-label', label);
+      toggle.firstChild.style.setProperty('--glyph', 'var(--glyph-' + (rail ? 'pin' : 'minimize') + ')');
+    });
+    state.open.forEach(function (key) {
+      var win = wins[key], saved = dockRoles.get(win);
+      if (!saved || sharedEdge(shownEdge(state, key))) return;
+      if (saved.role) win.setAttribute('role', saved.role); else win.removeAttribute('role');
+      if (saved.label) win.setAttribute('aria-labelledby', saved.label); else win.removeAttribute('aria-labelledby');
+      dockRoles.delete(win);
+    });
+  }
 
   /* Policy changes presentation without replacing the placement in the URL. */
   function restricted(key) {
@@ -137,7 +326,7 @@
     if (!p) return null;
     var out = Object.assign({}, p);
     if (out.zone) out.zone = Object.assign({}, out.zone);
-    if (restricted(key)) { out.mode = 'maximized'; delete out.zone; }
+    if (restricted(key) && !sharedEdge(dockEdge(p))) { out.mode = 'maximized'; delete out.zone; }
     return out;
   }
 
@@ -149,7 +338,12 @@
       place[k] = Object.assign({}, st.place[k]);
       if (place[k].zone) place[k].zone = Object.assign({}, place[k].zone);
     });
-    return { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place };
+    var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place };
+    if (st.docks) {
+      out.docks = {};
+      Object.keys(st.docks).forEach(function (edge) { out.docks[edge] = Object.assign({}, st.docks[edge]); });
+    }
+    return out;
   }
 
   function keyList(value) {
@@ -283,7 +477,7 @@
      shows at the bottom of a layer too narrow to have room beside it. */
   function shownEdge(st, key) {
     var e = dockEdge(effectivePlacement(st, key));
-    return e && (e === 'left' || e === 'right') && narrowLayer() ? 'bottom' : e;
+    return e && !sharedEdge(e) && (e === 'left' || e === 'right') && narrowLayer() ? 'bottom' : e;
   }
 
   /* The stacking order a state implies: the order as it stands, windows
@@ -296,6 +490,8 @@
   }
 
   function edgeFront(st, edge) {
+    var selected = st.docks && st.docks[edge] && st.docks[edge].selected;
+    if (sharedEdge(edge) && selected && st.open.indexOf(selected) >= 0 && shownEdge(st, selected) === edge) return selected;
     var order = stackOf(st);
     for (var i = order.length - 1; i >= 0; i--) {
       if (st.place[order[i]] && shownEdge(st, order[i]) === edge) return order[i];
@@ -320,6 +516,7 @@
         var rect = head && head.getBoundingClientRect();
         v = st.min[k] ? ((rect ? (side === 'left' || side === 'right' ? rect.width : rect.height) : pxMin('--win-head-docked', 30)) + 1) + 'px'
           : (Math.round((st.place[k].s != null ? st.place[k].s : DOCK_SIZE) * 1000) / 10) + '%';
+        if (sharedEdge(side)) v = railMode(st, side) ? '40px' : ((st.place[k].s || DOCK_SIZE) * 100) + '%';
       }
       layer.style.setProperty('--dock-' + side, v);
     });
@@ -331,6 +528,13 @@
     var q = new URLSearchParams(location.search);
     if (!q.has('open')) return null;
     var st = { open: keyList(q.get('open')), top: null, min: {}, place: {} };
+    if (sharedDocks()) ['left', 'right'].forEach(function (edge) {
+      var m = /^(auto|open|rail):([A-Za-z0-9_-]*)$/.exec(q.get('d.' + edge) || '');
+      if (m) {
+        if (!st.docks) st.docks = {};
+        st.docks[edge] = { mode: m[1], selected: m[2] || null };
+      }
+    });
     keyList(q.get('min')).forEach(function (k) {
       if (st.open.indexOf(k) >= 0) st.min[k] = true;
     });
@@ -348,13 +552,18 @@
   /* A state's window parameters. Keys, modes and numbers need no escaping,
      so they are written out by hand and stay readable. */
   function windowParams(st) {
-    if (!st.open.length) return [];
+    var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto'; });
+    if (!st.open.length && !dockPreference) return [];
     var parts = ['open=' + st.open.join(',')];
     if (st.top) parts.push('top=' + st.top);
     var mins = st.open.filter(function (k) { return st.min[k]; });
     if (mins.length) parts.push('min=' + mins.join(','));
     st.open.forEach(function (k) {
       if (st.place[k]) parts.push('p.' + k + '=' + formatPlacement(st.place[k]));
+    });
+    if (st.docks) ['left', 'right'].forEach(function (edge) {
+      var d = st.docks[edge];
+      if (d) parts.push('d.' + edge + '=' + d.mode + ':' + (d.selected || ''));
     });
     return parts;
   }
@@ -401,7 +610,7 @@
       if (!seg) return;
       var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0) return;
+      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0 || (sharedDocks() && /^d\.(left|right)$/.test(k))) return;
       var owner = scopedOwner(k);
       if (owner) {
         if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
@@ -442,6 +651,7 @@
      rather than hiding it. */
   function isHidden(st, key) {
     var edge = shownEdge(st, key);
+    if (sharedEdge(edge)) return edgeFront(st, edge) !== key || (railMode(st, edge) && dockPeek[edge] !== key);
     if (edge) return edgeFront(st, edge) !== key;
     var p = parentOf(st, key);
     return !!(st.min[key] || (p && st.min[p]));
@@ -494,6 +704,12 @@
   function minimized(st, key) {
     if (parentOf(st, key)) return copy(st);
     st = copy(st);
+    var edge = shownEdge(st, key);
+    if (sharedEdge(edge)) {
+      st.min[key] = true;
+      if (st.top === key) st.top = nextTop(st, [key]);
+      return st;
+    }
     st.min[key] = true;
     if (st.top && rootOf(st, st.top) === key) st.top = nextTop(st, [key].concat(childrenOf(st, key)));
     return st;
@@ -641,6 +857,7 @@
         delete st.place[k].zone;
       }
     });
+    normalizeDocks(st);
     /* A window leaving the page says so first, however it was closed, so
        its content can tear down what it set up, and says why, so a project
        can tell a reader closing it from the address moving on. */
@@ -685,13 +902,17 @@
       el.classList.toggle('active', k === front);
       if (edge) el.setAttribute('data-win-edge', edge);
       else el.removeAttribute('data-win-edge');
-      el.classList.toggle('win-collapsed', !!edge && !!st.min[k]);
+      el.classList.toggle('win-collapsed', !!edge && !sharedEdge(edge) && !!st.min[k]);
+      el.toggleAttribute('data-win-dock-shared', sharedEdge(edge));
+      el.toggleAttribute('data-win-dock-peek', sharedEdge(edge) && railMode(st, edge) && dockPeek[edge] === k);
+      if (sharedEdge(edge)) el.style.setProperty('--win-dock-panel-size', ((st.place[k].s || DOCK_SIZE) * 100) + '%');
       el.style.zIndex = String((edge ? zOrder.length : 0) + i + 1);
     });
     setDocks(st);
     state = st;
     updateLinks();
     renderDocks();
+    renderDockGroups();
     renderRows();
     syncPane();
   }
@@ -708,7 +929,9 @@
         mn.setAttribute('aria-label', ml);
         mn.setAttribute('title', ml);
       }
-      setHref(el.querySelector('[data-win-action="close"]'), urlFor(closed(state, k)));
+      var closeButton = el.querySelector('[data-win-action="close"]');
+      if (closeButton) closeButton.hidden = requiredWindow(k);
+      setHref(closeButton, urlFor(requiredWindow(k) ? state : closed(state, k)));
       var max = el.querySelector('[data-win-action="maximize"]');
       setHref(max, urlFor(maximizeToggled(state, k)));
       if (max) {
@@ -778,7 +1001,7 @@
         a.href = urlFor(tabbed(state, k));
         a.setAttribute('data-win-tab', k);
         if (k === topRoot) a.setAttribute('aria-current', 'true');
-        a.textContent = titleOf(k);
+        windowMark(a, k);
         a.title = state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(titleOf(k)) : titleOf(k);
         dock.appendChild(a);
       });
@@ -951,6 +1174,7 @@
     t.textContent = String(title);
     labelHead(key);
     renderDocks();
+    renderDockGroups();
     renderRows();
   }
 
@@ -1112,7 +1336,7 @@
       list.push({ id: 'dock', label: text('dock-menu', 'Dock'), items: edges });
     }
     if (!fixed) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
-    list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
+    if (!requiredWindow(key)) list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
     return list;
   }
 
@@ -1366,7 +1590,12 @@
      menus are not part of what it holds, since they close as they act. */
   function focusWindow(key) {
     var el = wins[key];
-    if (!el) return;
+    if (!el || state.min[key]) return;
+    var edge = shownEdge(state, key);
+    if (sharedEdge(edge) && railMode(state, edge) && dockPeek[edge] !== key) {
+      dockPeek[edge] = key;
+      apply(state);
+    }
     var now = document.activeElement;
     if (now && el.contains(now) && !now.closest('.menu-panel')) return;
     var target = lastFocus[key];
@@ -1432,6 +1661,7 @@
      returns to the old window. If the new window is already open it is
      brought forward and the old one closes. */
   function replaceWith(oldKey, key, from) {
+    if (requiredWindow(oldKey) || childrenOf(state, oldKey).some(requiredWindow)) return;
     if (!wins[oldKey] || oldKey === key) { open(key, from); return; }
     if (wins[key]) {
       markClosing(oldKey, 'replace');
@@ -1482,6 +1712,7 @@
      brings the window forward; onto a key that is open or loading, it is
      refused. */
   function rekey(oldKey, key, push) {
+    if (requiredWindow(oldKey) && oldKey !== key) return false;
     if (!wins[oldKey] || state.open.indexOf(oldKey) < 0) return false;
     if (oldKey === key) {
       commit(raised(state, key), false);
@@ -1494,6 +1725,10 @@
     st.open[st.open.indexOf(oldKey)] = key;
     if (st.top === oldKey) st.top = key;
     [st.min, st.place].forEach(function (m) { move(m, oldKey, key); });
+    Object.keys(st.docks || {}).forEach(function (edge) {
+      if (st.docks[edge].selected === oldKey) st.docks[edge].selected = key;
+      if (dockPeek[edge] === oldKey) dockPeek[edge] = key;
+    });
     [wins, openers, closing, homes, menuRuns, lastFocus].forEach(function (m) { move(m, oldKey, key); });
     var z = zOrder.indexOf(oldKey);
     if (z >= 0) zOrder[z] = key;
@@ -1501,6 +1736,11 @@
       child.setAttribute('data-win-parent', key);
     });
     el.setAttribute('data-win', key);
+    if (el.id === 'pudl-dock-panel-' + oldKey) el.id = 'pudl-dock-panel-' + key;
+    var savedRole = dockRoles.get(el);
+    if (savedRole && savedRole.label) savedRole.label = savedRole.label.split(/\s+/).map(function (id) {
+      return id === 'win-' + oldKey + '-title' ? 'win-' + key + '-title' : id;
+    }).join(' ');
     renameIds(el, oldKey, key);
     commit(st, push !== false, { from: oldKey, to: key });
     el.dispatchEvent(new CustomEvent('pudl:window-rekey', { bubbles: true, detail: { oldKey: oldKey, key: key } }));
@@ -1555,6 +1795,7 @@
        while it asks about them. A close by the address, by Back or a link,
        cannot be refused, since the address has already moved. */
     var family = [key].concat(childrenOf(state, key));
+    if (family.some(requiredWindow)) return;
     var refused = family.some(function (k) {
       return !wins[k].dispatchEvent(new CustomEvent('pudl:window-closing', {
         bubbles: true, cancelable: true, detail: { key: k, reason: k === key ? reason : 'parent' }
@@ -1575,6 +1816,8 @@
     syncing++;
     var named = readURL();
     var st = named || { open: defaults.slice(), top: null, min: {}, place: {} };
+    required.forEach(function (k) { if (st.open.indexOf(k) < 0) st.open.unshift(k); });
+    dockPeek = {};
     var missing = st.open.filter(function (k) { return !wins[k]; });
     return Promise.all(missing.map(function (k) {
       return load(k).then(function (el) { adopt(el); announceOpen(el); return null; },
@@ -1594,6 +1837,7 @@
                                   : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH(), wins[k].getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
       });
       if (!st.top) st.top = st.open.filter(function (k) { return !st.min[k]; }).pop() || null;
+      normalizeDocks(st);
       if (!named && defaults.length) bare = windowParams(st).join('&');
       commit(st, push);
     });
@@ -2000,6 +2244,7 @@
     /* The layer names the default windows, not the windows themselves,
        because a default window the address has closed is not in the page. */
     defaults = keyList(layer.getAttribute('data-win-default'));
+    required = keyList((layer.getAttribute('data-win-required') || '').replace(/\s+/g, ','));
 
     ghost = document.createElement('div');
     ghost.className = 'win-ghost';
@@ -2049,18 +2294,42 @@
        it, and back when it widens again. */
     function refreshPolicy() {
       if (syncing || !state.open.length) return;
-      var stamp = String(narrowLayer()) + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
+      var stamp = String(narrowLayer()) + ':' + (sharedDocks() && layer.clientWidth <= railThreshold()) + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
       if (stamp === policyStamp) return;
       policyStamp = stamp;
       if (cancelGesture) cancelGesture();
       layer.querySelectorAll('.menu-panel:popover-open').forEach(function (p) { p.hidePopover(); });
+      var focusedWindow = document.activeElement && document.activeElement.closest('.win');
       apply(state);
+      if (focusedWindow && focusedWindow.hidden) {
+        var focusedKey = focusedWindow.getAttribute('data-win');
+        var railTab = layer.querySelector('[data-dock-key="' + CSS.escape(focusedKey) + '"]');
+        if (railTab) railTab.focus();
+      }
       layer.dispatchEvent(new CustomEvent('pudl:windows-policy', { bubbles: true }));
     }
     window.addEventListener('resize', refreshPolicy);
     if (window.ResizeObserver) new ResizeObserver(refreshPolicy).observe(layer);
     new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size'] });
+      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width'] });
+    new MutationObserver(function () {
+      document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
+      renderDockGroups();
+    }).observe(layer, { subtree: true, attributes: true,
+      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress'] });
+    document.addEventListener('pointerdown', dismissDockPeek, true);
+    document.addEventListener('focusin', dismissDockPeek);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || e.defaultPrevented || document.querySelector('dialog[open], [popover]:popover-open')) return;
+      var edge = Object.keys(dockPeek)[0];
+      if (!edge) return;
+      e.preventDefault();
+      var key = dockPeek[edge];
+      delete dockPeek[edge];
+      apply(state);
+      var tab = dockGroups[edge] && dockGroups[edge].querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+      if (tab) tab.focus();
+    });
 
     /* When pudl-regions.js swaps parts of the page, the new list rows and
        dock need marking and linking as the old ones were. */
@@ -2083,6 +2352,7 @@
         if (!wins[key] || restricted(key) || (edge != null && SIDES.indexOf(edge) < 0)) return;
         commit(docked(state, key, edge || null), false);
       },
+      dockMode: dockMode,
       /* zone is a name from ZONES, a rectangle {x, y, w, h} of fractions,
          which is moved to the nearest sixths, or null to float again. */
       snap: function (key, zone) {

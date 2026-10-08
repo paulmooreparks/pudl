@@ -6,6 +6,8 @@ The [menu-bar conventions](MENU-BARS.md) describe command placement and ownershi
 
 The [responsive workspace contract and adoption guide](RESPONSIVE-WORKSPACES.md) defines narrow placement, compact chrome, menu overflow, splitter tracks, and mounted single-pane presentation introduced in 0.41.0.
 
+The [shared side dock contract](SHARED-DOCKS.md) defines the opt-in tabs, responsive icon rails and required windows introduced in 0.55.0.
+
 ## Promises
 
 - **Versions.** PUDL follows semantic versioning from 1.0. A patch release fixes behaviour without changing the contract. A minor release adds to the contract without changing or removing anything in it. A major release may change or remove what is listed here, and its changelog says what a project must do.
@@ -106,6 +108,9 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-theme`, `data-theme-pref` | `<html>` | the stylesheet, a settings control | The theme in force, and the reader's preference |
 | `data-win-layer`, `data-win-src` | the window layer | `pudl-windows.js` | The layer, and where window markup comes from (`{key}`, or `#` for a template); fetched markup must be `text/html` from the page's origin; a numbered key `name-2` to `name-9` with no template of its own takes `name`'s, numbered |
 | `data-win-default` | the window layer | `pudl-windows.js` | The keys of the windows an address naming no windows opens |
+| `data-win-required` | the window layer | `pudl-windows.js` | Keys separated by spaces or commas; always opened, protected against closing, replacement and re-keying, and ordered first in shared docks |
+| `data-win-dock-tabs`, `data-win-dock-rail-width` | the window layer | `pudl-windows.js` | Opt into shared side docks, with automatic icon rails at or below the given width, default 960 CSS pixels |
+| `data-win-glyph`, `data-win-attention`, `data-win-running`, `data-win-progress` | a window | `pudl-windows.js` | Glyph token suffix, positive integer attention count, boolean running mark, and percentage from 0 to 100; reflected in side tabs, rails and taskbar |
 | `data-win-params` | the window layer | `pudl-windows.js`, `pudl-regions.js` | Prefixes, space- or comma-separated, of the page's window-scoped parameters: `<prefix>.<key>` belongs to window `<key>`, travels with the windows through region swaps and history, follows the window when it is re-keyed, and is dropped when it closes; `p` is PUDL's and is ignored |
 | `data-win-pane="off"` | the window layer | `pudl-windows.js` | Leave the master-detail layout's `data-md-pane` to the server |
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
@@ -184,6 +189,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.snap(key, zone or null)`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
 | `pudlWindows.shareURL(key)` | `pudl-windows.js` | The window's absolute HTTP(S) share URL, or null; omitted key means the visible front window; resolves against the document base and preserves the host's query and fragment |
 | `pudlWindows.effectivePlacement(key)` | `pudl-windows.js` | Detached derived placement after responsive policy, or null for an unknown key; `state()` retains canonical URL placement |
+| `pudlWindows.dockMode(edge, mode)` | `pudl-windows.js` | Set a shared side dock's mode: edge is `left` or `right`, mode is `auto`, `open` or `rail`; updates the URL and emits `pudl:windows-change` |
 | `pudlWindows.copyLink(key)` | `pudl-windows.js` | Copies the share URL without changing workspace state; returns a promise of automatic-copy success; offers a manual-copy prompt on clipboard failure and returns false |
 | `pudlWindows.rekey(oldKey, key, push)` | `pudl-windows.js` | Give an open window a new key and keep its element, placement, place in the stack, focus and running content, with its window-scoped parameters; a new history entry unless `push` is `false`; returns `false`, changing nothing, onto a key that is open or loading, and to its own key brings the window forward. Use it where the window stays and only its key changes, such as a reader turning to another story; use `replace()` where another window takes its place |
 | `pudlApplets.define(name, { src, css, page, ver, handles, instances })` | `pudl-applets.js` | Name an applet's files once, for mounts that carry only the name, and the requests it serves: `handles: { verb: { param, kinds, extra, reuse } }`, with up to `instances` windows of it, at most 9 |

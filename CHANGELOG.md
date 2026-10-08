@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.55.0
+
+This release implements PUDL specification 0.16.0. Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js`. Existing layers retain their previous dock behavior; add `data-win-dock-tabs` to use shared side docks.
+
+- Shared side docks opt into full-width tab strips and responsive icon rails through `data-win-dock-tabs`. Each dock restores its selected window and automatic, open or rail mode. Slideouts retain mounted content and retract when work moves elsewhere. See [the contract](docs/SHARED-DOCKS.md).
+- `data-win-required` keeps application furniture available through closing, replacement and address restoration. Required windows precede other dock tabs and have no close affordance.
+- Window glyphs, attention counts, running marks and percentage progress can appear in side tabs, rails and the taskbar. Existing layers keep their previous placement behavior.
+
 ## 0.54.0
 
 This release implements PUDL specification 0.15.0. Update `pudl.css`.
