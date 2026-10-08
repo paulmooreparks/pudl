@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.56.0
+
+This release implements PUDL specification 0.17.0. Update the complete distribution to adopt the shared-dock refinements, consistent menu typography and visible splitter boundaries.
+
+- Rail buttons match Pin in size, omit dropdown buttons and stay depressed while their slideouts are visible.
+
+- The host menu title uses the same font as other menu titles. Splitters have a visible 1px boundary rule at rest.
+
+- Shared dock labels use compact badge typography. Collapse and Pin remain at the same outer top corner, with rail tabs below Pin.
+- Required windows no longer offer Close in their window or front menus. Empty front menus are omitted, and Close-only menus have no leading separator.
+
+- Shared side docks retain one width across their tabs and restore it from the address. Pinned docks use connected tabs with window menus and hide their window title bars.
+- `data-win-dock-only` keeps a panel in a side dock and removes its floating-window controls and title bar, including in rail slideouts.
+- `data-win-dock-omit-docked` lets a taskbar omit docked windows. Existing taskbars retain their entries by default.
+
 ## 0.55.0
 
 This release implements PUDL specification 0.16.0. Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js`. Existing layers retain their previous dock behavior; add `data-win-dock-tabs` to use shared side docks.

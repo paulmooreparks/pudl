@@ -215,27 +215,40 @@
   position: absolute; top: var(--dock-top, 0px); height: 40px;
   pointer-events: auto;
   display: flex; align-items: stretch; background: var(--recess-bg);
-  border-bottom: 1px solid var(--border); box-sizing: border-box;
+  box-shadow: inset 0 -1px var(--border); box-sizing: border-box;
 }
 .win-dock-group[data-dock-edge="left"] { left: 0; width: var(--dock-left); }
 .win-dock-group[data-dock-edge="right"] { right: 0; width: var(--dock-right); }
 .win-dock-tablist { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; margin: 0; }
-.win-dock-tablist > [role="tab"] { display: inline-flex; flex: none; align-items: center; gap: 4px; min-width: 0; padding-inline: 8px; }
+.win-dock-entry { display: inline-flex; flex: none; align-items: center; padding: 0 24px 0 0; min-width: 0; font-size: var(--text-2xs); font-weight: 700; line-height: 1.55; }
+.win-dock-entry[data-selected] { background: var(--surface); padding-top: 3px; box-shadow: none; border-color: var(--border); }
+.win-dock-entry > [role="tab"]:not(.icon-btn) { display: inline-flex; align-items: center; gap: 4px; min-width: 0; padding: 5px 8px; border: 0; border-radius: inherit; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.win-dock-menu { position: absolute; width: 18px; height: 18px; padding: 0; border: 1px solid var(--raise-border); border-radius: 50%; background: var(--raise-grad); box-shadow: var(--raise-shadow); color: var(--text); cursor: pointer; }
+.win-dock-menu::before { content: ''; display: block; width: 10px; height: 10px; margin: auto; background: currentColor; mask: var(--glyph-caret) center / contain no-repeat; }
+.win-dock-menu:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.win-dock-entry > button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .win-dock-tablist .win-item-title { max-width: 12em; overflow: hidden; text-overflow: ellipsis; }
-.win-dock-toggle { flex: none; align-self: center; margin: 4px; }
+.win-dock-toggle { flex: none; align-self: flex-start; margin: 4px; }
 .win[data-win-dock-shared]:not([data-win-dock-peek]) {
   top: calc(var(--dock-top, 0px) + 40px);
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px) - 40px);
 }
+.win[data-win-dock-shared]:not([data-win-dock-peek]) > .win-head,
+.win[data-win-dock-only] > .win-head { display: none; }
+.win[data-win-dock-shared]:not([data-win-dock-peek]) > .win-body { border-top: 0; }
 .win-dock-group[data-dock-rail] {
   flex-direction: column; width: 40px;
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
 }
+.win-dock-group[data-dock-rail][data-dock-edge="right"] .win-dock-toggle { align-self: flex-end; }
 .win-dock-group[data-dock-rail] .win-dock-tablist {
   display: flex; flex-direction: column; align-items: stretch;
-  padding: 4px 2px; overflow-x: hidden; overflow-y: auto; border: 0;
+  padding: 4px; overflow-x: hidden; overflow-y: auto; border: 0;
 }
-.win-dock-group[data-dock-rail] [role="tab"] { position: relative; flex: none; justify-content: center; min-height: 36px; padding: 6px; border-radius: var(--radius-sm); }
+.win-dock-group[data-dock-rail] [role="tab"] { position: relative; flex: none; padding: 0; }
+.win-dock-group[data-dock-rail] .win-dock-entry { justify-content: flex-start; padding: 0; border: 0; background: none; box-shadow: none; }
+.win-dock-group[data-dock-rail][data-dock-edge="right"] .win-dock-entry { justify-content: flex-end; }
+.win-dock-group[data-dock-rail] [data-dock-peek] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); color: var(--text); }
 .win-dock-group[data-dock-rail] .win-item-title,
 .win-dock-group[data-dock-rail] .win-item-progress,
 .win-dock-group[data-dock-rail] .doc-tab-close { display: none; }

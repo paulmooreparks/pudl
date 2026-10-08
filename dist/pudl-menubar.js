@@ -265,7 +265,11 @@
       } });
     }
     if (src.nav && src.nav.hasAttribute('data-page-print')) items.push({ label: text('print', 'Print'), run: function () { window.print(); } });
-    if (key) items.push('-', { label: text('close', 'Close window'), run: function () { window.pudlWindows.close(key); } });
+    var close = key && window.pudlWindows.menuCommands(key).find(function (c) { return c.id === 'close'; });
+    if (close) {
+      if (items.length) items.push('-');
+      items.push({ label: text('close', 'Close window'), run: close.run });
+    }
     return items;
   }
 
@@ -337,9 +341,9 @@
     var all = [host, pinsMenu(), front].filter(Boolean);
     all.forEach(function (m) {
       m.titles.forEach(function (t) { check(t.items, m.name); });
-      m.titles = m.titles.filter(function (t, i) { return i === 0 || t.items.some(function (c) { return c && c.label; }); });
+      m.titles = m.titles.filter(function (t, i) { return (i === 0 && m.kind !== 'front') || t.items.some(function (c) { return c && c.label; }); });
     });
-    return all;
+    return all.filter(function (m) { return m.titles.length; });
   }
 
   function windowItems() {
