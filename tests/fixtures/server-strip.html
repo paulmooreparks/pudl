@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Server Strip</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .win-host { flex: 1; min-height: 0; }
+  </style>
+</head>
+<body>
+  <main class="win-host">
+    <!-- What a server renders for ?open=moderation,pending&top=moderation:
+         the docked windows, marked shared, the unselected one hidden, and
+         the strip, whose tabs are links to the addresses that select them. -->
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-dock-tabs style="--dock-left: 30%">
+      <div class="win-dock-group" data-dock-edge="left">
+        <div class="tablist win-dock-tablist" role="tablist" aria-label="Left">
+          <div class="section-tab win-dock-entry" role="presentation" data-dock-entry="moderation" data-selected><a role="tab" data-dock-key="moderation" aria-selected="true" href="?open=moderation,pending&amp;top=moderation">Moderation</a></div>
+          <div class="section-tab win-dock-entry" role="presentation" data-dock-entry="pending"><a role="tab" data-dock-key="pending" aria-selected="false" href="?open=moderation,pending&amp;top=pending">Pending</a></div>
+        </div>
+      </div>
+      <section class="win" data-win="moderation" data-win-mode="dock-left" data-win-edge="left" data-win-dock-shared style="--win-dock-size: .3">
+        <header class="win-head"><h2 class="win-title">Moderation</h2></header>
+        <div class="win-body"><p id="moderation-body">Reports waiting.</p></div>
+      </section>
+      <section class="win" data-win="pending" data-win-mode="dock-left" data-win-edge="left" data-win-dock-shared hidden style="--win-dock-size: .3">
+        <header class="win-head"><h2 class="win-title">Pending</h2></header>
+        <div class="win-body"><p id="pending-body">Drafts waiting.</p></div>
+      </section>
+    </div>
+  </main>
+  <template id="tpl-moderation"><section class="win" data-win="moderation" data-win-mode="dock-left"><header class="win-head"><h2 class="win-title">Moderation</h2></header><div class="win-body"><p>Reports waiting.</p></div></section></template>
+  <template id="tpl-pending"><section class="win" data-win="pending" data-win-mode="dock-left"><header class="win-head"><h2 class="win-title">Pending</h2></header><div class="win-body"><p>Drafts waiting.</p></div></section></template>
+</body>
+</html>

@@ -263,6 +263,18 @@
 }
 .win[data-win-dock-peek][data-win-edge="left"] { left: 40px; }
 .win[data-win-dock-peek][data-win-edge="right"] { right: 40px; }
+/* A server may mark its shared windows before the script has run, so the
+   layout does not move when it does. Until a strip is there, drawn by the
+   server or by the script, a shared window keeps its title bar and the
+   whole of its dock, with no empty band where the strip would go (issue
+   #14). */
+.win-layer:not(:has(> .win-dock-group)) > .win[data-win-dock-shared]:is([data-win-edge="left"], [data-win-edge="right"]) {
+  top: var(--dock-top, 0px);
+  height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
+}
+.win-layer:not(:has(> .win-dock-group)) > .win[data-win-dock-shared] { padding: 0; }
+.win-layer:not(:has(> .win-dock-group)) > .win[data-win-dock-shared]:not([data-win-dock-only]) > .win-head { display: flex; }
+
 /* Shared top and bottom docks, with data-win-dock-tabs="all". The strip
    runs the width of the layer on the dock's inner side, next to the work
    area: above the windows of a bottom dock, where the tabs stand on its
@@ -315,6 +327,12 @@
 .win-dock-group[data-dock-dragging] { cursor: grabbing; }
 .win-dock-group[data-dock-dragging] [role="tab"] { cursor: grabbing; }
 
+/* A window's attention count sits on raised and recessed grounds, the
+   taskbar's and the docks' tabs, pressed ones included, which are darker
+   than a page's surface in the light theme and lighter in the dark. Its
+   words are drawn further toward the text colour than an ordinary badge's
+   so that they keep 4.5:1 on every one of them, in both themes. */
+.win-item-attention.badge:is(.warn, .danger, .positive, .accent) { color: color-mix(in srgb, var(--badge-color) 40%, var(--text)); }
 .win-item-running { display: inline-block; flex: none; width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%; background: var(--positive); }
 .win-item-progress { font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
 .win-tab .win-item-glyph { flex: none; }

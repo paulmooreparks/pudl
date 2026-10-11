@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window Updates</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .win-host { flex: 1; min-height: 0; }
+  </style>
+</head>
+<body>
+  <main class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="tags,report,drafts" data-win-beside-modifier data-win-narrow="maximized"></div>
+  </main>
+  <div hidden id="sources">
+    <section class="win" data-win="tags" data-win-attention="2" style="--win-x: .02; --win-y: .02; --win-w: .4; --win-h: .5">
+      <header class="win-head"><h2 class="win-title">Tags</h2></header>
+      <div class="win-body">
+        <ul id="tag-list"><li>travel</li></ul>
+        <form method="post" action="/api/tags" data-win-submit id="tag-form">
+          <label class="form-label" for="tag-name">New Tag</label>
+          <input class="form-input" id="tag-name" name="tag">
+          <button class="btn" type="submit">Add</button>
+        </form>
+        <form method="post" action="/api/elsewhere" data-win-submit id="away-form"><button class="btn" type="submit">Go Elsewhere</button></form>
+        <form method="post" action="/api/plain" id="plain-form"><button class="btn" type="submit">Plain</button></form>
+      </div>
+    </section>
+    <section class="win" data-win="report" data-win-opens="right" data-win-mode="maximized">
+      <header class="win-head"><h2 class="win-title">Report</h2></header>
+      <div class="win-body">
+        <a href="?open=report,day" data-win-open="day" id="day-link">A Day</a>
+        <a href="?open=report,editor" data-win-open="editor" id="editor-link">Edit</a>
+      </div>
+    </section>
+    <section class="win" data-win="day">
+      <header class="win-head"><h2 class="win-title">A Day</h2></header>
+      <div class="win-body"><p>The day's log.</p></div>
+    </section>
+    <section class="win" data-win="editor" data-win-place="own" data-win-mode="left">
+      <header class="win-head"><h2 class="win-title">Editor</h2></header>
+      <div class="win-body"><p>The editor takes the left half, whoever opens it.</p></div>
+    </section>
+    <section class="win" data-win="drafts" style="--win-x: .1; --win-y: .1; --win-w: .5; --win-h: .6">
+      <header class="win-head"><h2 class="win-title">Drafts</h2></header>
+      <div class="win-body">
+        <a href="?open=drafts-deleted" data-win-open="drafts-deleted" data-win-replace id="deleted-tab">Deleted</a>
+        <a href="?open=drafts,drafts-deleted" data-win-open="drafts-deleted" data-win-beside id="beside-link">Open Beside</a>
+      </div>
+    </section>
+    <section class="win" data-win="drafts-deleted">
+      <header class="win-head"><h2 class="win-title">Deleted Drafts</h2></header>
+      <div class="win-body"><p>Deleted drafts.</p></div>
+    </section>
+    <section class="win" data-win="site" data-win-mode="dock-bottom" data-win-narrow="keep" data-win-undock="left" style="--win-dock-size: .2">
+      <header class="win-head"><h2 class="win-title">Site</h2></header>
+      <div class="win-body"><p>Site links.</p></div>
+    </section>
+  </div>
+  <script>
+    document.querySelectorAll('#sources > .win').forEach(function (win) {
+      var template = document.createElement('template');
+      template.id = 'tpl-' + win.dataset.win;
+      template.content.appendChild(win.cloneNode(true));
+      document.body.appendChild(template);
+    });
+    document.getElementById('sources').remove();
+  </script>
+</body>
+</html>

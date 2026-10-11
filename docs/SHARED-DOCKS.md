@@ -56,11 +56,32 @@ On opted-in layers, `pudlWindows.state()` and `pudl:windows-change` include a de
 }
 ```
 
-The URL stores those entries as `d.left=auto:workspace:0.25:workspace,flows,chats`, `d.right=rail:flows:0.3` and `d.bottom=open:output:0.22`. The parameter for each shared edge is reserved on the layer. A dock with no window has a null selection, spelled as an empty field after the first colon, and a dock with no window and no preference is left out. Invalid modes and missing selections fall back to the available windows. Region navigation preserves these parameters. Window placements remain in `place` and `p.<key>`; a slideout does not change them.
+The URL stores each entry as `d.<edge>=mode:selected:size:order`, with only what the default would not give back (issue #13, 0.58.0). The selection is written only when it differs from the window in front, or the first tab when the window in front is elsewhere. The size is written only for an empty dock, since a dock that holds windows takes its size from their placements in `p.<key>`. A dock that is automatic with nothing else to say is left out, so a page whose docks were never touched keeps a short address. For example, `d.right=rail` keeps a right rail, `d.left=auto:flows` keeps Flows selected while another window is in front, and `d.bottom=auto:::problems,output` keeps a tab order. The parameter for each shared edge is reserved on the layer. Invalid modes and missing selections fall back to the available windows. Addresses written by earlier versions, with every field, read the same as before. Region navigation preserves these parameters. Window placements remain in `place` and `p.<key>`; a slideout does not change them.
 
 The optional `size` is the dock's width, for a side dock, or height, for a top or bottom dock, as a fraction of the layer. All windows in the same dock share it, and selecting another tab never changes it. Resizing any member updates the dock preference. Moving a window into an existing dock adopts that dock's size. An empty dock retains its size for later windows. Addresses from v0.55.0 that omit the third field remain valid; their selected window supplies the initial size.
 
 The optional `order` lists the dock's windows in tab order. It is present only while it differs from the default order, which is the required windows in the layer's order and then the others in the order they opened. The address writes it as a fourth field, leaving the third empty when there is no size, as in `d.bottom=auto:problems::problems,output`. A window that joins the dock later goes at the end, and a window that leaves it leaves the order. An address without the field keeps the default order.
+
+## A Strip the Server Draws
+
+A host that renders its windows on the server, so its pages work without script, may render a shared dock's strip too (issue #14, 0.58.0). The script adopts a strip it finds and builds one only where there is none. The markup is the following, one entry per window in the dock in tab order, with the selected entry marked `data-selected`:
+
+```html
+<div class="win-dock-group" data-dock-edge="right">
+  <div class="tablist win-dock-tablist" role="tablist" aria-label="Right">
+    <div class="section-tab win-dock-entry" role="presentation" data-dock-entry="moderation" data-selected>
+      <a role="tab" data-dock-key="moderation" aria-selected="true" href="?open=moderation,pending&amp;top=moderation">Moderation</a>
+    </div>
+    <div class="section-tab win-dock-entry" role="presentation" data-dock-entry="pending">
+      <a role="tab" data-dock-key="pending" aria-selected="false" href="?open=moderation,pending&amp;top=pending">Pending</a>
+    </div>
+  </div>
+</div>
+```
+
+The group is a direct child of the layer. Each tab is a link to the address that selects it, so without script selecting a tab is a page load. The server marks the dock's windows `data-win-dock-shared` with their `data-win-edge`, and gives every window but the selected one the `hidden` attribute. The script then wires the strip's keys and selection, adds the collapse toggle and the menu buttons, keeps each tab's `href` current, and selects in place, so the link is only followed without script. Space selects a link tab as it does a button.
+
+Until a strip is there, drawn by either, a window marked `data-win-dock-shared` keeps its title bar and the whole of its dock, so a server that marks its windows to avoid a shift when the script arrives leaves no empty band where the strip would be.
 
 ## Tab Order
 
@@ -90,4 +111,4 @@ Windows may provide status attributes:
 </section>
 ```
 
-The glyph is the suffix of a PUDL glyph token, such as `folder` or `comments`. An absent glyph uses `app` in a shared dock and leaves the existing taskbar glyph unchanged. Attention is a positive integer; invalid or zero values show no count. Running is a boolean attribute. Progress is a number from 0 to 100, displayed as a rounded percentage. A rail includes progress in its accessible name and tooltip while omitting the visible percentage. Changing these attributes updates the marks without replacing content or taking focus.
+The glyph is the suffix of a glyph token, such as `folder` or `comments`, or since 0.58.0 `flag`, `inbox`, `shield`, `terminal` or `reload`. A host that needs a shape PUDL does not have may define its own token in the same manner, a 16 by 16 SVG mask with PUDL's stroke weight, such as `:root { --glyph-ballot: url("data:image/svg+xml,…"); }`, and name it as `data-win-glyph="ballot"`; the specification asks that such a shape be proposed to PUDL if others would need it. An absent glyph uses `app` in a shared dock and leaves the existing taskbar glyph unchanged. Attention is a positive integer; invalid or zero values show no count. Running is a boolean attribute. Progress is a number from 0 to 100, displayed as a rounded percentage. A rail includes progress in its accessible name and tooltip while omitting the visible percentage. Changing these attributes updates the marks without replacing content or taking focus.

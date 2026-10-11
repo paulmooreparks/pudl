@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.58.0
+
+This release implements PUDL specification 0.19.1 and answers every open issue from the site's front end (#12 to #21). Update `pudl.css`, `pudl-windows.js` and `pudl-windows.css`. Nothing changes for a page that uses none of the new attributes, except that shared dock addresses are shorter; addresses written before read the same.
+
+- **Sending a form inside its window (#17).** A POST form marked `data-win-submit` in a window is sent with `fetch` and the header `X-PUDL-Window: <key>`. An answer holding the window, at any status, gives it its new body, title and status marks, keeps its place, keeps focus on the same field and announces a notice. A redirect elsewhere is followed; any other answer loads the page again; only a request that could not be sent falls back to an ordinary submission. `pudlWindows.reload(key)` and `pudlWindows.update(key, markup)` change a window from script, and `pudl:window-update` fires after each change.
+- **Where windows open (#16).** `data-win-place="own"` makes a window open where its markup puts it rather than where its opener is. `data-win-opens="<zone>"` sends the windows a window opens to that zone. `data-win-undock="<zone>"` sends a window to that zone when it leaves its dock. `pudl:window-place` now has the followed link in `detail.link`. Temporarily collapsing a dock to give a wide window room (`data-win-room`) is not in this release.
+- **Open beside (#21).** A link marked `data-win-beside` opens its target beside its window, in the zone it names or the half the opener's middle is not in, and a maximised opener takes the other half. On a layer marked `data-win-beside-modifier`, Ctrl or Cmd with a click on a `data-win-replace` link does the same. Ctrl and Cmd are not taken over by default, since they open a browser tab.
+- **A strip the server draws (#14).** The script adopts a `.win-dock-group` it finds in the layer, with link tabs that select by address without script, and adds the toggle and menu buttons. Without a strip, a window marked `data-win-dock-shared` keeps its title bar and the whole dock, so there is no empty band. `docs/SHARED-DOCKS.md` has the markup.
+- **Shorter dock addresses (#13).** `d.<edge>` writes only what the default would not give back: a selection other than the window in front or the first tab, a size only for an empty dock, and nothing at all for an automatic dock with nothing to say.
+- **A narrow policy for every window (#20).** `data-win-narrow="maximized"` may sit on the layer for all its windows, and `data-win-narrow="keep"` on a window opts out, as a bottom strip should. The 0.41.0 rule that a window taking part gives up its dock at narrow widths is unchanged.
+- **The attention count's contrast (#19).** A window's attention badge on the taskbar and the dock tabs is drawn further toward the text colour and keeps 4.5:1 on every ground it sits on, pressed tabs included, in both themes. It measured as low as 3.98:1 in the light theme.
+- **Five glyphs (#12, #15).** `--glyph-reload`, `--glyph-flag`, `--glyph-inbox`, `--glyph-shield` and `--glyph-terminal`. A host may also define its own `--glyph-*` token and name it in `data-win-glyph`.
+- A new test suite covers all of this in the three engines.
+
 ## 0.57.0
 
 This release implements PUDL specification 0.18.0, from an application's proposal for shared docks on every edge and tabs that move. Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js`. A layer with the bare `data-win-dock-tabs` attribute sees no change in its top and bottom docks; set `data-win-dock-tabs="all"` to share them.
