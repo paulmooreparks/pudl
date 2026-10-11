@@ -16,6 +16,8 @@ Put the policy on each participating window, including server fragments and wind
 </div>
 ```
 
+Since 0.58.0 the layer may carry `data-win-narrow="maximized"` as the policy for every window, and a window marked `data-win-narrow="keep"` opts out, as a strip docked at the bottom should, since filling the workspace would cover the page it sits under. A window's own attribute wins over the layer's.
+
 At or below 640 CSS pixels, the reader fills the workspace remaining after unrestricted docks. The default breakpoint is 640; a positive finite number overrides it. PUDL measures the layer before subtracting dock strips. Container resizing activates the policy even when the browser viewport has not changed. An opted-in dock suspends its strip while restricted. Content-sized windows ignore the policy and issue a console warning.
 
 The URL continues to hold the requested placement, dock assignment, minimization, and activation. Resizing changes neither the URL nor history. Widening displays the saved placement again without remounting the window or its applets. A direct URL can change that placement while the window remains restricted.

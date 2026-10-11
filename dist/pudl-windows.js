@@ -404,11 +404,29 @@
     sharedEdges().forEach(function (edge) {
       var members = dockMembers(state, edge), group = dockGroups[edge];
       if (!group) {
-        group = document.createElement('div');
-        group.className = 'win-dock-group';
-        group.setAttribute('data-dock-edge', edge);
-        group.innerHTML = '<div class="tablist win-dock-tablist" role="tablist"></div><button type="button" class="icon-btn win-dock-toggle"><span class="glyph" aria-hidden="true"></span></button>';
-        layer.appendChild(group);
+        /* A strip the server drew is adopted, its tabs links to the
+           addresses that select them, so a page without script can switch
+           tabs too (issue #14); otherwise one is built. */
+        group = layer.querySelector(':scope > .win-dock-group[data-dock-edge="' + edge + '"]');
+        if (!group) {
+          group = document.createElement('div');
+          group.className = 'win-dock-group';
+          group.setAttribute('data-dock-edge', edge);
+          layer.appendChild(group);
+        }
+        if (!group.querySelector('.win-dock-tablist')) {
+          var made = document.createElement('div');
+          made.className = 'tablist win-dock-tablist';
+          made.setAttribute('role', 'tablist');
+          group.insertBefore(made, group.firstChild);
+        }
+        if (!group.querySelector('.win-dock-toggle')) {
+          var toggleButton = document.createElement('button');
+          toggleButton.type = 'button';
+          toggleButton.className = 'icon-btn win-dock-toggle';
+          toggleButton.innerHTML = '<span class="glyph" aria-hidden="true"></span>';
+          group.appendChild(toggleButton);
+        }
         dockGroups[edge] = group;
         if (window.ResizeObserver) new ResizeObserver(function () {
           var selectedTab = group.querySelector('[role="tab"][aria-selected="true"]');
@@ -431,6 +449,8 @@
           }
           var tab = e.target.closest('[data-dock-key]');
           if (tab) {
+            /* A tab the server drew is a link; script selects in place. */
+            e.preventDefault();
             var key = tab.getAttribute('data-dock-key');
             if (railMode(state, edge)) dockPeek[edge] = key;
             commit(raised(state, key), false);
@@ -453,6 +473,8 @@
             return;
           }
           if (e.shiftKey) { onHeadKey(e, tab.getAttribute('data-dock-key')); return; }
+          /* Space selects a tab that is a link, as it does a button. */
+          if (e.key === ' ' && tab.tagName === 'A') { e.preventDefault(); tab.click(); return; }
           var tabs = Array.from(group.querySelectorAll('[role="tab"]')), i = tabs.indexOf(tab), next;
           var along = stripStep(group, edge, e.key);
           if (e.key === 'Home') next = tabs[0];
@@ -494,8 +516,17 @@
           tab.type = 'button';
           tab.setAttribute('role', 'tab');
           tab.setAttribute('data-dock-key', key);
-          tab.id = 'pudl-dock-tab-' + key;
           entry.appendChild(tab);
+        }
+        tab.id = 'pudl-dock-tab-' + key;
+        if (tab.tagName === 'A') {
+          /* A link's native drag would take the pointer from a tab drag. */
+          tab.draggable = false;
+          var selecting = raised(state, key);
+          dockRecord(selecting, edge).selected = key;
+          tab.setAttribute('href', urlFor(selecting));
+        }
+        if (!group.querySelector('[data-dock-menu="' + CSS.escape(key) + '"]')) {
           var menuButton = document.createElement('button');
           menuButton.type = 'button';
           menuButton.className = 'win-dock-menu';
@@ -547,10 +578,18 @@
     });
   }
 
+  /* A window's narrow policy: its own data-win-narrow, or else the layer's,
+     which sets one for every window (issue #20). A window marked "keep",
+     such as a strip docked at the bottom, keeps its placement. */
+  function narrowPolicy(el) {
+    if (!el) return null;
+    return el.getAttribute('data-win-narrow') || (layer && layer.getAttribute('data-win-narrow')) || null;
+  }
+
   /* Policy changes presentation without replacing the placement in the URL. */
   function restricted(key) {
     var el = wins[key];
-    if (!el || contentSized(key) || el.getAttribute('data-win-narrow') !== 'maximized') return false;
+    if (!el || contentSized(key) || narrowPolicy(el) !== 'maximized') return false;
     var width = Number(layer.getAttribute('data-win-narrow-width'));
     return layer.clientWidth <= (width > 0 && isFinite(width) ? width : NARROW);
   }
@@ -804,10 +843,18 @@
     });
     if (st.docks) ['left', 'right', 'top', 'bottom'].forEach(function (edge) {
       var d = st.docks[edge];
-      /* An empty dock that keeps no preference says nothing. */
-      if (!d || (d.mode === 'auto' && !d.selected && d.size == null && !d.order)) return;
-      var value = d.mode + ':' + (d.selected || '');
-      if (d.size != null || d.order) value += ':' + (d.size != null ? fmt(d.size) : '');
+      if (!d) return;
+      /* Only what the default would not give back is written (issue #13).
+         Read without a selection, a dock selects the window in front if it
+         holds it, or else its first tab; read without a size, a dock that
+         holds windows takes the size their placements carry. */
+      var members = dockMembers(st, edge);
+      var chosen = members.indexOf(st.top) >= 0 ? st.top : members[0] || null;
+      var selected = d.selected && d.selected !== chosen ? d.selected : '';
+      var size = d.size != null && !members.length ? fmt(d.size) : '';
+      if (d.mode === 'auto' && !selected && !size && !d.order) return;
+      var value = d.mode + ':' + selected;
+      if (size || d.order) value += ':' + size;
       if (d.order) value += ':' + d.order.join(',');
       parts.push('d.' + edge + '=' + value);
     });
@@ -1020,6 +1067,10 @@
       if (p.s == null) p.s = DOCK_SIZE;
     } else {
       p.mode = 'floating';
+      /* A window marked data-win-undock="<zone>" leaves its dock for that
+         zone, a half say, rather than for where it last floated. */
+      var to = wins[key] && zoneName(wins[key].getAttribute('data-win-undock'));
+      if (to) st.place[key] = inZoneNamed(p, to);
     }
     return st;
   }
@@ -1429,10 +1480,168 @@
     renderRows();
   }
 
+  /* === Updating a window in place =========================================
+     A window's content can change without the page loading again (issue
+     #17): a form marked data-win-submit is sent with fetch and the window
+     takes the answer's content, and pudlWindows.reload(key) and update(key,
+     markup) do the same from script. The window keeps its key, placement,
+     place in the stack and dock tab; its body, title and status marks come
+     from the new markup. Focus stays on the same field when the new body
+     has it, by id or by name, and otherwise goes to the new body; a notice
+     in the new content is announced. */
+  var WINDOW_HEADER = 'X-PUDL-Window';
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress'];
+  var announceRegion = null;
+
+  function announce(words) {
+    if (!words) return;
+    if (!announceRegion) {
+      announceRegion = document.createElement('div');
+      announceRegion.className = 'visually-hidden';
+      announceRegion.setAttribute('role', 'status');
+      announceRegion.setAttribute('aria-live', 'polite');
+      layer.appendChild(announceRegion);
+    }
+    /* Emptied first, so the same words said twice are said again. */
+    announceRegion.textContent = '';
+    setTimeout(function () { announceRegion.textContent = words; }, 50);
+  }
+
+  /* The window element in a piece of markup: the one with the key, or the
+     only window it holds. */
+  function windowIn(frag, key) {
+    var el = frag.querySelector('.win[data-win="' + CSS.escape(key) + '"]');
+    if (el) return el;
+    var all = frag.querySelectorAll('.win');
+    return all.length === 1 && !frag.querySelector('[data-win-layer]') ? all[0] : null;
+  }
+
+  function swapIn(key, fresh) {
+    var win = wins[key];
+    var body = win && win.querySelector('.win-body'), next = fresh && fresh.querySelector('.win-body');
+    if (!body || !next) return false;
+    var active = document.activeElement, held = body.contains(active) && active !== body;
+    var id = held && active.id, name = held && active.getAttribute('name');
+    var scroll = body.scrollTop;
+    var nextBody = document.importNode(next, true);
+    body.replaceWith(nextBody);
+    if (!nextBody.hasAttribute('tabindex')) nextBody.tabIndex = 0;
+    nextBody.scrollTop = scroll;
+    /* A whole window brings its status marks; a body alone leaves them. */
+    var whole = fresh.matches && fresh.matches('.win');
+    if (whole) STATUS_ATTRS.forEach(function (a) {
+      if (fresh.hasAttribute(a)) win.setAttribute(a, fresh.getAttribute(a));
+      else win.removeAttribute(a);
+    });
+    var title = whole && fresh.querySelector('.win-title');
+    if (title && title.textContent !== titleOf(key)) retitle(key, title.textContent.trim());
+    delete lastFocus[key];
+    if (body.contains(active) || active === body || !active || active === document.body) {
+      var same = (id && nextBody.querySelector('#' + CSS.escape(id))) ||
+        (name && nextBody.querySelector('[name="' + CSS.escape(name) + '"]'));
+      var target = same && canFocus(same) ? same : nextBody;
+      if (held || active === body) target.focus({ preventScroll: true });
+    }
+    var notice = nextBody.querySelector('.notice, [role="alert"], [role="status"]');
+    if (notice) announce(notice.textContent.replace(/\s+/g, ' ').trim());
+    win.dispatchEvent(new CustomEvent('pudl:window-update', { bubbles: true, detail: { key: key } }));
+    return true;
+  }
+
+  /* Takes a window's content again from its source. */
+  function reload(key) {
+    if (!wins[key]) return Promise.resolve(false);
+    return load(key).then(function (el) { return swapIn(key, el); });
+  }
+
+  /* Gives a window new content from markup: a window element, or HTML
+     holding one, or HTML holding only the new body. */
+  function update(key, markup) {
+    if (!wins[key] || markup == null) return false;
+    var el = markup;
+    if (typeof markup === 'string') {
+      var t = document.createElement('template');
+      t.innerHTML = markup;
+      el = windowIn(t.content, key);
+      if (!el) {
+        /* Markup without a window is the new body, or holds it. */
+        var wrap = document.createElement('div');
+        var given = t.content.querySelector('.win-body');
+        if (given) wrap.appendChild(given);
+        else {
+          var made = document.createElement('div');
+          made.className = 'win-body';
+          made.appendChild(t.content);
+          wrap.appendChild(made);
+        }
+        el = wrap;
+      }
+    }
+    return swapIn(key, el);
+  }
+
+  /* A form marked data-win-submit in a window is sent with fetch, naming
+     the window in the X-PUDL-Window header, so the server can answer with
+     that window, at any status, a refused form's errors included. An
+     answer that holds the window gives it its new content. A redirect to
+     another address is followed as the browser would follow it. Any other
+     answer means the action happened but the server did not draw the
+     window, so the page is loaded again from its own address. Only when
+     the request could not be sent at all does the form go the ordinary
+     way. Without script, the form posts as it always did. */
+  var sending = new WeakSet();
+  function onSubmit(e) {
+    var form = e.target;
+    if (e.defaultPrevented || !window.fetch || !form.hasAttribute || !form.hasAttribute('data-win-submit')) return;
+    var win = form.closest('.win[data-win]');
+    if (!win || !layer.contains(win)) return;
+    var key = win.getAttribute('data-win');
+    var method = (e.submitter && e.submitter.getAttribute('formmethod')) || form.getAttribute('method') || 'get';
+    if (method.toLowerCase() !== 'post') return;
+    e.preventDefault();
+    if (sending.has(form)) return;
+    sending.add(form);
+    var action = (e.submitter && e.submitter.getAttribute('formaction')) || form.action;
+    var data = new FormData(form, e.submitter || undefined);
+    var enctype = (e.submitter && e.submitter.getAttribute('formenctype')) || form.enctype;
+    var body = enctype === 'multipart/form-data' ? data : new URLSearchParams(data);
+    var headers = { Accept: 'text/html' };
+    headers[WINDOW_HEADER] = key;
+    var winBody = win.querySelector('.win-body');
+    if (winBody) winBody.setAttribute('aria-busy', 'true');
+    var here = location.href;
+    fetch(action, { method: 'POST', body: body, credentials: 'same-origin', headers: headers })
+      .then(function (r) {
+        return r.text().then(function (text) { return { r: r, text: text }; });
+      }, function (err) {
+        if (winBody) winBody.removeAttribute('aria-busy');
+        sending.delete(form);
+        HTMLFormElement.prototype.submit.call(form);
+        throw err;
+      })
+      .then(function (got) {
+        sending.delete(form);
+        var now = wins[key] && wins[key].querySelector('.win-body');
+        if (now) now.removeAttribute('aria-busy');
+        var t = document.createElement('template');
+        if ((got.r.headers.get('content-type') || '').indexOf('text/html') >= 0) t.innerHTML = got.text;
+        var fresh = windowIn(t.content, key);
+        if (fresh && wins[key] && (!got.r.redirected || sameAddress(got.r.url, here))) { swapIn(key, fresh); return; }
+        if (got.r.redirected && !sameAddress(got.r.url, here)) { location.assign(got.r.url); return; }
+        location.reload();
+      })
+      .catch(function () {});
+  }
+
+  function sameAddress(a, b) {
+    try { var x = new URL(a, location.href), y = new URL(b, location.href); return x.origin === y.origin && x.pathname === y.pathname && x.search === y.search; }
+    catch (err) { return false; }
+  }
+
   function adopt(el) {
     var key = el.getAttribute('data-win');
     wins[key] = el;
-    if (contentSized(key) && el.hasAttribute('data-win-narrow')) console.warn('pudl-windows: data-win-narrow is ignored on content-sized window ' + key);
+    if (contentSized(key) && el.getAttribute('data-win-narrow') === 'maximized') console.warn('pudl-windows: data-win-narrow is ignored on content-sized window ' + key);
     if (!el.parentNode || el.parentNode !== layer) layer.insertBefore(el, ghost);
 
     EDGES.forEach(function (edge) {
@@ -1785,21 +1994,57 @@
     return out;
   }
 
-  /* The placement a window opens with when the URL gives none: whatever a
-     pudl:window-place listener supplies, then its opener's state when a link
-     inside a window opened it, then the server's style attribute, then the
-     markup's mode with a cascade from the top left. */
-  function initialPlacement(key, el, index, host) {
+  /* The placement a window opens with when the URL gives none, first found
+     of: the zone a link opening it beside its opener asks for; whatever a
+     pudl:window-place listener supplies, told the link that was followed;
+     the window's own markup, when it says data-win-place="own"; the zone
+     its opener's data-win-opens names for the windows opened from it; its
+     opener's state when a link inside a window opened it; the server's
+     style attribute; and the markup's mode with a cascade from the top
+     left (issue #16). */
+  function initialPlacement(key, el, index, host, link, beside) {
+    if (beside) return inZoneNamed(markupPlacement(el, index), beside);
     var ev = new CustomEvent('pudl:window-place', {
-      detail: { key: key, parent: el.getAttribute('data-win-parent') || null, opener: host || null, placement: null }
+      detail: { key: key, parent: el.getAttribute('data-win-parent') || null, opener: host || null, link: link || null, placement: null }
     });
     layer.dispatchEvent(ev);
     if (validPlacement(ev.detail.placement)) return Object.assign({}, ev.detail.placement);
+
+    if (el.getAttribute('data-win-place') === 'own') return markupPlacement(el, index);
+
+    var opens = host && wins[host] && zoneName(wins[host].getAttribute('data-win-opens'));
+    if (opens) return inZoneNamed(markupPlacement(el, index), opens);
 
     var inherited = host && fromOpener(host);
     if (inherited) return inherited;
 
     return markupPlacement(el, index);
+  }
+
+  /* A zone's name, as ZONES has it, or null. */
+  function zoneName(name) { return name && Object.prototype.hasOwnProperty.call(ZONES, name) ? name : null; }
+
+  /* A placement moved into a named zone, keeping its floating geometry and
+     strip size for when it leaves. */
+  function inZoneNamed(p, name) {
+    var out = Object.assign({}, p);
+    delete out.zone;
+    out.mode = 'floating';
+    inZone(out, zoneOf(ZONES[name]));
+    return out;
+  }
+
+  /* "Open beside" (issue #21): the zone a link marked data-win-beside opens
+     its window in, the one it names, or else the half of the area the
+     opener's middle is not in. */
+  function besideZone(link, host) {
+    var named = zoneName(link.getAttribute('data-win-beside'));
+    if (named) return named;
+    var p = host && effectivePlacement(state, host);
+    if (!p || dockEdge(p)) return 'right';
+    var z = zoneFilled(p);
+    var middle = z ? z.x + z.w / 2 : p.x + p.w / 2;
+    return middle < 0.5 ? 'right' : 'left';
   }
 
   /* The placement a window's markup gives it: the position in its style
@@ -1882,9 +2127,12 @@
     return now === asked || !now || now === document.body || now === document.documentElement;
   }
 
-  function open(key, from) {
+  /* beside, from a link marked data-win-beside, is the zone the window
+     opens in; a maximised opener then takes the other half, so the two
+     stand side by side. */
+  function open(key, from, beside) {
     if (wins[key]) {
-      commit(raised(state, key), false);
+      commit(beside && !restricted(key) && !dockOnly(key) ? snapped(state, key, beside) : raised(state, key), false);
       focusWindow(key);
       return;
     }
@@ -1899,8 +2147,11 @@
       adopt(el);
       var st = copy(state);
       st.open.push(key);
-      st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, host && wins[host] ? host : null),
-                                     innerW(), innerH(), el.getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
+      var opener = host && wins[host] ? host : null;
+      st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, opener, from || null, beside || null),
+                                     innerW(), innerH(), narrowPolicy(el) === 'maximized' ? { w: 0, h: 0 } : null);
+      var other = { left: 'right', right: 'left' }[beside];
+      if (other && opener && st.place[opener].mode === 'maximized' && !restricted(opener)) st.place[opener] = inZoneNamed(st.place[opener], other);
       st.top = key;
       openers[key] = from || null;
       commit(st, true);
@@ -1942,7 +2193,7 @@
       var st = copy(state);
       if (!wins[oldKey] || st.open.indexOf(oldKey) < 0) {
         st.open.push(key);
-        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1), innerW(), innerH(), el.getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
+        st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, null, from || null), innerW(), innerH(), narrowPolicy(el) === 'maximized' ? { w: 0, h: 0 } : null);
       } else {
         st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
         st.place[key] = Object.assign({}, st.place[oldKey]);
@@ -2094,7 +2345,7 @@
          at this moment, would otherwise rewrite the address on loading. */
       st.open.forEach(function (k, i) {
         st.place[k] = st.place[k] ? clampPlacement(st.place[k], innerW(), innerH(), { w: 0, h: 0 })
-                                  : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH(), wins[k].getAttribute('data-win-narrow') === 'maximized' ? { w: 0, h: 0 } : null);
+                                  : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH(), narrowPolicy(wins[k]) === 'maximized' ? { w: 0, h: 0 } : null);
       });
       if (!st.top) st.top = st.open.filter(function (k) { return !st.min[k]; }).pop() || null;
       normalizeDocks(st);
@@ -2384,6 +2635,16 @@
   }
 
   function onClick(e) {
+    /* On a layer marked data-win-beside-modifier, Ctrl or Cmd with a click
+       on a link that would replace its window opens beside it instead. A
+       middle click, and Shift, stay the browser's. */
+    var modified = e.target.closest && e.target.closest('a[data-win-open][data-win-replace]');
+    if (modified && e.button === 0 && !e.defaultPrevented && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey &&
+        layer.hasAttribute('data-win-beside-modifier') && KEY_RE.test(modified.getAttribute('data-win-open'))) {
+      e.preventDefault();
+      open(modified.getAttribute('data-win-open'), modified, besideZone(modified, hostOf(modified)));
+      return;
+    }
     if (!plainClick(e)) return;
 
     var opener = e.target.closest('a[data-win-open]');
@@ -2391,6 +2652,7 @@
       var key = opener.getAttribute('data-win-open');
       if (!KEY_RE.test(key)) return;
       e.preventDefault();
+      if (opener.hasAttribute('data-win-beside')) { open(key, opener, besideZone(opener, hostOf(opener))); return; }
       var host = opener.hasAttribute('data-win-replace') && opener.closest('.win');
       if (host && layer.contains(host)) replaceWith(host.getAttribute('data-win'), key, opener);
       else open(key, opener);
@@ -2532,6 +2794,7 @@
       if (suppressClick) { suppressClick = false; e.preventDefault(); e.stopPropagation(); }
     }, true);
     document.addEventListener('click', onClick);
+    document.addEventListener('submit', onSubmit);
     layer.addEventListener('pointerdown', onPointerDown);
     layer.addEventListener('dblclick', onDoubleClick);
     layer.addEventListener('focusin', onFocusIn);
@@ -2637,6 +2900,8 @@
       shareURL: shareURL,
       copyLink: copyLink,
       effectivePlacement: function (key) { return effectivePlacement(state, key); },
+      reload: reload,
+      update: update,
       state: function () { return copy(state); }
     };
 

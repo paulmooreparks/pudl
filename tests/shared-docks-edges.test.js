@@ -55,7 +55,10 @@ function check(name, ok, detail) {
   const grown = (await win('problems').boundingBox()).height;
   await tab('output').click();
   check('Shift+ArrowUp grows the bottom dock, and every tab shares the height', grown > heightBefore + 20 && Math.abs((await win('output').boundingBox()).height - grown) < 2, { heightBefore, grown });
-  check('the address keeps the bottom dock', await page.evaluate(() => /[?&]d\.bottom=auto:output:0\.\d+/.test(location.search)));
+  await page.reload();
+  await page.waitForSelector('[data-dock-key="output"]');
+  check('the bottom dock\'s height survives reloading', Math.abs((await win('output').boundingBox()).height - grown) < 2);
+  check('a dock whose settings are all defaults stays out of the address', await page.evaluate(() => !/[?&]d\.bottom=/.test(location.search)));
 
   /* Collapsed, the strip stays and a tab slides its window out. */
   await page.evaluate(() => pudlWindows.dockMode('bottom', 'rail'));
@@ -119,7 +122,7 @@ function check(name, ok, detail) {
   check('the moved tab keeps focus', await tab('problems').evaluate(el => el === document.activeElement));
   check('the order is in the state', JSON.stringify((await docks()).bottom.order) === '["problems","output"]');
   check('pudl:windows-change reports the order', changes.length && JSON.stringify(changes[changes.length - 1].bottom.order) === '["problems","output"]');
-  check('the address carries the order as a fourth field', await page.evaluate(() => /[?&]d\.bottom=auto:\w+:[0-9.]*:problems,output(&|$)/.test(location.search)));
+  check('the address carries the order as a fourth field', await page.evaluate(() => /[?&]d\.bottom=auto:\w*:[0-9.]*:problems,output(&|$)/.test(location.search)));
   await page.keyboard.press('Alt+Shift+ArrowLeft');
   check('a tab at the start goes no further', JSON.stringify(await order('bottom')) === '["problems","output"]');
   await page.reload();
