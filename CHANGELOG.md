@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.57.0
+
+This release implements PUDL specification 0.18.0, from an application's proposal for shared docks on every edge and tabs that move. Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js`. A layer with the bare `data-win-dock-tabs` attribute sees no change in its top and bottom docks; set `data-win-dock-tabs="all"` to share them.
+
+- **Shared top and bottom docks.** With `data-win-dock-tabs="all"`, the windows docked at the top or bottom share the edge under one full-width strip on the dock's inner side: above the content of a bottom dock, and below the content of a top dock with its tabs hanging from the strip. Tabs, status marks, menu buttons, required windows and keys are as at the sides, and every window in the dock shares one height. `pudlWindows.dockMode()` takes `top` and `bottom`, and the state and address gain `docks.top` and `docks.bottom`, `d.top=` and `d.bottom=`.
+- **A collapsed strip.** A collapsed top or bottom dock keeps its strip of text tabs alone, and a tab slides its window out over the central area with the rail slideout's rules. `auto` collapses it when the layer is at or below `data-win-dock-collapse-height`, 600 CSS pixels by default.
+- **Tabs that move.** On every shared dock a tab can be dragged along its strip or rail, with an accent mark where it will go and Escape to cancel, or moved one place with Alt+Shift and the arrow keys. Required windows keep the first places. The order is `docks[edge].order` in the state and `pudl:windows-change`, and a fourth field of the address, written only while it differs from the default.
+- A dock with no window and no preference is no longer written to the address. Reading such an address gives the same state as before.
+- The shared docks sample opts in to all four edges and has Output and Problems windows in its bottom dock. A new test suite covers the top and bottom docks, the height threshold and tab order in the three engines.
+
 ## 0.56.0
 
 This release implements PUDL specification 0.17.0. Update the complete distribution to adopt the shared-dock refinements, consistent menu typography and visible splitter boundaries.

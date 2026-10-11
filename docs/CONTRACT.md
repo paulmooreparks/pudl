@@ -6,7 +6,7 @@ The [menu-bar conventions](MENU-BARS.md) describe command placement and ownershi
 
 The [responsive workspace contract and adoption guide](RESPONSIVE-WORKSPACES.md) defines narrow placement, compact chrome, menu overflow, splitter tracks, and mounted single-pane presentation introduced in 0.41.0.
 
-The [shared side dock contract](SHARED-DOCKS.md) defines the opt-in tabs, responsive icon rails and required windows introduced in 0.55.0.
+The [shared dock contract](SHARED-DOCKS.md) defines the opt-in tabs, responsive icon rails and required windows introduced in 0.55.0, and the shared top and bottom docks, collapsed strips and tab order added in 0.57.0.
 
 ## Promises
 

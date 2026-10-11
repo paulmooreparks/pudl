@@ -22,7 +22,10 @@
    along its free edge; dragging it away undocks it, and dragging a window
    to the layer's foot docks it there. An edge shows one docked window at
    a time, and a side dock shows at the bottom of a narrow layer.
-   docs/proposals/docked-windows.md sets out the rules.
+   docs/proposals/docked-windows.md sets out the rules. A layer with
+   data-win-dock-tabs shares its side docks, and with data-win-dock-tabs=
+   "all" its top and bottom docks too, under tab strips whose order the
+   reader can change; docs/SHARED-DOCKS.md sets out those rules.
 
    Events, dispatched so a project can hook in without editing this file:
      pudl:window-place   on the layer, before a window opens with no placement
@@ -128,27 +131,69 @@
   var dockPeek = {};
   var dockRoles = new WeakMap();
 
+  /* data-win-dock-tabs shares the side docks; data-win-dock-tabs="all"
+     shares the top and bottom docks as well. */
   function sharedDocks() { return !!layer && layer.hasAttribute('data-win-dock-tabs'); }
-  function sharedEdge(edge) { return sharedDocks() && (edge === 'left' || edge === 'right'); }
+  function sharedEdges() {
+    if (!sharedDocks()) return [];
+    return layer.getAttribute('data-win-dock-tabs') === 'all' ? ['left', 'right', 'top', 'bottom'] : ['left', 'right'];
+  }
+  function sharedEdge(edge) { return sharedEdges().indexOf(edge) >= 0; }
+  function sideEdge(edge) { return edge === 'left' || edge === 'right'; }
   function requiredWindow(key) { return required.indexOf(key) >= 0; }
   function dockOnly(key) { return !!wins[key] && wins[key].hasAttribute('data-win-dock-only'); }
   function railThreshold() {
     var n = Number(layer.getAttribute('data-win-dock-rail-width'));
     return n > 0 && isFinite(n) ? n : 960;
   }
+  function collapseThreshold() {
+    var n = Number(layer.getAttribute('data-win-dock-collapse-height'));
+    return n > 0 && isFinite(n) ? n : 600;
+  }
+  /* Whether automatic docks are collapsed at the layer's present size: the
+     side docks by its width, the top and bottom docks by its height. */
+  function autoCollapsed(edge) {
+    return sideEdge(edge) ? layer.clientWidth <= railThreshold() : layer.clientHeight <= collapseThreshold();
+  }
+  /* A collapsed shared dock: an icon rail at a side, its tab strip alone at
+     the top or bottom. Either slides a window out over the central area. */
   function railMode(st, edge) {
     var d = st.docks && st.docks[edge];
     var mode = d ? d.mode : 'auto';
-    return !!st.min[edgeFront(st, edge)] || mode === 'rail' || (mode === 'auto' && layer.clientWidth <= railThreshold());
+    return !!st.min[edgeFront(st, edge)] || mode === 'rail' || (mode === 'auto' && autoCollapsed(edge));
   }
+  function iconRail(st, edge) { return sideEdge(edge) && railMode(st, edge); }
   function dockRecord(st, edge) {
     if (!st.docks) st.docks = {};
     return st.docks[edge] || (st.docks[edge] = { mode: 'auto', selected: null });
   }
-  function dockMembers(st, edge) {
+  /* A dock's tabs: its required windows first, in the layer's order, then
+     the others in the order the reader gave them, and any the order does
+     not mention in the order they opened. */
+  function defaultMembers(st, edge) {
     var members = st.open.filter(function (k) { return shownEdge(st, k) === edge; });
     return required.filter(function (k) { return members.indexOf(k) >= 0; })
       .concat(members.filter(function (k) { return !requiredWindow(k); }));
+  }
+  function dockMembers(st, edge) {
+    var members = defaultMembers(st, edge);
+    var order = st.docks && st.docks[edge] && st.docks[edge].order;
+    if (!order) return members;
+    var fixed = members.filter(requiredWindow), rest = members.filter(function (k) { return !requiredWindow(k); });
+    var ranked = order.filter(function (k) { return rest.indexOf(k) >= 0; });
+    return fixed.concat(ranked, rest.filter(function (k) { return ranked.indexOf(k) < 0; }));
+  }
+  /* Moves an ordinary tab to a place among the ordinary tabs of its dock,
+     counted from the first of them. */
+  function reordered(st, edge, key, index) {
+    st = copy(st);
+    var members = dockMembers(st, edge);
+    var rest = members.filter(function (k) { return !requiredWindow(k); });
+    if (requiredWindow(key) || rest.indexOf(key) < 0) return st;
+    rest.splice(rest.indexOf(key), 1);
+    rest.splice(Math.max(0, Math.min(rest.length, index)), 0, key);
+    dockRecord(st, edge).order = members.filter(requiredWindow).concat(rest);
+    return st;
   }
   function dockMode(edge, mode) {
     if (!sharedEdge(edge) || ['auto', 'open', 'rail'].indexOf(mode) < 0) return;
@@ -163,8 +208,12 @@
 
   function normalizeDocks(st) {
     if (!sharedDocks()) return;
-    ['left', 'right'].forEach(function (edge) {
+    sharedEdges().forEach(function (edge) {
       var members = dockMembers(st, edge), d = dockRecord(st, edge);
+      /* The order keeps only the dock's windows, and goes when it is the
+         default, so the address carries it only while it says something. */
+      if (d.order) d.order = members.join(',') === defaultMembers(st, edge).join(',') ? undefined : members;
+      if (!d.order) delete d.order;
       if (members.indexOf(st.top) >= 0) d.selected = st.top;
       if (members.indexOf(d.selected) < 0) d.selected = members[0] || null;
       if (d.size == null && members.length) d.size = st.place[d.selected].s || DOCK_SIZE;
@@ -237,9 +286,122 @@
     });
   }
 
+  /* The step an arrow key takes along a dock's strip: 1 toward its end, -1
+     toward its start, or 0 for a key across it. An icon rail runs down; a
+     strip of text tabs runs in the writing direction. */
+  function stripStep(group, edge, key) {
+    if (iconRail(state, edge)) return key === 'ArrowDown' ? 1 : key === 'ArrowUp' ? -1 : 0;
+    var rtl = getComputedStyle(group).direction === 'rtl';
+    return key === (rtl ? 'ArrowLeft' : 'ArrowRight') ? 1 : key === (rtl ? 'ArrowRight' : 'ArrowLeft') ? -1 : 0;
+  }
+
+  function focusDockTab(edge, key) {
+    var group = dockGroups[edge], tab = group && group.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+    if (!tab) return;
+    group.querySelectorAll('[role="tab"]').forEach(function (t) { t.tabIndex = t === tab ? 0 : -1; });
+    tab.focus();
+  }
+
+  /* Alt+Shift with an arrow key along the strip moves the focused tab one
+     place among the ordinary tabs. */
+  function moveDockTab(edge, key, step) {
+    if (requiredWindow(key)) return;
+    var rest = dockMembers(state, edge).filter(function (k) { return !requiredWindow(k); });
+    var i = rest.indexOf(key);
+    if (i < 0 || i + step < 0 || i + step >= rest.length) return;
+    commit(reordered(state, edge, key, i + step), false);
+    focusDockTab(edge, key);
+  }
+
+  /* Dragging an ordinary tab along its strip moves it. A mark shows where
+     it will go, among the ordinary tabs only, since required windows keep
+     the first places; Escape or a cancelled pointer leaves it where it was. */
+  function dragDockTab(e, group, edge) {
+    var tab = e.button === 0 && e.target.closest('[data-dock-key]');
+    if (!tab || e.ctrlKey || e.metaKey || e.altKey) return;
+    var key = tab.getAttribute('data-dock-key');
+    if (requiredWindow(key)) return;
+    var others = Array.from(group.querySelectorAll('.win-dock-entry')).filter(function (entry) {
+      var k = entry.getAttribute('data-dock-entry');
+      return k !== key && !requiredWindow(k);
+    });
+    if (!others.length) return;
+    var vertical = iconRail(state, edge), rtl = getComputedStyle(group).direction === 'rtl';
+    var startX = e.clientX, startY = e.clientY, moving = false, index = -1, mark = null;
+    var id = e.pointerId;
+
+    function placeAt(x, y) {
+      var at = vertical ? y : x;
+      index = others.filter(function (entry) {
+        var r = entry.getBoundingClientRect(), mid = vertical ? r.top + r.height / 2 : r.left + r.width / 2;
+        return vertical || !rtl ? mid < at : mid > at;
+      }).length;
+      var g = group.getBoundingClientRect();
+      var ref = others[Math.min(index, others.length - 1)].getBoundingClientRect();
+      var after = index >= others.length;
+      if (vertical) {
+        mark.style.left = (ref.left - g.left) + 'px';
+        mark.style.width = ref.width + 'px';
+        mark.style.height = '';
+        mark.style.top = ((after ? ref.bottom : ref.top) - g.top - 1) + 'px';
+      } else {
+        var edgeX = (after !== rtl) ? ref.right : ref.left;
+        mark.style.left = (edgeX - g.left - 1) + 'px';
+        mark.style.top = (ref.top - g.top) + 'px';
+        mark.style.height = ref.height + 'px';
+        mark.style.width = '';
+      }
+    }
+    function move(ev) {
+      if (ev.pointerId !== id) return;
+      if (!moving) {
+        if (Math.abs(ev.clientX - startX) + Math.abs(ev.clientY - startY) < CLICK_PX) return;
+        moving = true;
+        if (tab.setPointerCapture) try { tab.setPointerCapture(id); } catch (err) {}
+        mark = document.createElement('div');
+        mark.className = 'win-dock-mark';
+        mark.setAttribute('aria-hidden', 'true');
+        mark.toggleAttribute('data-vertical', vertical);
+        group.appendChild(mark);
+        group.setAttribute('data-dock-dragging', key);
+      }
+      ev.preventDefault();
+      placeAt(ev.clientX, ev.clientY);
+    }
+    function finish(ev, keep) {
+      document.removeEventListener('pointermove', move, true);
+      document.removeEventListener('pointerup', up, true);
+      document.removeEventListener('pointercancel', cancel, true);
+      document.removeEventListener('keydown', escape, true);
+      if (!moving) return;
+      if (mark) mark.remove();
+      group.removeAttribute('data-dock-dragging');
+      if (tab.hasPointerCapture && tab.hasPointerCapture(id)) tab.releasePointerCapture(id);
+      /* The click a drag ends with does not select the tab. */
+      group.__dragged = true;
+      setTimeout(function () { group.__dragged = false; }, 0);
+      if (keep && index >= 0) {
+        commit(reordered(state, edge, key, index), false);
+        focusDockTab(edge, key);
+      }
+    }
+    function up(ev) { if (ev.pointerId === id) finish(ev, true); }
+    function cancel(ev) { if (ev.pointerId === id) finish(ev, false); }
+    function escape(ev) {
+      if (ev.key !== 'Escape' || !moving) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      finish(ev, false);
+    }
+    document.addEventListener('pointermove', move, true);
+    document.addEventListener('pointerup', up, true);
+    document.addEventListener('pointercancel', cancel, true);
+    document.addEventListener('keydown', escape, true);
+  }
+
   function renderDockGroups() {
     if (!sharedDocks()) return;
-    ['left', 'right'].forEach(function (edge) {
+    sharedEdges().forEach(function (edge) {
       var members = dockMembers(state, edge), group = dockGroups[edge];
       if (!group) {
         group = document.createElement('div');
@@ -256,6 +418,7 @@
         group.querySelector('.win-dock-tablist').addEventListener('scroll', function () { positionDockMenus(group); });
         group.querySelector('.win-dock-tablist').setAttribute('aria-label', text('dock-' + edge, DOCK_WORDS[edge]));
         group.addEventListener('click', function (e) {
+          if (group.__dragged) { e.preventDefault(); return; }
           var menu = e.target.closest('[data-dock-menu]');
           if (menu) {
             var menuKey = menu.getAttribute('data-dock-menu');
@@ -278,6 +441,11 @@
           var menu = e.target.closest('[data-dock-menu]');
           if (menu && e.key === 'ArrowDown') { e.preventDefault(); menu.click(); return; }
           var tab = e.target.closest('[data-dock-key]');
+          if (tab && e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey) {
+            var step = stripStep(group, edge, e.key);
+            if (step) { e.preventDefault(); moveDockTab(edge, tab.getAttribute('data-dock-key'), step); }
+            return;
+          }
           if (!tab || e.altKey || e.ctrlKey || e.metaKey) return;
           if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
             e.preventDefault();
@@ -286,11 +454,11 @@
           }
           if (e.shiftKey) { onHeadKey(e, tab.getAttribute('data-dock-key')); return; }
           var tabs = Array.from(group.querySelectorAll('[role="tab"]')), i = tabs.indexOf(tab), next;
-          var rail = railMode(state, edge), rtl = getComputedStyle(group).direction === 'rtl';
+          var along = stripStep(group, edge, e.key);
           if (e.key === 'Home') next = tabs[0];
           else if (e.key === 'End') next = tabs[tabs.length - 1];
-          else if (e.key === (rail ? 'ArrowDown' : rtl ? 'ArrowLeft' : 'ArrowRight')) next = tabs[(i + 1) % tabs.length];
-          else if (e.key === (rail ? 'ArrowUp' : rtl ? 'ArrowRight' : 'ArrowLeft')) next = tabs[(i + tabs.length - 1) % tabs.length];
+          else if (along === 1) next = tabs[(i + 1) % tabs.length];
+          else if (along === -1) next = tabs[(i + tabs.length - 1) % tabs.length];
           else if (e.key === 'Delete') { e.preventDefault(); closeDockTab(tab.getAttribute('data-dock-key'), edge, 'key'); return; }
           if (next) { e.preventDefault(); tabs.forEach(function (t) { t.tabIndex = t === next ? 0 : -1; }); next.focus(); }
         });
@@ -299,14 +467,17 @@
             t.tabIndex = t.getAttribute('aria-selected') === 'true' ? 0 : -1;
           });
         });
+        group.addEventListener('pointerdown', function (e) { dragDockTab(e, group, edge); });
       }
       group.hidden = !members.length;
-      var rail = railMode(state, edge), selected = edgeFront(state, edge), list = group.querySelector('.win-dock-tablist');
+      var collapsed = railMode(state, edge), rail = iconRail(state, edge);
+      var selected = edgeFront(state, edge), list = group.querySelector('.win-dock-tablist');
       var dockToggle = group.querySelector('.win-dock-toggle');
       if (edge === 'left' || rail) {
         if (group.firstElementChild !== dockToggle) group.insertBefore(dockToggle, list);
       } else if (list.nextElementSibling !== dockToggle) group.insertBefore(dockToggle, list.nextElementSibling);
       group.toggleAttribute('data-dock-rail', rail);
+      group.toggleAttribute('data-dock-collapsed', collapsed);
       group.style.zIndex = String(2 * state.open.length + 2);
       list.setAttribute('aria-orientation', rail ? 'vertical' : 'horizontal');
       Array.from(list.children).forEach(function (tab) {
@@ -336,7 +507,7 @@
         var wrapper = tab.parentElement;
         wrapper.classList.toggle('section-tab', !rail);
         tab.classList.toggle('icon-btn', rail);
-        tab.toggleAttribute('data-dock-peek', rail && dockPeek[edge] === key && !state.min[key]);
+        tab.toggleAttribute('data-dock-peek', collapsed && dockPeek[edge] === key && !state.min[key]);
         if (list.children[i] !== wrapper) list.insertBefore(wrapper, list.children[i] || null);
         wrapper.toggleAttribute('data-selected', key === selected);
         wrapper.toggleAttribute('data-dock-only', dockOnly(key));
@@ -361,10 +532,10 @@
         var selectedTab = list.querySelector('[role="tab"][aria-selected="true"]');
         if (selectedTab) selectedTab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       }
-      var toggle = group.querySelector('.win-dock-toggle'), label = rail ? text('dock-pin', 'Pin dock open') : text('dock-collapse', 'Collapse dock');
+      var toggle = group.querySelector('.win-dock-toggle'), label = collapsed ? text('dock-pin', 'Pin dock open') : text('dock-collapse', 'Collapse dock');
       toggle.title = label;
       toggle.setAttribute('aria-label', label);
-      toggle.firstChild.style.setProperty('--glyph', 'var(--glyph-' + (rail ? 'pin' : 'minimize') + ')');
+      toggle.firstChild.style.setProperty('--glyph', 'var(--glyph-' + (collapsed ? 'pin' : 'minimize') + ')');
       positionDockMenus(group);
     });
     state.open.forEach(function (key) {
@@ -404,7 +575,10 @@
     var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place };
     if (st.docks) {
       out.docks = {};
-      Object.keys(st.docks).forEach(function (edge) { out.docks[edge] = Object.assign({}, st.docks[edge]); });
+      Object.keys(st.docks).forEach(function (edge) {
+        out.docks[edge] = Object.assign({}, st.docks[edge]);
+        if (st.docks[edge].order) out.docks[edge].order = st.docks[edge].order.slice();
+      });
     }
     return out;
   }
@@ -591,13 +765,15 @@
     var q = new URLSearchParams(location.search);
     if (!q.has('open')) return null;
     var st = { open: keyList(q.get('open')), top: null, min: {}, place: {} };
-    if (sharedDocks()) ['left', 'right'].forEach(function (edge) {
-      var m = /^(auto|open|rail):([A-Za-z0-9_-]*)(?::([0-9.]+))?$/.exec(q.get('d.' + edge) || '');
+    sharedEdges().forEach(function (edge) {
+      var m = /^(auto|open|rail):([A-Za-z0-9_-]*)(?::([0-9.]*))?(?::([A-Za-z0-9_,-]*))?$/.exec(q.get('d.' + edge) || '');
       if (m) {
         if (!st.docks) st.docks = {};
         st.docks[edge] = { mode: m[1], selected: m[2] || null };
         var size = Number(m[3]);
-        if (size > 0 && size <= DOCK_MAX) st.docks[edge].size = size;
+        if (m[3] && size > 0 && size <= DOCK_MAX) st.docks[edge].size = size;
+        var order = keyList(m[4]);
+        if (order.length) st.docks[edge].order = order;
       }
     });
     keyList(q.get('min')).forEach(function (k) {
@@ -617,7 +793,7 @@
   /* A state's window parameters. Keys, modes and numbers need no escaping,
      so they are written out by hand and stay readable. */
   function windowParams(st) {
-    var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto' || st.docks[edge].size != null; });
+    var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto' || st.docks[edge].size != null || !!st.docks[edge].order; });
     if (!st.open.length && !dockPreference) return [];
     var parts = ['open=' + st.open.join(',')];
     if (st.top) parts.push('top=' + st.top);
@@ -626,9 +802,14 @@
     st.open.forEach(function (k) {
       if (st.place[k]) parts.push('p.' + k + '=' + formatPlacement(st.place[k]));
     });
-    if (st.docks) ['left', 'right'].forEach(function (edge) {
+    if (st.docks) ['left', 'right', 'top', 'bottom'].forEach(function (edge) {
       var d = st.docks[edge];
-      if (d) parts.push('d.' + edge + '=' + d.mode + ':' + (d.selected || '') + (d.size != null ? ':' + fmt(d.size) : ''));
+      /* An empty dock that keeps no preference says nothing. */
+      if (!d || (d.mode === 'auto' && !d.selected && d.size == null && !d.order)) return;
+      var value = d.mode + ':' + (d.selected || '');
+      if (d.size != null || d.order) value += ':' + (d.size != null ? fmt(d.size) : '');
+      if (d.order) value += ':' + d.order.join(',');
+      parts.push('d.' + edge + '=' + value);
     });
     return parts;
   }
@@ -675,7 +856,7 @@
       if (!seg) return;
       var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0 || (sharedDocks() && /^d\.(left|right)$/.test(k))) return;
+      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2)))) return;
       var owner = scopedOwner(k);
       if (owner) {
         if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
@@ -2368,8 +2549,8 @@
       if (e.newState !== 'open' || !panel.classList) return;
       if (panel.classList.contains('win-menu')) {
         var key = panel.getAttribute('data-win-menu-for'), edge = shownEdge(state, key);
-        var useTab = sharedEdge(edge) && (!railMode(state, edge) || dockOnly(key));
-        if (useTab) panel.setAttribute('data-menu-anchor', (railMode(state, edge) ? 'pudl-dock-tab-' : 'pudl-dock-menu-') + key);
+        var useTab = sharedEdge(edge) && (!iconRail(state, edge) || dockOnly(key));
+        if (useTab) panel.setAttribute('data-menu-anchor', (iconRail(state, edge) ? 'pudl-dock-tab-' : 'pudl-dock-menu-') + key);
         else panel.removeAttribute('data-menu-anchor');
         buildMenu(panel, key);
       }
@@ -2383,7 +2564,7 @@
        it, and back when it widens again. */
     function refreshPolicy() {
       if (syncing || !state.open.length) return;
-      var stamp = String(narrowLayer()) + ':' + (sharedDocks() && layer.clientWidth <= railThreshold()) + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
+      var stamp = String(narrowLayer()) + ':' + sharedEdges().map(autoCollapsed).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
       if (stamp === policyStamp) return;
       policyStamp = stamp;
       if (cancelGesture) cancelGesture();
@@ -2400,7 +2581,7 @@
     window.addEventListener('resize', refreshPolicy);
     if (window.ResizeObserver) new ResizeObserver(refreshPolicy).observe(layer);
     new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width'] });
+      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height'] });
     new MutationObserver(function () {
       document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
       renderDockGroups();

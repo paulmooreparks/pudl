@@ -229,7 +229,7 @@
 .win-dock-entry > button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .win-dock-tablist .win-item-title { max-width: 12em; overflow: hidden; text-overflow: ellipsis; }
 .win-dock-toggle { flex: none; align-self: flex-start; margin: 4px; }
-.win[data-win-dock-shared]:not([data-win-dock-peek]) {
+.win[data-win-dock-shared]:is([data-win-edge="left"], [data-win-edge="right"]):not([data-win-dock-peek]) {
   top: calc(var(--dock-top, 0px) + 40px);
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px) - 40px);
 }
@@ -263,6 +263,58 @@
 }
 .win[data-win-dock-peek][data-win-edge="left"] { left: 40px; }
 .win[data-win-dock-peek][data-win-edge="right"] { right: 40px; }
+/* Shared top and bottom docks, with data-win-dock-tabs="all". The strip
+   runs the width of the layer on the dock's inner side, next to the work
+   area: above the windows of a bottom dock, where the tabs stand on its
+   baseline as at the sides, and below the windows of a top dock, where
+   they hang from it. A window keeps the whole dock and leaves the strip's
+   40px to it, so its free edge, the one that resizes the dock, is the
+   dock's own. Collapsed, the dock is its strip alone; its tabs are raised,
+   and the one whose window has slid out over the work area is pressed. */
+.win-dock-group:is([data-dock-edge="top"], [data-dock-edge="bottom"]) {
+  left: 0; width: 100%;
+  box-shadow: inset 0 1px var(--border), inset 0 -1px var(--border);
+}
+.win-dock-group[data-dock-edge="top"] { top: calc(var(--dock-top, 40px) - 40px); }
+.win-dock-group[data-dock-edge="bottom"] { top: auto; bottom: calc(var(--dock-bottom, 40px) - 40px); }
+.win-dock-group[data-dock-edge="top"]:not([data-dock-collapsed]) .win-dock-tablist {
+  align-items: flex-start; padding: 0 var(--space-4) 10px;
+  box-shadow: inset 0 1px var(--border), var(--recess-shadow);
+}
+.win-dock-group[data-dock-edge="top"]:not([data-dock-collapsed]) .win-dock-entry {
+  border-top: 0; border-bottom: 1px solid var(--raise-border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+.win-dock-group[data-dock-edge="top"]:not([data-dock-collapsed]) .win-dock-entry[data-selected] {
+  padding-top: 0; padding-bottom: 3px; border-color: var(--border);
+}
+.win-dock-group[data-dock-collapsed]:not([data-dock-rail]) .win-dock-tablist { padding: 5px var(--space-4); align-items: center; box-shadow: none; }
+.win-dock-group[data-dock-collapsed]:not([data-dock-rail]) .win-dock-entry {
+  border-bottom: 1px solid var(--raise-border); border-radius: var(--radius-sm);
+}
+.win-dock-group[data-dock-collapsed]:not([data-dock-rail]) .win-dock-entry[data-selected] {
+  padding-top: 0; background: var(--raise-grad); border-color: var(--raise-border);
+}
+.win-dock-group[data-dock-collapsed]:not([data-dock-rail]) .win-dock-entry:has([data-dock-peek]) {
+  background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow);
+}
+.win[data-win-dock-shared][data-win-edge="top"]:not([data-win-dock-peek]) { padding-bottom: 40px; }
+.win[data-win-dock-shared][data-win-edge="bottom"]:not([data-win-dock-peek]) { padding-top: 40px; }
+.win[data-win-dock-peek]:is([data-win-edge="top"], [data-win-edge="bottom"]) {
+  left: var(--dock-left, 0px); right: auto;
+  width: calc(100% - var(--dock-left, 0px) - var(--dock-right, 0px));
+  height: min(max(200px, var(--win-dock-panel-size)), calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)));
+}
+.win[data-win-dock-peek][data-win-edge="top"] { top: var(--dock-top, 40px); }
+.win[data-win-dock-peek][data-win-edge="bottom"] { top: auto; bottom: var(--dock-bottom, 40px); }
+
+/* While a tab is dragged along its strip, a mark in the accent shows
+   where it will go. */
+.win-dock-mark { position: absolute; z-index: 2; width: 2px; background: var(--accent); border-radius: 1px; pointer-events: none; }
+.win-dock-mark[data-vertical] { width: auto; height: 2px; }
+.win-dock-group[data-dock-dragging] { cursor: grabbing; }
+.win-dock-group[data-dock-dragging] [role="tab"] { cursor: grabbing; }
+
 .win-item-running { display: inline-block; flex: none; width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%; background: var(--positive); }
 .win-item-progress { font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
 .win-tab .win-item-glyph { flex: none; }

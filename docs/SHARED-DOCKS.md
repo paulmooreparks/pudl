@@ -1,8 +1,8 @@
-# Shared Side Docks
+# Shared Docks
 
-Shared side docks add tabs and icon rails to the window manager. They are opt-in; existing layers keep their previous dock behavior. This API was introduced in v0.55.0.
+Shared docks add tabs to the window manager's docks, icon rails to its side docks and a collapsed strip to its top and bottom docks. They are opt-in; existing layers keep their previous dock behavior. Shared side docks were introduced in v0.55.0, and shared top and bottom docks and tab order in v0.57.0.
 
-The [sample workbench](../samples/shared-docks.html) has a required Workspace window, two browsers and a document. Resize it to see the rails, or use a dock's collapse button. Each rail's pin button opens its dock persistently.
+The [sample workbench](../samples/shared-docks.html) has a required Workspace window, two browsers, a document, and Output and Problems windows in the bottom dock. Resize it to see the rails and the collapsed bottom strip, or use a dock's collapse button. Each collapsed dock's pin button opens it persistently.
 
 ## Markup
 
@@ -10,14 +10,14 @@ The normal window markup and source rules still apply. Add the following attribu
 
 ```html
 <div class="win-layer" data-win-layer data-win-src="#tpl-{key}"
-     data-win-default="workspace,chats,flows"
-     data-win-required="workspace" data-win-dock-tabs
-     data-win-dock-rail-width="960">
+     data-win-default="workspace,chats,flows,output"
+     data-win-required="workspace" data-win-dock-tabs="all"
+     data-win-dock-rail-width="960" data-win-dock-collapse-height="600">
   <!-- The server renders open windows here. -->
 </div>
 ```
 
-`data-win-dock-tabs` groups left and right docked windows. Top and bottom docks retain their existing behavior. Shared side docks remain at their side on narrow screens.
+`data-win-dock-tabs` with no value groups left and right docked windows, and top and bottom docks keep their earlier behavior, one window at a time. `data-win-dock-tabs="all"` groups the windows at all four edges. Shared side docks remain at their side on narrow screens.
 
 `data-win-required` lists keys separated by spaces or commas. Required windows open even if the address omits them. Close, replacement and re-keying cannot remove a required window, and its close controls are omitted. The normal window source must provide its markup. Required windows can move or float; they appear first in each dock, in the order given on the layer. A parent cannot close or be replaced while it has a required child.
 
@@ -25,11 +25,60 @@ Add `data-win-dock-only` to a window that represents a permanent side panel. It 
 
 Add `data-win-dock-omit-docked` to the taskbar's `data-win-dock` element to omit docked windows from that taskbar. This includes collapsed docks. The default remains a taskbar entry for each top-level window.
 
-A pinned shared dock hides its windows' title bars. The active tab connects to the content below it, and each tab has a window-menu button instead of a close button. Ordinary rail slideouts retain their title bars. Rails use the same square icon buttons as Pin, without dropdown buttons, including permanent side panels. The button stays depressed while its slideout is visible. Shift+F10 opens its window menu, including the placement commands for permanent side panels.
+A pinned shared dock hides its windows' title bars. The active tab connects to the content, and each tab has a window-menu button instead of a close button. Ordinary rail slideouts retain their title bars. Rails use the same square icon buttons as Pin, without dropdown buttons, including permanent side panels. The button stays depressed while its slideout is visible. Shift+F10 opens its window menu, including the placement commands for permanent side panels.
 
-Dock labels use `text-2xs`, weight 700 and line height 1.55, matching compact badges. Collapse and Pin stay at the same outer top corner as the dock changes mode. Left docks place the toggle before their tabs, right docks after them; both rails place Pin above their tabs.
+Dock labels use `text-2xs`, weight 700 and line height 1.55, matching compact badges. Collapse and Pin stay at the same outer top corner as a side dock changes mode. Left docks place the toggle before their tabs, right docks after them; both rails place Pin above their tabs. Top and bottom docks place the toggle at the end of their strip.
 
-Required windows omit Close from both their window menu and the menu bar. An empty front menu is omitted. A menu with Close as its only command has no separator before it.
+## Top and Bottom Docks
+
+On a layer with `data-win-dock-tabs="all"`, the windows docked at the top or bottom share that edge under one strip that runs the width of the layer. The strip is on the dock's inner side, next to the central area. In a bottom dock it is above the content and the tabs stand on its baseline, as at the sides. In a top dock it is below the content and the tabs hang from its top edge, so the selected tab still joins its content. Every window in the dock shares one height. The dock's free edge resizes it, and so does Shift with the vertical arrow keys on a tab.
+
+A collapsed top or bottom dock keeps its strip alone, with the same text tabs and menu buttons; there is no icon form. Selecting a tab slides its window out over the central area, between the side docks, from the strip, with the same retraction, Escape and focus rules as a rail slideout. The tab stays depressed while its window shows, and the slideout keeps its title bar.
+
+## Modes and State
+
+```javascript
+pudlWindows.dockMode('left', 'auto');
+pudlWindows.dockMode('left', 'open');
+pudlWindows.dockMode('right', 'rail');
+pudlWindows.dockMode('bottom', 'rail');
+```
+
+Each shared edge is accepted: `left` and `right`, and `top` and `bottom` on a layer with `data-win-dock-tabs="all"`. `auto` collapses a side dock to its rail when the layer is at or below `data-win-dock-rail-width` CSS pixels wide, default 960, and a top or bottom dock to its strip when the layer is at or below `data-win-dock-collapse-height` CSS pixels high, default 600. `open` pins the dock open across size changes. `rail` keeps it collapsed. Choosing a mode clears the minimized flags for that dock's windows. Minimize All temporarily collapses the docks; Restore All restores their prior preferences.
+
+On opted-in layers, `pudlWindows.state()` and `pudl:windows-change` include a detached `docks` object:
+
+```javascript
+{
+  left: { mode: 'auto', selected: 'workspace', size: 0.25, order: ['workspace', 'flows', 'chats'] },
+  right: { mode: 'rail', selected: 'flows', size: 0.3 },
+  bottom: { mode: 'open', selected: 'output', size: 0.22 }
+}
+```
+
+The URL stores those entries as `d.left=auto:workspace:0.25:workspace,flows,chats`, `d.right=rail:flows:0.3` and `d.bottom=open:output:0.22`. The parameter for each shared edge is reserved on the layer. A dock with no window has a null selection, spelled as an empty field after the first colon, and a dock with no window and no preference is left out. Invalid modes and missing selections fall back to the available windows. Region navigation preserves these parameters. Window placements remain in `place` and `p.<key>`; a slideout does not change them.
+
+The optional `size` is the dock's width, for a side dock, or height, for a top or bottom dock, as a fraction of the layer. All windows in the same dock share it, and selecting another tab never changes it. Resizing any member updates the dock preference. Moving a window into an existing dock adopts that dock's size. An empty dock retains its size for later windows. Addresses from v0.55.0 that omit the third field remain valid; their selected window supplies the initial size.
+
+The optional `order` lists the dock's windows in tab order. It is present only while it differs from the default order, which is the required windows in the layer's order and then the others in the order they opened. The address writes it as a fourth field, leaving the third empty when there is no size, as in `d.bottom=auto:problems::problems,output`. A window that joins the dock later goes at the end, and a window that leaves it leaves the order. An address without the field keeps the default order.
+
+## Tab Order
+
+On every shared dock, the reader can drag an ordinary tab along its strip, or along its rail, to a new place. While the drag is under way an accent mark shows where the tab will go, and Escape cancels it. A drag ends without selecting the tab. Alt+Shift with the arrow keys along the strip moves the focused tab one place, keeping focus on it. Required windows keep the first places in the layer's order: an ordinary tab cannot move before them, and a required tab does not move. A narrow strip does not scroll during a drag, so a tab is dropped among the tabs in view.
+
+Dragging a tab out of its strip is not supported. A docked window moves to another edge, or floats, from its window menu or by dragging its title bar.
+
+## Keyboard and Focus
+
+Arrow keys move focus along the tabs, horizontally in an open dock and a top or bottom strip and vertically in a rail. Home and End move to the first and last tabs. Enter or Space selects the focused tab. Delete requests closure through `pudl:window-closing`, so an editor can refuse while asking about unsaved changes. Required tabs ignore closure. Closing a tab focuses a remaining tab when one exists. Alt+Shift with the arrow keys moves the focused tab, as described above.
+
+Shift with the arrow keys toward or away from the central area resizes the shared dock from its tab: the horizontal keys for a side dock, the vertical keys for a top or bottom dock. Shift+F10 or the context-menu key opens the tab's window menu. The menu button also opens with Enter, Space or Arrow Down. Escape dismisses the menu and returns focus to its opener.
+
+Selecting a tab in a rail or a collapsed strip slides out its mounted window over the central area. Working outside that window and its dock retracts it; its menus remain usable. Escape retracts it and returns focus to the tab, unless a menu or dialog needs the key first. Temporary slideouts are not saved in the URL. `pudlWindows.raise(key)` also reveals a docked window when its dock is collapsed.
+
+PUDL generates the dock groups and their accessibility attributes. A grouped window is a tab panel, labelled by its tab, and regains its previous role and label when it leaves the group. Hosts should use the public API and status attributes rather than modifying generated elements.
+
+## Status Marks
 
 Windows may provide status attributes:
 
@@ -41,37 +90,4 @@ Windows may provide status attributes:
 </section>
 ```
 
-The glyph is the suffix of a PUDL glyph token, such as `folder` or `comments`. An absent glyph uses `app` in a side dock and leaves the existing taskbar glyph unchanged. Attention is a positive integer; invalid or zero values show no count. Running is a boolean attribute. Progress is a number from 0 to 100, displayed as a rounded percentage. A rail includes progress in its accessible name and tooltip while omitting the visible percentage. Changing these attributes updates the marks without replacing content or taking focus.
-
-## Modes and State
-
-```javascript
-pudlWindows.dockMode('left', 'auto');
-pudlWindows.dockMode('left', 'open');
-pudlWindows.dockMode('right', 'rail');
-```
-
-Only `left` and `right` are accepted. `auto` uses rails when the layer is at or below `data-win-dock-rail-width` CSS pixels, default 960. `open` pins the dock open across width changes. `rail` keeps it collapsed. Choosing a mode clears the minimized flags for that side's windows. Minimize All temporarily collapses the docks; Restore All restores their prior preferences.
-
-On opted-in layers, `pudlWindows.state()` and `pudl:windows-change` include a detached `docks` object:
-
-```javascript
-{
-  left: { mode: 'auto', selected: 'workspace', size: 0.25 },
-  right: { mode: 'rail', selected: 'flows', size: 0.3 }
-}
-```
-
-The URL stores those entries as `d.left=auto:workspace:0.25` and `d.right=rail:flows:0.3`. These two query parameter names are reserved on opted-in layers. A side with no window has a null selection, spelled as an empty field after the first colon. Invalid modes and missing selections fall back to the available windows. Region navigation preserves these parameters. Window placements remain in `place` and `p.<key>`; a rail slideout does not change them.
-
-The optional `size` is the dock width as a fraction of the layer width. All windows in the same dock share it, and selecting another tab never changes it. Resizing any member updates the dock preference. Moving a window into an existing dock adopts that dock's width. An empty dock retains its width for later windows. Addresses from v0.55.0 that omit the third field remain valid; their selected window supplies the initial width.
-
-## Keyboard and Focus
-
-Arrow keys move focus along the tabs, horizontally in an open dock and vertically in a rail. Home and End move to the first and last tabs. Enter or Space selects the focused tab. Delete requests closure through `pudl:window-closing`, so an editor can refuse while asking about unsaved changes. Required tabs ignore closure. Closing a tab focuses a remaining tab when one exists.
-
-Shift with the horizontal arrow keys resizes the shared dock from its tab. Shift+F10 or the context-menu key opens the tab's window menu. The menu button also opens with Enter, Space or Arrow Down. Escape dismisses the menu and returns focus to its opener.
-
-Selecting a rail tab slides out its mounted window over the central area. Working outside that window and its rail retracts it; its menus remain usable. Escape retracts it and returns focus to the rail tab, unless a menu or dialog needs the key first. Temporary slideouts are not saved in the URL. `pudlWindows.raise(key)` also reveals a docked window when its side is a rail.
-
-PUDL generates the dock groups and their accessibility attributes. A grouped window is a tab panel, labelled by its tab, and regains its previous role and label when it leaves the group. Hosts should use the public API and status attributes rather than modifying generated elements.
+The glyph is the suffix of a PUDL glyph token, such as `folder` or `comments`. An absent glyph uses `app` in a shared dock and leaves the existing taskbar glyph unchanged. Attention is a positive integer; invalid or zero values show no count. Running is a boolean attribute. Progress is a number from 0 to 100, displayed as a rounded percentage. A rail includes progress in its accessible name and tooltip while omitting the visible percentage. Changing these attributes updates the marks without replacing content or taking focus.
