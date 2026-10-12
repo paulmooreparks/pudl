@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow Controls</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-md.js" defer></script>
+  <script src="../../dist/pudl-disclose.js" defer></script>
+  <script src="../../dist/pudl-zoom.js" defer></script>
+  <script src="../../dist/pudl-rows.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; padding: 16px; }
+    #narrow { width: 360px; }
+    .win-host { position: relative; height: 320px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <ol class="vstack gap-3" id="steps" style="list-style: none; padding: 0; margin: 0">
+    <li class="card disclosure" id="step-1">
+      <div class="card-head">
+        <button type="button" class="card-toggle" aria-expanded="false" aria-controls="step-1-body"></button>
+        <h3 class="card-title">1. Research the account</h3>
+        <span class="chip">Agent</span>
+        <span class="card-summary">/research-account {{inputs.account}}</span>
+      </div>
+      <div class="card-body" id="step-1-body">
+        <div class="form-group">
+          <div class="form-label-row">
+            <label class="form-label" for="step-1-text">Text</label>
+            <div class="form-label-end">
+              <div class="menu">
+                <button type="button" class="btn btn-sm menu-btn" popovertarget="answers-1" id="insert-1">Insert an Answer</button>
+                <div class="menu-panel" id="answers-1" popover>
+                  <button type="button" class="menu-action" data-insert="{{steps.research.summary}}">Research: summary</button>
+                  <button type="button" class="menu-action" data-insert="{{inputs.account}}">Input: account</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <textarea class="form-textarea" id="step-1-text" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button type="button" class="icon-btn" aria-label="Move Up"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span></button>
+        <button type="button" class="icon-btn" aria-label="Move Down"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-sm">Add a Step After</button>
+        <button type="button" class="btn btn-sm btn-danger">Delete</button>
+      </div>
+    </li>
+    <li class="card disclosure" id="step-2">
+      <div class="card-head">
+        <button type="button" class="card-toggle" aria-expanded="true" aria-controls="step-2-body"></button>
+        <h3 class="card-title">2. Draft the reply</h3>
+        <span class="chip">Agent</span>
+        <span class="card-summary">Write a reply using the summary.</span>
+      </div>
+      <div class="card-body" id="step-2-body"><p>Open from the start.</p></div>
+    </li>
+  </ol>
+
+  <div class="zoom" role="group" aria-label="Chart zoom" data-zoom-for="chart">
+    <button type="button" class="icon-btn" data-zoom="out" aria-label="Zoom Out"><span class="glyph" style="--glyph: var(--glyph-minus)" aria-hidden="true"></span></button>
+    <output class="zoom-scale" aria-live="polite">100%</output>
+    <button type="button" class="icon-btn" data-zoom="in" aria-label="Zoom In"><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span></button>
+    <button type="button" class="btn btn-sm" data-zoom="fit">Fit</button>
+  </div>
+  <div class="zoom-viewport" id="chart" aria-label="Flow chart" style="width: 400px; height: 200px" data-zoom-min="0.25" data-zoom-max="4">
+    <svg viewBox="0 0 800 600" width="800" height="600" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="780" height="580" fill="none" stroke="currentColor"/><circle cx="400" cy="300" r="40" fill="currentColor"/></svg>
+  </div>
+
+  <div class="row-editor-wrap" id="inputs">
+    <table class="row-editor" aria-label="Inputs">
+      <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Optional</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+      <tbody>
+        <tr>
+          <td data-label="Name"><input class="form-input" aria-label="Name of input 1" value="account"></td>
+          <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input 1"><option>text</option><option>number</option></select></span></td>
+          <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input 1 is optional"> Optional</label></td>
+          <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+        </tr>
+        <tr class="row-editor-more"><td colspan="4" data-label="Value to return"><input class="form-input" aria-label="Value to return for input 1" value="{{steps.research.summary}}"></td></tr>
+        <tr>
+          <td data-label="Name"><input class="form-input" aria-label="Name of input 2" value="region"></td>
+          <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input 2"><option>text</option><option>number</option></select></span></td>
+          <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input 2 is optional"> Optional</label></td>
+          <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input 2"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button type="button" class="btn row-editor-add" data-row-add><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span> Add an Input</button>
+  </div>
+
+  <div id="narrow">
+    <div class="row-editor-wrap" id="narrow-editor">
+      <table class="row-editor" aria-label="Exits">
+        <thead><tr><th scope="col">Label</th><th scope="col">Next Step</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+        <tbody><tr>
+          <td data-label="Label"><input class="form-input" aria-label="Label of exit 1" value="approved"></td>
+          <td data-label="Next Step"><input class="form-input" aria-label="Next step of exit 1" value="3"></td>
+          <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove exit 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+        </tr></tbody>
+      </table>
+      <button type="button" class="btn row-editor-add" data-row-add>Add an Exit</button>
+    </div>
+  </div>
+
+  <ul class="row-list" aria-label="Runs" id="runs">
+    <li class="md-row"><a class="md-item" href="?run=1"><span class="badge positive">done</span> 12 Oct 2026, 10:14<span class="md-meta">finished</span></a></li>
+    <li class="md-row"><a class="md-item" href="?run=2" aria-current="true"><span class="badge warn">waiting</span> 12 Oct 2026, 11:02<span class="md-meta">at "Review"</span></a></li>
+    <li class="md-row"><a class="md-item" href="?run=3"><span class="badge danger">failed</span> 13 Oct 2026, 09:40<span class="md-meta">at "Draft"</span></a></li>
+  </ul>
+
+  <main class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="editor,site" data-win-menu>
+      <section class="win" data-win="editor" data-win-mode="floating" style="--win-x: .02; --win-y: .05; --win-w: .6; --win-h: .6">
+        <header class="win-head"><h2 class="win-title">Editor</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body"><p>A window.</p></div>
+      </section>
+      <section class="win" data-win="site" data-win-mode="dock-bottom" style="--win-dock-size: .3">
+        <header class="win-head"><h2 class="win-title">Site</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body"><p>A docked window.</p></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    document.querySelectorAll('.win-layer > .win').forEach(function (win) {
+      var t = document.createElement('template'); t.id = 'tpl-' + win.dataset.win; t.content.appendChild(win.cloneNode(true)); document.body.appendChild(t);
+    });
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-insert]');
+      if (!a) return;
+      var ta = document.getElementById('step-1-text');
+      ta.setRangeText(a.getAttribute('data-insert'), ta.selectionStart, ta.selectionEnd, 'end');
+      ta.focus();
+    });
+    var n = 2;
+    document.addEventListener('pudl:row-add', function (e) {
+      if (e.target.id !== 'inputs') return;
+      n++;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td data-label="Name"><input class="form-input" aria-label="Name of input ' + n + '"></td><td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input ' + n + '"><option>text</option></select></span></td><td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input ' + n + ' is optional"> Optional</label></td><td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input ' + n + '"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>';
+      pudlRows.add(e.target, tr);
+    });
+  </script>
+</body>
+</html>

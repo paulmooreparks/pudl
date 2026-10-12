@@ -18,6 +18,7 @@ const PAGES = [
   ['/samples/expenses.html', { width: 1280, height: 900 }],
   ['/samples/expense.html?id=1', { width: 1280, height: 900 }],
   ['/samples/trips.html', { width: 1280, height: 900 }],
+  ['/samples/flow-editor.html?run.runs=3', { width: 1280, height: 900 }],
   /* A short window, so the article's body scrolls with nothing in it to focus. */
   ['/samples/article-reader.html?open=numerals&top=numerals', { width: 1280, height: 420 }],
   ['/samples/files.html?path=/notes&open=editor,preview&top=preview', { width: 1280, height: 900 }]

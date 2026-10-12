@@ -187,13 +187,11 @@
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)); border-left-width: 1px;
 }
 .win[data-win-edge] .win-head {
-  min-height: 0; height: max(var(--win-head-docked), calc(var(--win-button-size, 20px) + 2px)); gap: 8px;
-  padding: 0 4px 0 10px;
+  min-height: 0; height: max(var(--win-head-docked), calc(var(--win-button-size, calc(var(--win-text) * 1.7)) + 2px)); gap: 8px;
+  padding: 0 4px 0 10px; --win-text: var(--text-sm);
   border-width: 0 0 1px; border-radius: 0;
 }
 .win[data-win-edge] .win-title { font-size: var(--text-sm); }
-.win[data-win-edge] .win-btn { width: var(--win-button-size, 20px); height: var(--win-button-size, 20px); }
-.win[data-win-edge] .win-btn::before { width: var(--win-glyph-size, 10px); height: var(--win-glyph-size, 10px); }
 .win[data-win-edge] .win-body { border: 0; border-radius: 0; }
 .win[data-win-edge] [data-win-action="maximize"] { display: none; }
 .win-collapsed .win-body { display: none; }
@@ -346,6 +344,7 @@
   flex: none;
   display: flex; align-items: center; gap: 10px;
   min-height: 38px; padding: 5px 7px 5px 12px;
+  --win-text: var(--text-md);   /* the title's size, which the buttons and their glyphs are sized from */
   background: var(--raise-grad);
   border: 1px solid var(--raise-border);
   border-radius: calc(var(--radius) - var(--win-band)) calc(var(--radius) - var(--win-band)) 0 0;
@@ -372,10 +371,13 @@
 .win-chrome { flex: none; display: inline-flex; gap: 5px; align-items: center; }
 
 /* Window buttons are small raised circles, so they stay legible on the
-   accent title bar. */
+   accent title bar. They are sized from the title's text, --win-text,
+   1.7 times it, so that they grow with it: 24px on a floating window,
+   22px docked. A page that sets --win-button-size or --win-glyph-size
+   keeps what it set. */
 .win-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: var(--win-button-size, 24px); height: var(--win-button-size, 24px); padding: 0; flex-shrink: 0;
+  width: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 1.7)); height: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 1.7)); padding: 0; flex-shrink: 0;
   border-radius: 50%;
   border: 1px solid var(--raise-border);
   background: var(--raise-grad);
@@ -394,12 +396,16 @@
    server renders each button empty with an aria-label, and the maximise
    button's glyph follows the window's mode. */
 .win-btn[data-win-action]::before {
-  content: ""; width: var(--win-glyph-size, 12px); height: var(--win-glyph-size, 12px);
+  content: ""; width: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 0.85)); height: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 0.85));
   background: currentColor;
   -webkit-mask: var(--glyph) center / contain no-repeat;
   mask: var(--glyph) center / contain no-repeat;
 }
-.win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-caret); }
+/* The caret fills less of its box than the other glyphs, since it is drawn
+   for a select's opener, so the menu button draws it in a larger box, 1.2
+   times the title's text, and its triangle then stands as tall as the
+   title's letters. */
+.win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-caret); width: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 1.2)); height: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 1.2)); }
 .win-btn[data-win-action="menu"] { margin-inline-end: var(--space-1); }
 .win[data-win-chrome="compact"]:has([data-win-action="menu"]) .win-head [data-win-action]:not([data-win-action="menu"]) { display: none; }
 .win[data-win-restricted] > .win-rh { display: none; }

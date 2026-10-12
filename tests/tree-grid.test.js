@@ -87,7 +87,7 @@ function check(name, ok, extra) {
   await p.keyboard.press('ArrowDown');
   await p.keyboard.press('ArrowDown');
   const moved = await p.evaluate(() => ({
-    sel: [...document.querySelectorAll('#grid ~ .demo tbody tr')].map(r => r.getAttribute('aria-selected')).join(','),
+    sel: [...document.querySelectorAll('#grid ~ .demo table[role="grid"] tbody tr')].map(r => r.getAttribute('aria-selected')).join(','),
     focus: document.activeElement.textContent.trim().slice(0, 8), events: window.__sel
   }));
   check('grid: the arrow keys move the selection with focus', moved.sel === 'false,false,true,false' && moved.focus === 'build.sh' && moved.events === 2, JSON.stringify(moved));
@@ -95,10 +95,10 @@ function check(name, ok, extra) {
   await p.waitForURL(/#grid$/);
   check('grid: Enter opens the row by its first link', await p.evaluate(() => location.hash === '#grid'));
   await p.evaluate(() => history.replaceState(null, '', location.pathname));
-  await p.dblclick('#grid ~ .demo tbody tr:nth-child(4) td:nth-child(2)');
+  await p.dblclick('#grid ~ .demo table[role="grid"] tbody tr:nth-child(4) td:nth-child(2)');
   await p.waitForURL(/#grid$/);
   check('grid: a double-click opens the row', await p.evaluate(() => location.hash === '#grid' &&
-        document.querySelector('#grid ~ .demo tbody tr:nth-child(4)').getAttribute('aria-selected') === 'true'));
+        document.querySelector('#grid ~ .demo table[role="grid"] tbody tr:nth-child(4)').getAttribute('aria-selected') === 'true'));
 
   /* === Glyphs and drop targets ============================================ */
   const gl = await p.evaluate(() => {

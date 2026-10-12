@@ -20,6 +20,9 @@
   <script src="dist/pudl-grid.js" defer></script>
   <script src="dist/pudl-code.js" defer></script>
   <script src="dist/pudl-split.js" defer></script>
+  <script src="dist/pudl-disclose.js" defer></script>
+  <script src="dist/pudl-zoom.js" defer></script>
+  <script src="dist/pudl-rows.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -94,6 +97,7 @@
             <li>Samples</li>
             <li><a href="samples/article-reader.html">Article reader</a></li>
             <li><a href="samples/files.html">Files</a></li>
+            <li><a href="samples/flow-editor.html">Flow editor</a></li>
             <li><a href="?open=exp-12#windows" data-win-open="exp-12">Open hotel expense</a></li>
           </ul>
         </li>
@@ -116,7 +120,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.59.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.60.0</a>
     </div>
   </header>
 
@@ -306,6 +310,44 @@
           <span class="chip">billable</span>
         </div>
       </div>
+    </div>
+    <p>A disclosure card opens and closes by one raised toggle at the start of its head, the same toggle a tree's row has, because a card is read and not pressed: nothing else in the head responds to a press. Its summary shows while it is closed, and its body and a foot of actions while it is open. The server writes <code>aria-expanded</code> on the toggle, and <code>pudl-disclose.js</code> does the rest. Move Up and Move Down carry the <code>arrow-up</code> and <code>arrow-down</code> glyphs; an arrow with a stem says movement, where a chevron says direction.</p>
+    <div class="demo vstack gap-2">
+      <section class="card disclosure">
+        <div class="card-head">
+          <button type="button" class="card-toggle" aria-expanded="false"></button>
+          <h3 class="card-title">1. Research the account</h3>
+          <span class="chip">Agent</span>
+          <span class="card-summary">/research-account {{inputs.account}}</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <div class="form-label-row">
+              <label class="form-label" for="ref-step-text">Text</label>
+              <div class="form-label-end">
+                <div class="menu"><button type="button" class="btn btn-sm menu-btn" popovertarget="ref-answers">Insert an Answer</button>
+                  <div class="menu-panel" id="ref-answers" popover><button type="button" class="menu-action">Research: summary</button><button type="button" class="menu-action">Input: account</button></div></div>
+              </div>
+            </div>
+            <textarea class="form-textarea" id="ref-step-text" rows="2">Summarise the account's open cases.</textarea>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="icon-btn" aria-label="Move Up"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Move Down"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span></button>
+          <button type="button" class="btn btn-sm">Add a Step After</button>
+          <button type="button" class="btn btn-sm btn-danger">Delete</button>
+        </div>
+      </section>
+      <section class="card disclosure">
+        <div class="card-head">
+          <button type="button" class="card-toggle" aria-expanded="true"></button>
+          <h3 class="card-title">2. Draft the reply</h3>
+          <span class="chip">Agent</span>
+          <span class="card-summary">Write a reply using the summary.</span>
+        </div>
+        <div class="card-body"><p class="card-desc" style="margin: 0">This one opens from the start. A command on a field's label line, such as the menu above, is a small raised control in the label row's end slot; it is never a select, which would be an input holding no value.</p></div>
+      </section>
     </div>
     <p>Layout arranges components without a surface of its own. A <code>.vstack</code> places them one above another, an <code>.hstack</code> side by side, wrapping rather than widening the page, and an <code>.auto-grid</code> in as many 224px columns as fit, one on a phone. Each keeps document order, with a gap from the spacing grid. Narrow the window to see these cards fall into one column and the buttons wrap.</p>
     <div class="demo vstack">
@@ -884,7 +926,59 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </div>
     </div>
 
-    <h2>22. Invariants</h2>
+    <h2 id="editing">22. Row editors, zoom and row lists</h2>
+    <p>A row editor edits a list of like things as rows of fields: a table with flat headings, a danger glyph button at each row's end to remove it, and an Add button beneath, led by the <code>plus</code> glyph. When the editor itself is 480px wide or less, each row stacks its fields under their headings as labels; narrow this window to see it. <code>pudl-rows.js</code> keeps focus where a reader expects it after Add and Remove.</p>
+    <div class="demo">
+      <div class="row-editor-wrap" id="ref-inputs">
+        <table class="row-editor" aria-label="Inputs">
+          <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Optional</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+          <tbody>
+            <tr>
+              <td data-label="Name"><input class="form-input" aria-label="Name of input 1" value="account"></td>
+              <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input 1"><option>text</option><option>number</option></select></span></td>
+              <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input 1 is optional"> Optional</label></td>
+              <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+            </tr>
+            <tr>
+              <td data-label="Name"><input class="form-input" aria-label="Name of input 2" value="region"></td>
+              <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input 2"><option>text</option><option>number</option></select></span></td>
+              <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input 2 is optional" checked> Optional</label></td>
+              <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input 2"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn row-editor-add" data-row-add><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span> Add an Input</button>
+      </div>
+    </div>
+    <p>A zoom group scales a picture larger than its viewport: Zoom Out and Zoom In are glyph buttons with <code>minus</code> and <code>plus</code>, never the characters, the scale is a flat live readout, and Fit fills the viewport's width. Zooming keeps the viewport's middle in place, and while the viewport has focus Ctrl with Plus, Minus and 0 zoom, and Ctrl with the wheel zooms about the pointer. <code>pudl-zoom.js</code> does the scaling and tells the page each new scale.</p>
+    <div class="demo vstack gap-2">
+      <div class="zoom" role="group" aria-label="Chart zoom" data-zoom-for="ref-chart">
+        <button type="button" class="icon-btn" data-zoom="out" aria-label="Zoom Out"><span class="glyph" style="--glyph: var(--glyph-minus)" aria-hidden="true"></span></button>
+        <output class="zoom-scale" aria-live="polite">100%</output>
+        <button type="button" class="icon-btn" data-zoom="in" aria-label="Zoom In"><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span></button>
+        <button type="button" class="btn btn-sm" data-zoom="fit">Fit</button>
+      </div>
+      <div class="zoom-viewport" id="ref-chart" aria-label="A flow's chart" style="height: 220px">
+        <svg viewBox="0 0 1200 500" width="1200" height="500" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="40" y="200" width="220" height="90" rx="8"/><text x="150" y="252" fill="currentColor" stroke="none" text-anchor="middle" font-size="26">Research</text>
+          <path d="M260 245h160"/><path d="M410 235l12 10-12 10"/>
+          <rect x="420" y="200" width="220" height="90" rx="8"/><text x="530" y="252" fill="currentColor" stroke="none" text-anchor="middle" font-size="26">Draft</text>
+          <path d="M640 245h160"/><path d="M790 235l12 10-12 10"/>
+          <rect x="800" y="200" width="220" height="90" rx="8"/><text x="910" y="252" fill="currentColor" stroke="none" text-anchor="middle" font-size="26">Review</text>
+        </svg>
+      </div>
+    </div>
+    <p>The <a href="samples/flow-editor.html">flow editor sample</a> puts all of these together as GK Companion's Flow window has them: steps as disclosure cards with row editors inside, a chart in a zoom viewport docked at the side, and the flow's runs as a row list docked at the foot, each run a link to its address.</p>
+    <p>A row list is the master-detail list's rows standing on their own, wherever a page lists things to open: the same flat rows, the same current mark, and each row a link to its thing's address, so it can be shared and restored. The rows are one tab stop, and Up, Down, Home and End move among them without going anywhere.</p>
+    <div class="demo">
+      <ul class="row-list" aria-label="Runs">
+        <li class="md-row"><a class="md-item" href="#editing"><span class="badge positive">done</span> 12 Oct 2026, 10:14<span class="md-meta">finished</span></a></li>
+        <li class="md-row"><a class="md-item" href="#editing" aria-current="true"><span class="badge warn">waiting</span> 12 Oct 2026, 11:02<span class="md-meta">at "Review"</span></a></li>
+        <li class="md-row"><a class="md-item" href="#editing"><span class="badge danger">failed</span> 13 Oct 2026, 09:40<span class="md-meta">at "Draft"</span></a></li>
+      </ul>
+    </div>
+
+    <h2>23. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>
