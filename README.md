@@ -891,6 +891,8 @@ A window opened by a link inside another window opens in that window's state ins
 
 A window whose markup says where it belongs, such as an editor that needs the left half wherever it is opened from, is marked `data-win-place="own"`. A window marked `data-win-opens` with a zone name, such as `right`, opens the windows its links open in that zone, as a report opens the days of its log beside it. A docked window marked `data-win-undock` with a zone name goes to that zone when it is undocked, rather than to where it last floated. The zone names are those `pudlWindows.snap()` takes, and `maximized`.
 
+A window marked `data-win-room` with a CSS length, such as `data-win-room="61rem"`, asks for that much width while it is in front. On a layer with shared docks, an automatic side dock that would leave it less shows as a rail, the widest first and only as many as it takes, so an editor that needs two columns gets them. The address and the dock's mode do not change, and the dock opens again once the window closes, loses the front, or has room after all, such as when the browser widens. A dock the reader pinned open stays open, and a rail tab still slides its window out as usual; choosing a docked window brings it to the front, so its dock opens.
+
 ### Windows sized by their content
 
 A window is sized either by the reader or by its content, as a Win32 window has a sizing border or is a dialog that sizes itself to its template. Every window is sized by the reader unless its markup says otherwise. A tool laid out at its own size, such as a form, a settings page or a small game, marks its window `data-win-size="content"`:

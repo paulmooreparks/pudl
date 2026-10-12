@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.59.0
+
+This release implements PUDL specification 0.20.1. Update `pudl-windows.js`. Nothing changes for a window without the new attribute.
+
+- **Room to ask for (#16).** A window marked `data-win-room` with a CSS length, such as `61rem`, has that much width while it is in front: automatic shared side docks that would leave it less show as rails, the widest first, without changing the address or the docks' modes. A dock the reader pinned open stays open. This finishes issue #16, whose other parts came in 0.58.0, and replaces the host script that measured the window and pinned a dock to a rail, which left the rail in the address after the window closed.
+
 ## 0.58.0
 
 This release implements PUDL specification 0.19.1 and answers every open issue from BCN's front end (#12 to #21). Update `pudl.css`, `pudl-windows.js` and `pudl-windows.css`. Nothing changes for a page that uses none of the new attributes, except that shared dock addresses are shorter; addresses written before read the same.

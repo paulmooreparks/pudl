@@ -158,6 +158,35 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   const adopted = await page.evaluate(() => ({ menus: document.querySelectorAll('[data-dock-menu="pending"]').length, toggles: document.querySelectorAll('.win-dock-group[data-dock-edge="left"] .win-dock-toggle').length, groups: document.querySelectorAll('.win-dock-group').length }));
   check('an adopted strip gains its menu buttons and toggle', adopted.menus === 1 && adopted.toggles === 1, adopted);
 
+  /* #16: room to ask for. The document asks for 1000px; beside two docks
+     of 24% of a 1400px layer it would get 728px, so the widest automatic
+     side dock gives way, and one is enough. */
+  await page.setViewportSize({ width: 1400, height: 850 });
+  await page.route('**/samples/shared-docks.html*', async route => {
+    const response = await route.fetch();
+    await route.fulfill({ response, body: (await response.text()).replace('data-win="note" data-win-mode="maximized"', 'data-win="note" data-win-mode="maximized" data-win-room="1000px"') });
+  });
+  await ready(ROOT + '/samples/shared-docks.html');
+  await page.evaluate(() => pudlWindows.raise('note'));
+  const rails = () => page.evaluate(() => [...document.querySelectorAll('.win-dock-group[data-dock-rail]')].map(g => g.getAttribute('data-dock-edge')));
+  check('a window asking for room collapses one side dock to a rail', JSON.stringify(await rails()) === '["left"]', await rails());
+  check('the document has the room it asked for', (await win('note').boundingBox()).width >= 1000, await win('note').boundingBox());
+  check('the room is not written to the address', await page.evaluate(() => !/d\.left=rail/.test(location.search) && pudlWindows.state().docks.left.mode === 'auto'));
+  await page.locator('[data-dock-key="chats"]').click();
+  check('a rail tab still slides its window out', await win('chats').isVisible());
+  await page.evaluate(() => pudlWindows.raise('flows'));
+  check('the dock opens again once the window loses the front', JSON.stringify(await rails()) === '[]', await rails());
+  await page.evaluate(() => pudlWindows.raise('note'));
+  check('and gives way again when it comes back', JSON.stringify(await rails()) === '["left"]');
+  await page.evaluate(() => pudlWindows.dockMode('left', 'open'));
+  await page.evaluate(() => pudlWindows.raise('note'));
+  check('a dock pinned open stays open', JSON.stringify(await rails()) === '["right"]', await rails());
+  await page.evaluate(() => pudlWindows.dockMode('right', 'open'));
+  check('with both pinned, nothing gives way', JSON.stringify(await rails()) === '[]');
+  await page.evaluate(() => { pudlWindows.dockMode('left', 'auto'); pudlWindows.dockMode('right', 'auto'); pudlWindows.close('note'); });
+  check('closing the window gives the docks back', JSON.stringify(await rails()) === '[]');
+  await page.unroute('**/samples/shared-docks.html*');
+
   /* #19: the attention count's contrast, on every ground it sits on. */
   for (const theme of ['light', 'dark']) {
     const ratios = await page.evaluate(theme => {

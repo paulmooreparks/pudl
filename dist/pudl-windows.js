@@ -158,9 +158,60 @@
   /* A collapsed shared dock: an icon rail at a side, its tab strip alone at
      the top or bottom. Either slides a window out over the central area. */
   function railMode(st, edge) {
+    return baseRail(st, edge) || !!roomRails[edge];
+  }
+  function baseRail(st, edge) {
     var d = st.docks && st.docks[edge];
     var mode = d ? d.mode : 'auto';
     return !!st.min[edgeFront(st, edge)] || mode === 'rail' || (mode === 'auto' && autoCollapsed(edge));
+  }
+
+  /* Room to ask for (issue #16): a window marked data-win-room with a CSS
+     length, such as "61rem", asks for that much width while it is in
+     front. An automatic shared side dock that would leave it less shows
+     as a rail, the widest first, for as long as the window is in front.
+     Nothing is written to the address, and the dock is as it was once the
+     window closes, loses the front or has room. A dock the reader pinned
+     open stays open. */
+  var roomRails = {};
+
+  function lengthPx(value) {
+    if (!value || !layer) return 0;
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;height:0;width:' + value;
+    if (!probe.style.width) return 0;
+    layer.appendChild(probe);
+    var px = probe.getBoundingClientRect().width;
+    probe.remove();
+    return px;
+  }
+
+  function roomFor(st) {
+    var out = {};
+    var key = active(st), el = key && wins[key];
+    var room = el && lengthPx(el.getAttribute('data-win-room'));
+    if (!room) return out;
+    var p = effectivePlacement(st, key);
+    if (!p || dockEdge(p) || contentSized(key)) return out;
+    var z = zoneFilled(p), share = z ? z.w : p.w;
+    var W = layer.clientWidth, inner = W, candidates = [];
+    ['left', 'right'].forEach(function (edge) {
+      var front = edgeFront(st, edge);
+      if (!front) return;
+      var size = (st.place[front].s != null ? st.place[front].s : DOCK_SIZE) * W;
+      if (!sharedEdge(edge)) { inner -= st.min[front] ? pxMin('--win-head-docked', 30) + 1 : size; return; }
+      if (baseRail(st, edge)) { inner -= 40; return; }
+      var d = st.docks && st.docks[edge];
+      inner -= size;
+      if (!d || d.mode === 'auto') candidates.push({ edge: edge, size: size });
+    });
+    candidates.sort(function (a, b) { return b.size - a.size; });
+    while (share * inner < room && candidates.length) {
+      var c = candidates.shift();
+      out[c.edge] = true;
+      inner += c.size - 40;
+    }
+    return out;
   }
   function iconRail(st, edge) { return sideEdge(edge) && railMode(st, edge); }
   function dockRecord(st, edge) {
@@ -1159,6 +1210,7 @@
       }
     });
     normalizeDocks(st);
+    roomRails = roomFor(st);
     /* A window leaving the page says so first, however it was closed, so
        its content can tear down what it set up, and says why, so a project
        can tell a reader closing it from the address moving on. */
@@ -2827,7 +2879,7 @@
        it, and back when it widens again. */
     function refreshPolicy() {
       if (syncing || !state.open.length) return;
-      var stamp = String(narrowLayer()) + ':' + sharedEdges().map(autoCollapsed).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
+      var stamp = String(narrowLayer()) + ':' + sharedEdges().map(autoCollapsed).join(',') + ':' + Object.keys(roomFor(state)).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
       if (stamp === policyStamp) return;
       policyStamp = stamp;
       if (cancelGesture) cancelGesture();
@@ -2844,7 +2896,7 @@
     window.addEventListener('resize', refreshPolicy);
     if (window.ResizeObserver) new ResizeObserver(refreshPolicy).observe(layer);
     new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height'] });
+      attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height', 'data-win-room'] });
     new MutationObserver(function () {
       document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
       renderDockGroups();
