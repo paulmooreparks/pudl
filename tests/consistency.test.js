@@ -81,7 +81,7 @@ function check(name, ok, extra) {
     const probe = document.createElement('span'); document.body.append(probe);
     probe.style.color = 'var(--text)'; const text = getComputedStyle(probe).color;
     /* A badge's text is its status colour drawn toward the text colour, for contrast. */
-    probe.style.color = 'color-mix(in srgb, var(--positive) 62%, var(--text))'; const pos = getComputedStyle(probe).color;
+    probe.style.color = 'color-mix(in srgb, var(--positive) 50%, var(--text))'; const pos = getComputedStyle(probe).color;
     probe.remove();
     const kind = document.createElement('span'); kind.className = 'fc-kind'; document.body.append(kind);
     const legacySize = getComputedStyle(kind).fontSize; kind.remove();

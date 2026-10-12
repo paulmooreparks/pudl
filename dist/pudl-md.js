@@ -519,6 +519,54 @@
       sync(p);
     });
   }
+  /* The rows of a list, in a sidebar or standing on their own as a
+     .row-list, are one stop in the Tab order, on the current row or the
+     first, and take a tree's keys: Down and Up move among them, Home and
+     End to the ends, and Enter follows the row, which a link does by
+     itself. Moving focus goes nowhere. */
+  function rowLists() {
+    var out = [];
+    document.querySelectorAll('.row-list, .md-sidebar').forEach(function (list) {
+      var items = Array.from(list.querySelectorAll('.md-row > .md-item')).filter(function (a) { return !a.closest('.menu-panel'); });
+      if (items.length) out.push({ list: list, items: items });
+    });
+    return out;
+  }
+  function stopRows() {
+    rowLists().forEach(function (l) {
+      var focused = l.items.indexOf(document.activeElement);
+      var current = l.items.filter(function (a) {
+        var c = a.getAttribute('aria-current') || (a.parentElement.getAttribute('aria-current'));
+        return (c && c !== 'false') || a.parentElement.classList.contains('active');
+      })[0];
+      var stop = focused >= 0 ? l.items[focused] : current || l.items[0];
+      l.items.forEach(function (a) { a.tabIndex = a === stop ? 0 : -1; });
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var a = e.target.closest && e.target.closest('.md-row > .md-item');
+    if (!a || a.closest('.menu-panel')) return;
+    var list = a.closest('.row-list, .md-sidebar');
+    if (!list) return;
+    var items = rowLists().filter(function (l) { return l.list === list; })[0];
+    if (!items) return;
+    var i = items.items.indexOf(a), next;
+    if (e.key === 'ArrowDown') next = items.items[Math.min(i + 1, items.items.length - 1)];
+    else if (e.key === 'ArrowUp') next = items.items[Math.max(i - 1, 0)];
+    else if (e.key === 'Home') next = items.items[0];
+    else if (e.key === 'End') next = items.items[items.items.length - 1];
+    else return;
+    e.preventDefault();
+    items.items.forEach(function (x) { x.tabIndex = x === next ? 0 : -1; });
+    next.focus();
+  });
+  document.addEventListener('focusout', function (e) {
+    var a = e.target.closest && e.target.closest('.md-row > .md-item');
+    if (a && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.row-list, .md-sidebar') === a.closest('.row-list, .md-sidebar'))) stopRows();
+  });
+  new MutationObserver(stopRows).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current', 'class'] });
+
   window.pudlMd = {
     refresh: refresh,
     state: function (el) { var p = record(el); return p ? state(p) : null; },
@@ -535,5 +583,5 @@
     attributeFilter: ['data-md-persistent', 'data-md-pane', 'data-md-collapsed', 'data-md-min', 'data-md-max', 'data-md-side', 'data-md-peek', 'dir', 'style'] });
   document.addEventListener('pudl:regions-swap', refresh);
   window.addEventListener('resize', refresh);
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh); else refresh();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { refresh(); stopRows(); }); else { refresh(); stopRows(); }
 })();

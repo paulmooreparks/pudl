@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.60.0
+
+This release implements PUDL specification 0.21.0, from an application's proposal on the controls its Flow window built for itself (`docs/proposals/flow-ui-controls.md`). Update `pudl.css`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-disclose.js`, `pudl-zoom.js` and `pudl-rows.js` where their components are used. Window buttons change size with no change of markup; a page that set `--win-button-size` or `--win-glyph-size` keeps what it set.
+
+- **Disclosure cards.** `.card.disclosure` opens and closes by a raised `.card-toggle` at the start of its head, drawn as a tree's toggle, the only pressable part of a flat head; a `.card-summary` shows while closed, the `.card-body` and `.card-actions` while open. `pudl-disclose.js` reads `aria-expanded` and fires `pudl:disclose`.
+- **Zoom.** `.zoom` is Zoom Out, the scale, Zoom In and Fit above a `.zoom-viewport`; `pudl-zoom.js` scales the picture, keeps the middle in place, holds the limits, answers Ctrl with Plus, Minus, 0 and the wheel in the viewport, and fires `pudl:zoom`.
+- **Row editors.** `table.row-editor` with flat headings, a remove glyph button at each row's end, a spanning second line and an Add button, stacking at 480px of its own width; `pudl-rows.js` moves focus after Add and Remove and fires `pudl:row-remove` and `pudl:row-add`.
+- **A command on a label's line.** `.form-label-row` with a `.form-label-end` slot for small raised controls, wrapping under the label when narrow.
+- **Row lists.** `ul.row-list` of master-detail rows standing on their own, each a link; `pudl-md.js` gives every list of rows, the sidebar's included, one tab stop and Up, Down, Home and End.
+- **Window buttons sized to the title.** Buttons are 1.7 times the title's text and glyphs 0.85 times, 24px and 12px at the default size, 22px and 11px docked, growing with the text; the menu button's caret is drawn in a 1.2 times box so that it stands as tall as the title's letters rather than as a speck.
+- **Four glyphs**: `--glyph-plus`, `--glyph-minus`, `--glyph-arrow-up` and `--glyph-arrow-down`.
+- **Badge contrast.** A badge's words are drawn at 50% of their status colour toward the text colour, where 62% left a badge on a current row's `surface-alt` at 4.42:1 in the light theme; every ground a badge sits on now passes 4.5:1.
+
 ## 0.59.0
 
 This release implements PUDL specification 0.20.1. Update `pudl-windows.js`. Nothing changes for a window without the new attribute.

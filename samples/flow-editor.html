@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flow Editor</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-tabs.js" defer></script>
+  <script src="../dist/pudl-md.js" defer></script>
+  <script src="../dist/pudl-disclose.js" defer></script>
+  <script src="../dist/pudl-zoom.js" defer></script>
+  <script src="../dist/pudl-rows.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar, .win-dock { flex: none; }
+    .win-host { flex: 1; min-height: 0; }
+    .win-dock { min-height: 42px; box-sizing: border-box; }
+    .steps { list-style: none; margin: 0; padding: 0; }
+    .flow-pane { display: flex; flex-direction: column; gap: var(--space-3); min-height: 0; }
+    .flow-pane > .zoom-viewport { flex: 1; min-height: 160px; }
+  </style>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="../reference.html#editing">PUDL Flow Editor</a><div class="topbar-chrome"><button type="button" class="theme-toggle" aria-label="Toggle Theme" title="Toggle Theme"></button></div></header>
+  <main class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="flow,chart,runs" data-win-dock-tabs="all" data-win-menu data-win-params="run">
+
+      <section class="win" data-win="flow" data-win-mode="maximized" data-win-glyph="branch">
+        <header class="win-head"><h2 class="win-title">Flow: Reply to a customer</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body">
+          <div class="tabs">
+            <div class="tablist" role="tablist" aria-label="Flow">
+              <button type="button" role="tab" id="tab-steps" aria-selected="true" aria-controls="panel-steps">Steps</button>
+              <button type="button" role="tab" id="tab-inputs" aria-selected="false" aria-controls="panel-inputs">Inputs and Outputs</button>
+            </div>
+            <div role="tabpanel" id="panel-steps" aria-labelledby="tab-steps">
+              <ol class="steps vstack gap-3">
+                <li class="card disclosure">
+                  <div class="card-head">
+                    <button type="button" class="card-toggle" aria-expanded="true"></button>
+                    <h3 class="card-title">1. Research the account</h3>
+                    <span class="chip">Agent</span>
+                    <span class="card-summary">/research-account {{inputs.account}}</span>
+                  </div>
+                  <div class="card-body vstack gap-3">
+                    <div class="auto-grid">
+                      <div class="form-group"><label class="form-label" for="s1-title">Title</label><input class="form-input" id="s1-title" value="Research the account"></div>
+                      <div class="form-group"><label class="form-label" for="s1-kind">Kind of Step</label><span class="form-select-wrap"><select class="form-select" id="s1-kind"><option>Agent</option><option>Ask</option><option>Check</option><option>Flow</option></select></span></div>
+                    </div>
+                    <div class="form-group">
+                      <div class="form-label-row">
+                        <label class="form-label" for="s1-text">Text</label>
+                        <div class="form-label-end">
+                          <div class="menu"><button type="button" class="btn btn-sm menu-btn" popovertarget="s1-answers">Insert an Answer</button>
+                            <div class="menu-panel" id="s1-answers" popover>
+                              <button type="button" class="menu-action" data-insert="{{inputs.account}}">Input: account</button>
+                              <button type="button" class="menu-action" data-insert="{{inputs.region}}">Input: region</button>
+                            </div></div>
+                        </div>
+                      </div>
+                      <textarea class="form-textarea" id="s1-text" rows="3">/research-account {{inputs.account}}</textarea>
+                    </div>
+                    <h4 class="card-subtitle" style="margin: 0">Named exits</h4>
+                    <div class="row-editor-wrap" data-rows="exit">
+                      <table class="row-editor" aria-label="Named exits of step 1">
+                        <thead><tr><th scope="col">Label</th><th scope="col">Next Step</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+                        <tbody>
+                          <tr>
+                            <td data-label="Label"><input class="form-input" aria-label="Label of exit 1" value="found"></td>
+                            <td data-label="Next Step"><span class="form-select-wrap"><select class="form-select" aria-label="Next step of exit 1"><option>2. Draft the reply</option><option>3. Review</option></select></span></td>
+                            <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove exit 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                          </tr>
+                          <tr>
+                            <td data-label="Label"><input class="form-input" aria-label="Label of exit 2" value="not found"></td>
+                            <td data-label="Next Step"><span class="form-select-wrap"><select class="form-select" aria-label="Next step of exit 2"><option>3. Review</option><option>2. Draft the reply</option></select></span></td>
+                            <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove exit 2"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <button type="button" class="btn btn-sm row-editor-add" data-row-add><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span> Add an Exit</button>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <button type="button" class="icon-btn" aria-label="Move Up" title="Move Up"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span></button>
+                    <button type="button" class="icon-btn" aria-label="Move Down" title="Move Down"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-sm">Add a Step After</button>
+                    <button type="button" class="btn btn-sm btn-danger">Delete</button>
+                  </div>
+                </li>
+                <li class="card disclosure">
+                  <div class="card-head">
+                    <button type="button" class="card-toggle" aria-expanded="false"></button>
+                    <h3 class="card-title">2. Draft the reply</h3>
+                    <span class="chip">Agent</span>
+                    <span class="card-summary">Write a reply to the customer using the research.</span>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-group"><label class="form-label" for="s2-text">Text</label><textarea class="form-textarea" id="s2-text" rows="3">Write a reply to the customer using the research.</textarea></div>
+                  </div>
+                  <div class="card-actions">
+                    <button type="button" class="icon-btn" aria-label="Move Up" title="Move Up"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span></button>
+                    <button type="button" class="icon-btn" aria-label="Move Down" title="Move Down"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-sm">Add a Step After</button>
+                    <button type="button" class="btn btn-sm btn-danger">Delete</button>
+                  </div>
+                </li>
+                <li class="card disclosure">
+                  <div class="card-head">
+                    <button type="button" class="card-toggle" aria-expanded="false"></button>
+                    <h3 class="card-title">3. Review</h3>
+                    <span class="chip">Ask</span>
+                    <span class="card-summary">Approve the reply?, Changes wanted</span>
+                  </div>
+                  <div class="card-body">
+                    <div class="row-editor-wrap" data-rows="question">
+                      <table class="row-editor" aria-label="Questions of step 3">
+                        <thead><tr><th scope="col">Question</th><th scope="col">Type</th><th scope="col">Optional</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+                        <tbody>
+                          <tr>
+                            <td data-label="Question"><input class="form-input" aria-label="Question 1" value="Approve the reply?"></td>
+                            <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of question 1"><option>Yes or no</option><option>Text</option></select></span></td>
+                            <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Question 1 is optional"> Optional</label></td>
+                            <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove question 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                          </tr>
+                          <tr>
+                            <td data-label="Question"><input class="form-input" aria-label="Question 2" value="Changes wanted"></td>
+                            <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of question 2"><option>Text</option><option>Yes or no</option></select></span></td>
+                            <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Question 2 is optional" checked> Optional</label></td>
+                            <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove question 2"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <button type="button" class="btn btn-sm row-editor-add" data-row-add><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span> Add a Question</button>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <button type="button" class="icon-btn" aria-label="Move Up" title="Move Up"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span></button>
+                    <button type="button" class="icon-btn" aria-label="Move Down" title="Move Down"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-sm">Add a Step After</button>
+                    <button type="button" class="btn btn-sm btn-danger">Delete</button>
+                  </div>
+                </li>
+              </ol>
+            </div>
+            <div role="tabpanel" id="panel-inputs" aria-labelledby="tab-inputs" hidden>
+              <div class="vstack gap-4">
+                <div class="row-editor-wrap" data-rows="input">
+                  <table class="row-editor" aria-label="Inputs">
+                    <thead><tr><th scope="col">Name</th><th scope="col">Label</th><th scope="col">Type</th><th scope="col">Optional</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td data-label="Name"><input class="form-input" aria-label="Name of input 1" value="account"></td>
+                        <td data-label="Label"><input class="form-input" aria-label="Label of input 1" value="Customer account"></td>
+                        <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input 1"><option>text</option><option>number</option></select></span></td>
+                        <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input 1 is optional"> Optional</label></td>
+                        <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                      </tr>
+                      <tr>
+                        <td data-label="Name"><input class="form-input" aria-label="Name of input 2" value="region"></td>
+                        <td data-label="Label"><input class="form-input" aria-label="Label of input 2" value="Region"></td>
+                        <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input 2"><option>text</option><option>number</option></select></span></td>
+                        <td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input 2 is optional" checked> Optional</label></td>
+                        <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove input 2"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <button type="button" class="btn row-editor-add" data-row-add><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span> Add an Input</button>
+                </div>
+                <div class="row-editor-wrap" data-rows="output">
+                  <table class="row-editor" aria-label="Outputs">
+                    <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col" class="row-editor-remove"><span class="visually-hidden">Remove</span></th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td data-label="Name"><input class="form-input" aria-label="Name of output 1" value="reply"></td>
+                        <td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of output 1"><option>text</option><option>number</option></select></span></td>
+                        <td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove output 1"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>
+                      </tr>
+                      <tr class="row-editor-more"><td colspan="3" data-label="Value to return"><input class="form-input" aria-label="Value to return for output 1" value="{{steps.draft.text}}"></td></tr>
+                    </tbody>
+                  </table>
+                  <button type="button" class="btn row-editor-add" data-row-add><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span> Add an Output</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="win" data-win="chart" data-win-mode="dock-right" data-win-glyph="app" style="--win-dock-size: .34">
+        <header class="win-head"><h2 class="win-title">Chart</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body flow-pane">
+          <div class="zoom" role="group" aria-label="Chart zoom" data-zoom-for="flow-chart">
+            <button type="button" class="icon-btn" data-zoom="out" aria-label="Zoom Out" title="Zoom Out"><span class="glyph" style="--glyph: var(--glyph-minus)" aria-hidden="true"></span></button>
+            <output class="zoom-scale" aria-live="polite">100%</output>
+            <button type="button" class="icon-btn" data-zoom="in" aria-label="Zoom In" title="Zoom In"><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span></button>
+            <button type="button" class="btn btn-sm" data-zoom="fit" title="Fit the chart to the width">Fit</button>
+          </div>
+          <div class="zoom-viewport" id="flow-chart" aria-label="The flow as a chart">
+            <svg viewBox="0 0 520 720" width="520" height="720" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" font-size="22" font-family="system-ui, sans-serif">
+              <rect x="110" y="40" width="300" height="90" rx="10"/><text x="260" y="94" fill="currentColor" stroke="none" text-anchor="middle">1. Research the account</text>
+              <path d="M260 130v100"/><path d="M250 218l10 12 10-12"/>
+              <rect x="110" y="230" width="300" height="90" rx="10"/><text x="260" y="284" fill="currentColor" stroke="none" text-anchor="middle">2. Draft the reply</text>
+              <path d="M260 320v100"/><path d="M250 408l10 12 10-12"/>
+              <path d="M260 420l150 80-150 80-150-80z"/><text x="260" y="507" fill="currentColor" stroke="none" text-anchor="middle">3. Review</text>
+              <path d="M260 580v70"/><path d="M250 638l10 12 10-12"/>
+              <text x="260" y="690" fill="currentColor" stroke="none" text-anchor="middle">Reply sent</text>
+              <path d="M410 500h70v-230h-70"/><path d="M420 260l-10 10 10 10"/><text x="455" y="400" fill="currentColor" stroke="none" text-anchor="middle" font-size="16">changes</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="win" data-win="runs" data-win-mode="dock-bottom" data-win-glyph="inbox" data-win-attention="1" style="--win-dock-size: .28">
+        <header class="win-head"><h2 class="win-title">Runs</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+        <div class="win-body">
+          <ul class="row-list" aria-label="Runs of this flow" id="run-list">
+            <li class="md-row"><a class="md-item" href="?run.runs=3"><span class="badge warn">waiting</span> 13 Oct 2026, 11:02<span class="md-meta">at "3. Review", for your answer</span></a></li>
+            <li class="md-row"><a class="md-item" href="?run.runs=2"><span class="badge positive">done</span> 12 Oct 2026, 16:40<span class="md-meta">finished</span></a></li>
+            <li class="md-row"><a class="md-item" href="?run.runs=1"><span class="badge danger">failed</span> 12 Oct 2026, 10:14<span class="md-meta">at "1. Research the account"</span></a></li>
+          </ul>
+          <div id="run-view" hidden>
+            <p class="form-help" style="margin: var(--space-3) 0 0">Run <span id="run-id"></span> is open; its address is in the window's parameter, so the page can be shared with it open.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <nav class="win-dock" data-win-dock aria-label="Open Windows"></nav>
+  <script>
+    document.querySelectorAll('.win[data-win]').forEach(function (win) {
+      var template = document.createElement('template');
+      template.id = 'tpl-' + win.dataset.win;
+      template.content.appendChild(win.cloneNode(true));
+      document.body.appendChild(template);
+    });
+    /* Insert an Answer puts the chosen reference at the cursor of the text
+       it belongs to; the menu is the command, the text area the value. */
+    document.addEventListener('click', function (e) {
+      var row = e.target.closest('[data-insert]');
+      if (!row) return;
+      var group = row.closest('.form-group'), ta = group && group.querySelector('textarea');
+      if (!ta) return;
+      ta.setRangeText(row.getAttribute('data-insert'), ta.selectionStart, ta.selectionEnd, 'end');
+      ta.focus();
+    });
+    /* Add builds a row for the editor that asked; PUDL places it and moves
+       focus into it. */
+    var counts = {};
+    var ROWS = {
+      exit: function (n) { return '<td data-label="Label"><input class="form-input" aria-label="Label of exit ' + n + '"></td><td data-label="Next Step"><span class="form-select-wrap"><select class="form-select" aria-label="Next step of exit ' + n + '"><option>2. Draft the reply</option><option>3. Review</option></select></span></td>'; },
+      question: function (n) { return '<td data-label="Question"><input class="form-input" aria-label="Question ' + n + '"></td><td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of question ' + n + '"><option>Text</option><option>Yes or no</option></select></span></td><td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Question ' + n + ' is optional"> Optional</label></td>'; },
+      input: function (n) { return '<td data-label="Name"><input class="form-input" aria-label="Name of input ' + n + '"></td><td data-label="Label"><input class="form-input" aria-label="Label of input ' + n + '"></td><td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of input ' + n + '"><option>text</option><option>number</option></select></span></td><td data-label="Optional"><label class="check"><input type="checkbox" aria-label="Input ' + n + ' is optional"> Optional</label></td>'; },
+      output: function (n) { return '<td data-label="Name"><input class="form-input" aria-label="Name of output ' + n + '"></td><td data-label="Type"><span class="form-select-wrap"><select class="form-select" aria-label="Type of output ' + n + '"><option>text</option><option>number</option></select></span></td>'; }
+    };
+    document.addEventListener('pudl:row-add', function (e) {
+      var editor = e.target, kind = editor.getAttribute('data-rows');
+      if (!ROWS[kind]) return;
+      var n = counts[kind] = (counts[kind] || pudlRows.rows(editor).length) + 1;
+      var tr = document.createElement('tr');
+      tr.innerHTML = ROWS[kind](n) + '<td class="row-editor-remove"><button type="button" class="icon-btn danger" data-row-remove aria-label="Remove ' + kind + ' ' + n + '"><span class="glyph" style="--glyph: var(--glyph-close)" aria-hidden="true"></span></button></td>';
+      pudlRows.add(editor, tr);
+    });
+    /* A run's row is a link to its address; the page takes the link, shows
+       the run in the window and writes the address, and the row is current. */
+    function showRun(id) {
+      document.querySelectorAll('#run-list .md-item').forEach(function (a) {
+        if (a.getAttribute('href') === '?run.runs=' + id) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+      });
+      var view = document.getElementById('run-view');
+      view.hidden = !id;
+      if (id) document.getElementById('run-id').textContent = id;
+    }
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('#run-list .md-item');
+      if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      var id = new URL(a.href).searchParams.get('run.runs');
+      var q = new URLSearchParams(location.search); q.set('run.runs', id);
+      history.replaceState(history.state, '', location.pathname + '?' + q + location.hash);
+      showRun(id);
+    });
+    showRun(new URLSearchParams(location.search).get('run.runs'));
+    window.addEventListener('popstate', function () { showRun(new URLSearchParams(location.search).get('run.runs')); });
+  </script>
+</body>
+</html>

@@ -218,6 +218,55 @@
       "slots": [{ "selector": ".card", "name": "Content" }]
     },
     {
+      "id": "disclosure-card",
+      "name": "Disclosure card",
+      "kind": "flat",
+      "spec": "08-components/cards.md",
+      "requires": ["pudl-disclose.js"],
+      "template": "<section class=\"card disclosure\"><div class=\"card-head\"><button type=\"button\" class=\"card-toggle\" aria-expanded=\"false\"></button><h3 class=\"card-title\">Title</h3><span class=\"card-summary\">A line shown while closed.</span></div><div class=\"card-body\"><p>What the card holds.</p></div><div class=\"card-actions\"><button type=\"button\" class=\"btn btn-sm\">Action</button></div></section>",
+      "parts": [
+        { "selector": ".card", "surface": "flat" },
+        { "selector": ".card-toggle", "surface": "raised" }
+      ],
+      "slots": [{ "selector": ".card-body", "name": "Body" }, { "selector": ".card-actions", "name": "Actions" }]
+    },
+    {
+      "id": "row-editor",
+      "name": "Row editor",
+      "kind": "sunken",
+      "spec": "08-components/row-editor.md",
+      "requires": ["pudl-rows.js"],
+      "template": "<div class=\"row-editor-wrap\"><table class=\"row-editor\" aria-label=\"Items\"><thead><tr><th scope=\"col\">Name</th><th scope=\"col\" class=\"row-editor-remove\"><span class=\"visually-hidden\">Remove</span></th></tr></thead><tbody><tr><td data-label=\"Name\"><input class=\"form-input\" aria-label=\"Name of item 1\"></td><td class=\"row-editor-remove\"><button type=\"button\" class=\"icon-btn danger\" data-row-remove aria-label=\"Remove item 1\"><span class=\"glyph\" style=\"--glyph: var(--glyph-close)\" aria-hidden=\"true\"></span></button></td></tr></tbody></table><button type=\"button\" class=\"btn row-editor-add\" data-row-add><span class=\"glyph\" style=\"--glyph: var(--glyph-plus)\" aria-hidden=\"true\"></span> Add an Item</button></div>",
+      "parts": [
+        { "selector": ".row-editor td > .form-input", "surface": "sunken" },
+        { "selector": "[data-row-remove]", "surface": "raised" },
+        { "selector": ".row-editor-add", "surface": "raised" }
+      ]
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "kind": "raised",
+      "spec": "08-components/zoom.md",
+      "requires": ["pudl-zoom.js"],
+      "template": "<div class=\"zoom\" role=\"group\" aria-label=\"Zoom\"><button type=\"button\" class=\"icon-btn\" data-zoom=\"out\" aria-label=\"Zoom Out\"><span class=\"glyph\" style=\"--glyph: var(--glyph-minus)\" aria-hidden=\"true\"></span></button><output class=\"zoom-scale\" aria-live=\"polite\">100%</output><button type=\"button\" class=\"icon-btn\" data-zoom=\"in\" aria-label=\"Zoom In\"><span class=\"glyph\" style=\"--glyph: var(--glyph-plus)\" aria-hidden=\"true\"></span></button><button type=\"button\" class=\"btn btn-sm\" data-zoom=\"fit\">Fit</button></div><div class=\"zoom-viewport\" aria-label=\"Picture\" style=\"height: 240px\"><svg viewBox=\"0 0 800 400\" width=\"800\" height=\"400\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"20\" y=\"20\" width=\"760\" height=\"360\" rx=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"/></svg></div>",
+      "parts": [
+        { "selector": ".zoom .icon-btn", "surface": "raised" },
+        { "selector": ".zoom-scale", "surface": "flat" },
+        { "selector": ".zoom-viewport", "surface": "sunken" }
+      ],
+      "slots": [{ "selector": ".zoom-viewport", "name": "Picture" }]
+    },
+    {
+      "id": "row-list",
+      "name": "Row list",
+      "kind": "list",
+      "spec": "08-components/master-detail.md",
+      "requires": ["pudl-md.js"],
+      "template": "<ul class=\"row-list\" aria-label=\"Items\"><li class=\"md-row\"><a class=\"md-item\" href=\"?item=1\" aria-current=\"true\">First<span class=\"md-meta\">Yesterday</span></a></li><li class=\"md-row\"><a class=\"md-item\" href=\"?item=2\">Second<span class=\"md-meta\">Today</span></a></li></ul>",
+      "parts": [{ "selector": ".row-list .md-item", "surface": "list" }]
+    },
+    {
       "id": "stack",
       "name": "Stack",
       "kind": "layout",

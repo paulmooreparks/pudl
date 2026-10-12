@@ -142,6 +142,15 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.59.0/dist/pudl-menubar.js" defer
         integrity="sha384-ywqQkQid6jMaKnZUrHyQEmC4LP+vyggN2vBm9gzKF9DiLZzlNUwqFCVBFvYLTP5N"
         crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.59.0/dist/pudl-disclose.js" defer
+        integrity="sha384-DISCLOSE-PENDING"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.59.0/dist/pudl-zoom.js" defer
+        integrity="sha384-ZOOM-PENDING"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.59.0/dist/pudl-rows.js" defer
+        integrity="sha384-ROWS-PENDING"
+        crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.59.0/dist/pudl-tree.js" defer
         integrity="sha384-AdH7FeNFZ3jt9YKyB/5ih6sMZO5DYZgPf7B1/qC6q+aYaNsl2WKJYyagAffRqKe3"
         crossorigin="anonymous"></script>
@@ -750,6 +759,20 @@ The master-detail divider resizes a page's sidebar. A splitter does the same for
 
 The first pane's size is a custom property on the `.split`, `--split-a` unless the handle's `data-split-prop` names another, and the stylesheet does the layout; without one the panes share the space equally. A `.split.stacked` puts the panes one above the other. The handle is drawn as the divider is: flat, with the `grip` glyph at rest so that it can be found without hovering, and a rule that takes the accent while it is hovered, dragged or focused.
 
+### Disclosure cards, row editors, zoom and row lists
+
+Four components came from an application's Flow window in 0.60.0 (`docs/proposals/flow-ui-controls.md`), each replacing something an application had drawn for itself in a way the grammar does not allow.
+
+A **disclosure card** is `.card.disclosure` with a `.card-head` holding a `.card-toggle` button, the `.card-title`, any chips and a `.card-summary`, then a `.card-body` and an optional `.card-actions` foot. The toggle is drawn as a tree's toggle, and it is the only part of the head that can be pressed: a flat head that responds to a press is what the card replaces. The server writes `aria-expanded` on the toggle, and `pudl-disclose.js` hides the body and foot while it is false and the summary while it is true, sets `aria-controls`, names an unnamed toggle for the title, and fires `pudl:disclose` on the card with `detail.open`. `pudlDisclose.set(card, open)` opens or closes one from script. Without the script every part shows.
+
+A **row editor** is a `table.row-editor` in a `.row-editor-wrap`, with flat `th` headings, one field per `td` (each with `data-label` for the stacked layout and an `aria-label` that says its row, such as "Name of input 2"), a `td.row-editor-remove` holding an `.icon-btn.danger[data-row-remove]`, an optional `tr.row-editor-more` whose one cell spans the columns, and a `.btn.row-editor-add[data-row-add]` beneath, led by the `plus` glyph. At 480px of the editor's own width each row stacks its fields under their headings. `pudl-rows.js` answers Remove by firing `pudl:row-remove` on the row, cancelable with `detail.index`, then removing it and focusing the next row's first field, else the previous row's, else Add; Add fires `pudl:row-add` on the editor, and the host appends its row with `pudlRows.add(editor, row)`, which focuses it. A host that redraws from its model cancels the removal and calls `pudlRows.focusAfter(editor, index)`.
+
+A **zoom group** is `.zoom[role="group"]` with `[data-zoom="out"]` and `[data-zoom="in"]` glyph buttons carrying `minus` and `plus`, an `output.zoom-scale[aria-live="polite"]` and a `[data-zoom="fit"]` button, above a `.zoom-viewport` that `data-zoom-for` names by id, or that follows the group. `pudl-zoom.js` scales the viewport's first `svg` or `img` between `data-zoom-min` and `data-zoom-max` (5% and 800%) by `data-zoom-step` (1.25), keeping the viewport's middle in place, fits on load unless `data-zoom-scale` gives a scale, answers Ctrl with Plus, Minus, 0 and the wheel while the viewport has focus, and fires `pudl:zoom` with `detail.scale` and `detail.fit`. `pudlZoom.set`, `fit`, `state` and `refresh` work on a viewport from script.
+
+A **row list** is `ul.row-list` of `li.md-row > a.md-item` rows, the master-detail list's rows standing on their own, each a link to its thing's address, with `aria-current="true"` on the one that is open. `pudl-md.js` makes every list of rows, the sidebar's too, one tab stop with Up, Down, Home and End moving among them.
+
+A field's label line may end in a command: a `.form-label-row` holding the `.form-label` and a `.form-label-end` slot of small raised controls, such as a `.menu-btn.btn-sm`. The command wraps under the label when the line is too narrow. A select is never used for this, since it is an input and holds no value.
+
 With the optional `pudl-split.js`, the handle moves by pointer and by keyboard. It is a focusable separator in the ARIA window-splitter pattern. The arrow keys along its axis move it a step, and with Shift a larger one; Home and End go to its limits; Enter or a double-click returns the stylesheet's size. Its limits are `data-split-min` in pixels, 80 unless it says otherwise, and `data-split-max` in pixels or as a percentage of the split, by default all but the minimum, so the second pane never vanishes. They follow the split's own size, whatever changes it. PUDL keeps no state: when a change ends, `pudl:split` fires on the handle with `detail.size` in pixels, or null after a return to the stylesheet's size, and a project that wants the size remembered stores it and renders it in the `style` next time. `data-split-valuetext` gives the handle's spoken size in the page's words, with `{n}` for the pixels.
 
 ## Master-detail on a narrow screen
@@ -1201,6 +1224,9 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-hljs.css`, the optional stylesheet that colours highlight.js's classes from the syntax tokens
   - `pudl-code.js`, the optional script that gives code blocks Copy and Download
   - `pudl-split.js`, the optional script for splitters between two panes
+  - `pudl-disclose.js`, the optional script for cards that open and close
+  - `pudl-zoom.js`, the optional script that scales a picture in a viewport that scrolls
+  - `pudl-rows.js`, the optional script that keeps focus right in a row editor
   - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
   - `pudl-components.json`, the components described for tools, which `docs/COMPONENTS.md` explains; a page never loads it
   - `fonts/`, Inter script subsets and retained whole variable fonts, with its licence
