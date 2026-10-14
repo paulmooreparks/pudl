@@ -106,7 +106,10 @@ function check(name, ok, extra) {
     pudlWindows.open('plain');
   });
   await p.waitForSelector('.win[data-win="plain"]');
-  await p.waitForTimeout(200);
+  /* The bar follows the window in front a frame later, so this waits for
+     the bar to say so rather than sleeping a fixed time, which a busy
+     runner can outrun (GK Companion's pudl-menu-readiness.md). */
+  await p.waitForFunction(() => { const g = document.querySelector('.menubar-front'); return g && g.offsetParent && g.getAttribute('aria-label') === 'Settings'; });
   const menu = await p.evaluate(() => { const g = document.querySelector('.menubar-front'); return g && [...g.querySelectorAll('.menubar-title')].map(t => t.textContent.trim()); });
   check('a window whose content offers no menu gets one title, its own', JSON.stringify(menu) === '["Settings"]', JSON.stringify(menu));
   await p.click('.menubar-front .menubar-title');

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.61.0
+
+This release implements PUDL specification 0.22.0 and takes GK Companion's second batch of proposals, nine of them, designed in `docs/proposals/gk-batch-2.md`. Update `pudl.css`, `pudl-menubar.js`, `pudl-windows.js`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-toolbar.js` where a toolbar is used. One behaviour changes for every menu bar: a letter typed in an open panel now runs the row that has it rather than moving to the next row that starts with it, as desktop menus do.
+
+- **Letters in the menu bar.** Every title and row has a letter, declared with `data-mnemonic` or `mnemonic` or assigned by a rule, underlined while it can be typed and announced with `aria-keyshortcuts`. A letter opens its title from the bar and runs its row in a panel, cycling among rows that share it, on every platform.
+- **A desktop host.** `data-menubar-host="desktop"` lets commands claim `Mod+N`, `Mod+T` and `Mod+W`, and gives the bar Alt alone and F10 to reach it and the platform's access-key modifier with a letter, Alt or Ctrl+Option on a Mac, to open a title from anywhere. Paul asked that macOS, Linux and Windows be served alike; only F10 is withheld on a Mac, where the system keeps it.
+- **Function keys from a field.** F1 to F12, alone or with Shift, are dispatched from a text field as chords are, unless the field keeps the key.
+- **More of a markup row.** `data-menu-danger`, `data-menu-glyph`, `data-menu-detail` and `data-menu-reason`, and `data-menu-radio` on a list; applets' items take `glyph`, `detail` and `reason` too.
+- **A listing of keys.** `pudlMenubar.shortcuts()`, and a warning for a key bound to two rows of one source.
+- **Toolbars.** `.toolbar` and `.toolbar-group`, the pressed look for `.icon-btn[aria-pressed="true"]`, and `pudl-toolbar.js` for the tab stop and the arrow keys.
+- **A window's detail.** `data-win-detail` and `retitle(key, title, detail)`, drawn after the title in the title bar, the tabs and the window lists, giving way before the title; `pudlWindows.detailOf(key)` and `pudlWindows.openMenu(key)`.
+- **Sixteen glyphs**: `board`, `ticket`, `pencil-off`, `new-window`, `bold`, `italic`, `underline`, `strike`, `code`, `list`, `list-numbered`, `quote`, `table`, `panel`, `colour` and `paragraph`.
+- **Menu readiness.** The B6 check in the YAVCHN patterns suite now waits for the bar to name the window in front rather than sleeping, which is what a loaded runner can outrun; six WebKit runs alone found no fault in the script. A close whose toggle event arrives after the panel was reopened by a key no longer undoes the reopening.
+
 ## 0.60.0
 
 This release implements PUDL specification 0.21.0, from GK Companion's proposal on the controls its Flow window built for itself (`docs/proposals/flow-ui-controls.md`). Update `pudl.css`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-disclose.js`, `pudl-zoom.js` and `pudl-rows.js` where their components are used. Window buttons change size with no change of markup; a page that set `--win-button-size` or `--win-glyph-size` keeps what it set.

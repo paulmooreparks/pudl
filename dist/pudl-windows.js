@@ -306,12 +306,14 @@
     progress = isFinite(progress) && progress >= 0 && progress <= 100 ? Math.round(progress) : null;
     var icon = node.querySelector('.win-item-glyph');
     if (!icon) {
-      node.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span><span class="win-item-progress" aria-hidden="true"></span>';
+      node.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-item-detail" hidden></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span><span class="win-item-progress" aria-hidden="true"></span>';
       icon = node.firstChild;
     }
     icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
     icon.hidden = !win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key');
     node.querySelector('.win-item-title').textContent = titleOf(key);
+    var detail = node.querySelector('.win-item-detail');
+    if (detail) { detail.textContent = detailOf(key); detail.hidden = !detailOf(key); }
     var badge = node.querySelector('.win-item-attention');
     badge.hidden = !count;
     badge.textContent = count ? String(count) : '';
@@ -319,7 +321,7 @@
     var meter = node.querySelector('.win-item-progress');
     meter.hidden = progress === null;
     meter.textContent = progress === null ? '' : progress + '%';
-    var label = titleOf(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (running ? ', ' + text('running', 'running') : '') + (progress === null ? '' : ', ' + progress + '%');
+    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (running ? ', ' + text('running', 'running') : '') + (progress === null ? '' : ', ' + progress + '%');
     node.setAttribute('aria-label', label);
     node.title = label;
   }
@@ -1190,6 +1192,24 @@
     return t ? t.textContent.trim() : key;
   }
 
+  /* A window's detail, the second part of its title (GK Companion's
+     pudl-window-title-detail.md): data-win-detail on the window, which
+     retitle's third argument sets. It is drawn after the title, in the
+     title bar, the tabs and the menus, after the separator the layer's
+     data-win-text-title-sep gives, " · " unless it says otherwise. The
+     title alone is what titleOf and the heading say. */
+  function detailOf(key) { return (wins[key] && wins[key].getAttribute('data-win-detail') || '').trim(); }
+  function titleSep() { return text('title-sep', ' · '); }
+  function fullTitle(key) { var d = detailOf(key); return titleOf(key) + (d ? titleSep() + d : ''); }
+  function drawDetail(key) {
+    var el = wins[key], head = el && el.querySelector('.win-head'), t = head && head.querySelector('.win-title');
+    if (!t) return;
+    var d = detailOf(key), span = head.querySelector(':scope > .win-title-detail');
+    if (d && !span) { span = document.createElement('span'); span.className = 'win-title-detail'; t.after(span); }
+    if (span) { span.textContent = d; span.hidden = !d; }
+    if (layer) layer.style.setProperty('--win-title-sep', JSON.stringify(titleSep()));
+  }
+
   /* A window sized by its content, data-win-size="content", has nothing to
      fill, so it always floats: an address or a script that asks for it
      maximised, snapped or docked leaves it floating where it is. */
@@ -1356,7 +1376,7 @@
         a.setAttribute('data-win-tab', k);
         if (k === topRoot) a.setAttribute('aria-current', 'true');
         windowMark(a, k);
-        a.title = state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(titleOf(k)) : titleOf(k);
+        a.title = state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(fullTitle(k)) : fullTitle(k);
         dock.appendChild(a);
       });
     });
@@ -1391,7 +1411,7 @@
         a.href = urlFor(raised(state, c));
         a.setAttribute('data-win-tab', c);
         if (c === front) a.setAttribute('aria-current', 'true');
-        a.textContent = titleOf(c);
+        a.textContent = fullTitle(c);
         child.appendChild(a);
         after.after(child);
         after = child;
@@ -1522,10 +1542,14 @@
 
   /* Gives a window a new title, which the title bar's spoken name, its
      dock tab and its list row follow at once. */
-  function retitle(key, title) {
+  function retitle(key, title, detail) {
     var t = wins[key] && wins[key].querySelector('.win-title');
     if (!t) return;
     t.textContent = String(title);
+    if (detail !== undefined) {
+      if (detail) wins[key].setAttribute('data-win-detail', String(detail)); else wins[key].removeAttribute('data-win-detail');
+    }
+    drawDetail(key);
     labelHead(key);
     renderDocks();
     renderDockGroups();
@@ -1586,7 +1610,7 @@
       else win.removeAttribute(a);
     });
     var title = whole && fresh.querySelector('.win-title');
-    if (title && title.textContent !== titleOf(key)) retitle(key, title.textContent.trim());
+    if (title && (title.textContent.trim() !== titleOf(key) || (fresh.getAttribute('data-win-detail') || '') !== detailOf(key))) retitle(key, title.textContent.trim(), fresh.getAttribute('data-win-detail') || '');
     delete lastFocus[key];
     if (body.contains(active) || active === body || !active || active === document.body) {
       var same = (id && nextBody.querySelector('#' + CSS.escape(id))) ||
@@ -1717,6 +1741,7 @@
 
     var title = el.querySelector('.win-title');
     if (title && !title.id) title.id = 'win-' + key + '-title';
+    drawDetail(key);
     if (!el.hasAttribute('role')) el.setAttribute('role', 'dialog');
     if (title && !el.hasAttribute('aria-labelledby')) el.setAttribute('aria-labelledby', title.id);
 
@@ -1816,7 +1841,9 @@
     if (!win || !win.isConnected) return [];
     var p = effectivePlacement(state, key), dock = dockEdge(p), sized = contentSized(key), fixed = restricted(key), list = [];
     function command(id, label, cmd, extra) {
-      return Object.assign({ id: id, label: label, run: function () {
+      /* The letter a menu bar gives the command, from the text table:
+         data-win-text-<id>-mnemonic, beside its label. */
+      return Object.assign({ id: id, label: label, mnemonic: text(id + '-mnemonic', '') || undefined, run: function () {
         if (wins[key] !== win || !win.isConnected) return;
         var available = menuCommands(key);
         function contains(items) { return items.some(function (c) { return !c.disabled && (c.id === id || (c.items && contains(c.items))); }); }
@@ -1834,7 +1861,7 @@
       var floating = p.mode === 'floating';
       list.push(command(floating ? 'maximize' : 'restore', floating ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
       var now = zoneFilled(p), here = now ? sixths(now) : '';
-      list.push({ id: 'snap', label: text('snap', 'Snap to a zone'), items: Object.keys(ZONE_WORDS).map(function (name) {
+      list.push({ id: 'snap', label: text('snap', 'Snap to a zone'), mnemonic: text('snap-mnemonic', '') || undefined, items: Object.keys(ZONE_WORDS).map(function (name) {
         return command('snap:' + name, text('zone-' + name, ZONE_WORDS[name]), 'snap:' + name, { checked: here === ZONES[name].join(',') });
       }) });
     }
@@ -1845,7 +1872,7 @@
         return command('dock:' + edge, text('dock-' + edge, DOCK_WORDS[edge]), 'dock:' + edge, { checked: dock === edge });
       });
       if (dock && !dockOnly(key)) edges.push('-', command('undock', text('undock', 'Undock'), 'undock'));
-      list.push({ id: 'dock', label: text('dock-menu', 'Dock'), items: edges });
+      list.push({ id: 'dock', label: text('dock-menu', 'Dock'), mnemonic: text('dock-mnemonic', '') || undefined, items: edges });
     }
     if (!fixed && !dockOnly(key)) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
     if (!requiredWindow(key)) list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
@@ -2945,6 +2972,8 @@
         commit(snapped(state, key, zone), false);
       },
       retitle: retitle,
+      detailOf: detailOf,
+      openMenu: function (key) { if (wins[key]) openMenu(key); },
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
       close: function (key) { if (wins[key]) close(key, 'script'); },

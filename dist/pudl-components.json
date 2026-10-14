@@ -244,6 +244,16 @@
       ]
     },
     {
+      "id": "toolbar",
+      "name": "Toolbar",
+      "kind": "raised",
+      "spec": "08-components/toolbar.md",
+      "requires": ["pudl-toolbar.js"],
+      "template": "<div class=\"toolbar\" role=\"toolbar\" aria-label=\"Formatting\"><div class=\"toolbar-group\" role=\"group\" aria-label=\"Text\"><button type=\"button\" class=\"icon-btn\" aria-label=\"Bold\" aria-pressed=\"false\"><span class=\"glyph\" style=\"--glyph: var(--glyph-bold)\" aria-hidden=\"true\"></span></button><button type=\"button\" class=\"icon-btn\" aria-label=\"Italic\" aria-pressed=\"false\"><span class=\"glyph\" style=\"--glyph: var(--glyph-italic)\" aria-hidden=\"true\"></span></button></div><div class=\"toolbar-group\" role=\"group\" aria-label=\"Lists\"><button type=\"button\" class=\"icon-btn\" aria-label=\"Bulleted list\"><span class=\"glyph\" style=\"--glyph: var(--glyph-list)\" aria-hidden=\"true\"></span></button></div></div>",
+      "parts": [{ "selector": ".toolbar .icon-btn", "surface": "raised" }],
+      "slots": [{ "selector": ".toolbar", "name": "Groups" }]
+    },
+    {
       "id": "zoom",
       "name": "Zoom",
       "kind": "raised",
