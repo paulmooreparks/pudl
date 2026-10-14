@@ -585,7 +585,13 @@
     var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
     if (t.id) b.setAttribute('data-menu-id', t.id);
     if (t.content) t.content.forEach(function (n) { b.appendChild(n.cloneNode(true)); });
-    else lettered(b, t.label, t.letter);
+    else {
+      /* The words stay one child of the button, which lays its children
+         out as a row with a gap, so the letter's span splits nothing. */
+      var w = el('span', 'menubar-words');
+      lettered(w, t.label, t.letter);
+      b.appendChild(w);
+    }
     if (t.content) b.classList.add('menubar-brand');
     if (t.letter) {
       b.setAttribute('data-letter', t.letter);
