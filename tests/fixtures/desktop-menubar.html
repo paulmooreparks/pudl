@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desktop menu bar</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-applets.js" defer></script>
+  <script src="desktop-menubar.js" defer></script>
+  <script src="../../dist/pudl-menubar.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 520px; position: relative; } #editor-text { width: 100%; }</style>
+</head>
+<body>
+  <!-- A desktop application's bar, as an application's is: letters declared
+       on titles and rows, more of a markup row, a radio list, the browser's
+       keys taken, and windows with a detail beside the title. -->
+  <header class="topbar">
+    <nav class="menubar" data-menubar aria-label="an application" data-menubar-host="desktop" data-menubar-key="">
+      <ul data-menubar-source hidden>
+        <li data-mnemonic="g"><span class="logo-mark" aria-hidden="true">G</span> an application
+          <ul>
+            <li><button type="button" id="settings" data-mnemonic="s" data-menu-glyph="gear">Settings…</button></li>
+            <li><button type="button" id="quit" data-mnemonic="q" data-menu-danger>Quit the Companion</button></li>
+          </ul></li>
+        <li data-mnemonic="d">Documents
+          <ul>
+            <li><button type="button" id="new-doc" data-mnemonic="n" data-shortcut="Mod+N" disabled data-menu-reason="Open a workspace first">New Document…</button></li>
+            <li><button type="button" id="open-doc" data-mnemonic="o" data-shortcut="Mod+O" data-menu-detail="From this workspace">Open…</button></li>
+            <li><button type="button" id="close-doc" data-shortcut="Mod+W">Close</button></li>
+            <li><button type="button" id="save-doc">Save</button></li>
+            <li><button type="button" id="save-as" data-mnemonic="v">Save As…</button></li>
+            <li><button type="button" id="bad-letter" data-mnemonic="z">Export</button></li>
+            <li><button type="button" id="dup-letter" data-mnemonic="s">Send</button></li>
+            <li data-mnemonic="r">Recent
+              <ul>
+                <li><button type="button" id="recent-1">1. Plan 12 One-Pager</button></li>
+                <li><button type="button" id="recent-2">2. Decision log</button></li>
+              </ul></li>
+          </ul></li>
+        <li data-mnemonic="v">View
+          <ul data-menu-radio>
+            <li><button type="button" id="theme-light" aria-checked="true" data-mnemonic="l">Light</button></li>
+            <li><button type="button" id="theme-dark" aria-checked="false" data-mnemonic="d">Dark</button></li>
+            <li><button type="button" id="theme-system" aria-checked="false">Follow the System</button></li>
+          </ul></li>
+        <li data-mnemonic="h">Help
+          <ul>
+            <li><button type="button" id="help-keys" data-shortcut="F1" data-mnemonic="k">Keyboard Shortcuts</button></li>
+            <li><button type="button" id="help-about" data-shortcut="Shift+F1">About</button></li>
+            <li><button type="button" id="help-clash" data-shortcut="Alt+D">Clashes with Documents</button></li>
+            <li><button type="button" id="help-dup" data-shortcut="F1">Also F1</button></li>
+          </ul></li>
+        <li data-menubar-if="windows" data-menubar-windows data-mnemonic="w">Window<ul></ul></li>
+      </ul>
+      <a class="brand" href="#" id="fallback">an application</a>
+    </nav>
+    <div class="topbar-chrome"></div>
+  </header>
+  <div class="toolbar" role="toolbar" aria-label="Formatting" id="toolbar">
+    <div class="toolbar-group" role="group" aria-label="Text">
+      <button type="button" class="icon-btn" id="tb-bold" aria-label="Bold" aria-pressed="true"><span class="glyph" style="--glyph: var(--glyph-bold)" aria-hidden="true"></span></button>
+      <button type="button" class="icon-btn" id="tb-italic" aria-label="Italic" aria-pressed="false"><span class="glyph" style="--glyph: var(--glyph-italic)" aria-hidden="true"></span></button>
+      <button type="button" class="icon-btn" id="tb-under" aria-label="Underline" disabled><span class="glyph" style="--glyph: var(--glyph-underline)" aria-hidden="true"></span></button>
+      <button type="button" class="icon-btn" id="tb-strike" aria-label="Strikethrough"><span class="glyph" style="--glyph: var(--glyph-strike)" aria-hidden="true"></span></button>
+    </div>
+    <div class="toolbar-group" role="group" aria-label="Lists">
+      <button type="button" class="icon-btn" id="tb-list" aria-label="Bulleted list"><span class="glyph" style="--glyph: var(--glyph-list)" aria-hidden="true"></span></button>
+      <button type="button" class="icon-btn" id="tb-numbered" aria-label="Numbered list"><span class="glyph" style="--glyph: var(--glyph-list-numbered)" aria-hidden="true"></span></button>
+    </div>
+    <div class="toolbar-group" role="group" aria-label="Table">
+      <div class="menu"><button type="button" class="icon-btn menu-btn" id="tb-table" popovertarget="table-menu" aria-label="Table"><span class="glyph" style="--glyph: var(--glyph-table)" aria-hidden="true"></span></button>
+        <div class="menu-panel" id="table-menu" popover>
+          <button type="button" class="menu-action" id="tb-insert-table" aria-disabled="true">Insert a Table</button>
+          <button type="button" class="menu-action" id="tb-delete-table" aria-disabled="true">Delete the Table</button>
+        </div></div>
+    </div>
+  </div>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="editor,log" data-win-menu data-win-text-minimize-mnemonic="m" data-win-text-title-sep=" · ">
+      <section class="win" data-win="editor" data-win-detail="Customers" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.5; --win-h: 0.7">
+        <header class="win-head"><h2 class="win-title">Plan 12 One-Pager: Report Layout</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div data-applet="editor"></div></div>
+      </section>
+      <section class="win" data-win="log" style="--win-x: 0.55; --win-y: 0.1; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Log</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>A window with no detail.</p></div>
+      </section>
+    </div>
+  </div>
+  <nav class="win-dock" data-win-dock aria-label="Open Windows"></nav>
+</body>
+</html>

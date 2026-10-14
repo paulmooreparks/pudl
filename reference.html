@@ -23,6 +23,7 @@
   <script src="dist/pudl-disclose.js" defer></script>
   <script src="dist/pudl-zoom.js" defer></script>
   <script src="dist/pudl-rows.js" defer></script>
+  <script src="dist/pudl-toolbar.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -120,7 +121,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.60.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.61.0</a>
     </div>
   </header>
 
@@ -666,6 +667,7 @@
 
     <h3 class="ref-sub" id="menu-bar">Application menu bar</h3>
     <p>The <a href="docs/MENU-BARS.md">menu-bar conventions</a> define the site bar and applet bar. Standard site menus appear in the order <strong>Site name, Go, Applets, View, Window, Help</strong>, with unused menus omitted. Applets is a direct launcher beside Go. Each group begins with an identity menu; working commands have their own menus. A site may add a pins group between the two, a Pins menu marked by the pin glyph followed by a button for each pinned item, which give way together to an Items menu when they do not fit. The <a href="docs/MENU-BAR-ADOPTION.md">shared site adoption guide</a> applies these rules to Example and the reader application.</p>
+    <p>Since 0.61.0 every title and row has a letter, declared with <code>data-mnemonic</code> or assigned from its label, underlined while it can be typed: with focus on a title, a letter opens the title that has it, and in a panel a letter runs the row that has it. Press Alt+M to reach this page's bar and try it. An application with no browser around it marks its bar <code>data-menubar-host="desktop"</code>, which also gives it Alt alone and F10 to reach the bar, Alt with a title's letter (Ctrl+Option on a Mac) from anywhere, and the browser's Ctrl+N, T and W; a page in a browser leaves those to the browser. A markup row may also be dangerous, carry a glyph, show a detail line, or say why it is disabled, and <code>pudlMenubar.shortcuts()</code> lists every key bound.</p>
     <p>The menu bar at the top of this page is a working example. A bar holds at most two menu groups. The <strong>host menu</strong> belongs to the application and stays in place. The <strong>front menu</strong> belongs to the applet or article in front and appears to its right. Each menu is one raised group with a menu glyph at its start. Its titles share that raised surface, and the open title looks pressed. A title opens a panel of commands, which can include links, actions, checked or disabled commands, headings, separators and submenus.</p>
     <p>Try View to change the theme or open the Components submenu. Choose Window, then Open hotel expense to see a front menu appear for the hotel window. Its Receipt title opens the receipt through the same link used inside the window. Bringing another expense forward removes the hotel's menu, while the host menu stays available. Resize the page to see the bar become one menu button when it runs out of room. In that form, choosing a title or submenu replaces the panel's rows and adds a Back row.</p>
     <p>Load <code>pudl-menubar.js</code> after <code>pudl-menu.js</code>, and after <code>pudl-windows.js</code> and <code>pudl-applets.js</code> when those are used. The host supplies a hidden nested list inside <code>nav.menubar[data-menubar]</code>. Each top-level item supplies a title and its commands. Links keep their addresses, and choosing a button command clicks the source button so the application's handler runs. Keep ordinary navigation beside the source list for readers without script; PUDL hides that fallback when it builds the bar.</p>
@@ -731,7 +733,7 @@
     </div>
 
     <template id="win-demo-exp-12">
-      <section class="win" data-win="exp-12" data-win-mode="floating">
+      <section class="win" data-win="exp-12" data-win-mode="floating" data-win-detail="Manila, October">
         <header class="win-head">
           <h2 class="win-title">Hotel, Makati, three nights</h2>
           <nav class="win-chrome" aria-label="Window">
@@ -978,7 +980,56 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </ul>
     </div>
 
-    <h2>23. Invariants</h2>
+    <h2 id="toolbar">23. Toolbars</h2>
+    <p>A toolbar is a row of groups of raised controls, as a page editor's formatting toolbar is: glyph buttons, menu buttons and small buttons, each group set apart by a hairline, wrapping with groups whole when the row is narrow. It is one tab stop: Left and Right move along its enabled controls, Home and End to its ends. A control in the state the cursor is in carries <code>aria-pressed</code> and is drawn pressed in, and a menu button whose every row is disabled is disabled with them. <code>pudl-toolbar.js</code> keeps the tab stop and watches the rows. The twelve editing glyphs came with it.</p>
+    <div class="demo vstack gap-3">
+      <div class="toolbar" role="toolbar" aria-label="Formatting">
+        <div class="toolbar-group" role="group" aria-label="Paragraph">
+          <div class="menu"><button type="button" class="icon-btn menu-btn" popovertarget="ref-para" aria-label="Paragraph style"><span class="glyph" style="--glyph: var(--glyph-paragraph)" aria-hidden="true"></span></button>
+            <div class="menu-panel" id="ref-para" popover><button type="button" class="menu-action">Paragraph</button><button type="button" class="menu-action">Heading 1</button><button type="button" class="menu-action">Heading 2</button></div></div>
+        </div>
+        <div class="toolbar-group" role="group" aria-label="Text">
+          <button type="button" class="icon-btn" aria-label="Bold" aria-pressed="true"><span class="glyph" style="--glyph: var(--glyph-bold)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Italic" aria-pressed="false"><span class="glyph" style="--glyph: var(--glyph-italic)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Underline" aria-pressed="false"><span class="glyph" style="--glyph: var(--glyph-underline)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Strikethrough" aria-pressed="false"><span class="glyph" style="--glyph: var(--glyph-strike)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Code" aria-pressed="false"><span class="glyph" style="--glyph: var(--glyph-code)" aria-hidden="true"></span></button>
+        </div>
+        <div class="toolbar-group" role="group" aria-label="Lists">
+          <button type="button" class="icon-btn" aria-label="Bulleted list"><span class="glyph" style="--glyph: var(--glyph-list)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Numbered list"><span class="glyph" style="--glyph: var(--glyph-list-numbered)" aria-hidden="true"></span></button>
+          <button type="button" class="icon-btn" aria-label="Quote"><span class="glyph" style="--glyph: var(--glyph-quote)" aria-hidden="true"></span></button>
+        </div>
+        <div class="toolbar-group" role="group" aria-label="Insert">
+          <div class="menu"><button type="button" class="icon-btn menu-btn" popovertarget="ref-insert" aria-label="Insert a panel"><span class="glyph" style="--glyph: var(--glyph-panel)" aria-hidden="true"></span></button>
+            <div class="menu-panel" id="ref-insert" popover><button type="button" class="menu-action">Note</button><button type="button" class="menu-action">Warning</button></div></div>
+          <button type="button" class="icon-btn" aria-label="Link"><span class="glyph" style="--glyph: var(--glyph-link)" aria-hidden="true"></span></button>
+        </div>
+        <div class="toolbar-group" role="group" aria-label="Table">
+          <div class="menu"><button type="button" class="icon-btn menu-btn" popovertarget="ref-table" aria-label="Table"><span class="glyph" style="--glyph: var(--glyph-table)" aria-hidden="true"></span></button>
+            <div class="menu-panel" id="ref-table" popover><button type="button" class="menu-action">Insert a Table</button><button type="button" class="menu-action" aria-disabled="true">Delete the Table</button></div></div>
+          <button type="button" class="icon-btn" aria-label="Cell colour" disabled><span class="glyph" style="--glyph: var(--glyph-colour)" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <div class="demo-row">
+        <span class="glyph" style="--glyph: var(--glyph-board)" role="img" aria-label="Board"></span>
+        <span class="glyph" style="--glyph: var(--glyph-ticket)" role="img" aria-label="Ticket"></span>
+        <span class="glyph" style="--glyph: var(--glyph-pencil-off)" role="img" aria-label="Read-only"></span>
+        <span class="glyph" style="--glyph: var(--glyph-new-window)" role="img" aria-label="Open in a window"></span>
+        <span class="glyph" style="--glyph: var(--glyph-pencil)" role="img" aria-label="Edit"></span>
+        <span class="glyph" style="--glyph: var(--glyph-reload)" role="img" aria-label="Reload"></span>
+        <span class="glyph" style="--glyph: var(--glyph-flag)" role="img" aria-label="Flag"></span>
+        <span class="glyph" style="--glyph: var(--glyph-inbox)" role="img" aria-label="Inbox"></span>
+        <span class="glyph" style="--glyph: var(--glyph-shield)" role="img" aria-label="Shield"></span>
+        <span class="glyph" style="--glyph: var(--glyph-terminal)" role="img" aria-label="Terminal"></span>
+        <span class="glyph" style="--glyph: var(--glyph-plus)" role="img" aria-label="Add"></span>
+        <span class="glyph" style="--glyph: var(--glyph-minus)" role="img" aria-label="Take away"></span>
+        <span class="glyph" style="--glyph: var(--glyph-arrow-up)" role="img" aria-label="Move up"></span>
+        <span class="glyph" style="--glyph: var(--glyph-arrow-down)" role="img" aria-label="Move down"></span>
+      </div>
+    </div>
+
+    <h2>24. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>

@@ -62,9 +62,17 @@
 
   var MAC = /Mac|iPhone|iPad|iPod/.test(navigator.platform || '');
   /* Keys a page cannot have, or that every field needs: the browser's
-     window and tab keys, and the editing keys. */
-  var RESERVED = ['Mod+N', 'Mod+T', 'Mod+W', 'Mod+Q', 'Mod+Tab', 'Mod+Shift+N', 'Mod+Shift+T', 'Mod+Shift+W',
-                  'Mod+Shift+Q', 'Mod+Shift+Tab', 'Mod+A', 'Mod+C', 'Mod+X', 'Mod+V'];
+     window and tab keys, and the editing keys. A desktop host, which has
+     no browser around it, may take the browser's (an application's
+     desktop-host-host-keys.md); the rest stay reserved everywhere. */
+  var BROWSER_KEYS = ['Mod+N', 'Mod+T', 'Mod+W', 'Mod+Shift+N', 'Mod+Shift+T', 'Mod+Shift+W'];
+  var RESERVED = ['Mod+Q', 'Mod+Tab', 'Mod+Shift+Q', 'Mod+Shift+Tab', 'Mod+A', 'Mod+C', 'Mod+X', 'Mod+V'];
+  function desktop() { return !!bar && bar.getAttribute('data-menubar-host') === 'desktop'; }
+  /* The chord that opens a title by its letter from anywhere, under a
+     desktop host: the platform's access-key modifier, Alt on Windows and
+     Linux and Ctrl+Option on a Mac, which is what browsers give accesskey. */
+  function titleChord(letter) { return (MAC ? 'Ctrl+Alt+' : 'Alt+') + letter.toUpperCase(); }
+  var titleLetters = {};   // letter -> the title's label, for the bar as built
 
   var bar, source, pinsSource, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
   var menuScope = null;
@@ -102,19 +110,28 @@
      submenus, in order. */
   function readList(ul) {
     var out = [];
+    /* A list marked data-menu-radio holds rows of which one is on (an application's pudl-host-row-radio.md). */
+    var radio = ul.hasAttribute('data-menu-radio') ? 'markup-' + (++uid) : null;
     Array.prototype.forEach.call(ul.children, function (li) {
       if (li.tagName !== 'LI') return;
       var nested = li.querySelector(':scope > ul');
       var cmd = li.querySelector(':scope > a, :scope > button');
       var said = words(Array.prototype.filter.call(li.childNodes, function (n) { return n !== nested; }));
-      if (nested) out.push({ label: said, items: readList(nested) });
+      if (nested) out.push({ label: said, items: readList(nested), mnemonic: li.getAttribute('data-mnemonic') || undefined });
       else if (cmd) {
         var item = { label: words([cmd]), el: cmd };
         if (cmd.tagName === 'A') item.href = cmd.getAttribute('href');
         var on = cmd.getAttribute('aria-pressed') || cmd.getAttribute('aria-checked');
-        if (on === 'true' || on === 'false') item.checked = on === 'true';
+        if (on === 'true' || on === 'false') { item.checked = on === 'true'; if (radio && cmd.hasAttribute('aria-checked')) item.radio = radio; }
         if (cmd.disabled || cmd.getAttribute('aria-disabled') === 'true') item.disabled = true;
         if (cmd.hasAttribute('data-shortcut')) item.shortcut = cmd.getAttribute('data-shortcut');
+        /* More of a markup row (pudl-host-row-extras.md): dangerous, a
+           glyph, a second line, and why it is disabled. */
+        if (cmd.hasAttribute('data-menu-danger')) item.danger = true;
+        if (cmd.hasAttribute('data-menu-glyph')) item.glyph = cmd.getAttribute('data-menu-glyph');
+        if (cmd.hasAttribute('data-menu-detail')) item.detail = cmd.getAttribute('data-menu-detail');
+        if (cmd.hasAttribute('data-menu-reason')) item.reason = cmd.getAttribute('data-menu-reason');
+        if (cmd.hasAttribute('data-mnemonic')) item.mnemonic = cmd.getAttribute('data-mnemonic');
         out.push(item);
       } else if (said === '-') out.push('-');
       else if (said) out.push({ heading: said });
@@ -133,6 +150,7 @@
       titles.push({
         id: i === 0 ? 'site' : menuId(words(content), li.getAttribute('data-menubar-id')),
         generatedWindows: li.hasAttribute('data-menubar-windows'),
+        mnemonic: li.getAttribute('data-mnemonic') || undefined,
         label: words(content),
         content: i === 0 ? content : null,
         items: nested ? readList(nested) : []
@@ -207,7 +225,7 @@
     if (src.kind === 'applet') {
       var m = src.applet.menus ? src.applet.menus() : null;
       if (m && Array.isArray(m.titles) && m.titles.length) {
-        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || []) }; });
+        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || []), mnemonic: t.mnemonic ? String(t.mnemonic) : undefined }; });
         if (m.into) Object.keys(m.into).forEach(function (k) { into[k] = normal(m.into[k] || []); });
         name = titles[0].label;
       } else {
@@ -242,6 +260,10 @@
       if (c.checked != null) item.checked = !!c.checked;
       if (c.radio != null) item.radio = String(c.radio);
       if (c.shortcut) item.shortcut = String(c.shortcut);
+      if (c.mnemonic) item.mnemonic = String(c.mnemonic);
+      if (c.glyph) item.glyph = String(c.glyph);
+      if (c.detail) item.detail = String(c.detail);
+      if (c.reason) item.reason = String(c.reason);
       if (c.items) item.items = normal(c.items);
       if (!item.run && !item.items) return null;
       return item;
@@ -340,10 +362,73 @@
     }
     var all = [host, pinsMenu(), front].filter(Boolean);
     all.forEach(function (m) {
-      m.titles.forEach(function (t) { check(t.items, m.name); });
       m.titles = m.titles.filter(function (t, i) { return (i === 0 && m.kind !== 'front') || t.items.some(function (c) { return c && c.label; }); });
     });
-    return all.filter(function (m) { return m.titles.length; });
+    all = all.filter(function (m) { return m.titles.length; });
+    /* The titles' letters first, since a shortcut may not take one of
+       their chords; then each panel's rows, and its shortcuts. */
+    titleLetters = {};
+    var taken = {};
+    all.forEach(function (m) { m.titles.forEach(function (t) { t.letter = letterFor(t, taken, m.name + ': the title'); if (t.letter) titleLetters[t.letter] = t.label; }); });
+    bound = [];
+    all.forEach(function (m) {
+      var keys = {};
+      m.titles.forEach(function (t) { check(t.items, m.name); letters(t.items, m.name + ': ' + t.label); listKeys(t.items, m, t, keys); });
+    });
+    return all;
+  }
+
+  /* === Letters =========================================================== */
+
+  /* A title's or row's letter (an application's pudl-title-mnemonics.md): the
+     one it declares, if it is in the label and not already taken where it
+     stands, or else the first letter of its first word, then of a later
+     word, then any letter of the label, the first not taken; a label
+     beginning with a digit and a full stop takes the digit. taken is the
+     letters already given in that bar or panel. */
+  function letterFor(c, taken, who) {
+    var label = String(c.label || ''), lower = label.toLowerCase();
+    var declared = c.mnemonic ? String(c.mnemonic).toLowerCase().charAt(0) : '';
+    if (declared) {
+      if (lower.indexOf(declared) < 0) warn(who + ' "' + label + '" declares the letter "' + declared + '", which is not in its label, and gets another');
+      else if (taken[declared]) warn(who + ' "' + label + '" declares the letter "' + declared + '", which "' + taken[declared] + '" has already, and gets another');
+      else { taken[declared] = label; return declared; }
+    }
+    var digit = /^(\d)\./.exec(lower);
+    var candidates = digit ? [digit[1]] : [];
+    lower.split(/\s+/).forEach(function (w) { var ch = (w.match(/[a-z0-9]/) || [''])[0]; if (ch) candidates.push(ch); });
+    candidates = candidates.concat(lower.replace(/[^a-z0-9]/g, '').split(''));
+    for (var i = 0; i < candidates.length; i++) {
+      if (!taken[candidates[i]]) { taken[candidates[i]] = label; return candidates[i]; }
+    }
+    return '';
+  }
+
+  /* Each panel's rows get their letters; a submenu is a panel of its own. */
+  function letters(items, who) {
+    var taken = {};
+    items.forEach(function (c) {
+      if (!c || c === '-' || c.heading) return;
+      c.letter = letterFor(c, taken, who + ': the row');
+      if (c.items) letters(c.items, who + ' > ' + c.label);
+    });
+  }
+
+  /* === The listing of keys ================================================
+     Every key bound in the bar as built (pudl-shortcut-listing.md), and a
+     warning when two rows of one source bind the same key. A front row
+     with a host row's key is not a clash: the front's wins by the rule. */
+  var bound = [];
+  function listKeys(items, m, t, keys) {
+    items.forEach(function (c) {
+      if (!c || c === '-' || c.heading) return;
+      if (c.shortcut) {
+        if (keys[c.shortcut]) warn(m.name + ': ' + shown(c.shortcut) + ' is bound to both "' + keys[c.shortcut] + '" and "' + c.label + '"; the first wins');
+        else keys[c.shortcut] = c.label;
+        bound.push({ key: c.shortcut, shown: shown(c.shortcut), label: c.label, title: t.label, source: m.kind, disabled: !!c.disabled });
+      }
+      if (c.items) listKeys(c.items, m, t, keys);
+    });
   }
 
   function windowItems() {
@@ -367,7 +452,9 @@
       } }, '-', { heading: text('open-windows', 'Open windows') });
     windows.forEach(function (w, i) {
       var title = w.node.querySelector('.win-title');
-      result.push({ label: (i + 1) + '. ' + (title ? title.textContent.trim() : w.key), checked: w.key === st.top && !st.min[w.key], run: function () {
+      var detail = (w.node.getAttribute('data-win-detail') || '').trim();
+      var layer = document.querySelector('[data-win-layer]'), sep = (layer && layer.getAttribute('data-win-text-title-sep')) || ' · ';
+      result.push({ label: (i + 1) + '. ' + (title ? title.textContent.trim() : w.key) + (detail ? sep + detail : ''), checked: w.key === st.top && !st.min[w.key], run: function () {
         if (w.node.isConnected && document.querySelector('.win[data-win="' + CSS.escape(w.key) + '"]') === w.node) api.raise(w.key);
       } });
     });
@@ -384,7 +471,10 @@
       seen[c.label] = true;
       if (c.shortcut) {
         var k = combo(c.shortcut);
-        if (!k || RESERVED.indexOf(k) >= 0) { warn(who + ': ' + c.shortcut + ' on "' + c.label + '" is a key a page may not take, and the command keeps no shortcut'); delete c.shortcut; }
+        if (!k || RESERVED.indexOf(k) >= 0 || (!desktop() && BROWSER_KEYS.indexOf(k) >= 0)) { warn(who + ': ' + c.shortcut + ' on "' + c.label + '" is a key a page may not take, and the command keeps no shortcut'); delete c.shortcut; }
+        else if (desktop() && /^(Ctrl\+)?Alt\+[A-Z0-9]$/.test(k) && k === titleChord(k.slice(-1)) && titleLetters[k.slice(-1).toLowerCase()]) {
+          warn(who + ': ' + c.shortcut + ' on "' + c.label + '" is the letter that opens the title "' + titleLetters[k.slice(-1).toLowerCase()] + '", and the command keeps no shortcut'); delete c.shortcut;
+        }
         else c.shortcut = k;
       }
       if (c.items) check(c.items, who);
@@ -456,7 +546,9 @@
     if (e.defaultPrevented || e.isComposing || !bar || !built) return;
     if (/^(Control|Shift|Alt|Meta)$/.test(e.key)) return;
     var k = comboOf(e);
-    var plain = k.indexOf('+') < 0 || /^Shift\+.$/.test(k);
+    /* A key with no modifier is a field's while one has focus, except a
+       function key, which types nothing (pudl-function-keys-as-chords.md). */
+    var plain = (k.indexOf('+') < 0 || /^Shift\+.$/.test(k)) && !/^(Shift\+)?F([1-9]|1[0-2])$/.test(k);
     if (plain && editable(document.activeElement)) return;
     if (!sameSource(frontSrc, findFront())) render();
     var all = assemble();
@@ -492,10 +584,26 @@
     var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
     if (t.id) b.setAttribute('data-menu-id', t.id);
     if (t.content) t.content.forEach(function (n) { b.appendChild(n.cloneNode(true)); });
-    else b.textContent = t.label;
+    else lettered(b, t.label, t.letter);
     if (t.content) b.classList.add('menubar-brand');
+    if (t.letter) {
+      b.setAttribute('data-letter', t.letter);
+      if (desktop()) b.setAttribute('aria-keyshortcuts', ariaKeys(titleChord(t.letter)));
+    }
     b._menu = { menu: m, title: t };
     return b;
+  }
+
+  /* Words with their letter wrapped, so the stylesheet can underline it. */
+  function lettered(node, label, letter) {
+    node.textContent = '';
+    var i = letter ? label.toLowerCase().indexOf(letter) : -1;
+    if (i < 0) { node.textContent = label; return; }
+    node.appendChild(document.createTextNode(label.slice(0, i)));
+    var u = el('span', 'mnemonic');
+    u.textContent = label.charAt(i);
+    node.appendChild(u);
+    node.appendChild(document.createTextNode(label.slice(i + 1)));
   }
 
   /* A pin in the bar: a link to the item, with the host's icon and words. */
@@ -602,7 +710,9 @@
     if (panel) return;
     panel = el('div', 'menu-panel menubar-panel', { popover: '', role: 'menu', id: 'menubar-panel' });
     panel.addEventListener('toggle', function (e) {
-      if (e.newState === 'closed' && openTitle) {
+      /* A close whose event arrives after the panel was opened again, by
+         a key pressed within the same tick, must not undo the reopening. */
+      if (e.newState === 'closed' && openTitle && !panel.matches(':popover-open')) {
         associate(openTitle, false);
         openTitle = null;
         soon();
@@ -628,10 +738,25 @@
       var icon = el('span', 'menubar-icon', { 'aria-hidden': 'true' });
       c.icon.forEach(function (n) { icon.appendChild(n.cloneNode(true)); });
       r.appendChild(icon);
+    } else if (c.glyph && /^[a-z][a-z0-9-]*$/.test(c.glyph)) {
+      var g = el('span', 'glyph menubar-icon', { 'aria-hidden': 'true' });
+      g.style.setProperty('--glyph', 'var(--glyph-' + c.glyph + ')');
+      r.appendChild(g);
     }
     var label = el('span', 'menubar-label');
-    label.textContent = c.label;
+    var wordsEl = el('span', 'menubar-words');
+    lettered(wordsEl, c.label, c.letter);
+    label.appendChild(wordsEl);
+    /* A second line: a disabled row's reason, else its detail. */
+    var second = c.disabled && c.reason ? c.reason : c.detail;
+    if (second) {
+      var d = el('span', 'menubar-detail', { id: 'menubar-d' + (++uid) });
+      d.textContent = second;
+      label.appendChild(d);
+      if (c.disabled && c.reason) { r.setAttribute('aria-describedby', d.id); r.title = c.reason; }
+    }
     r.appendChild(label);
+    if (c.letter) r.setAttribute('data-letter', c.letter);
     if (c.checked != null) {
       r.setAttribute('role', c.radio ? 'menuitemradio' : 'menuitemcheckbox');
       r.setAttribute('aria-checked', c.checked ? 'true' : 'false');
@@ -685,7 +810,7 @@
         return;
       }
       m.titles.forEach(function (t) {
-        var r = row({ label: t.label, items: t.items });
+        var r = row({ label: t.label, items: t.items, letter: t.letter });
         r._title = t;
         p.appendChild(r);
       });
@@ -737,6 +862,9 @@
        which a quick close and reopen can merge away. */
     if (!panel.matches(':popover-open')) panel.showPopover();
     if (window.pudlMenu && window.pudlMenu.place) window.pudlMenu.place(panel);
+    /* A panel opened from the keyboard shows its letters; one opened with
+       the pointer does not. */
+    panel.toggleAttribute('data-keyboard', !!focusWhere);
     var rows = items(panel);
     var target = focusWhere === 'last' ? rows[rows.length - 1] : focusWhere === 'first' ? rows[0] : null;
     if (target) target.focus();
@@ -936,9 +1064,15 @@
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         open(title, 'last');
-      } else if (e.key === 'Escape' && openTitle) {
+      } else if (e.key === 'Escape') {
         e.preventDefault();
-        closeAll(true);
+        if (openTitle && panel.matches(':popover-open')) closeAll(true);
+        /* With no panel open, Escape leaves the bar for where focus was. */
+        else if (returnTo && returnTo.isConnected && returnTo !== document.body) returnTo.focus({ preventScroll: true });
+      } else if (!isPin && e.key.length === 1 && /\S/.test(e.key) && !e.shiftKey) {
+        /* A letter opens the title that has it. */
+        var hit = list.filter(function (x) { return x.getAttribute('data-letter') === e.key.toLowerCase(); })[0];
+        if (hit) { e.preventDefault(); hit.focus(); open(hit, 'first'); }
       }
       return;
     }
@@ -967,13 +1101,76 @@
       e.preventDefault();
       r.click();
     } else if (e.key.length === 1 && /\S/.test(e.key)) {
-      /* A letter moves to the next row whose words start with it. */
+      /* A letter runs the one row that has it, or opens its submenu; where
+         several rows share it, it moves focus from one to the next, and
+         Enter runs; where none has it, nothing happens. */
+      e.preventDefault();
       var ch = e.key.toLowerCase();
-      var i = rows.indexOf(r);
-      for (var k = 1; k <= rows.length; k++) {
-        var cand = rows[(i + k) % rows.length];
-        if ((cand.textContent || '').trim().toLowerCase().charAt(0) === ch) { e.preventDefault(); cand.focus(); break; }
-      }
+      var with_ = rows.filter(function (x) { return x.getAttribute('data-letter') === ch; });
+      if (!with_.length) return;
+      if (with_.length > 1) { with_[(with_.indexOf(r) + 1) % with_.length].focus(); return; }
+      var one = with_[0], c = one._item;
+      if (!c || c.disabled) { one.focus(); return; }
+      if (c.items) { one.focus(); openSub(one, true); return; }
+      if (one._title) { one.click(); return; }
+      act(c, true);
+    }
+  }
+
+  /* === A desktop host's accelerators =======================================
+     Under data-menubar-host="desktop" the keys a browser would own are the
+     bar's: Alt pressed and released alone, on every platform, moves focus
+     to the first title, as does F10 where macOS does not keep it; and the
+     platform's access-key modifier with a title's letter opens that title
+     from anywhere, a field included. Alt alone is a press and a release
+     with no other key between and no loss of focus between, so Alt+Tab
+     does nothing on its return. While the modifier is held the titles
+     show their letters. */
+  var altArmed = false;
+  function focusBar() {
+    var list = titles();
+    if (!list.length) return;
+    var a = document.activeElement;
+    if (a && !bar.contains(a)) returnTo = a;
+    list.forEach(function (x) { x.tabIndex = x === list[0] ? 0 : -1; });
+    list[0].focus();
+  }
+  function chordHeld(e) { return MAC ? (e.ctrlKey && e.altKey && !e.metaKey && !e.shiftKey) : (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey); }
+  function onAccelDown(e) {
+    if (!bar || !built) return;
+    var alone = e.key === 'Alt' && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.repeat;
+    altArmed = desktop() && alone;
+    if (!desktop()) return;
+    if (e.key === 'Alt' || (MAC && e.key === 'Control')) { if (chordHeld(e) || alone) built.classList.add('menubar-letters'); return; }
+    if (e.key === 'F10' && !MAC && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.defaultPrevented) {
+      e.preventDefault(); focusBar(); return;
+    }
+    if (!chordHeld(e) || e.key.length !== 1 || e.defaultPrevented) return;
+    var letter = e.key.toLowerCase();
+    if (!titleLetters[letter]) return;
+    e.preventDefault();
+    if (!currentTarget()) render();
+    var a = document.activeElement;
+    if (a && !bar.contains(a)) returnTo = a;
+    if (collapsed) {
+      var one = built.querySelector('.menubar-one .menubar-title');
+      open(one, 'first');
+      var rowFor = items(panel).filter(function (x) { return x._title && x._title.letter === letter; })[0];
+      if (rowFor) rowFor.click();
+      return;
+    }
+    var t = titles().filter(function (x) { return x.getAttribute('data-letter') === letter; })[0];
+    if (t) { t.focus(); open(t, 'first'); }
+  }
+  function onAccelUp(e) {
+    if (!bar || !built) return;
+    if (e.key === 'Alt' || e.key === 'Control') built.classList.remove('menubar-letters');
+    if (e.key === 'Alt' && altArmed && desktop()) {
+      altArmed = false;
+      e.preventDefault();
+      var a = document.activeElement;
+      if (a && bar.contains(a)) return;
+      focusBar();
     }
   }
 
@@ -1023,6 +1220,9 @@
     panel.addEventListener('click', onPanelClick);
     panel.addEventListener('pointerover', onPanelOver);
     document.addEventListener('keydown', onShortcut);
+    document.addEventListener('keydown', onAccelDown, true);
+    document.addEventListener('keyup', onAccelUp, true);
+    window.addEventListener('blur', function () { altArmed = false; built.classList.remove('menubar-letters'); });
     render();
 
     document.addEventListener('pudl:windows-change', soon);
@@ -1049,7 +1249,12 @@
     }).observe(bar);
   }
 
-  window.pudlMenubar = { refresh: function () { if (bar) render(); } };
+  window.pudlMenubar = {
+    refresh: function () { if (bar) render(); },
+    /* Every key bound in the bar now: its key in PUDL's spelling and as
+       shown, the row's label and title, its source and whether disabled. */
+    shortcuts: function () { if (bar && !currentTarget()) render(); return bound.map(function (b) { return Object.assign({}, b); }); }
+  };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
