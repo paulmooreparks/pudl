@@ -39,6 +39,8 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
 
   /* 2. The letters: declared, assigned, warned. */
   const titleLetters = await letters('.menubar-row > .menubar-menu:not(.menubar-one) .menubar-title');
+  const titleWords = await p.evaluate(() => { const t = document.querySelector('.menubar-title[data-letter="d"]'); return { kids: t.children.length, gap: t.querySelector('.menubar-words').getBoundingClientRect().width < 90, text: t.textContent }; });
+  check('a title\'s words stay one child of the button, so the letter opens no gap', titleWords.kids === 1 && titleWords.text === 'Documents' && titleWords.gap, titleWords);
   check('every title has its declared letter, the identity included', titleLetters === 'gdvwhoe', titleLetters);
   check('a letter not in the label, and a repeated one, are warned and replaced', warnings.some(w => /"Export" declares the letter "z", which is not in its label/.test(w)) && warnings.some(w => /"Send" declares the letter "s", which "Settings…"|"Send" declares the letter "s", which "Save"/.test(w)), warnings.filter(w => /declares/.test(w)));
   await p.click('.menubar-title:has-text("Documents")');

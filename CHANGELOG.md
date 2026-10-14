@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.61.1
+
+- A menu bar's titles were drawn with a gap around their letter, "G o", because the span that carries the underline split the words into three children of a flex row. The words are one child again. Update `pudl-menubar.js`.
+
 ## 0.61.0
 
 This release implements PUDL specification 0.22.0 and takes an application's second batch of proposals, nine of them, designed in `docs/proposals/menu-bar-keys-and-toolbar.md`. Update `pudl.css`, `pudl-menubar.js`, `pudl-windows.js`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-toolbar.js` where a toolbar is used. One behaviour changes for every menu bar: a letter typed in an open panel now runs the row that has it rather than moving to the next row that starts with it, as desktop menus do.
