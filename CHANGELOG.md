@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.62.0
+
+This release implements PUDL specification 0.23.0 and takes GK Companion's third batch of proposals. Update `pudl.css`, `pudl-windows.js` and `pudl-menubar.js`. Nothing changes for a layer without `data-win-switcher`, beyond `state().recent`.
+
+- **A window switcher.** `pudlWindows.state().recent` lists the open windows in the order they were last in front. A layer marked `data-win-switcher` takes Ctrl+Tab and Ctrl+Shift+Tab: a quick press flips between the two windows used last, Ctrl held walks the order with a list of the windows, the arrow keys move the pick, Enter switches, and Escape, lost focus or a press outside the list let go. Docked windows are left out, minimised ones restored when picked, a text field never sees the keys, and a modal dialog keeps them. `pudlWindows.switcherKeys()` gives the two keys, which `pudlMenubar.shortcuts()` lists. Text: `data-win-text-switcher`, `-switch-last` and `-switch-back`. GK Companion's `window-switcher.js` can go.
+- **Long text in a notice.** A notice and a toast keep their content inside the card: an unbroken path or identifier breaks at the edge, prose as before, a `pre` scrolls sideways, and a long button in the actions ends in an ellipsis; give such a button its whole label as `title`.
+- **Disabled rows faded.** A disabled menu row, in a panel or the menu bar, is at half opacity as well as muted, as a disabled button is. The proposal's second change, fading placeholders, is not taken: the specification keeps a placeholder at full opacity so that it reaches 4.5:1, and a test guards it.
+- **Two glyphs**: `--glyph-image` and `--glyph-clip`.
+
 ## 0.61.1
 
 - A menu bar's titles were drawn with a gap around their letter, "G o", because the span that carries the underline split the words into three children of a flex row. The words are one child again. Update `pudl-menubar.js`.

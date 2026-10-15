@@ -664,7 +664,7 @@
       place[k] = Object.assign({}, st.place[k]);
       if (place[k].zone) place[k].zone = Object.assign({}, place[k].zone);
     });
-    var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place };
+    var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place, recent: recentOf(st) };
     if (st.docks) {
       out.docks = {};
       Object.keys(st.docks).forEach(function (edge) {
@@ -1019,6 +1019,150 @@
     return null;
   }
 
+  /* === The order the windows were last in front ============================
+     Kept apart from the stacking order, which a docked window's strip and a
+     child's family change: the open windows, the one most recently in
+     front first, which state() reports as recent and the switcher below
+     walks (GK Companion's pudl-window-switching.md). */
+  var recent = [];
+  function trackRecent(st) {
+    recent = recent.filter(function (k) { return st.open.indexOf(k) >= 0; });
+    st.open.forEach(function (k) { if (recent.indexOf(k) < 0) recent.push(k); });
+    if (st.top && st.open.indexOf(st.top) >= 0) { recent.splice(recent.indexOf(st.top), 1); recent.unshift(st.top); }
+  }
+  function recentOf(st) {
+    var out = recent.filter(function (k) { return st.open.indexOf(k) >= 0; });
+    st.open.forEach(function (k) { if (out.indexOf(k) < 0) out.push(k); });
+    if (st.top && out.indexOf(st.top) > 0) { out.splice(out.indexOf(st.top), 1); out.unshift(st.top); }
+    return out;
+  }
+
+  /* === The window switcher ===================================================
+     On a layer marked data-win-switcher, Ctrl+Tab picks the window that
+     was in front before the one in front now, each further Tab with Ctrl
+     held the one after that, and Ctrl+Shift+Tab goes the other way; the
+     arrow keys move the pick too. Letting go of Ctrl brings the picked
+     window to the front, restoring it if it was minimised; Enter does the
+     same; Escape, a lost window focus and a press outside the list let go
+     without switching. A quick Ctrl+Tab flips between the two windows used
+     last, and a list of the windows shows only when Ctrl is held longer
+     than a moment, as a menu panel with no button, placed as a palette.
+     Docked windows are left out; minimised ones are in. The keys are taken
+     on the window in the capture phase and stopped there, ahead of every
+     listener in a window, and a modal dialog keeps them. On a Mac the keys
+     are the same, since Cmd+Tab is the platform's. */
+  var SWITCH_SHOW_MS = 120;
+  var picking = null, switchPanel = null;
+
+  function switcherOn() { return !!layer && layer.hasAttribute('data-win-switcher'); }
+  function switchable(st, k) {
+    var p = effectivePlacement(st, k);
+    return !p || !dockEdge(p);
+  }
+  function switchRows() {
+    var list = switchPanel.querySelector('ul');
+    list.textContent = '';
+    picking.list.forEach(function (k, i) {
+      var win = wins[k], glyph = (win && win.getAttribute('data-win-glyph')) || 'app';
+      if (!/^[a-z][a-z0-9-]*$/.test(glyph)) glyph = 'app';
+      var row = document.createElement('li');
+      row.className = 'md-row';
+      row.setAttribute('role', 'option');
+      row.setAttribute('data-switch-key', k);
+      var item = document.createElement('span');
+      item.className = 'md-item';
+      var icon = document.createElement('span');
+      icon.className = 'glyph';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
+      var name = document.createElement('span');
+      name.textContent = titleOf(k);
+      item.appendChild(icon);
+      item.appendChild(name);
+      var d = detailOf(k);
+      if (d) { var meta = document.createElement('span'); meta.className = 'md-meta'; meta.textContent = d; item.appendChild(meta); }
+      row.appendChild(item);
+      list.appendChild(row);
+      row.addEventListener('pointerdown', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        if (!picking) return;
+        picking.at = i;
+        switchFinish();
+      });
+    });
+    switchMark();
+  }
+  function switchMark() {
+    switchPanel.querySelectorAll('li[data-switch-key]').forEach(function (row, i) {
+      var on = i === picking.at;
+      row.classList.toggle('active', on);
+      row.setAttribute('aria-selected', String(on));
+      if (on && switchPanel.matches(':popover-open')) row.scrollIntoView({ block: 'nearest' });
+    });
+  }
+  function switchShow() {
+    if (!picking) return;
+    clearTimeout(picking.timer);
+    if (switchPanel.matches(':popover-open')) return;
+    switchRows();
+    switchPanel.showPopover();
+    switchMark();
+  }
+  function switchStart(back) {
+    var st = state;
+    var list = recentOf(st).filter(function (k) { return switchable(st, k); });
+    if (list.length < 2) return false;
+    /* The first Tab skips the window in front, but not a docked one that
+       has the focus: the window wanted then is the undocked one used last. */
+    var front = st.top && !st.min[st.top] && switchable(st, st.top) ? st.top : null;
+    picking = { list: list, at: back ? list.length - 1 : (list[0] === front ? 1 : 0), timer: 0 };
+    if (!switchPanel) {
+      switchPanel = document.createElement('div');
+      switchPanel.className = 'menu-panel win-switcher';
+      switchPanel.setAttribute('popover', 'manual');
+      switchPanel.setAttribute('aria-label', text('switcher', 'Switch windows'));
+      switchPanel.innerHTML = '<ul class="row-list" role="listbox"></ul>';
+      switchPanel.querySelector('ul').setAttribute('aria-label', text('switcher', 'Switch windows'));
+      document.body.appendChild(switchPanel);
+    }
+    picking.timer = setTimeout(switchShow, SWITCH_SHOW_MS);
+    return true;
+  }
+  function switchStep(by) {
+    picking.at = (picking.at + by + picking.list.length) % picking.list.length;
+    if (switchPanel.matches(':popover-open')) switchMark(); else switchShow();
+  }
+  function switchEnd() {
+    var was = picking;
+    picking = null;
+    if (was) clearTimeout(was.timer);
+    if (switchPanel && switchPanel.matches(':popover-open')) switchPanel.hidePopover();
+    return was;
+  }
+  function switchFinish() {
+    var was = switchEnd();
+    if (!was) return;
+    var k = was.list[was.at];
+    if (wins[k] && state.open.indexOf(k) >= 0) { commit(raised(state, k), false); focusWindow(k); }
+  }
+  function onSwitchKeyDown(e) {
+    if (picking) {
+      if (e.key === 'Control' || e.key === 'Shift') return;
+      if (!e.ctrlKey) { switchFinish(); return; }   // Ctrl went up where the page could not see it
+      e.preventDefault(); e.stopPropagation();
+      if (e.key === 'Tab') switchStep(e.shiftKey ? -1 : 1);
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') switchStep(1);
+      else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') switchStep(-1);
+      else if (e.key === 'Escape') switchEnd();
+      else if (e.key === 'Enter') switchFinish();
+      return;
+    }
+    if (!switcherOn() || e.key !== 'Tab' || !e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
+    if (document.querySelector('dialog:modal')) return;
+    if (switchStart(e.shiftKey)) { e.preventDefault(); e.stopPropagation(); }
+  }
+  function onSwitchKeyUp(e) { if (picking && (e.key === 'Control' || !e.ctrlKey)) switchFinish(); }
+
   /* === Operations, each returning a new state ============================= */
 
   function raised(st, key) {
@@ -1246,6 +1390,7 @@
     zOrder = zOrder.filter(function (k) { return st.open.indexOf(k) >= 0; });
     st.open.forEach(function (k) { if (zOrder.indexOf(k) < 0) zOrder.push(k); });
     if (st.top) { zOrder.splice(zOrder.indexOf(st.top), 1); zOrder.push(st.top); }
+    trackRecent(st);
 
     /* Children stack directly above their parent, and the active window's
        family goes to the top. */
@@ -2882,6 +3027,10 @@
       if (head && layer.contains(head)) onHeadKey(e, head.closest('.win').getAttribute('data-win'));
     });
     document.addEventListener('keydown', onEscape);
+    window.addEventListener('keydown', onSwitchKeyDown, true);
+    window.addEventListener('keyup', onSwitchKeyUp, true);
+    window.addEventListener('blur', function () { switchEnd(); });
+    window.addEventListener('pointerdown', function (e) { if (picking && !(switchPanel && switchPanel.contains(e.target))) switchEnd(); }, true);
     window.addEventListener('popstate', function () { sync(false); });
 
     /* The window menu is built as it opens. beforetoggle does not bubble,
@@ -2974,6 +3123,11 @@
       retitle: retitle,
       detailOf: detailOf,
       openMenu: function (key) { if (wins[key]) openMenu(key); },
+      /* The switcher's keys, for a host's listing of keys, when it is on. */
+      switcherKeys: function () {
+        if (!switcherOn()) return [];
+        return [{ key: 'Ctrl+Tab', label: text('switch-last', 'Switch to the last window') }, { key: 'Ctrl+Shift+Tab', label: text('switch-back', 'Switch back through the windows') }];
+      },
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
       close: function (key) { if (wins[key]) close(key, 'script'); },
