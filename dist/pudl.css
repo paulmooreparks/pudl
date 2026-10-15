@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.62.0.
+   Version 0.62.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -1687,6 +1687,10 @@ body:has(> .md-layout) {
 .md-layout[data-md-persistent] > .md-body > .md-resize {
   display: block; width: var(--md-target-size, 12px); margin: 0;
   background: var(--raise-grad); box-shadow: var(--raise-shadow);
+  /* The grip is drawn 16px wide and the handle shows its middle column,
+     so the rest is clipped; unclipped, it reached 2px past a handle at
+     the layout's end edge and widened the page (the reader application, 0.62.0). */
+  overflow: hidden;
 }
 .md-layout[data-md-persistent] > .md-body > .md-resize::before {
   inset: 0 calc((100% - var(--md-rule-size, 2px)) / 2);
