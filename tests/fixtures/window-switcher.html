@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window switcher</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 600px; position: relative; } #narrow { width: 260px; margin: 16px; }</style>
+</head>
+<body>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="a,b,c,side" data-win-switcher data-win-menu>
+      <section class="win" data-win="a" data-win-glyph="document" data-win-detail="Customers" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Alpha</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><textarea id="text-a" class="form-textarea" aria-label="Text">Some text</textarea></div>
+      </section>
+      <section class="win" data-win="b" data-win-glyph="comments" style="--win-x: 0.3; --win-y: 0.2; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Beta</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>Beta.</p></div>
+      </section>
+      <section class="win" data-win="c" style="--win-x: 0.5; --win-y: 0.3; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Gamma</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>Gamma.</p></div>
+      </section>
+      <section class="win" data-win="side" data-win-mode="dock-left" style="--win-dock-size: .2">
+        <header class="win-head"><h2 class="win-title">Side</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><input id="side-field" class="form-input" aria-label="Find"></div>
+      </section>
+    </div>
+  </div>
+  <div id="narrow">
+    <div class="notice danger" role="alert" id="long-notice">
+      <div class="notice-content">
+        <p class="notice-title">The run could not start</p>
+        <p class="notice-body" id="long-body">companion.editing/flags@1/a-very-long-identifier-with-no-spaces-at-all-that-would-otherwise-run-past-the-card-0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz</p>
+        <pre id="long-pre">C:\Users\example\OneDrive\Documents\a company\very\deep\path\to\a\document\that\is\long\enough\to\scroll\the\block\sideways.md</pre>
+        <p class="notice-body" id="prose">Ordinary prose breaks at its spaces as it always has, so the words stay whole.</p>
+        <div class="notice-actions">
+          <button type="button" class="btn btn-sm" id="act-1">Retry</button>
+          <button type="button" class="btn btn-sm" id="act-2" title="Open the workspace this run belongs to and show its settings">Open the workspace this run belongs to and show its settings</button>
+          <button type="button" class="btn btn-sm" id="act-3">Dismiss</button>
+        </div>
+      </div>
+    </div>
+    <div class="menu" style="margin-top: 16px"><button type="button" class="btn menu-btn" popovertarget="m">Menu</button>
+      <div class="menu-panel" id="m" popover><button type="button" class="menu-action" id="row-live">Live</button><button type="button" class="menu-action" id="row-off" disabled>Disabled</button></div></div>
+    <input class="form-input" id="ph" placeholder="A placeholder" aria-label="Field">
+  </div>
+  <dialog id="modal"><p>A modal dialog.</p><button type="button" id="modal-close">Close</button></dialog>
+  <script>
+    document.querySelectorAll('.win-layer > .win').forEach(function (win) { var t = document.createElement('template'); t.id = 'tpl-' + win.dataset.win; t.content.appendChild(win.cloneNode(true)); document.body.appendChild(t); });
+    document.getElementById('modal-close').addEventListener('click', function () { document.getElementById('modal').close(); });
+  </script>
+</body>
+</html>

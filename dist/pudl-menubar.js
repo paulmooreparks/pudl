@@ -1259,7 +1259,16 @@
     refresh: function () { if (bar) render(); },
     /* Every key bound in the bar now: its key in PUDL's spelling and as
        shown, the row's label and title, its source and whether disabled. */
-    shortcuts: function () { if (bar && !currentTarget()) render(); return bound.map(function (b) { return Object.assign({}, b); }); }
+    shortcuts: function () {
+      if (bar && !currentTarget()) render();
+      var list = bound.map(function (b) { return Object.assign({}, b); });
+      /* The window switcher's keys, which are the windows script's and not
+         rows of the bar, are listed with it. */
+      if (window.pudlWindows && window.pudlWindows.switcherKeys) window.pudlWindows.switcherKeys().forEach(function (k) {
+        list.push({ key: k.key, shown: k.key, label: k.label, title: text('window', 'Window'), source: 'windows', disabled: false });
+      });
+      return list;
+    }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
