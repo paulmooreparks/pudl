@@ -163,6 +163,13 @@ const { launch, ROOT, out } = require('./lib');
   assert.equal(await handle.getAttribute('aria-valuenow'), '260');
   await p.setViewportSize({ width: 500, height: 700 });
   await p.screenshot({ path: out('persistent-sidebar-narrow.png') });
+  /* At a phone's width the handle stands at the layout's end edge, and its
+     grip, drawn wider than the handle, must be clipped rather than widen
+     the page (YAVCHN, 0.62.0). */
+  await p.setViewportSize({ width: 390, height: 700 });
+  await p.waitForFunction(() => document.querySelector('.md-layout').hasAttribute('data-md-narrow'));
+  assert.equal(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'the page must not scroll sideways at 390px');
+  assert.equal(await handle.evaluate(h => getComputedStyle(h).overflow), 'hidden');
   await p.setViewportSize({ width: 1000, height: 700 });
   await p.evaluate(() => pudlSetTheme('light'));
   await p.screenshot({ path: out('persistent-sidebar-light.png') });

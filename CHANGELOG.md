@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.62.1
+
+- A persistent sidebar's divider clips its grip. Since 0.54.0 the divider is 12px wide, or 20px for a coarse pointer, while the grip stays drawn at 16px, so it reached 2px past each side; at a phone's width, where the divider stands at the layout's end edge, that widened the page and made it scroll sideways (YAVCHN's report on 0.62.0, measured at 390px). The divider now shows the grip's middle column and clips the rest, which is what the stylesheet's own comment intended. Update `pudl.css`; YAVCHN can delete its `overflow: hidden` stopgap.
+
 ## 0.62.0
 
 This release implements PUDL specification 0.23.0 and takes GK Companion's third batch of proposals. Update `pudl.css`, `pudl-windows.js` and `pudl-menubar.js`. Nothing changes for a layer without `data-win-switcher`, beyond `state().recent`.
