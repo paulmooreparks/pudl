@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.63.0
+
+This release implements PUDL specification 0.24.2, from Example's proposal (`Architecture/pudl-proposal-menubar-surface.md`). Update `pudl.css`.
+
+- **The controls on a bar with a menu bar look uniform in both themes.** `--menubar-group-bg` defaults to `--raise-grad`, so with its `--raise-border` and `--raise-shadow` a menu group at rest looks like a neutral `.btn`, and in the dark theme a topbar holding a menu bar sets `--tb-chip` and `--tb-chip-shadow` to the same surface, as the light theme already did, so its pills and status area match too. The three `--menubar-group-*` hooks still override the menus; Example can delete the rule that set them to these values. A topbar without a menu bar is unchanged.
+
 ## 0.62.1
 
 - A persistent sidebar's divider clips its grip. Since 0.54.0 the divider is 12px wide, or 20px for a coarse pointer, while the grip stays drawn at 16px, so it reached 2px past each side; at a phone's width, where the divider stands at the layout's end edge, that widened the page and made it scroll sideways (the reader application's report on 0.62.0, measured at 390px). The divider now shows the grip's middle column and clips the rest, which is what the stylesheet's own comment intended. Update `pudl.css`; the reader application can delete its `overflow: hidden` stopgap.
