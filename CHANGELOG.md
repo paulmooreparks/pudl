@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.64.0
+
+- **A menu command may carry its own picture.** A command in a host's or an applet's menu markup that holds an `<img>` or a glyph span before its words shows it as the row's icon, as a pin in the bar already did, so an applet's registered icon appears beside its name in the launch menu (Example's installed applet packages). The words of the command stay what a reader hears; the picture is decoration. Update `pudl-menubar.js`; nothing a project does changes.
+
 ## 0.63.0
 
 This release implements PUDL specification 0.24.2, from Example's proposal (`Architecture/pudl-proposal-menubar-surface.md`). Update `pudl.css`.

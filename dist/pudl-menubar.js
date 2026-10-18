@@ -45,7 +45,9 @@
 
    Its first item is the Pins menu, the host's pinning commands, read as
    any title is. Each later item is a pin: a link, whose content, an icon
-   and a title, becomes a button in the bar. A plain press on it presses
+   and a title, becomes a button in the bar. A command in any menu may
+   carry a picture the same way, an <img> or a glyph span before its
+   words, and the row shows it before them (0.64.0). A plain press on it presses
    the host's link, so the host's own script may open the item its own
    way; a press with a modifier is the browser's. When the buttons do not
    fit they give way, all together, to one Items menu listing them. The
@@ -121,6 +123,12 @@
       else if (cmd) {
         var item = { label: words([cmd]), el: cmd };
         if (cmd.tagName === 'A') item.href = cmd.getAttribute('href');
+        /* A picture in the command, an <img> or a glyph span, is the row's
+           icon, as a pin's is: an applet's own icon beside its name. */
+        var pictures = Array.prototype.filter.call(cmd.childNodes, function (n) {
+          return n.nodeType === 1 && (n.tagName === 'IMG' || (n.tagName === 'SPAN' && n.classList.contains('glyph')));
+        });
+        if (pictures.length) item.icon = pictures;
         var on = cmd.getAttribute('aria-pressed') || cmd.getAttribute('aria-checked');
         if (on === 'true' || on === 'false') { item.checked = on === 'true'; if (radio && cmd.hasAttribute('aria-checked')) item.radio = radio; }
         if (cmd.disabled || cmd.getAttribute('aria-disabled') === 'true') item.disabled = true;
