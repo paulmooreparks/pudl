@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.66.0
+
+This release implements PUDL specification 0.26.0, from an application's proposals `pudl-danger-control-glyph.md` and `pudl-applet-start-when-seen.md`.
+
+- **Danger controls carry the warning glyph.** `.btn-danger` and `.menu-action.danger` lead with the warning glyph, which PUDL now draws, so their danger never rests on colour; a menu row's is 12px and takes the tick's column, so labels stay in line. A control that holds a picture of its own (a `.glyph`, an image or a decoration hidden from readers) keeps it, so markup that already wrote a ⚠ gets no second one. A danger row that switches on and off keeps its tick. PUDL's own menu bar's Close all windows gets it too. Projects that followed the README's old advice to put the `stop` glyph on destructive menu rows keep it; drop it to get the warning glyph.
+- **An applet may start when its window is seen.** `start` in `define()` or `register()`, or `data-applet-start` on the mount, is `"open"` (the default), `"seen"` or `"idle"`. A restored layout starts only the applets of the windows that can be seen: in front, shown in a dock, or in a zone nothing covers. `"idle"` applets fill in behind, one at a time, each once everything before it is ready. Until its applet starts, a window shows a loading line and is `aria-busy`, which dims the applet; an instance's `ready` promise keeps it busy until it can be used. A window closed unseen never starts its applet. New: `pudl:applet-start` with `detail.reason`, `pudlApplets.started(key)` and `pudlApplets.start(key)`, and in `pudl-windows.js`, `pudlWindows.shown(key)`, `pudlWindows.seen(key)` and `pudl:window-seen`. Window titles are not saved: the markup that creates a window gives its title.
+- Update `pudl.css`, `pudl-windows.js` and `pudl-applets.js`. an application can delete its danger glyph rule from `app.css`, declare `start: "idle"` for the Editor and the chat, and remove its own deferral and "Opening the document…" line.
+
 ## 0.65.0
 
 This release implements PUDL specification 0.25.0, from an application's proposals `pudl-dialog-pinned-actions.md` and `pudl-dialog-actions-spacing.md`.

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Applet start</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-applets.js" defer></script>
+  <script src="applet-start.js" defer></script>
+  <style>.win-host { height: 640px; }</style>
+</head>
+<body>
+  <!-- A test fixture: windows whose applet, a probe, starts when the
+       window opens, when it is seen, or when nothing else is starting.
+       The probe records when it starts and why, and is ready a moment
+       after it starts. -->
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}"></div>
+  </div>
+  <template id="tpl-docked"><section class="win" data-win="docked"><header class="win-head"><h2 class="win-title">Docked</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="seen"></div></div></section></template>
+  <template id="tpl-zoned"><section class="win" data-win="zoned"><header class="win-head"><h2 class="win-title">Zoned</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="seen"></div></div></section></template>
+  <template id="tpl-mini"><section class="win" data-win="mini"><header class="win-head"><h2 class="win-title">Minimised</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="seen"></div></div></section></template>
+  <template id="tpl-behind"><section class="win" data-win="behind"><header class="win-head"><h2 class="win-title">Behind</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="seen"></div></div></section></template>
+  <template id="tpl-idle-1"><section class="win" data-win="idle-1"><header class="win-head"><h2 class="win-title">Idle one</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="idle"></div></div></section></template>
+  <template id="tpl-idle-2"><section class="win" data-win="idle-2"><header class="win-head"><h2 class="win-title">Idle two</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="idle"></div></div></section></template>
+  <template id="tpl-hosted"><section class="win" data-win="hosted"><header class="win-head"><h2 class="win-title">Hosted</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="seen"></div></div></section></template>
+  <template id="tpl-plain"><section class="win" data-win="plain"><header class="win-head"><h2 class="win-title">Plain</h2></header><div class="win-body"><div data-applet="probe"></div></div></section></template>
+  <template id="tpl-front"><section class="win" data-win="front"><header class="win-head"><h2 class="win-title">Front</h2></header><div class="win-body"><div data-applet="probe" data-applet-start="seen"></div></div></section></template>
+</body>
+</html>

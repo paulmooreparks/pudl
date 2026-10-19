@@ -1003,6 +1003,44 @@
     return !!(st.min[key] || (p && st.min[p]));
   }
 
+  /* Whether a window can be seen (0.66.0): it is in front, or it is the
+     window its dock shows and is not collapsed to its title bar, or it
+     fills a zone that no window above it shares and no maximised window
+     above it covers. A window partly showing behind another is not
+     counted, and nothing is measured. On a narrow screen every window is
+     maximised, so only the one in front is seen. */
+  function shown(st, key) {
+    if (!st || st.open.indexOf(key) < 0 || !wins[key] || isHidden(st, key)) return false;
+    if (key === active(st)) return true;
+    if (shownEdge(st, key)) return !st.min[key];
+    var p = effectivePlacement(st, key);
+    if (!p || p.mode === 'maximized' || !zoneFilled(p)) return false;
+    var mine = sixths(zoneFilled(p));
+    for (var i = zOrder.indexOf(key) + 1; i < zOrder.length; i++) {
+      var k = zOrder[i];
+      if (st.open.indexOf(k) < 0 || isHidden(st, k) || shownEdge(st, k)) continue;
+      var q = effectivePlacement(st, k);
+      if (!q) continue;
+      if (q.mode === 'maximized') return false;
+      if (zoneFilled(q) && sixths(zoneFilled(q)) === mine) return false;
+    }
+    return true;
+  }
+
+  /* Each window says once, with pudl:window-seen, when it is first seen,
+     which pudl-applets.js waits for to start an applet that asks to start
+     then. The windows already seen are kept by element, so a window that
+     changes its key stays seen. */
+  var seenWins = new WeakSet();
+  function announceSeen(st) {
+    st.open.forEach(function (k) {
+      var el = wins[k];
+      if (!el || seenWins.has(el) || !shown(st, k)) return;
+      seenWins.add(el);
+      el.dispatchEvent(new CustomEvent('pudl:window-seen', { bubbles: true, detail: { key: k } }));
+    });
+  }
+
   /* The window in front, the active one: top, unless top is hidden, in
      which case no window is active. */
   function active(st) {
@@ -1433,6 +1471,7 @@
     renderDockGroups();
     renderRows();
     syncPane();
+    announceSeen(st);
   }
 
   /* Every window button and dock tab is a real link to the state it
@@ -3135,6 +3174,10 @@
       shareURL: shareURL,
       copyLink: copyLink,
       effectivePlacement: function (key) { return effectivePlacement(state, key); },
+      /* Whether a window can be seen now, and whether it has been seen
+         since it opened. */
+      shown: function (key) { return shown(state, key); },
+      seen: function (key) { return !!wins[key] && seenWins.has(wins[key]); },
       reload: reload,
       update: update,
       state: function () { return copy(state); }

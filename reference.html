@@ -121,7 +121,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.65.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.66.0</a>
     </div>
   </header>
 
@@ -506,7 +506,7 @@
     <p>A dialog is a native <code>&lt;dialog class="dialog"&gt;</code> that the server renders into the page, never the browser's own <code>confirm()</code>. A button opens it with <code>command="show-modal"</code>, and the browser keeps focus inside it, closes it on Escape and draws the backdrop, which dims the page gently while the panel's shadow does the lifting. The panel is one step brighter than the page. It offers two actions, the safe one first and the committing one last, and a destructive commit carries its warning glyph. The optional <code>pudl-dialog.js</code> provides the command buttons in browsers that do not have them yet.</p>
     <p>When a dialog's content is taller than the window, the title and the actions stay in view and only the content between them scrolls, so the way out is never scrolled away. A <code>.dialog-head</code> keeps a filter or another control with the title. A line separates the head or the actions from the content only while something is hidden beneath it, which <code>pudl-dialog.js</code> works out; without it the bands still stay in view, with no lines. The markup is the same as for a short dialog, and the actions may sit in a form that wraps the fields.</p>
     <div class="demo demo-row">
-      <button class="btn btn-danger" type="button" commandfor="demo-dialog" command="show-modal"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Discard changes…</button>
+      <button class="btn btn-danger" type="button" commandfor="demo-dialog" command="show-modal">Discard changes…</button>
       <button class="btn" type="button" commandfor="demo-dialog-long" command="show-modal">Notification settings…</button>
     </div>
     <dialog class="dialog" id="demo-dialog-long" aria-labelledby="demo-dialog-long-title">
@@ -551,7 +551,7 @@
       <p class="dialog-body">You've edited this entry but haven't saved. Leaving now will lose those changes.</p>
       <form class="dialog-actions" method="dialog">
         <button class="btn" value="stay" autofocus>Stay</button>
-        <button class="btn btn-danger" value="discard"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Discard changes</button>
+        <button class="btn btn-danger" value="discard">Discard changes</button>
       </form>
     </dialog>
 
@@ -697,7 +697,7 @@
           <hr class="menu-sep">
           <button class="menu-action" type="button"><span aria-hidden="true">&#x2913;</span> Export as PDF</button>
           <button class="menu-action" type="button"><span aria-hidden="true">&#x2398;</span> Duplicate</button>
-          <button class="menu-action danger" type="button"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Delete expense</button>
+          <button class="menu-action danger" type="button">Delete expense</button>
         </nav>
       </div>
     </div>

@@ -603,7 +603,7 @@ A menu button opens a panel of choices. The button is raised and carries a caret
 </div>
 ```
 
-Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar uses, grouped under `.md-section-label` headings, and a row that opens a window is marked while its window is in front. Actions are `.menu-action` buttons below an `.menu-sep` rule, each with a leading glyph drawn as a `.glyph`; a destructive one adds `danger` and the `stop` glyph. The `.menu` wrapper holds the button and its panel together, and that is how the button knows to look pressed.
+Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar uses, grouped under `.md-section-label` headings, and a row that opens a window is marked while its window is in front. Actions are `.menu-action` buttons below an `.menu-sep` rule, each with a leading glyph drawn as a `.glyph`. A destructive one adds `danger`, and PUDL draws the warning glyph before it at 12px, in the tick's column when the panel has ticks (0.66.0); a row that holds a picture of its own keeps that instead. This README used to say a destructive action should carry the `stop` glyph itself, and a row that still does keeps it, so drop it to get the warning glyph every other destructive control shows. A `.btn-danger` gets the same glyph, on the same terms. The `.menu` wrapper holds the button and its panel together, and that is how the button knows to look pressed.
 
 The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, above it when there is more room there, and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
 
@@ -1029,7 +1029,7 @@ An answer that redirects to another address is followed as the page would follow
 
 Before a close by its button, by Escape or by `pudlWindows.close()`, `pudl:window-closing` fires on the window, and on each child that would close with it, with the same `detail`, and it can be cancelled. An editor with unsaved changes cancels it, asks, and closes the window itself if the reader says to discard them. A close by the address, by Back, Forward or a link, cannot be refused, because the address has already moved on.
 
-`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `dock(key, edge)`, `snap(key, zone)`, `retitle(key, title, detail)`, `detailOf(key)`, `openMenu(key)`, `reload(key)`, `update(key, markup)`, `close(key)` and `state()`.
+`window.pudlWindows` gives scripts `open(key)`, `replace(oldKey, key)`, `raise(key)`, `minimize(key)`, `minimizeAll()`, `restoreAll()`, `dock(key, edge)`, `snap(key, zone)`, `retitle(key, title, detail)`, `detailOf(key)`, `openMenu(key)`, `reload(key)`, `update(key, markup)`, `close(key)` and `state()`, and `shown(key)` and `seen(key)`, which say whether a window can be seen now and whether it has been seen since it opened (0.66.0). Each window fires `pudl:window-seen` once, the first time it is seen, which is what an applet that starts when seen waits for; the section on applets sets out what counts.
 
 A window may carry a **detail** beside its title, a second part saying where the thing belongs: `data-win-detail="Customers"` on the window, or the third argument of `retitle`. It is drawn after the title as `.win-title-detail` in the title bar, as `.win-item-detail` in the taskbar and dock tabs, and after the separator in the window menu's and Window list's rows; `data-win-text-title-sep` on the layer changes the separator from " · ". The title keeps priority: the detail gives way first, down to six characters and an ellipsis, and below that both shrink with the title keeping about two thirds. In an icon rail the tooltip holds both. The heading's text and `pudl:windows-change` are unchanged, so a host that sets no detail sees nothing new. `openMenu(key)` opens a window's menu with its first command focused, for a host that gives it a key.
 
@@ -1152,7 +1152,19 @@ An applet may offer commands of its own, such as Save, Word wrap or Show hidden 
 
 An applet that listens on `window` or `document`, or starts a timer, must undo that in `destroy()`; an `AbortController` passed to every `addEventListener` makes that one call.
 
-The runtime loads each stylesheet and script once, however many mounts name it. It starts the applets in the page when the page loads, those in each window as the window opens and those in a region as `pudl-regions.js` swaps it in, and destroys them as their window closes or their region goes, so a page needs no wiring. `pudlApplets.boot(scope)` and `pudlApplets.destroy(scope)` are there for content a project adds or removes some other way. A mount's `data-applet-state` reads `loading`, `running` or `error`.
+The runtime loads each stylesheet and script once, however many mounts name it. It starts the applets in the page when the page loads, those in each window as the window opens and those in a region as `pudl-regions.js` swaps it in, and destroys them as their window closes or their region goes, so a page needs no wiring. `pudlApplets.boot(scope)` and `pudlApplets.destroy(scope)` are there for content a project adds or removes some other way. A mount's `data-applet-state` reads `loading`, `waiting`, `running` or `error`.
+
+### When an applet starts
+
+A layout of many windows, restored from its address, would start every window's applet at once, and they would all compete with the one window the reader is looking at. An applet may say when it would rather start (0.66.0), with `start` in `define()` or `register()`, or with `data-applet-start` on its mount, which wins:
+
+- `"open"`, the default, starts it as its window opens, as before.
+- `"seen"` starts it the first time its window is seen: when the window comes to the front, takes focus or a press, or is shown in a dock or a zone that no window above it covers. A window partly showing behind another is not counted, and a minimised one is not seen until it is restored. On a narrow screen only the window in front is seen.
+- `"idle"` starts it when seen, and also, while its window has not been seen, once every applet started before it is ready, one at a time, so a restored layout fills in behind the front window.
+
+Outside a window the choice has no effect. Until an applet starts, its mount is hidden and reads `waiting`, a loading line stands in its place, in the words of the mount's `data-applet-text-loading` or "Loading…", and the window carries `aria-busy="true"`, which dims the applet and shows the progress cursor. An instance may offer `ready`, a promise that settles once it can be used, such as after it has fetched what it shows, and the window stays busy until then. A window closed before it was seen closes without starting its applet. `pudl:applet-start` fires on the mount as the applet starts, with `detail.reason`: `"open"`, `"seen"`, `"idle"` or `"host"`. `pudlApplets.started(key)` says whether every applet in a window has started, and `pudlApplets.start(key)` starts them now, answering a promise that settles when they are ready, for a host command that needs every instance, such as saving every open document.
+
+A window's title comes from its markup, as always, so a host that creates a restored window should give it the title it will have, rather than leave the applet to set it once it runs. PUDL keeps nothing but the address.
 
 ### Requests between applets
 
@@ -1269,7 +1281,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.65.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.66.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 
