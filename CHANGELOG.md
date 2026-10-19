@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.65.0
+
+This release implements PUDL specification 0.25.0, from an application's proposals `pudl-dialog-pinned-actions.md` and `pudl-dialog-actions-spacing.md`.
+
+- **A dialog's title and actions stay in view.** When a dialog's content is taller than the window, the title and `.dialog-actions` stick to the top and bottom of the panel, filled with its colour and reaching its sides, and only the content between them scrolls. No markup changes; the actions may be the dialog's own or in a form that wraps the fields or the whole dialog. A new `.dialog-head` holds the title with a control that goes with it, such as a filter.
+- **A line only when there is more.** A line in `--border` separates the head or the actions from the content only while content is hidden beneath it, so a dialog that fits looks as it did. `pudl-dialog.js` now does this in every browser, not only those lacking the command buttons, and sets the dialog's scroll padding to the bands' heights so Tab never leaves a field hidden behind one. Without the script the bands still stay in view, with no lines.
+- **Space above the actions.** `.dialog-actions` keeps `--space-5` from whatever comes before it, a list or a table as well as `.dialog-body`.
+- Update `pudl.css` and `pudl-dialog.js`. an application can delete its sticky footer and its actions margin from `app.css`, and the Chat applet its `.chat-settings-foot`, if its Settings dialog adopts `.dialog-actions`.
+
 ## 0.64.0
 
 This release implements PUDL specification 0.24.3.

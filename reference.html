@@ -121,7 +121,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.64.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.65.0</a>
     </div>
   </header>
 
@@ -504,9 +504,48 @@
 
     <h2 id="dialogs">14. Dialogs</h2>
     <p>A dialog is a native <code>&lt;dialog class="dialog"&gt;</code> that the server renders into the page, never the browser's own <code>confirm()</code>. A button opens it with <code>command="show-modal"</code>, and the browser keeps focus inside it, closes it on Escape and draws the backdrop, which dims the page gently while the panel's shadow does the lifting. The panel is one step brighter than the page. It offers two actions, the safe one first and the committing one last, and a destructive commit carries its warning glyph. The optional <code>pudl-dialog.js</code> provides the command buttons in browsers that do not have them yet.</p>
+    <p>When a dialog's content is taller than the window, the title and the actions stay in view and only the content between them scrolls, so the way out is never scrolled away. A <code>.dialog-head</code> keeps a filter or another control with the title. A line separates the head or the actions from the content only while something is hidden beneath it, which <code>pudl-dialog.js</code> works out; without it the bands still stay in view, with no lines. The markup is the same as for a short dialog, and the actions may sit in a form that wraps the fields.</p>
     <div class="demo demo-row">
       <button class="btn btn-danger" type="button" commandfor="demo-dialog" command="show-modal"><span aria-hidden="true">&#x26A0;&#xFE0E;</span> Discard changes…</button>
+      <button class="btn" type="button" commandfor="demo-dialog-long" command="show-modal">Notification settings…</button>
     </div>
+    <dialog class="dialog" id="demo-dialog-long" aria-labelledby="demo-dialog-long-title">
+      <form method="dialog">
+        <div class="dialog-head">
+          <h3 class="dialog-title" id="demo-dialog-long-title">Notification Settings</h3>
+          <input class="form-input" type="search" placeholder="Filter the settings" aria-label="Filter the settings">
+        </div>
+        <p class="dialog-body">Choose what tells you about each kind of change. A setting applies to every workspace you belong to.</p>
+        <div class="vstack">
+          <label class="check"><input type="checkbox" checked> An expense is approved</label>
+          <label class="check"><input type="checkbox" checked> An expense is rejected</label>
+          <label class="check"><input type="checkbox"> An expense is paid</label>
+          <label class="check"><input type="checkbox" checked> A receipt is missing</label>
+          <label class="check"><input type="checkbox"> A trip starts tomorrow</label>
+          <label class="check"><input type="checkbox"> A trip has ended</label>
+          <label class="check"><input type="checkbox" checked> A report is due</label>
+          <label class="check"><input type="checkbox"> A report is overdue</label>
+          <label class="check"><input type="checkbox" checked> A report is submitted</label>
+          <label class="check"><input type="checkbox"> Somebody comments on your expense</label>
+          <label class="check"><input type="checkbox"> Somebody mentions you</label>
+          <label class="check"><input type="checkbox" checked> A policy changes</label>
+          <label class="check"><input type="checkbox"> A card is about to expire</label>
+          <label class="check"><input type="checkbox"> A currency rate changes sharply</label>
+          <div class="form-group">
+            <label class="form-label" for="demo-dialog-long-digest">Send a digest</label>
+            <span class="form-select-wrap"><select class="form-select" id="demo-dialog-long-digest"><option>Never</option><option selected>Daily</option><option>Weekly</option></select></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="demo-dialog-long-quiet">Quiet hours</label>
+            <input class="form-input" id="demo-dialog-long-quiet" value="22:00 to 07:00">
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn" value="cancel">Cancel</button>
+          <button class="btn btn-primary" value="save">Save</button>
+        </div>
+      </form>
+    </dialog>
     <dialog class="dialog" id="demo-dialog" aria-labelledby="demo-dialog-title">
       <h3 class="dialog-title" id="demo-dialog-title">Discard unsaved changes?</h3>
       <p class="dialog-body">You've edited this entry but haven't saved. Leaving now will lose those changes.</p>

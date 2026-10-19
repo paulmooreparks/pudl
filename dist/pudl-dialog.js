@@ -15,7 +15,17 @@
    close, which its cancel handler may refuse in a browser that has
    requestClose(), and otherwise closes it. A form
    inside the dialog with method="dialog" closes it on submission without
-   any script at all. */
+   any script at all.
+
+   In every browser it also draws the lines that tell the reader a dialog
+   has more to scroll to (0.65.0). pudl.css keeps a dialog's head and its
+   actions in view while the content between them scrolls; this script
+   marks an open dialog data-dialog-more-above while content is hidden
+   beneath its head and data-dialog-more-below while content is hidden
+   beneath its actions, and the stylesheet draws a line for each. It also
+   sets the dialog's scroll padding to the heights of the head and the
+   actions, so a focused field is scrolled clear of both. Without the
+   script the head and the actions still stay in view, with no lines. */
 (function () {
   'use strict';
 
@@ -42,4 +52,61 @@
     }
     e.preventDefault();
   });
+})();
+
+(function () {
+  'use strict';
+
+  var HEAD = '.dialog-head, .dialog-title:not(.dialog-head .dialog-title)';
+  var watching = new Map();
+
+  function mark(d, name, on) {
+    if (d.hasAttribute(name) !== on) d.toggleAttribute(name, on);
+  }
+
+  function update(d) {
+    if (!d || !d.open) return;
+    var head = d.querySelector(HEAD), foot = d.querySelector('.dialog-actions');
+    var above = d.scrollTop, below = d.scrollHeight - d.clientHeight - d.scrollTop;
+    mark(d, 'data-dialog-more-above', !!head && above > 1);
+    mark(d, 'data-dialog-more-below', !!foot && below > 1);
+    d.style.scrollPaddingTop = head ? head.offsetHeight + 'px' : '';
+    d.style.scrollPaddingBottom = foot ? foot.offsetHeight + 'px' : '';
+  }
+
+  /* An open dialog is watched for scrolling, for a change of its own size
+     or of its parts' sizes, and for content added or removed, and is let go
+     when it closes. */
+  function watch(d) {
+    if (watching.has(d)) return;
+    var again = function () { update(d); };
+    var ro = new ResizeObserver(again);
+    ro.observe(d);
+    Array.prototype.forEach.call(d.querySelectorAll(':scope > *, :scope > form > *'), function (el) { ro.observe(el); });
+    var mo = new MutationObserver(again);
+    mo.observe(d, { childList: true, subtree: true, characterData: true });
+    d.addEventListener('scroll', again, { passive: true });
+    watching.set(d, function () {
+      ro.disconnect(); mo.disconnect();
+      d.removeEventListener('scroll', again);
+    });
+    update(d);
+  }
+
+  function release(d) {
+    var stop = watching.get(d);
+    if (!stop) return;
+    stop();
+    watching.delete(d);
+  }
+
+  function check(d) {
+    if (!d.matches('dialog.dialog')) return;
+    if (d.open) watch(d); else release(d);
+  }
+
+  new MutationObserver(function (records) {
+    records.forEach(function (r) { check(r.target); });
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['open'], subtree: true });
+  Array.prototype.forEach.call(document.querySelectorAll('dialog.dialog[open]'), watch);
 })();

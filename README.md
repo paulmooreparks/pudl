@@ -558,6 +558,8 @@ A dialog is a native `<dialog class="dialog">` that the server renders into the 
 
 The command attributes are newer than PUDL's 2024 browser floor, so the optional `pudl-dialog.js` supplies them where a browser lacks them. The older markup, a `.dialog` panel inside a `.dialog-backdrop` that a project's script shows, still works.
 
+When a dialog's content is taller than the window, its title and its `.dialog-actions` stay in view and only the content between them scrolls (0.65.0). Both are bands that stick to the panel's edges, so the markup does not change, and the actions may be the dialog's own or sit in a form that wraps the fields or the whole dialog. A `.dialog-head` around the title keeps a control that goes with it, such as a filter, in view as well. A line separates a band from the content only while content is hidden beneath it. `pudl-dialog.js` works that out, and it also sets the dialog's scroll padding to the bands' measured heights so that a focused field is scrolled clear of them. Without the script the bands still stay in view, with no lines, and the scroll padding is an estimate. The actions keep 24px between them and whatever comes before them, a list or a table as well as the body.
+
 ## Names that changed
 
 These old names keep working until 2.0, and new work should use the new ones.
@@ -1267,7 +1269,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.56.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.65.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 
