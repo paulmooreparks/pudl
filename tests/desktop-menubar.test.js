@@ -103,6 +103,9 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   await p.keyboard.press('o');
   await p.keyboard.up('Alt');
   await waitOpen();
+  /* Focus reaches the first row a moment after the panel opens, which a
+     busy machine can stretch. */
+  await p.waitForFunction(() => document.activeElement && document.activeElement.classList.contains('menu-action'), null, { timeout: 3000 }).catch(() => {});
   check('Alt held underlines the titles\' letters', held === 'underline');
   check('Alt with a letter opens that title from a field, first row focused, the front applet\'s included', (await active()) === 'row:Save');
   await escape();

@@ -309,7 +309,10 @@
     var inst = entry.instance;
     if (!inst || !window.pudlCommands) return;
     if (typeof inst.commandTable === 'function') {
-      entry.unregister = window.pudlCommands.register(entry.root, function () { return inst.commandTable(); });
+      /* One table, shared with the toolbars drawn beside the mount, so
+         pudl-commands.js knows them for one scope. */
+      entry.commandTable = function () { return inst.commandTable(); };
+      entry.unregister = window.pudlCommands.register(entry.root, entry.commandTable);
     }
     if (typeof inst.toolbars !== 'function') return;
     var bars;
@@ -353,7 +356,7 @@
     /* Toolbars drawn before the mount are outside it, so they are a scope
        of the same commands. */
     if (!slot && typeof inst.commandTable === 'function') {
-      var off = window.pudlCommands.register(holder, function () { return inst.commandTable(); });
+      var off = window.pudlCommands.register(holder, entry.commandTable);
       var first = entry.unregister;
       entry.unregister = function () { if (first) first(); off(); };
     }

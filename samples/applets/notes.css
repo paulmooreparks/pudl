@@ -13,6 +13,8 @@
 .notes-comment.current { box-shadow: inset 3px 0 var(--accent), var(--shadow-card, none); }
 .notes-comment-line { font-size: var(--text-xs); color: var(--text-muted); }
 .notes-status { margin: 0; min-height: 1.5em; font-size: var(--text-sm); color: var(--text-muted); }
+.notes-symbols { display: grid; grid-template-columns: repeat(6, 2.25rem); gap: 4px; }
+.notes-symbols .btn { padding: 0; height: 2rem; font-size: var(--text-md); }
 .applet-toolbars { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }
 @media (max-width: 640px) {
   .notes-panes { flex-direction: column; }

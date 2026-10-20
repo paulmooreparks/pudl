@@ -121,7 +121,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.68.1</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.69.0</a>
     </div>
   </header>
 
@@ -1071,7 +1071,7 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
     </div>
 
     <h3 id="toolbar-fold">Toolbars that fold (preview)</h3>
-    <p>A toolbar marked <code>data-toolbar-fold</code> keeps to one row and folds its groups as the room runs out, instead of wrapping. Each group may carry a name, <code>data-toolbar-group</code>, shown before its controls; a glyph, <code>data-toolbar-glyph</code>; a priority, <code>data-toolbar-priority</code>, higher kept open longer; and <code>data-toolbar-end</code>, which keeps it at the end of the row. A group passes through five stages: its name and each control's glyph and words; its name and the glyphs alone; one menu button with its glyph and name; that button with its glyph alone; and a section of the More menu. Every group reaches the second stage before any becomes a menu, and the lower priorities fold first. Nothing is lost by folding: a folded group's menu holds each command, a pressed one ticked and a segmented control's choices as radio rows. Narrow the box below, with the slider or by its corner. This is a preview of <a href="https://github.com/paulmooreparks/pudl/blob/main/docs/proposals/toolbar-commands.md">a proposal</a> that is not settled yet; <a href="samples/commands.html">the commands sample</a> builds the same kind of toolbar from an applet's declared commands, with the keys and an agent's view of them.</p>
+    <p>A toolbar marked <code>data-toolbar-fold</code> keeps to one row and folds its groups as the room runs out, instead of wrapping. Each group may carry a name, <code>data-toolbar-group</code>, shown before its controls; a glyph, <code>data-toolbar-glyph</code>; a priority, <code>data-toolbar-priority</code>, higher kept open longer; and <code>data-toolbar-end</code>, which keeps it at the end of the row. A group marked <code>data-toolbar-keep</code>, such as the Find field below, stays on the row as it is and never folds, and the others fold around it. A group passes through five stages: its name and each control's glyph and words; its name and the glyphs alone; one menu button with its glyph and name; that button with its glyph alone; and a section of the More menu. Every group reaches the second stage before any becomes a menu, and the lower priorities fold first. Nothing is lost by folding: a folded group's menu holds each command, a pressed one ticked and a segmented control's choices as radio rows. Narrow the box below, with the slider or by its corner. This is a preview of <a href="https://github.com/paulmooreparks/pudl/blob/main/docs/proposals/toolbar-commands.md">a proposal</a> that is not settled yet; <a href="samples/commands.html">the commands sample</a> builds the same kind of toolbar from an applet's declared commands, with the keys and an agent's view of them.</p>
     <div class="demo vstack gap-3">
       <label class="demo-row" style="gap: 12px">Width
         <input type="range" min="220" max="900" value="900" style="width: 16rem"
@@ -1100,6 +1100,9 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
             <button type="button" class="btn btn-sm" aria-label="New comment"><span class="glyph" style="--glyph: var(--glyph-comments)" aria-hidden="true"></span><span class="toolbar-words">New</span><span class="toolbar-badge">2</span></button>
             <button type="button" class="btn btn-sm" aria-label="Previous comment"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span><span class="toolbar-words">Previous</span></button>
             <button type="button" class="btn btn-sm" aria-label="Next comment"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span><span class="toolbar-words">Next</span></button>
+          </div>
+          <div class="toolbar-group" data-toolbar-group="Find" data-toolbar-keep>
+            <input class="form-input" type="search" placeholder="Find" aria-label="Find in the text" style="width: 8rem; height: 28px; padding-block: 0">
           </div>
           <div class="toolbar-group" data-toolbar-group="File" data-toolbar-glyph="document" data-toolbar-priority="4" data-toolbar-end>
             <button type="button" class="btn btn-sm" aria-label="Save"><span class="glyph" style="--glyph: var(--glyph-download)" aria-hidden="true"></span><span class="toolbar-words">Save</span></button>

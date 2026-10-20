@@ -268,6 +268,8 @@
       if (c.checked != null) item.checked = !!c.checked;
       if (c.radio != null) item.radio = String(c.radio);
       if (c.shortcut) item.shortcut = String(c.shortcut);
+      /* bind: false shows the key and leaves it to whatever binds it (0.69.0). */
+      if (c.bind === false) item.bind = false;
       if (c.mnemonic) item.mnemonic = String(c.mnemonic);
       if (c.glyph) item.glyph = String(c.glyph);
       if (c.detail) item.detail = String(c.detail);
@@ -544,7 +546,7 @@
         var root = c.owner.applet ? c.owner.applet.root : c.owner.scope.scope;
         if (!sameSource(c.owner, findFront()) || (root !== document && !root.contains(document.activeElement))) continue;
       }
-      if (c.shortcut === k) return c;
+      if (c.shortcut === k && c.bind !== false) return c;
       if (c.items) { var f = findShortcut(c.items, k); if (f) return f; }
     }
     return null;

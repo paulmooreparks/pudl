@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.69.0
+
+Six additions to the commands preview, from an application's `docs/proposals/pudl-commands-gaps.md`, found moving its toolbars to 0.68.1. The specification is unchanged at 0.28.0.
+
+- **A command may draw its own menu.** `panel(container)` draws into the menu as it opens, such as a grid of swatches or a searchable list, in the command's own menu and, under its name, in a folded group's menu or More.
+- **A group may stay on the row.** `data-toolbar-keep` on a group, such as one holding a field, keeps it as it is and never folds it; the other groups fold around it.
+- **The badge is in the name.** A control's accessible name carries its badge, so a screen reader hears "Open Comments, 3".
+- **`tone`**, `danger`, `warn` or `positive`, colours a command's control and menu row with no other meaning. A toned command without a glyph takes the status's glyph, stop, warning or check, so colour is never the only signal, and a toned control's badge takes the tone.
+- **`detail`** is a line saying what a command does, under its words in a menu row and in its control's tooltip. A disabled command's reason still takes that line first.
+- **`bind: false`** shows a command's `shortcut` in its tooltip and menu rows and leaves the key to whatever binds it; the menu bar honours it for rows it is given.
+- **Scopes.** `pudlCommands.list` describes a command by its own scope's controls only, so two windows with a command of one id do not answer for each other. `pudlCommands.run(id, value, el)` with an element runs only a command in that element's scopes; without one it looks where focus is and then everywhere. This is the one change existing callers may notice: a script that named an element and relied on the fallback must name the right one.
+- **The sample.** The note editor's Insert group gains Insert Symbol, a grid drawn by its command; its Insert rows have details; and Tools gains Checks, which counts lines ending in spaces and shows it by tone.
+- Update `pudl-commands.js`, `pudl-toolbar.js`, `pudl-applets.js`, `pudl-menubar.js` and `pudl.css`.
+
 ## 0.68.1
 
 Two fixes to the commands preview, from example.com's `Architecture/pudl-proposal-menu-command-ids.md` and `pudl-proposal-toolbar-empty-groups.md`. Both were promised by `docs/proposals/toolbar-commands.md` and missing from 0.68.0. The specification is unchanged at 0.28.0.

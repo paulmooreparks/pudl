@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.68.1.
+   Version 0.69.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -1476,6 +1476,16 @@ button.link {
 .toolbar-group[data-toolbar-stage="4"] > .toolbar-fold .menu-btn:has(> .glyph) > .toolbar-words { display: none; }
 .toolbar-group[data-toolbar-stage="5"] { display: none; }
 .toolbar[data-toolbar-more] > .toolbar-more { display: inline-flex; margin-inline-start: var(--space-2); }
+/* A command's tone colours its control and its menu row with a status
+   colour and nothing else (0.69.0); pudl-commands.js gives a toned
+   command without a glyph the status's glyph, so colour is never alone.
+   A toned control's badge takes the tone too. */
+.toolbar [data-tone="danger"], .menu-action[data-tone="danger"] { color: var(--danger); }
+.toolbar [data-tone="warn"], .menu-action[data-tone="warn"] { color: var(--warn); }
+.toolbar [data-tone="positive"], .menu-action[data-tone="positive"] { color: var(--positive); }
+.toolbar [data-tone] > .toolbar-badge { background: color-mix(in srgb, currentColor 18%, transparent); color: var(--text); }
+/* A command's own content in a menu, under its name. */
+.menu-command-panel { padding: 4px 14px 8px; }
 /* A folded group's menu rows: words, then a second line, then the key. */
 .menu-action > .menu-row-text { display: flex; flex-direction: column; min-width: 0; }
 .menu-row-detail { font-size: var(--text-xs); color: var(--text-muted); }

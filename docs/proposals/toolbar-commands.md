@@ -125,6 +125,8 @@ The Editor's key table becomes its command table, with a glyph added where its t
 
 A preview of the command table, `data-command` controls and folding shipped in 0.68.0, with the note editor sample. Two parts of the design above were missing from it, and example.com, moving its Editor and Files over, found both on the first day; 0.68.1 adds them. A menu's rows may be command ids (`pudlCommands.menuRows`, used for `menus()` and `commands()`), and a group whose commands are all hidden leaves the row.
 
+an application moved its toolbars next and found six gaps (`docs/proposals/pudl-commands-gaps.md` there), which 0.69.0 fills. The command table gains `panel(container)`, for a command that draws its own menu; `tone`, a status colour with no other meaning, which brings its status glyph where the command has none; `detail`, a line saying what the command does; and `bind: false`, for a key shown but bound elsewhere, chosen over an application's separate `key` field so that a command has one field for its key. A control's name carries its badge. A group marked `data-toolbar-keep` never folds, which replaces the rule above that a field becomes a glyph button at stage 5. `list` describes a command by its own scope's controls, and `run` with an element stays in that element's scopes, which is the default rather than the opt-in an application asked for, since an agent naming one window must never reach another's.
+
 ## Questions for the maintainer
 
 1. **Opt in, or the new default?** I recommend that folding start as `data-toolbar-fold` and become the default in the release after an application has moved, since today's toolbars wrap and a project's layout may count on it.

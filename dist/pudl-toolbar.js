@@ -253,7 +253,10 @@
     f.groups.forEach(function (g) { g.setAttribute('data-toolbar-stage', '1'); });
     bar.removeAttribute('data-toolbar-more');
     if (fits(bar)) return;
-    var order = foldOrder(f.groups.filter(function (g) { return !g.hidden && g.getClientRects().length; }));
+    /* A group marked data-toolbar-keep, such as one holding a field, stays
+       on the row as it is and never folds (0.69.0); the others fold
+       around it. */
+    var order = foldOrder(f.groups.filter(function (g) { return !g.hidden && g.getClientRects().length && !g.hasAttribute('data-toolbar-keep'); }));
     for (var stage = 2; stage <= 5; stage++) {
       for (var i = 0; i < order.length; i++) {
         var g = order[i];

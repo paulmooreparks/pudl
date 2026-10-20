@@ -128,6 +128,11 @@
     document.addEventListener('selectionchange', changed);
 
     var openCount = function () { return comments.filter(function (c) { return !c.resolved; }).length; };
+    var trailing = function () {
+      var out = [];
+      ta.value.split('\n').forEach(function (l, i) { if (/[ \t]+$/.test(l)) out.push(i); });
+      return out;
+    };
     var noComments = function () { return visible().length === 0; };
     var STYLES = { paragraph: 'Paragraph', h1: 'Heading 1', h2: 'Heading 2', h3: 'Heading 3' };
 
@@ -145,9 +150,46 @@
       { id: 'numbers', label: 'Numbered List', glyph: 'list-numbered', checked: function () { return /^\d+\. /.test(lineAt().text); }, run: function () { prefix('1. ', /^\d+\. /); } },
       { id: 'quote', label: 'Quote', glyph: 'quote', checked: function () { return /^> /.test(lineAt().text); }, run: function () { prefix('> ', /^> /); } },
       { id: 'insert', label: 'Insert', glyph: 'plus', items: ['insert-rule', 'insert-date', 'insert-link'] },
-      { id: 'insert-rule', label: 'Horizontal Rule', glyph: 'minus', run: function () { insert('\n---\n'); } },
-      { id: 'insert-date', label: 'Today\'s Date', glyph: 'board', run: function () { insert(new Date().toISOString().slice(0, 10)); } },
-      { id: 'insert-link', label: 'Link…', glyph: 'link', shortcut: 'Mod+K', run: function () { wrapWith('['); } },
+      { id: 'insert-rule', label: 'Horizontal Rule', glyph: 'minus', detail: 'A line across the note, between sections.', run: function () { insert('\n---\n'); } },
+      { id: 'insert-date', label: 'Today\'s Date', glyph: 'board', detail: 'As year, month and day.', run: function () { insert(new Date().toISOString().slice(0, 10)); } },
+      { id: 'insert-link', label: 'Link…', glyph: 'link', shortcut: 'Mod+K', detail: 'Around the selected words.', run: function () { wrapWith('['); } },
+      /* A command that draws its own menu: a grid of symbols, in its own
+         menu and in a folded group's. */
+      { id: 'insert-symbol', label: 'Insert Symbol', glyph: 'diamond',
+        panel: function (box) {
+          var grid = document.createElement('div');
+          grid.className = 'notes-symbols';
+          grid.setAttribute('role', 'group');
+          grid.setAttribute('aria-label', 'Symbols');
+          ['→', '←', '✓', '✗', '★', '•', '…', '—', '±', '×', '°', '€'].forEach(function (s) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn btn-sm';
+            b.textContent = s;
+            b.setAttribute('aria-label', 'Insert ' + s);
+            b.addEventListener('click', function () {
+              var p = b.closest('[popover]');
+              if (p && p.hidePopover) p.hidePopover();
+              insert(s);
+            });
+            grid.appendChild(b);
+          });
+          box.appendChild(grid);
+        } },
+      /* A status shown by tone: the lines that end in spaces, in the
+         danger colour while there are any. */
+      { id: 'checks', label: 'Checks', glyph: function () { return trailing().length ? null : 'check'; },
+        tone: function () { return trailing().length ? 'danger' : 'positive'; },
+        badge: function () { return String(trailing().length); },
+        detail: 'Lines that end in spaces.',
+        run: function () {
+          var t = trailing();
+          if (!t.length) { say('No line ends in spaces.'); return; }
+          var lines = ta.value.split('\n'), pos = lines.slice(0, t[0]).join('\n').length + (t[0] ? 1 : 0) + lines[t[0]].length;
+          ta.focus();
+          ta.setSelectionRange(pos, pos);
+          say('Line ' + (t[0] + 1) + ' ends in spaces.');
+        } },
       { id: 'comments-off', label: 'Off', choice: 'comments-shown', choiceLabel: 'Show Comments', checked: function () { return shown === 'off'; }, run: function () { shown = 'off'; update(); } },
       { id: 'comments-open', label: 'Open', choice: 'comments-shown', choiceLabel: 'Show Comments', checked: function () { return shown === 'open'; }, run: function () { shown = 'open'; update(); } },
       { id: 'comments-all', label: 'All', choice: 'comments-shown', choiceLabel: 'Show Comments', checked: function () { return shown === 'all'; }, run: function () { shown = 'all'; update(); } },
@@ -188,7 +230,7 @@
 
     /* In Preview there is no text to edit, so the editing commands hide,
        and the groups that hold only them leave the toolbar. */
-    ['style', 'bold', 'italic', 'code', 'bullets', 'numbers', 'quote', 'insert'].forEach(function (id) {
+    ['style', 'bold', 'italic', 'code', 'bullets', 'numbers', 'quote', 'insert', 'insert-symbol'].forEach(function (id) {
       table.filter(function (c) { return c.id === id; })[0].hidden = function () { return view === 'preview'; };
     });
 
@@ -229,10 +271,10 @@
           { label: 'Style', glyph: 'paragraph', priority: 1, items: ['style'] },
           { label: 'Text', glyph: 'bold', priority: 3, items: ['bold', 'italic', 'code'] },
           { label: 'Lists', glyph: 'list', priority: 1, items: ['bullets', 'numbers', 'quote'] },
-          { label: 'Insert', glyph: 'plus', priority: 0, items: ['insert'] },
+          { label: 'Insert', glyph: 'plus', priority: 0, items: ['insert', 'insert-symbol'] },
           { label: 'Comments', glyph: 'comments', priority: 2, items: [{ choice: 'comments-shown' }, 'new-comment', 'previous-comment', 'next-comment', 'resolve-comment'] },
           { label: 'View', glyph: 'panel', priority: 1, items: [{ choice: 'view' }, 'wrap'] },
-          { label: 'Tools', glyph: 'gear', priority: 0, items: ['word-count', 'name-note'] },
+          { label: 'Tools', glyph: 'gear', priority: 0, items: ['checks', 'word-count', 'name-note'] },
           { label: 'File', glyph: 'document', priority: 4, end: true, items: ['save', 'discard'] }
         ] }];
       },
