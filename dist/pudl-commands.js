@@ -478,6 +478,11 @@
     if (!Array.isArray(list)) return list;
     var out = [];
     list.forEach(function (x) {
+      /* A command given as an object, such as an item of another command,
+         is turned into a row as one named by its id is (0.69.1), so its
+         choice is a radio row and its state is read now. A plain row
+         without an id passes through as it is. */
+      if (x && typeof x === 'object' && typeof x.id === 'string' && !x.heading) { toRow(x); return; }
       if (x === '-' || (x && typeof x === 'object')) {
         if (x && typeof x === 'object' && Array.isArray(x.items)) x = Object.assign({}, x, { items: menuRows(x.items, scope) });
         out.push(x);
@@ -489,7 +494,9 @@
         if (!warnedIds[x] && window.console) { warnedIds[x] = true; console.warn('pudl-commands: a menu names the command ' + x + ', which its scope does not have'); }
         return;
       }
-      var c = f.cmd;
+      toRow(f.cmd);
+    });
+    function toRow(c) {
       /* A panel of the command's own is not a row the menu bar can draw. */
       if (val(c, 'hidden') || typeof c.panel === 'function') return;
       var row = { id: c.id, label: val(c, 'label') || c.id };
@@ -506,7 +513,7 @@
       if (Array.isArray(items)) row.items = menuRows(items, scope);
       else row.run = function () { runCmd(c, val(c, 'value')).catch(function () {}); };
       out.push(row);
-    });
+    }
     /* No separator first, last or twice running. */
     return out.filter(function (r, i, all) {
       if (r !== '-') return true;

@@ -167,6 +167,11 @@ function check(name, ok, detail) {
     let strict = null;
     try { await pudlCommands.run('only-b', undefined, a); } catch (e) { strict = e.message; }
     const row = pudlCommands.menuRows(['shown-key'], b)[0];
+    /* A command whose items are a choice, given as objects (0.69.1). */
+    let picked = 'b';
+    pudlCommands.register(b, [{ id: 'provider', label: 'Provider', items: ['a', 'b'].map(p => ({ id: 'provider-' + p, label: p.toUpperCase(), choice: 'provider', checked: () => picked === p, run: () => { picked = p; } })) }]);
+    const sub = pudlCommands.menuRows(['provider'], b)[0].items.map(r => r.label + ':' + r.radio + ':' + r.checked + ':' + (typeof r.run));
+    window.__sub = sub;
     b.querySelector('input').focus();
     return { shownA, shownB, ran, strict, row: { shortcut: row.shortcut, bind: row.bind } };
   });
@@ -175,6 +180,8 @@ function check(name, ok, detail) {
   const ranAfterKey = await p.evaluate(() => window.__ran.slice());
   check('a command is described by its own scope\'s controls only', scoped.shownA === 'none' && scoped.shownB === 'toolbar', JSON.stringify(scoped));
   check('run with an element runs only that element\'s command', JSON.stringify(scoped.ran) === '["a"]' && scoped.strict === 'there is no command only-b', JSON.stringify(scoped));
+  const sub = await p.evaluate(() => window.__sub);
+  check('a submenu\'s choice given as command objects becomes radio rows with their state', JSON.stringify(sub) === '["A:provider:false:function","B:provider:true:function"]', JSON.stringify(sub));
   check('bind: false shows the key in a menu row and does not bind it', scoped.row.shortcut === 'Mod+Alt+J' && scoped.row.bind === false && !ranAfterKey.includes('bound!'), JSON.stringify([scoped.row, ranAfterKey]));
 
   /* The reference page's hand-written folding toolbar. */

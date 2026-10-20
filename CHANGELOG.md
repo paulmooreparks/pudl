@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.69.1
+
+From an application's `docs/proposals/pudl-commands-gaps.md`, the gap 0.69.0 left open. The specification is unchanged at 0.28.0.
+
+- **A choice in a menu bar's submenu is drawn as radio rows.** `pudlCommands.menuRows` passed a command given as an object, such as an item of another command, through as it was, so the menu bar never saw its choice and drew a check row. Any object with an `id` is now turned into a row as one named by its id is, with its choice as a radio, its state read when the menu opens, and its `run`. A plain row without an `id` passes through as before.
+- Update `pudl-commands.js`.
+
 ## 0.69.0
 
 Six additions to the commands preview, from an application's `docs/proposals/pudl-commands-gaps.md`, found moving its toolbars to 0.68.1. The specification is unchanged at 0.28.0.
