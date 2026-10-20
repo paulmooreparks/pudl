@@ -10,6 +10,8 @@
   <script src="../dist/pudl-commands.js" defer></script>
   <script src="../dist/pudl-toolbar.js" defer></script>
   <script src="../dist/pudl-applets.js" defer></script>
+  <script src="../dist/pudl-actions.js" defer></script>
+  <script src="../dist/pudl-dialog.js" defer></script>
   <script src="applets/registry.js" defer></script>
   <script src="commands-page.js" defer></script>
   <style>
@@ -62,7 +64,29 @@
       </div>
       <pre class="code" id="agent-out" aria-live="polite">Press List the commands.</pre>
     </section>
+
+    <section class="card agent" aria-labelledby="actions-title">
+      <h2 class="card-title" id="actions-title">Actions, for agents with no page at all</h2>
+      <p class="card-desc">The note editor also publishes actions: functions with a schema for what goes in and what comes out, which a script, a server or an agent can call without the toolbar, and some without the editor being open at all. Count a Note runs in a module of its own. Read, Save and Resolve are answered by the open editor. Ask for a Title asks you a question. Open in Notes is the applet's request verb, which PUDL publishes as an action by itself. The Word Count and Name the Note… commands in the Tools group call two of these actions.</p>
+      <p class="card-desc">This panel runs as an agent would, with no capabilities granted. An action that needs one, such as Save, which posts a notice, asks you first, through the page's <code>pudlApplets.confirm</code>.</p>
+      <div class="agent-run">
+        <button class="btn" type="button" id="actions-list">List the actions</button>
+        <span class="form-select-wrap"><select class="form-select" id="actions-ref" aria-label="Action"><option>sample.notes/stats@1</option></select></span>
+        <input class="form-input" id="actions-input" value='{ "text": "# Hello\nTwo words." }' aria-label="Input, as JSON" style="width: 20rem">
+        <button class="btn" type="button" id="actions-run">Run as an agent</button>
+      </div>
+      <pre class="code" id="actions-out" aria-live="polite">Press List the actions.</pre>
+    </section>
   </main>
+
+  <dialog class="dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+    <h3 class="dialog-title" id="confirm-title">Allow this action?</h3>
+    <p class="dialog-body" id="confirm-body"></p>
+    <form class="dialog-actions" method="dialog">
+      <button class="btn" value="no" autofocus>Don't Allow</button>
+      <button class="btn btn-primary" value="yes">Allow</button>
+    </form>
+  </dialog>
 
 </body>
 </html>

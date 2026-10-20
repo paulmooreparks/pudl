@@ -109,10 +109,22 @@
 
   /* === Running ============================================================ */
 
-  function runCmd(cmd, value) {
+  /* A command without run that names an action runs the action, with the
+     input its input field gives. Pressed by a person, it holds every
+     capability, since the person chose it; run by a script or an agent
+     through pudlCommands.run, it holds only the grant it is given. */
+  function runCmd(cmd, value, opts) {
     if (val(cmd, 'hidden')) return Promise.reject(new Error((val(cmd, 'label') || cmd.id) + ' is not available here'));
     if (val(cmd, 'disabled')) return Promise.reject(new Error(val(cmd, 'reason') || (val(cmd, 'label') || cmd.id) + ' cannot run now'));
-    if (typeof cmd.run !== 'function') return Promise.reject(new Error((val(cmd, 'label') || cmd.id) + ' has nothing to run'));
+    if (typeof cmd.run !== 'function') {
+      var action = val(cmd, 'action');
+      if (action && window.pudlApplets && window.pudlApplets.run) {
+        opts = opts || { grant: 'all', owner: { kind: 'person' } };
+        var input = val(cmd, 'input');
+        return window.pudlApplets.run(action, input == null ? {} : input, opts).then(function (r) { changed(); return r; });
+      }
+      return Promise.reject(new Error((val(cmd, 'label') || cmd.id) + ' has nothing to run'));
+    }
     try { return Promise.resolve(cmd.run(value)).then(function (r) { changed(); return r; }); }
     catch (err) { return Promise.reject(err); }
   }
@@ -372,14 +384,14 @@
     return out;
   }
 
-  function run(id, value, el) {
+  function run(id, value, el, opts) {
     var f = find(id, el || document.activeElement || document.body);
     if (!f) {
       /* An agent may not know where focus is: look in every scope. */
       scopes.forEach(function (get, s) { if (!f) { var c = search(tableOf(s), id); if (c) f = { cmd: c, scope: s }; } });
     }
     if (!f) return Promise.reject(new Error('there is no command ' + id));
-    return runCmd(f.cmd, value);
+    return runCmd(f.cmd, value, opts || { owner: { kind: 'script' } });
   }
 
   function register(scope, table) {

@@ -1,6 +1,6 @@
 # Proposal: applet actions in PUDL, and one vocabulary for actions, commands and requests
 
-Status: proposed 2026-10-20, awaiting the maintainer's decisions on the questions at the end. the maintainer asked whether the command table of the toolbar proposal could serve as a registry of applet functions for AI, noted that something like it already exists, and asked whether the two should be harmonized. He set the goal on the same day: PUDL is AI-native, as its applet API is, and every feature considers its agent side where it has one (specification chapter 1, "Agents"). He will pilot this on reader.com and example.com, since an application has become too important to experiment on.
+Status: accepted 2026-10-20, with the maintainer's decisions at the end, which change the calling surface in section 1. the maintainer asked whether the command table of the toolbar proposal could serve as a registry of applet functions for AI, noted that something like it already exists, and asked whether the two should be harmonized. He set the goal on the same day: PUDL is AI-native, as its applet API is, and every feature considers its agent side where it has one (specification chapter 1, "Agents"). He will pilot this on reader.com and example.com, since an application has become too important to experiment on.
 
 This proposal takes in example.com's `Architecture/pudl-proposal-applet-actions.md` of 17 October, which asks PUDL to adopt the site's action broker, and answers its three questions.
 
@@ -80,9 +80,20 @@ The five MCP tools an application and example.com both offer, `applet_discover`,
 
 **an application last,** once both pilots have settled the contract, since its Go broker already implements it and its move is mostly mapping: the Editor's key table to a command table, its document-type actions to the manifest, and its CLI's verbs to the actions they duplicate.
 
-## Questions for the maintainer
+## Decisions, 20 October 2026
 
-1. **`pudlActions` as its own global, beside `pudlCommands`,** rather than methods on `pudlApplets` as the site's proposal suggested? I recommend the separate global, since the site and the package format already use it and it keeps `pudl-applets.js` small.
-2. **Ship the schema validator in PUDL?** I recommend yes, inside `pudl-actions.js` with its MIT notice, so every PUDL site checks schemas the same way. The alternative leaves each project to bring one.
-3. **Who an agent's grant comes from.** Today the site's chat is granted every capability. I recommend that a caller with no grant get none but `artifact.create`, and that a host may set `pudlActions.confirm`, a function PUDL calls before an action needing a capability outside the caller's standing grant, to ask the person; the site's chat would ask once per capability, with "always" remembered. This keeps a person in charge of what an agent does on their behalf without asking about every pure action.
-4. **The MCP tool names as a recommended binding in the specification?** I recommend yes, as a non-normative note.
+1. **Actions belong to `pudlApplets`.** The calling surface is `pudlApplets.provide`, `catalog`, `describe`, `invoke`, `run`, `status`, `wait`, `cancel`, `artifact` and `invocations`, as the site's own proposal suggested, since an action is something an applet publishes. `window.pudlActions` stays as a deprecated name for the same functions, so the site's code and the `hello` package keep working, and it goes at 1.0; it says so once in the console the first time a page uses it. `pudlCommands` stays its own global, because a page with no applets declares commands too. The examples in section 1 read with `pudlApplets` in place of `pudlActions`.
+2. **PUDL ships the schema validator,** inside `pudl-actions.js`, with its MIT notice.
+3. **A caller with no grant gets none but `artifact.create`,** and a host may set `pudlApplets.confirm`, which PUDL calls before an action that needs a capability outside the caller's grant, to ask the person.
+4. **The five MCP tool names are the specification's recommended binding,** in a note.
+
+## As built, 20 October 2026
+
+Released in PUDL 0.68.0 with specification 0.28.0. Building it added four small things to the design above.
+
+- **`live` on an action.** An action the open applet answers is marked `"live": true` and needs no module: the broker hands the call to the newest handlers the running applet attached. The site wrote a module handler that called `attached()` by hand for each such action; that still works.
+- **`pudlApplets.publish(url)`** adds a manifest that belongs to no applet, which the site needs for `js/actions/page.json`.
+- **`pudlApplets.capability(name, give)`** is how a project adds a capability and the services it hands a handler, which is how the site keeps `files.read` and `files.write`.
+- **`grant: "all"`** is how a caller acting for the person says it holds everything; a command a person presses passes it.
+
+The note editor sample (`samples/commands.html`) publishes five actions, one of each kind, and its request verb appears in the catalog as `notes/open-note@1`.

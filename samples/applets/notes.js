@@ -163,11 +163,59 @@
       { id: 'wrap', label: 'Word Wrap', glyph: 'size', checked: function () { return wrap; }, shortcut: 'Alt+Z', run: function () { wrap = !wrap; update(); } },
       { id: 'save', label: 'Save', glyph: 'download', shortcut: 'Mod+S', disabled: function () { return !dirty(); }, reason: 'Nothing has changed since it was saved.',
         action: 'sample.notes/save@1', run: function () { saved = ta.value; say('Saved.'); changed(); } },
+      /* Two commands that call the note's actions, as any script could: a
+         pure one a module answers, and one that asks the person. */
+      { id: 'word-count', label: 'Word Count', glyph: 'info', action: 'sample.notes/stats@1',
+        run: function () {
+          return pudlApplets.run('sample.notes/stats@1', { text: ta.value }, { grant: 'all', owner: { kind: 'person' } }).then(function (o) {
+            say(o.words + ' words, ' + o.lines + ' lines, ' + o.headings + (o.headings === 1 ? ' heading.' : ' headings.'));
+          });
+        } },
+      { id: 'name-note', label: 'Name the Note…', glyph: 'pencil', action: 'sample.notes/ask-title@1',
+        run: function () {
+          var first = /^# (.*)$/.exec(ta.value.split('\n')[0]);
+          return pudlApplets.run('sample.notes/ask-title@1', { suggestion: first ? first[1] : '' }, { grant: 'all', owner: { kind: 'person' } }).then(function (o) {
+            if (!o.response || !o.response.title) return;
+            var lines = ta.value.split('\n');
+            if (/^# /.test(lines[0])) lines[0] = '# ' + o.response.title; else lines.unshift('# ' + o.response.title, '');
+            ta.value = lines.join('\n');
+            update();
+          }, function (err) { say(err.message); });
+        } },
       { id: 'discard', label: 'Discard Changes', danger: true, disabled: function () { return !dirty(); }, reason: 'Nothing has changed since it was saved.',
         run: function () { ta.value = saved; update(); say('Changes discarded.'); } }
     ];
 
     update();
+
+    /* The actions that read and change the open note are answered here,
+       by the running editor, for as long as it runs. */
+    var detach = null;
+    function attachLive() {
+      if (detach || !window.pudlApplets || !pudlApplets.attach) return;
+      detach = pudlApplets.attach('sample.notes', {
+        'read@1': function () {
+          return { output: { text: ta.value, unsaved: dirty(), comments: comments.map(function (c) { return { line: c.line, text: c.text, resolved: c.resolved }; }) } };
+        },
+        'save@1': function (input, ctx) {
+          if (!dirty()) return { output: { saved: false } };
+          saved = ta.value;
+          say('Saved, by ' + (ctx.owner && ctx.owner.kind || 'a caller') + '.');
+          changed();
+          return Promise.resolve(ctx.notify && ctx.notify('The note was saved.', 'positive')).then(function () { return { output: { saved: true } }; });
+        },
+        'resolve-comment@1': function (input) {
+          var c = comments.filter(function (x) { return x.line === input.line && !x.resolved; })[0];
+          if (!c) return { output: { resolved: false } };
+          c.resolved = true;
+          update();
+          return { output: { resolved: true } };
+        }
+      });
+    }
+    attachLive();
+    document.addEventListener('pudl:actions-ready', attachLive);
+
     return {
       commandTable: function () { return table; },
       toolbars: function () {
@@ -178,10 +226,15 @@
           { label: 'Insert', glyph: 'plus', priority: 0, items: ['insert'] },
           { label: 'Comments', glyph: 'comments', priority: 2, items: [{ choice: 'comments-shown' }, 'new-comment', 'previous-comment', 'next-comment', 'resolve-comment'] },
           { label: 'View', glyph: 'panel', priority: 1, items: [{ choice: 'view' }, 'wrap'] },
+          { label: 'Tools', glyph: 'gear', priority: 0, items: ['word-count', 'name-note'] },
           { label: 'File', glyph: 'document', priority: 4, end: true, items: ['save', 'discard'] }
         ] }];
       },
-      destroy: function () { document.removeEventListener('selectionchange', changed); }
+      destroy: function () {
+        document.removeEventListener('selectionchange', changed);
+        document.removeEventListener('pudl:actions-ready', attachLive);
+        if (detach) detach();
+      }
     };
   }
 

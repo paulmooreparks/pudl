@@ -1193,6 +1193,26 @@ A window source must answer the numbered keys. A server renders the applet's win
 
 `opts.instance` and `pudl:applet-state`'s `detail.instance` carry the key an instance goes by, its window's key or, outside a window, the applet's name, so a host can keep each instance's state apart. That matters for one reason: a request's state reaches a new window through memory, not through the address, which the windows own. A reload keeps the window but not the state a request gave it, unless the host keeps it for that instance.
 
+### Actions
+
+An applet may publish **actions** (0.68.0): things it does that a script, the page, a server or an agent calls by reference and that answer with a result, with the input and output checked against JSON Schemas, and without the applet's window unless the action is about a window. The contract is an application's, as example.com runs it; `pudl-actions.js` is that site's broker made PUDL's, and the specification's chapter 9 states the contract for any host. Load it after `pudl-applets.js`; it loads `pudl-actions-core.js` and the validator in `vendor/` beside it when first used.
+
+```js
+pudlApplets.define('dice', { src: '/js/dice.js', ver: '3', actions: '/js/dice-actions.json' });
+```
+
+The manifest lists the provider, such as `example.dice`, and its actions, each with a reference such as `example.dice/roll@1`, a title and description, `inputSchema` and `outputSchema`, `capabilities` and `replay`, and optionally `handles`, a request verb, or `live`, for an action the open applet answers. `module`, a script beside it, hands over the handlers the first time one runs: `pudlApplets.provide('example.dice', { 'roll@1': function (input, ctx) { return { output: { … } }; } })`. A live action's handlers come from the running applet, `pudlApplets.attach(id, handlers)`, which returns the function that detaches them. `pudlApplets.publish(url)` adds a manifest that belongs to no applet.
+
+- **Replay.** `pure` has no effect beyond its result and may run anywhere, any number of times. `once` has effects and is never run again unasked; a caller that may retry passes `opts.id`, and a second call with that id answers with the first. `human` asks the reader a question, in a dialog, and waits.
+- **Capabilities.** PUDL's are `artifact.create`, `attention.request`, `notification.post` and `window.open`; a project adds its own with `pudlApplets.capability(name, give)`, where `give(ctx, record)` returns the services a handler is handed, such as `{ files: … }`. A manifest naming any other is refused.
+- **Grants.** A caller passes `opts.grant`, the capabilities it holds, or `"all"`; with none it holds `artifact.create` alone. A command a person presses holds everything. For an action needing more than its caller holds, a host may set `pudlApplets.confirm`, a function given `{ action, missing, owner }` that resolves true to let it run, so the person decides what an agent may do for them.
+- **Calling.** `pudlApplets.catalog()`, `describe(ref)`, `run(ref, input, opts)`, which gives the output or an error saying why not, `invoke(ref, input, opts)`, which gives the record, and `status(id)`, `wait(id)`, `cancel(id)`, `artifact(id)`, `invocations()` and `problems()`. `pudl:applet-invocation` fires on the document as each record changes.
+- **Requests are actions.** Every `handles` verb with no action of its own is published as `<applet>/<verb>@1`. An action never navigates the page that called it: without windows it opens the applet's page in a new tab.
+- **For agents outside the page,** a host offers the same contract through MCP as `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`, the names an application and example.com share.
+- **The old name.** `window.pudlActions`, which example.com and the applet package format used first, is the same functions, deprecated; it says so once in the console and goes at 1.0.
+
+[The commands sample](https://paulmooreparks.github.io/pudl/samples/commands.html) publishes five actions from its note editor and runs them as an agent would, asking the reader through the confirm hook.
+
 ### Sizing an applet that fills
 
 Three lessons from example.com's Sudoku, for any applet that fills a window without scrollbars:
@@ -1260,7 +1280,9 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-disclose.js`, the optional script for cards that open and close
   - `pudl-zoom.js`, the optional script that scales a picture in a viewport that scrolls
   - `pudl-rows.js`, the optional script that keeps focus right in a row editor
-  - `pudl-toolbar.js`, the optional script that makes a toolbar one tab stop
+  - `pudl-toolbar.js`, the optional script that makes a toolbar one tab stop, and folds one marked `data-toolbar-fold` (preview)
+  - `pudl-actions.js`, `pudl-actions-core.js` and `vendor/cfworker-json-schema-4.1.1/`, the optional applet actions: the broker, the rules any host shares, and the JSON Schema validator it loads (MIT, see its `NOTICE.txt`)
+  - `pudl-commands.js`, the optional declared commands (preview)
   - a notice and a toast keep an unbroken word, a code block and a long action inside the card (0.62.0); give a long action its whole label as `title`
   - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
   - `pudl-components.json`, the components described for tools, which `docs/COMPONENTS.md` explains; a page never loads it
@@ -1285,7 +1307,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.67.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.68.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

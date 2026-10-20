@@ -1,0 +1,83 @@
+{
+  "id": "sample.notes",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "title": "Notes",
+  "description": "The note editor sample: counting a note's words, reading and saving the open note, resolving its comments, and naming it.",
+  "module": "notes-actions.js",
+  "actions": [
+    {
+      "ref": "sample.notes/stats@1",
+      "title": "Count a Note",
+      "description": "Count the words, lines and headings in a piece of Markdown.",
+      "inputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["text"],
+        "properties": { "text": { "type": "string", "maxLength": 100000, "description": "The Markdown to count." } }
+      },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["words", "lines", "headings"],
+        "properties": { "words": { "type": "integer" }, "lines": { "type": "integer" }, "headings": { "type": "integer" } }
+      },
+      "capabilities": [],
+      "replay": "pure"
+    },
+    {
+      "ref": "sample.notes/read@1",
+      "title": "Read the Open Note",
+      "description": "The text of the note open in the editor, whether it has unsaved changes, and its comments.",
+      "inputSchema": { "type": "object", "additionalProperties": false, "properties": {} },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["text", "unsaved", "comments"],
+        "properties": {
+          "text": { "type": "string" }, "unsaved": { "type": "boolean" },
+          "comments": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["line", "text", "resolved"],
+            "properties": { "line": { "type": "integer" }, "text": { "type": "string" }, "resolved": { "type": "boolean" } } } }
+        }
+      },
+      "capabilities": [],
+      "replay": "pure",
+      "live": true
+    },
+    {
+      "ref": "sample.notes/save@1",
+      "title": "Save the Open Note",
+      "description": "Save the note open in the editor.",
+      "inputSchema": { "type": "object", "additionalProperties": false, "properties": {} },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["saved"],
+        "properties": { "saved": { "type": "boolean", "description": "False when there was nothing to save." } }
+      },
+      "capabilities": ["notification.post"],
+      "replay": "once",
+      "live": true
+    },
+    {
+      "ref": "sample.notes/resolve-comment@1",
+      "title": "Resolve a Comment",
+      "description": "Resolve the open comment on a line of the open note.",
+      "inputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["line"],
+        "properties": { "line": { "type": "integer", "minimum": 0, "description": "The comment's line, counting from 0." } }
+      },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["resolved"],
+        "properties": { "resolved": { "type": "boolean", "description": "False when that line had no open comment." } }
+      },
+      "capabilities": [],
+      "replay": "once",
+      "live": true
+    },
+    {
+      "ref": "sample.notes/ask-title@1",
+      "title": "Ask for a Title",
+      "description": "Ask the person what the note should be called, and give their answer.",
+      "inputSchema": { "type": "object", "additionalProperties": false, "properties": { "suggestion": { "type": "string", "maxLength": 80 } } },
+      "outputSchema": {
+        "type": "object", "required": ["response"],
+        "properties": { "response": { "type": ["object", "null"], "properties": { "title": { "type": "string" } } } }
+      },
+      "capabilities": ["attention.request"],
+      "replay": "human"
+    }
+  ]
+}

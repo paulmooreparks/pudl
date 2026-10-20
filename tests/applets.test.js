@@ -72,7 +72,8 @@ function check(name, ok, extra) {
     const W = window.pudlWindows;
     W.close('numerals'); W.close('elevation');
     W.open('url-state');
-    await new Promise(r => setTimeout(r, 100));
+    /* The window is fetched, which a busy machine may take a while over. */
+    for (let i = 0; i < 60 && W.state().open.join(',') !== 'url-state'; i++) await new Promise(r => setTimeout(r, 50));
     const a = W.state();
     W.minimize('url-state');
     const bb = W.state();

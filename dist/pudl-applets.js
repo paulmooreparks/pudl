@@ -187,6 +187,8 @@
 
   function define(name, cfg) {
     defs[name] = cfg || {};
+    /* For pudl-actions.js, which reads the manifests define() names. */
+    document.dispatchEvent(new CustomEvent('pudl:applet-define', { detail: { name: name } }));
     var roots = unresolved[name] || [];
     delete unresolved[name];
     roots.forEach(function (root) {
@@ -782,8 +784,18 @@
     delete handed[e.detail && e.detail.key];
   });
 
-  window.pudlApplets = { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can,
-                         commandsIn: commandsIn, menuSourceIn: menuSourceIn, started: started, start: startWindow };
+  /* Merged into what is there, so pudl-actions.js may load either side. */
+  window.pudlApplets = Object.assign(window.pudlApplets || {}, { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can,
+                         commandsIn: commandsIn, menuSourceIn: menuSourceIn, started: started, start: startWindow,
+                         /* What each define() said, for pudl-actions.js: { name: { actions, handles, page, ver } }. */
+                         definitions: function () {
+                           var out = {};
+                           Object.keys(defs).forEach(function (n) {
+                             var d = defs[n];
+                             out[n] = { actions: d.actions || null, handles: d.handles || null, page: d.page || null, ver: d.ver || null, title: d.title || null };
+                           });
+                           return out;
+                         } });
 
   /* A mount with data-applet-param keeps its state in the page's query. */
   document.addEventListener('pudl:applet-change', function (e) {

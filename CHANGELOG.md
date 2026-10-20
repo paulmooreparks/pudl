@@ -1,12 +1,18 @@
 # Changelog
 
-## Unreleased (preview)
+## 0.68.0
 
-Previews to try, on the branch and on GitHub Pages, before their proposal is settled. Nothing here is in a tagged release yet, and any of it may change.
+This release implements PUDL specification 0.28.0, from the maintainer's decision that PUDL is AI-native and from example.com's proposal that PUDL take in applet actions (`docs/proposals/applet-actions.md`).
 
-- **Declared commands** (`dist/pudl-commands.js`, `docs/proposals/toolbar-commands.md`). `pudlCommands.register(scope, table)` declares commands once, each with an id, words, glyph, key and state; a control with `data-command` and a segmented control with `data-command-choice` are filled from them and kept current; a command with items is a menu; the keys work while focus is in the scope; and `pudlCommands.list(el)` and `pudlCommands.run(id)` give an agent every command as data and run one by id, refusing a disabled one with its reason. An applet offers `commandTable()` and `toolbars()`, and gets `opts.commandsChanged()`.
+- **Applet actions** (`pudl-actions.js`, `pudl-actions-core.js`, `vendor/cfworker-json-schema-4.1.1/`). An applet's `define()` names a manifest of actions with `actions`, and a script, the page, a command or an agent calls them by reference, with input and output checked against JSON Schemas, through `pudlApplets.run`, `invoke`, `catalog` and the rest. Replay is pure, once or human. Capabilities are a closed list a project extends with `pudlApplets.capability`; a caller holds its grant, `artifact.create` alone by default, and `pudlApplets.confirm` lets the reader allow more. Live actions are answered by the open applet through `pudlApplets.attach`. Request verbs are published as actions, and an action never navigates the page that called it. `pudlApplets.definitions()` and the `pudl:applet-define` event let the broker read `define()`.
+- **For example.com.** Replace `js/applet-actions.js` and `js/applet-actions-core.js` with PUDL's and delete the `define()` wrapper in `js/applets.js`. Add `files.read` and `files.write` with `pudlApplets.capability`, publish `js/actions/page.json` with `pudlApplets.publish`, and give the Terminal and the chat their grants, since a caller with none now holds only `artifact.create`, or set `pudlApplets.confirm`. `siteActions` becomes `pudlApplets`; `pudlActions` keeps working, deprecated, until 1.0, and the event is `pudl:applet-invocation`.
+- **Agents in the README's principles.** "Agents are readers too."
+
+The following are previews, which this release carries so that the pilots can try them; they may change before their proposal is settled (`docs/proposals/toolbar-commands.md`).
+
+- **Declared commands** (`dist/pudl-commands.js`, `docs/proposals/toolbar-commands.md`). `pudlCommands.register(scope, table)` declares commands once, each with an id, words, glyph, key and state; a control with `data-command` and a segmented control with `data-command-choice` are filled from them and kept current; a command with items is a menu; the keys work while focus is in the scope; and `pudlCommands.list(el)` and `pudlCommands.run(id)` give an agent every command as data and run one by id, refusing a disabled one with its reason. An applet offers `commandTable()` and `toolbars()`, and gets `opts.commandsChanged()`. A command with `action` and no `run` runs that action, with every capability when a person presses it and only its caller's grant when a script runs it.
 - **Toolbars that fold** (`pudl-toolbar.js`, `pudl.css`). A toolbar marked `data-toolbar-fold` keeps to one row, and its named groups fold through five stages, from names and words, to glyphs, to a menu button with the group's name, to its glyph alone, to the More menu, by priority. A folded group's menu holds every command, ticked or chosen as it is.
-- **Samples.** `samples/commands.html`, a note editor built this way, with a width slider and a panel showing the commands as an agent sees them; and a folding toolbar on the reference page.
+- **Samples.** `samples/commands.html`, a note editor built this way, with a width slider, a panel showing the commands as an agent sees them, and a panel that runs its five actions as an agent with no grant would; and a folding toolbar on the reference page.
 
 ## 0.67.0
 
