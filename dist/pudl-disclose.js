@@ -85,7 +85,15 @@
   });
 
   window.pudlDisclose = { enhance: enhance, set: set };
-  new MutationObserver(function () { enhance(); }).observe(document.documentElement, { subtree: true, childList: true });
+  /* Cards the page adds are found among the nodes it adds, not by
+     searching the whole page after every change in it (0.69.3). */
+  new MutationObserver(function (records) {
+    records.forEach(function (r) {
+      Array.prototype.forEach.call(r.addedNodes, function (n) {
+        if (n.nodeType === 1 && (n.matches('.card.disclosure') || (n.firstElementChild && n.querySelector('.card.disclosure')))) enhance(n.parentElement || n);
+      });
+    });
+  }).observe(document.documentElement, { subtree: true, childList: true });
   document.addEventListener('pudl:regions-swap', function () { enhance(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { enhance(); }); else enhance();
 })();

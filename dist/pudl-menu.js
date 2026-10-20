@@ -244,6 +244,9 @@
   function placeOpen(e) {
     if (e && e.type === 'scroll' && e.target.closest && e.target.closest('.menu-panel')) return;
     if (placing) return;
+    /* Scrolling anywhere comes here, many times a second; with no menu
+       open there is nothing to place (0.69.3). */
+    if (!document.querySelector('.menu-panel:popover-open')) return;
     placing = requestAnimationFrame(function () {
       placing = 0;
       document.querySelectorAll('.menu-panel').forEach(function (p) { if (isOpen(p)) place(p); });

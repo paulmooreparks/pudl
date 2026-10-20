@@ -565,7 +565,39 @@
     var a = e.target.closest && e.target.closest('.md-row > .md-item');
     if (a && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.row-list, .md-sidebar') === a.closest('.row-list, .md-sidebar'))) stopRows();
   });
-  new MutationObserver(stopRows).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current', 'class'] });
+  /* The page-wide observers act only on changes to what they look after
+     (0.69.3): a row list's rows and their current marks, and a layout's
+     own structure and attributes. Before, any change anywhere in the page,
+     a class or a style included, sent them over every layout and list,
+     and measuring a layout then made the browser lay out a page an
+     application might still be building. Either runs once a task is done,
+     however many changes the task made. */
+  var LISTS = '.row-list, .md-sidebar';
+  function touches(records, sel, structural) {
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i], t = r.target;
+      if (t.nodeType !== 1) t = t.parentElement;
+      if (!t) continue;
+      /* A dir anywhere above a layout turns it round. */
+      if (r.type === 'attributes' && r.attributeName === 'dir' && structural) return true;
+      if (r.type === 'attributes') { if (t.matches(sel) || (structural ? t.parentElement && t.parentElement.matches(sel) : t.closest(sel))) return true; continue; }
+      if (!structural && t.closest(sel)) return true;
+      if (structural && (t.matches(sel) || (t.parentElement && t.parentElement.matches(sel)))) return true;
+      var nodes = Array.prototype.concat.call([], Array.prototype.slice.call(r.addedNodes), Array.prototype.slice.call(r.removedNodes));
+      for (var j = 0; j < nodes.length; j++) {
+        var n = nodes[j];
+        if (n.nodeType === 1 && (n.matches(sel) || (n.firstElementChild && n.querySelector(sel)))) return true;
+      }
+    }
+    return false;
+  }
+  function batch(fn) {
+    var queued = false;
+    return function () { if (queued) return; queued = true; Promise.resolve().then(function () { queued = false; fn(); }); };
+  }
+  var soonRows = batch(stopRows);
+  new MutationObserver(function (records) { if (touches(records, LISTS, false)) soonRows(); })
+    .observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current', 'class'] });
 
   window.pudlMd = {
     refresh: refresh,
@@ -579,8 +611,12 @@
       commit(p, 'host', 'pane'); return true;
     }
   };
-  new MutationObserver(refresh).observe(document.documentElement, { subtree: true, childList: true, attributes: true,
-    attributeFilter: ['data-md-persistent', 'data-md-pane', 'data-md-collapsed', 'data-md-min', 'data-md-max', 'data-md-side', 'data-md-peek', 'dir', 'style'] });
+  /* A layout's structure is the layout, its body and the body's panes, so
+     a change counts when it is to a layout or a body, or a child of one. */
+  var soonRefresh = batch(refresh);
+  new MutationObserver(function (records) { if (touches(records, '.md-layout, .md-body', true)) soonRefresh(); })
+    .observe(document.documentElement, { subtree: true, childList: true, attributes: true,
+      attributeFilter: ['data-md-persistent', 'data-md-pane', 'data-md-collapsed', 'data-md-min', 'data-md-max', 'data-md-side', 'data-md-peek', 'dir', 'style'] });
   document.addEventListener('pudl:regions-swap', refresh);
   window.addEventListener('resize', refresh);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { refresh(); stopRows(); }); else { refresh(); stopRows(); }

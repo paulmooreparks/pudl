@@ -644,12 +644,41 @@
     return { label: p.label, href: p.href, el: p.el, icon: p.content.filter(function (n) { return n.nodeType === 1; }) };
   }
 
-  function render() {
+  var lastSig = null;
+  /* The existing title buttons, in the order the menus give their titles,
+     take the menus just assembled. */
+  function rebind() {
+    var groups = built.querySelectorAll(':scope > .menubar-menu:not(.menubar-one)');
+    menus.forEach(function (m, i) {
+      var g = groups[i];
+      if (!g) return;
+      var buttons = g.querySelectorAll(':scope > .menubar-title:not(.menubar-pins-more)');
+      m.titles.forEach(function (t, j) { if (buttons[j]) buttons[j]._menu = { menu: m, title: t }; });
+      var more = g.querySelector(':scope > .menubar-pins-more');
+      if (more && m.pins) more._menu = { menu: m, title: { id: 'pins-items', label: text('items', 'Items'), items: m.pins.map(pinRow) } };
+    });
+  }
+
+  /* force builds it again whatever it reads as: after the pins change, the
+     bar collapses or opens out, or the page's regions or policy change. */
+  function render(force) {
     if (!bar) return;
+    if (force) lastSig = null;
     closeAll(false);
     frontSrc = findFront();
     menuScope = frontScope();
     menus = assemble();
+    /* A bar whose menus, titles and pins read as they did is not built
+       again (0.69.3): its title buttons take the new menus, whose rows are
+       read afresh as each opens, and nothing is laid out. Bringing another
+       window to the front often leaves the bar as it was, and building
+       and measuring it again each time cost startup the most. */
+    var sig = menus.map(function (m) {
+      return [m.kind, m.name, m.titles.map(function (t) { return (t.id || '') + ':' + t.label + ':' + (t.letter || '') + ':' + (t.content ? t.content.length : ''); }).join(','),
+        (m.pins || []).map(function (p) { return p.label + '@' + p.href; }).join(',')].join('|');
+    }).join(';');
+    if (sig === lastSig && built.firstChild) { rebind(); return; }
+    lastSig = sig;
     var focusedIndex = -1;
     if (built && built.contains(document.activeElement)) focusedIndex = titles().indexOf(document.activeElement);
     built.textContent = '';
@@ -685,6 +714,7 @@
     one.appendChild(ob);
     built.appendChild(one);
 
+    fitStale = true;
     fit();
     var list = titles();
     var keep = list[Math.max(0, Math.min(focusedIndex, list.length - 1))] || list[0];
@@ -698,7 +728,14 @@
      nothing is painted in between. */
   /* First the pins' buttons give way to Items, all together; then, if
      the bar still does not fit, it collapses to one menu. */
+  /* It measures only when the bar has been drawn again, has changed size,
+     or the fonts have arrived since it last measured (0.69.3); otherwise
+     what it measured still holds, and measuring would make the browser lay
+     out a page an application may still be building. */
+  var fitStale = true;
   function fit() {
+    if (!fitStale) return;
+    fitStale = false;
     built.classList.remove('menubar-collapsed', 'menubar-pins-collapsed');
     var room = bar.getBoundingClientRect().width;
     var pinsCollapsed = false;
@@ -1201,10 +1238,10 @@
       /* Retain a valid open menu. Command state is read afresh on opening,
          and a change to the pins is drawn once it closes. */
       if (panel && panel.matches(':popover-open')) return;
-      if (pinsChanged) { pinsChanged = false; render(); return; }
+      if (pinsChanged) { pinsChanged = false; render(true); return; }
       var wasLevel = level;
       fit();
-      if (wasLevel !== level) render();
+      if (wasLevel !== level) render(true);
     });
   }
 
@@ -1242,10 +1279,21 @@
     render();
 
     document.addEventListener('pudl:windows-change', soon);
-    document.addEventListener('pudl:windows-policy', function () { closeAll(false); render(); });
-    document.addEventListener('pudl:regions-swap', function () { render(); });
+    document.addEventListener('pudl:windows-policy', function () { closeAll(false); render(true); });
+    document.addEventListener('pudl:regions-swap', function () { render(true); });
+    /* Only what can change the menus counts (0.69.3): an applet, a window
+     or a page's menu coming, going, starting or being hidden. Any other
+     change in the page, such as an application drawing its content, no
+     longer makes the bar measure itself. */
+    var MENU_SOURCES = '[data-applet], .win, [data-page-menu]';
+    var concerns = function (n) { return n.nodeType === 1 && (n.matches(MENU_SOURCES) || (!!n.firstElementChild && !!n.querySelector(MENU_SOURCES))); };
     new MutationObserver(function (records) {
-      if (records.some(function (r) { return !bar.contains(r.target); })) soon();
+      if (records.some(function (r) {
+        if (bar.contains(r.target)) return false;
+        if (r.type === 'attributes') return r.target.matches(MENU_SOURCES);
+        if (r.target.closest && r.target.closest('[data-page-menu]')) return true;
+        return Array.prototype.some.call(r.addedNodes, concerns) || Array.prototype.some.call(r.removedNodes, concerns);
+      })) soon();
     }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-applet-state', 'hidden'] });
     /* The host changes its pins list as the reader pins and unpins. */
     if (pinsSource) new MutationObserver(function () { pinsChanged = true; soon(); })
@@ -1259,13 +1307,24 @@
         measuring = 0;
         if (panel && panel.matches(':popover-open')) return;
         var was = level;
+        fitStale = true;
         fit();
-        if (was !== level) render();
+        if (was !== level) render(true);
       });
     }).observe(bar);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {
+      if (panel && panel.matches(':popover-open')) return;
+      var was = level;
+      fitStale = true;
+      fit();
+      if (was !== level) render(true);
+    });
   }
 
   window.pudlMenubar = {
+    /* Rows are read afresh as each menu opens, so a refresh builds the bar
+       again only when its menus, titles or pins read differently (0.69.3);
+       an applet may call it whenever its commands change. */
     refresh: function () { if (bar) render(); },
     /* Every key bound in the bar now: its key in PUDL's spelling and as
        shown, the row's label and title, its source and whether disabled. */

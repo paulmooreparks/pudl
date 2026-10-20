@@ -195,9 +195,17 @@
   /* The limits follow the split's size, whatever changed it, a window being
      resized as much as the browser, and a set size beyond a new limit is
      brought back within it. */
-  var watch = window.ResizeObserver ? new ResizeObserver(function () { syncAll(); }) : null;
-  function syncAll() {
-    document.querySelectorAll('.split > .split-handle').forEach(function (h) {
+  /* A split that changes size is brought back within its limits on its
+     own, and a window that opens has its own splits set up, rather than
+     every split in the page being measured again (0.69.3). */
+  var watch = window.ResizeObserver ? new ResizeObserver(function (entries) {
+    entries.forEach(function (en) { syncAll(en.target); });
+  }) : null;
+  function syncAll(root) {
+    var scope = root && root.nodeType === 1 ? root : document;
+    var handles = Array.prototype.slice.call(scope.querySelectorAll('.split > .split-handle'));
+    if (scope !== document) Array.prototype.forEach.call(scope.children, function (c) { if (c.matches('.split-handle') && scope.matches('.split')) handles.push(c); });
+    handles.forEach(function (h) {
       var p = parts(h);
       if (!p) return;
       if (watch) watch.observe(p.split);
@@ -218,7 +226,20 @@
     attributeFilter: ['data-split-pane'] });
   window.addEventListener('resize', syncAll);
   document.addEventListener('pudl:regions-swap', syncAll);
-  document.addEventListener('pudl:window-open', syncAll);
+  /* The windows that open before the next frame have their splits set up
+     then, together, when the page is laid out anyway, rather than each
+     measured while the page is still being built. */
+  var opened = [], openTimer = 0;
+  function syncOpened() {
+    if (!openTimer) return;
+    cancelAnimationFrame(openTimer.frame); clearTimeout(openTimer.time); openTimer = 0;
+    var list = opened; opened = [];
+    list.forEach(function (w) { if (w.isConnected) syncAll(w); });
+  }
+  document.addEventListener('pudl:window-open', function (e) {
+    opened.push(e.target);
+    if (!openTimer) openTimer = { frame: requestAnimationFrame(syncOpened), time: setTimeout(syncOpened, 100) };
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncAll);
   else syncAll();
 })();

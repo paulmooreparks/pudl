@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.69.3
+
+Performance. Applications built on PUDL had been getting slower with each release, most of all at startup and on a hard refresh with windows open. The cause was not one thing but a pattern that grew with every component: scripts that watched the whole page and answered any change in it by searching the whole page, measuring it, or drawing something again whether or not it had changed, which, while an application was still building its content, made the browser lay the page out over and over. The specification is unchanged at 0.28.0.
+
+Measured with example.com's beta site restoring seven windows, cold, against the same site on 0.69.0: layouts fell from 139 to 96 and style passes from 272 to 213, and the layouts PUDL forced while the page was being built fell from about 225 to about 75. On the reference page, streaming 300 paragraphs in now costs PUDL 8 ms of script, against 112 ms in 0.69.1 and 12 ms in 0.59.0, and lighting rows with classes 2 ms against 24.
+
+- **Watching the page.** The master-detail script, the menu bar, the toolbar, disclosure cards and zoom act only on changes to what they look after, and do it once a task however many changes it made; before, a class or a style changed anywhere sent some of them over every layout in the page.
+- **Opening windows.** Grids, trees, tabs and splits set up only a window that opens, not the whole page again, and splits are measured in the next frame, together.
+- **Drawing only what changed.** Commands, the window buttons, the dock of open windows, a list's window rows, the shared docks and the splitters set an attribute, a style or text only when it differs, and the dock and the rows keep their elements rather than making them again on every layout. Setting a value to the value it has still tells every observer of the page it changed.
+- **Measuring only when needed.** A folding toolbar folds again only when what it holds or its width has changed, at most once a frame, and checks its tab stop from its stages without measuring; the menu bar is built again only when its menus, titles or pins read differently, measures itself only after being built again, a change of size or the fonts arriving, and `pudlMenubar.refresh()` builds it again only when something it shows has changed; the shared docks place their tabs' menu buttons in the next frame.
+- **Lookups.** Commands are found through an index of each scope's table, built once a task, instead of asking the application for its table and searching it once a control; `pudlCommands.list` gathers the page's command controls once. The splitters' least sizes are worked out again only when the inner area, the snapped windows or their limits change, and their limits for assistive technology are worked out when a drag ends rather than on each frame of it.
+- **Scrolling** with no menu open no longer searches the page for menus to place.
+- **A test** (`perf-churn`) counts what PUDL does while a page changes in ways that are none of its business, and requires none of it: no page-wide search, measurement or computed style. 0.69.1 made 1,120 page-wide searches and 3,333 measurements there.
+- `pudl:commands-change` now carries `detail.changed`, whether the drawing changed the page.
+- Update every script but the theme's, and `pudl.css` for its version.
+
 ## 0.69.2
 
 The tests have failed on GitHub since the commands preview, in WebKit on Linux alone, which the releases were not tested on. Headless WebKit there runs animation frames slowly, and the commands and the folding waited for one. The specification is unchanged at 0.28.0.

@@ -52,12 +52,43 @@
     return typeof v === 'function' && field !== 'run' ? v.call(cmd) : v;
   }
 
-  function tableOf(scope) {
+  /* === The index ==========================================================
+     A scope's table is asked for once per task and indexed by id (0.69.3):
+     drawing every control, answering a key, building a menu or listing
+     the commands each looks commands up many times, and asking the table
+     each time ran the application's commandTable() once a control and
+     searched it from the top. The index is dropped once the task is done,
+     and at once when a command runs, a scope is registered or something
+     calls changed, so it never outlives the state it was built from. */
+  var pass = null;          // Map: a scope's table function -> { list, byId, flat }
+  function index(scope) {
     var get = scopes.get(scope);
-    var t;
-    try { t = get ? get() : null; } catch (err) { if (window.console) console.warn('pudl-commands:', err); }
-    return Array.isArray(t) ? t : [];
+    if (!get) return { list: [], byId: new Map(), flat: [] };
+    if (!pass) { pass = new Map(); Promise.resolve().then(function () { pass = null; }); }
+    var hit = pass.get(get);
+    if (hit) return hit;
+    var list;
+    try { list = get(); } catch (err) { if (window.console) console.warn('pudl-commands:', err); }
+    if (!Array.isArray(list)) list = [];
+    var byId = new Map(), flatList = [];
+    /* Depth first, a command before its items, so the first of an id
+       found is the one a search from the top would find. */
+    (function walk(arr) {
+      arr.forEach(function (c) {
+        if (!c || typeof c !== 'object') return;
+        if (typeof c.id === 'string' && !byId.has(c.id)) byId.set(c.id, c);
+        flatList.push(c);
+        var items = val(c, 'items');
+        if (Array.isArray(items)) walk(items.filter(function (x) { return x && typeof x === 'object'; }));
+      });
+    })(list);
+    hit = { list: list, byId: byId, flat: flatList };
+    pass.set(get, hit);
+    return hit;
   }
+  function forget() { pass = null; }
+
+  function tableOf(scope) { return index(scope).list; }
 
   /* The scopes around el, nearest first, ending at the page. */
   function chain(el) {
@@ -70,19 +101,8 @@
   function find(id, el) {
     var list = chain(el);
     for (var i = 0; i < list.length; i++) {
-      var hit = search(tableOf(list[i]), id);
+      var hit = index(list[i]).byId.get(id);
       if (hit) return { cmd: hit, scope: list[i] };
-    }
-    return null;
-  }
-
-  function search(table, id) {
-    for (var i = 0; i < table.length; i++) {
-      var c = table[i];
-      if (!c || typeof c !== 'object') continue;
-      if (c.id === id) return c;
-      var items = val(c, 'items');
-      if (Array.isArray(items)) { var inner = search(items.filter(function (x) { return typeof x === 'object'; }), id); if (inner) return inner; }
     }
     return null;
   }
@@ -125,8 +145,9 @@
       }
       return Promise.reject(new Error((val(cmd, 'label') || cmd.id) + ' has nothing to run'));
     }
-    try { return Promise.resolve(cmd.run(value)).then(function (r) { changed(); return r; }); }
-    catch (err) { return Promise.reject(err); }
+    /* What it ran may change the table, so the index goes with it. */
+    try { var r = cmd.run(value); forget(); return Promise.resolve(r).then(function (v) { changed(); return v; }); }
+    catch (err) { forget(); return Promise.reject(err); }
   }
 
   /* === Controls =========================================================== */
@@ -142,6 +163,20 @@
   /* A command opens a menu when it has items or draws its own panel. */
   function opensMenu(cmd, el) { return !!itemsOf(cmd, el) || typeof cmd.panel === 'function'; }
 
+  /* Drawing touches the page only where something changed (0.69.3): an
+     attribute is set only when its value differs, and a control's glyph,
+     words and badge are built again only when one of them differs. Every
+     change to the page wakes whatever watches it, and a toolbar measures
+     itself again after a change, so a redraw that changes nothing must
+     leave nothing changed. touched says whether a drawing changed any. */
+  var touched = false;
+  function attr(el, name, value) {
+    if (value == null || value === false) { if (el.hasAttribute(name)) { el.removeAttribute(name); touched = true; } return; }
+    value = value === true ? '' : String(value);
+    if (el.getAttribute(name) !== value) { el.setAttribute(name, value); touched = true; }
+  }
+  function prop(el, name, value) { if (el[name] !== value) { el[name] = value; touched = true; } }
+
   function fill(ctl) {
     var f = find(ctl.getAttribute('data-command'), ctl);
     if (!f) return;
@@ -149,39 +184,46 @@
     var items = itemsOf(cmd, ctl), menu = opensMenu(cmd, ctl);
     if (!ctl.hasAttribute('data-command-own') && !ctl.__pudlFilled && ctl.childNodes.length) ctl.setAttribute('data-command-own', '');
     var own = ctl.hasAttribute('data-command-own');
+    var badge = val(cmd, 'badge');
     if (!own) {
-      ctl.__pudlFilled = true;
-      ctl.textContent = '';
-      if (glyph) ctl.appendChild(glyphEl(glyph));
-      var words = document.createElement('span');
-      words.className = 'toolbar-words';
-      words.textContent = items && val(cmd, 'current') ? val(cmd, 'current') : label.replace(/…$/, '');
-      ctl.appendChild(words);
-      var badge = val(cmd, 'badge');
-      if (badge != null && badge !== '') {
-        var b = document.createElement('span');
-        b.className = 'toolbar-badge';
-        b.textContent = String(badge);
-        ctl.appendChild(b);
+      var words = items && val(cmd, 'current') ? val(cmd, 'current') : label.replace(/…$/, '');
+      var sig = (glyph || '') + '\n' + words + '\n' + (badge == null ? '' : badge);
+      if (ctl.__pudlSig !== sig) {
+        ctl.__pudlSig = sig;
+        ctl.__pudlFilled = true;
+        touched = true;
+        ctl.textContent = '';
+        if (glyph) ctl.appendChild(glyphEl(glyph));
+        var w = document.createElement('span');
+        w.className = 'toolbar-words';
+        w.textContent = words;
+        ctl.appendChild(w);
+        if (badge != null && badge !== '') {
+          var b = document.createElement('span');
+          b.className = 'toolbar-badge';
+          b.textContent = String(badge);
+          ctl.appendChild(b);
+        }
       }
-      if (!ctl.classList.contains('btn') && !ctl.classList.contains('icon-btn')) ctl.classList.add('btn', 'btn-sm');
+      if (!ctl.classList.contains('btn') && !ctl.classList.contains('icon-btn')) { ctl.classList.add('btn', 'btn-sm'); touched = true; }
     }
-    var key = val(cmd, 'shortcut'), badgeNow = val(cmd, 'badge'), detail = val(cmd, 'detail');
+    var key = val(cmd, 'shortcut'), detail = val(cmd, 'detail');
     /* The name a screen reader hears carries the badge, as the eye sees it. */
-    ctl.setAttribute('aria-label', label.replace(/…$/, '') + (items && val(cmd, 'current') ? ': ' + val(cmd, 'current') : '') +
-      (badgeNow != null && badgeNow !== '' ? ', ' + badgeNow : ''));
-    ctl.title = label + (key ? ' (' + shown(key) + ')' : '') + (detail ? '\n' + detail : '');
-    if (key) ctl.setAttribute('aria-keyshortcuts', key.replace(/Mod/g, 'Control')); else ctl.removeAttribute('aria-keyshortcuts');
-    ctl.disabled = !!val(cmd, 'disabled');
-    if (val(cmd, 'disabled') && val(cmd, 'reason')) ctl.title = label + ': ' + val(cmd, 'reason');
-    if (toneOf(cmd)) ctl.setAttribute('data-tone', toneOf(cmd)); else ctl.removeAttribute('data-tone');
-    ctl.hidden = !!val(cmd, 'hidden');
+    attr(ctl, 'aria-label', label.replace(/…$/, '') + (items && val(cmd, 'current') ? ': ' + val(cmd, 'current') : '') +
+      (badge != null && badge !== '' ? ', ' + badge : ''));
+    var title = val(cmd, 'disabled') && val(cmd, 'reason') ? label + ': ' + val(cmd, 'reason') : label + (key ? ' (' + shown(key) + ')' : '') + (detail ? '\n' + detail : '');
+    attr(ctl, 'title', title);
+    attr(ctl, 'aria-keyshortcuts', key ? key.replace(/Mod/g, 'Control') : null);
+    prop(ctl, 'disabled', !!val(cmd, 'disabled'));
+    attr(ctl, 'data-tone', toneOf(cmd));
+    prop(ctl, 'hidden', !!val(cmd, 'hidden'));
     /* A menu button's wrapper goes with it, so it leaves no gap. */
-    if (ctl.parentElement && ctl.parentElement.classList.contains('menu') && ctl.parentElement.children[0] === ctl) ctl.parentElement.hidden = ctl.hidden;
-    ctl.classList.toggle('btn-danger', !!val(cmd, 'danger') && ctl.classList.contains('btn'));
+    if (ctl.parentElement && ctl.parentElement.classList.contains('menu') && ctl.parentElement.children[0] === ctl) prop(ctl.parentElement, 'hidden', ctl.hidden);
+    var danger = !!val(cmd, 'danger') && ctl.classList.contains('btn');
+    if (ctl.classList.contains('btn-danger') !== danger) { ctl.classList.toggle('btn-danger', danger); touched = true; }
     var checked = val(cmd, 'checked');
-    if (checked != null && !menu) ctl.setAttribute('aria-pressed', String(!!checked)); else ctl.removeAttribute('aria-pressed');
-    if (menu) menuFor(ctl, cmd);
+    attr(ctl, 'aria-pressed', checked != null && !menu ? String(!!checked) : null);
+    if (menu && !ctl.__pudlMenu) { menuFor(ctl, cmd); touched = true; }
     if (!ctl.__pudlBound) {
       ctl.__pudlBound = true;
       ctl.addEventListener('mousedown', function (e) { if (ctl.closest('.toolbar')) e.preventDefault(); });
@@ -305,13 +347,14 @@
   /* A segmented control of a choice: one button per command in it. */
   function fillChoice(seg) {
     var name = seg.getAttribute('data-command-choice');
-    var list = chain(seg).reduce(function (all, s) { return all.concat(flat(tableOf(s))); }, []).filter(function (c) { return val(c, 'choice') === name && !val(c, 'hidden'); });
-    if (!seg.classList.contains('seg')) seg.classList.add('seg', 'sm');
-    seg.setAttribute('role', 'group');
-    seg.hidden = !list.length;
-    if (!seg.hasAttribute('aria-label') && list[0] && list[0].choiceLabel) seg.setAttribute('aria-label', list[0].choiceLabel);
+    var list = chain(seg).reduce(function (all, s) { return all.concat(index(s).flat); }, []).filter(function (c) { return val(c, 'choice') === name && !val(c, 'hidden'); });
+    if (!seg.classList.contains('seg')) { seg.classList.add('seg', 'sm'); touched = true; }
+    attr(seg, 'role', 'group');
+    prop(seg, 'hidden', !list.length);
+    if (!seg.hasAttribute('aria-label') && list[0] && list[0].choiceLabel) attr(seg, 'aria-label', list[0].choiceLabel);
     var have = Array.prototype.map.call(seg.children, function (b) { return b.getAttribute('data-command'); }).join();
     if (have !== list.map(function (c) { return c.id; }).join()) {
+      touched = true;
       seg.textContent = '';
       list.forEach(function (c) {
         var b = document.createElement('button');
@@ -323,10 +366,11 @@
     Array.prototype.forEach.call(seg.children, function (b) {
       var f = find(b.getAttribute('data-command'), b);
       if (!f) return;
-      b.textContent = val(f.cmd, 'label');
-      b.title = val(f.cmd, 'label');
-      b.setAttribute('aria-pressed', String(!!val(f.cmd, 'checked')));
-      b.disabled = !!val(f.cmd, 'disabled');
+      var label = String(val(f.cmd, 'label'));
+      if (b.textContent !== label) { b.textContent = label; touched = true; }
+      attr(b, 'title', label);
+      attr(b, 'aria-pressed', String(!!val(f.cmd, 'checked')));
+      prop(b, 'disabled', !!val(f.cmd, 'disabled'));
       if (!b.__pudlBound) {
         b.__pudlBound = true;
         b.addEventListener('click', function () { var now = find(b.getAttribute('data-command'), b); if (now) runCmd(now.cmd).catch(function () {}); });
@@ -334,16 +378,6 @@
     });
   }
 
-  function flat(table) {
-    var out = [];
-    table.forEach(function (c) {
-      if (!c || typeof c !== 'object') return;
-      out.push(c);
-      var items = val(c, 'items');
-      if (Array.isArray(items)) out = out.concat(flat(items.filter(function (x) { return typeof x === 'object'; })));
-    });
-    return out;
-  }
 
   /* A toolbar group of commands with nothing to show leaves the row, and
      comes back when one of them shows (0.68.1, from example.com's
@@ -357,15 +391,19 @@
       });
       if (!parts.length) return;
       var any = parts.some(function (c) { return !c.hidden; });
-      if (g.hidden === any) g.hidden = !any;
+      if (g.hidden === any) { g.hidden = !any; touched = true; }
     });
   }
 
+  /* pudl:commands-change fires after every drawing, and its detail.changed
+     says whether the drawing changed the page, so a toolbar measures
+     itself again only when it did. */
   function draw(root) {
+    touched = false;
     (root || document).querySelectorAll('[data-command-choice]').forEach(fillChoice);
     (root || document).querySelectorAll('[data-command]').forEach(function (c) { if (!c.closest('[data-command-choice]')) fill(c); });
     emptyGroups(root);
-    document.dispatchEvent(new CustomEvent('pudl:commands-change'));
+    document.dispatchEvent(new CustomEvent('pudl:commands-change', { detail: { changed: touched } }));
   }
 
   /* The controls are drawn again once the current task is done, however
@@ -374,6 +412,7 @@
      one, so a script or an agent reading a control's state just after
      running a command could find the old state. */
   function changed() {
+    forget();
     if (frame) return;
     frame = 1;
     Promise.resolve().then(function () { frame = 0; draw(); });
@@ -401,7 +440,7 @@
     var pressed = spelling(e), el = document.activeElement || document.body;
     var list = chain(el);
     for (var i = 0; i < list.length; i++) {
-      var cmds = flat(tableOf(list[i]));
+      var cmds = index(list[i]).flat;
       for (var j = 0; j < cmds.length; j++) {
         var key = val(cmds[j], 'shortcut');
         /* bind: false shows a key that something else binds (0.69.0). */
@@ -423,9 +462,22 @@
      the toolbars drawn beside it are. */
   function sameScope(a, b) { return a === b || (scopes.has(a) && scopes.get(a) === scopes.get(b)); }
 
-  function describe(c, el) {
+  /* controls is the page's command controls by id, gathered once for the
+     whole listing rather than searched for once a command. */
+  function controlsById() {
+    var m = new Map();
+    document.querySelectorAll('[data-command]').forEach(function (ctl) {
+      var id = ctl.getAttribute('data-command');
+      if (!m.has(id)) m.set(id, []);
+      m.get(id).push(ctl);
+    });
+    return m;
+  }
+
+  function describe(c, el, controls) {
     var shownBy = 'none';
-    document.querySelectorAll('[data-command="' + CSS.escape(c.id) + '"]').forEach(function (ctl) {
+    controls = controls || controlsById();
+    (controls.get(c.id) || []).forEach(function (ctl) {
       if (shownBy === 'toolbar') return;
       var mine = find(c.id, ctl);
       if (!mine || !sameScope(mine.scope, el)) return;
@@ -442,17 +494,17 @@
     if (typeof c.panel === 'function') out.panel = true;
     out.shown = val(c, 'hidden') ? 'hidden' : shownBy;
     var items = itemsOf(c, el);
-    if (items) out.items = items.filter(function (x) { return typeof x === 'object'; }).map(function (x) { return describe(x, el); });
+    if (items) out.items = items.filter(function (x) { return typeof x === 'object'; }).map(function (x) { return describe(x, el, controls); });
     return out;
   }
 
   function list(el) {
-    var seen = {}, out = [];
+    var seen = {}, out = [], controls = controlsById();
     chain(el || document.body).forEach(function (s) {
       tableOf(s).forEach(function (c) {
         if (!c || typeof c !== 'object' || seen[c.id]) return;
         seen[c.id] = true;
-        out.push(describe(c, s));
+        out.push(describe(c, s, controls));
       });
     });
     return out;
@@ -465,7 +517,7 @@
   function run(id, value, el, opts) {
     var f = find(id, el || document.activeElement || document.body);
     if (!f && !el) {
-      scopes.forEach(function (get, s) { if (!f) { var c = search(tableOf(s), id); if (c) f = { cmd: c, scope: s }; } });
+      scopes.forEach(function (get, s) { if (!f) { var c = index(s).byId.get(id); if (c) f = { cmd: c, scope: s }; } });
     }
     if (!f) return Promise.reject(new Error('there is no command ' + id));
     return runCmd(f.cmd, value, opts || { owner: { kind: 'script' } });
@@ -531,6 +583,7 @@
   function register(scope, table) {
     var get = typeof table === 'function' ? table : function () { return table; };
     scopes.set(scope, get);
+    forget();
     changed();
     return function () { if (scopes.get(scope) === get) scopes.delete(scope); changed(); };
   }

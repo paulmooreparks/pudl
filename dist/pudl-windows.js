@@ -293,7 +293,8 @@
     if (changed) apply(state);
   }
 
-  function windowMark(node, key) {
+  /* title, when given, is the tooltip in place of the spoken name. */
+  function windowMark(node, key, title) {
     var win = wins[key];
     if (!win) return;
     var glyph = win.getAttribute('data-win-glyph') || 'app';
@@ -309,21 +310,35 @@
       node.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-item-detail" hidden></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span><span class="win-item-progress" aria-hidden="true"></span>';
       icon = node.firstChild;
     }
-    icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
-    icon.hidden = !win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key');
-    node.querySelector('.win-item-title').textContent = titleOf(key);
+    styleProp(icon, '--glyph', 'var(--glyph-' + glyph + ')');
+    setHidden(icon, !win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key'));
+    setText(node.querySelector('.win-item-title'), titleOf(key));
     var detail = node.querySelector('.win-item-detail');
-    if (detail) { detail.textContent = detailOf(key); detail.hidden = !detailOf(key); }
+    if (detail) { setText(detail, detailOf(key)); setHidden(detail, !detailOf(key)); }
     var badge = node.querySelector('.win-item-attention');
-    badge.hidden = !count;
-    badge.textContent = count ? String(count) : '';
-    node.querySelector('.win-item-running').hidden = !running;
+    setHidden(badge, !count);
+    setText(badge, count ? String(count) : '');
+    setHidden(node.querySelector('.win-item-running'), !running);
     var meter = node.querySelector('.win-item-progress');
-    meter.hidden = progress === null;
-    meter.textContent = progress === null ? '' : progress + '%';
+    setHidden(meter, progress === null);
+    setText(meter, progress === null ? '' : progress + '%');
     var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (running ? ', ' + text('running', 'running') : '') + (progress === null ? '' : ', ' + progress + '%');
-    node.setAttribute('aria-label', label);
-    node.title = label;
+    setAttr(node, 'aria-label', label);
+    setAttr(node, 'title', title || label);
+  }
+
+  /* Text and hidden set only when they differ (0.69.3); setting text to
+     the text a node has still replaces it, which every observer of the
+     page then hears about. */
+  function setText(el, t) { if (el.textContent !== t) el.textContent = t; }
+  function setHidden(el, h) { if (el.hidden !== h) el.hidden = h; }
+
+  function soonPositionDockMenus(group) {
+    if (group.__placeSoon) return;
+    group.__placeSoon = true;
+    var go = function () { if (!group.__placeSoon) return; group.__placeSoon = false; if (group.isConnected) positionDockMenus(group); };
+    requestAnimationFrame(go);
+    setTimeout(go, 100);
   }
 
   function positionDockMenus(group) {
@@ -571,13 +586,13 @@
           tab.setAttribute('data-dock-key', key);
           entry.appendChild(tab);
         }
-        tab.id = 'pudl-dock-tab-' + key;
+        if (tab.id !== 'pudl-dock-tab-' + key) tab.id = 'pudl-dock-tab-' + key;
         if (tab.tagName === 'A') {
           /* A link's native drag would take the pointer from a tab drag. */
           tab.draggable = false;
           var selecting = raised(state, key);
           dockRecord(selecting, edge).selected = key;
-          tab.setAttribute('href', urlFor(selecting));
+          setAttr(tab, 'href', urlFor(selecting));
         }
         if (!group.querySelector('[data-dock-menu="' + CSS.escape(key) + '"]')) {
           var menuButton = document.createElement('button');
@@ -597,19 +612,21 @@
         wrapper.toggleAttribute('data-dock-only', dockOnly(key));
         var menuControl = group.querySelector('[data-dock-menu="' + CSS.escape(key) + '"]');
         menuControl.toggleAttribute('data-dock-only', dockOnly(key));
-        menuControl.tabIndex = key === selected ? 0 : -1;
-        menuControl.setAttribute('aria-label', titleOf(key) + ': ' + text('menu', 'Window menu'));
-        menuControl.title = menuControl.getAttribute('aria-label');
+        var mt = key === selected ? 0 : -1;
+        if (menuControl.tabIndex !== mt) menuControl.tabIndex = mt;
+        setAttr(menuControl, 'aria-label', titleOf(key) + ': ' + text('menu', 'Window menu'));
+        setAttr(menuControl, 'title', menuControl.getAttribute('aria-label'));
         windowMark(tab, key);
         var win = wins[key];
         if (!win.id) win.id = 'pudl-dock-panel-' + key;
-        tab.setAttribute('aria-controls', win.id);
-        tab.setAttribute('aria-selected', String(key === selected));
+        setAttr(tab, 'aria-controls', win.id);
+        setAttr(tab, 'aria-selected', String(key === selected));
         var focused = list.contains(document.activeElement) ? document.activeElement.closest('[role="tab"]') : null;
-        tab.tabIndex = (focused ? tab === focused : key === selected) ? 0 : -1;
+        var tt = (focused ? tab === focused : key === selected) ? 0 : -1;
+        if (tab.tabIndex !== tt) tab.tabIndex = tt;
         if (!dockRoles.has(win)) dockRoles.set(win, { role: win.getAttribute('role'), label: win.getAttribute('aria-labelledby') });
-        win.setAttribute('role', 'tabpanel');
-        win.setAttribute('aria-labelledby', tab.id);
+        setAttr(win, 'role', 'tabpanel');
+        setAttr(win, 'aria-labelledby', tab.id);
       });
       if (group.getAttribute('data-dock-selected') !== selected) {
         group.setAttribute('data-dock-selected', selected);
@@ -617,10 +634,13 @@
         if (selectedTab) selectedTab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       }
       var toggle = group.querySelector('.win-dock-toggle'), label = collapsed ? text('dock-pin', 'Pin dock open') : text('dock-collapse', 'Collapse dock');
-      toggle.title = label;
-      toggle.setAttribute('aria-label', label);
-      toggle.firstChild.style.setProperty('--glyph', 'var(--glyph-' + (collapsed ? 'pin' : 'minimize') + ')');
-      positionDockMenus(group);
+      setAttr(toggle, 'title', label);
+      setAttr(toggle, 'aria-label', label);
+      styleProp(toggle.firstChild, '--glyph', 'var(--glyph-' + (collapsed ? 'pin' : 'minimize') + ')');
+      /* Placing the tabs' menu buttons measures each tab, so it waits for
+         the next frame, when the page is laid out anyway, once however
+         many times the windows are laid out before it (0.69.3). */
+      soonPositionDockMenus(group);
     });
     state.open.forEach(function (key) {
       var win = wins[key], saved = dockRoles.get(win);
@@ -928,13 +948,27 @@
      axis: its least size, or the size its cells have on the plain grid if
      that is smaller, so a move never forces a window below the size it
      would have had anyway. */
+  /* The least sizes are worked out again only when what they depend on
+     has changed (0.69.3): the inner area's size, which windows are snapped
+     where, and their own limits. Working them out reads each window's
+     computed style, and the windows are laid out again on every frame of
+     a drag. */
+  var minsKey = '', minsCache = null;
   function gridMins(st) {
-    var W = innerW(), H = innerH(), out = {};
-    snappedCells(st).forEach(function (w) {
+    var W = innerW(), H = innerH(), cellsList = snappedCells(st);
+    var key = W + 'x' + H + '|' + cellsList.map(function (w) {
+      var el = wins[w.key];
+      return w.key + ':' + w.c.join(',') + ':' + restricted(w.key) + ':' + (el ? (el.getAttribute('data-win-min') || '') : '');
+    }).join(';');
+    if (key === minsKey && minsCache) return minsCache;
+    var out = {};
+    cellsList.forEach(function (w) {
       if (restricted(w.key)) return;
       var min = minFractions(W, H, wins[w.key]);
       out[w.key] = { c: w.c, w: Math.min(min.w, (w.c[2] - w.c[0]) / 6), h: Math.min(min.h, (w.c[3] - w.c[1]) / 6) };
     });
+    minsKey = key;
+    minsCache = out;
     return out;
   }
 
@@ -1316,19 +1350,28 @@
       var other = s.axis === 'x' ? 'y' : 'x';
       var at = linePos(st.grid, s.axis, s.line);
       var n = Math.round(at * 100);
-      el.setAttribute('role', 'separator');
-      el.tabIndex = 0;
-      el.setAttribute('aria-orientation', s.axis === 'x' ? 'vertical' : 'horizontal');
-      el.setAttribute('data-win-grid', s.axis + s.line);
-      el.style.setProperty('--split-at', String(at));
-      el.style.setProperty('--split-from', String(linePos(st.grid, other, s.from)));
-      el.style.setProperty('--split-to', String(linePos(st.grid, other, s.to)));
-      el.style.zIndex = String(Math.max.apply(null, s.before.concat(s.after).map(zOf)) + 1);
-      el.setAttribute('aria-valuenow', String(n));
-      el.setAttribute('aria-valuemin', String(Math.round(clampLine(st.grid, mins, s.axis, s.line, 0) * 100)));
-      el.setAttribute('aria-valuemax', String(Math.round(clampLine(st.grid, mins, s.axis, s.line, 1) * 100)));
-      el.setAttribute('aria-valuetext', text('splitter-value', '{n}%').split('{n}').join(String(n)));
-      el.setAttribute('aria-label', text('splitter', 'Resize {before} and {after}')
+      /* Written only where they change, since every change wakes whatever
+         watches the page, and this runs on every frame of a drag. */
+      var set = function (name, v) { if (el.getAttribute(name) !== v) el.setAttribute(name, v); };
+      var prop = function (name, v) { if (el.style.getPropertyValue(name) !== v) el.style.setProperty(name, v); };
+      set('role', 'separator');
+      if (el.tabIndex !== 0) el.tabIndex = 0;
+      set('aria-orientation', s.axis === 'x' ? 'vertical' : 'horizontal');
+      set('data-win-grid', s.axis + s.line);
+      prop('--split-at', String(at));
+      prop('--split-from', String(linePos(st.grid, other, s.from)));
+      prop('--split-to', String(linePos(st.grid, other, s.to)));
+      var z = String(Math.max.apply(null, s.before.concat(s.after).map(zOf)) + 1);
+      if (el.style.zIndex !== z) el.style.zIndex = z;
+      set('aria-valuenow', String(n));
+      /* The limits take a search each; they are worked out when a drag
+         ends, not on each of its frames. */
+      if (!layer.classList.contains('dragging') || !el.hasAttribute('aria-valuemin')) {
+        set('aria-valuemin', String(Math.round(clampLine(st.grid, mins, s.axis, s.line, 0) * 100)));
+        set('aria-valuemax', String(Math.round(clampLine(st.grid, mins, s.axis, s.line, 1) * 100)));
+      }
+      set('aria-valuetext', text('splitter-value', '{n}%').split('{n}').join(String(n)));
+      set('aria-label', text('splitter', 'Resize {before} and {after}')
         .split('{before}').join(names(s.before)).split('{after}').join(names(s.after)));
     });
     segs.forEach(function (v) {
@@ -1338,11 +1381,14 @@
         var id = 'c' + v.line + ',' + h.line;
         keep[id] = true;
         var el = splitterEl(id, 'win-splitter-cross');
-        el.setAttribute('aria-hidden', 'true');
-        el.setAttribute('data-win-grid', 'x' + v.line + ' y' + h.line);
-        el.style.setProperty('--split-x', String(linePos(st.grid, 'x', v.line)));
-        el.style.setProperty('--split-y', String(linePos(st.grid, 'y', h.line)));
-        el.style.zIndex = String(Math.max.apply(null, v.before.concat(v.after, h.before, h.after).map(zOf)) + 1);
+        var set = function (name, val) { if (el.getAttribute(name) !== val) el.setAttribute(name, val); };
+        var prop = function (name, val) { if (el.style.getPropertyValue(name) !== val) el.style.setProperty(name, val); };
+        set('aria-hidden', 'true');
+        set('data-win-grid', 'x' + v.line + ' y' + h.line);
+        prop('--split-x', String(linePos(st.grid, 'x', v.line)));
+        prop('--split-y', String(linePos(st.grid, 'y', h.line)));
+        var z = String(Math.max.apply(null, v.before.concat(v.after, h.before, h.after).map(zOf)) + 1);
+        if (el.style.zIndex !== z) el.style.zIndex = z;
       });
     });
     Object.keys(splitEls).forEach(function (id) {
@@ -1734,26 +1780,34 @@
 
   /* === Applying state to the page ======================================== */
 
+  /* Written only where a value changes (0.69.3): this runs for every window
+     whenever the windows are laid out, on every frame of a splitter's
+     drag among them, and each write wakes whatever watches the page. */
+  function styleProp(el, name, value) {
+    if (value == null) { if (el.style.getPropertyValue(name)) el.style.removeProperty(name); return; }
+    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+  }
+
   function setPlacement(el, p) {
-    el.setAttribute('data-win-mode', p.mode);
-    el.style.setProperty('--win-x', fmt(p.x));
-    el.style.setProperty('--win-y', fmt(p.y));
-    el.style.setProperty('--win-w', fmt(p.w));
-    el.style.setProperty('--win-h', fmt(p.h));
-    if (p.s != null) el.style.setProperty('--win-dock-size', fmt(p.s));
+    if (el.getAttribute('data-win-mode') !== p.mode) el.setAttribute('data-win-mode', p.mode);
+    styleProp(el, '--win-x', fmt(p.x));
+    styleProp(el, '--win-y', fmt(p.y));
+    styleProp(el, '--win-w', fmt(p.w));
+    styleProp(el, '--win-h', fmt(p.h));
+    if (p.s != null) styleProp(el, '--win-dock-size', fmt(p.s));
     /* A zone's rectangle, and a hairline on each side that meets another
        zone rather than the edge of the area. */
     if (p.mode === 'zone') {
       /* Drawn on the grid's lines as they are now. */
       var z = warped(drawGrid, p.zone), c = cells(p.zone);
-      el.style.setProperty('--zone-x', String(z.x));
-      el.style.setProperty('--zone-y', String(z.y));
-      el.style.setProperty('--zone-w', String(z.w));
-      el.style.setProperty('--zone-h', String(z.h));
-      el.style.setProperty('--zone-rule-e', c[2] < 6 ? '1px' : '0px');
-      el.style.setProperty('--zone-rule-s', c[3] < 6 ? '1px' : '0px');
+      styleProp(el, '--zone-x', String(z.x));
+      styleProp(el, '--zone-y', String(z.y));
+      styleProp(el, '--zone-w', String(z.w));
+      styleProp(el, '--zone-h', String(z.h));
+      styleProp(el, '--zone-rule-e', c[2] < 6 ? '1px' : '0px');
+      styleProp(el, '--zone-rule-s', c[3] < 6 ? '1px' : '0px');
     } else {
-      ['--zone-x', '--zone-y', '--zone-w', '--zone-h', '--zone-rule-e', '--zone-rule-s'].forEach(function (v) { el.style.removeProperty(v); });
+      ['--zone-x', '--zone-y', '--zone-w', '--zone-h', '--zone-rule-e', '--zone-rule-s'].forEach(function (v) { styleProp(el, v, null); });
     }
   }
 
@@ -1857,17 +1911,19 @@
       setPlacement(el, effectivePlacement(st, k));
       el.toggleAttribute('data-win-restricted', restricted(k));
       labelHead(k);
-      el.hidden = isHidden(st, k);
+      var hide = isHidden(st, k);
+      if (el.hidden !== hide) el.hidden = hide;
       el.classList.toggle('active', k === front);
-      if (edge) el.setAttribute('data-win-edge', edge);
+      if (edge) { if (el.getAttribute('data-win-edge') !== edge) el.setAttribute('data-win-edge', edge); }
       else el.removeAttribute('data-win-edge');
       el.classList.toggle('win-collapsed', !!edge && !sharedEdge(edge) && !!st.min[k]);
       el.toggleAttribute('data-win-dock-shared', sharedEdge(edge));
       el.toggleAttribute('data-win-dock-peek', sharedEdge(edge) && railMode(st, edge) && dockPeek[edge] === k);
-      if (sharedEdge(edge)) el.style.setProperty('--win-dock-panel-size', ((st.place[k].s || DOCK_SIZE) * 100) + '%');
+      if (sharedEdge(edge)) styleProp(el, '--win-dock-panel-size', ((st.place[k].s || DOCK_SIZE) * 100) + '%');
       /* Two apart, so a splitter can sit just above the windows it
          divides and below the next window up. */
-      el.style.zIndex = String(2 * ((edge ? zOrder.length : 0) + i + 1));
+      var z = String(2 * ((edge ? zOrder.length : 0) + i + 1));
+      if (el.style.zIndex !== z) el.style.zIndex = z;
     });
     setDocks(st);
     state = st;
@@ -1889,33 +1945,38 @@
       setHref(mn, urlFor(minimizeToggled(state, k)));
       if (mn) {
         var ml = shownEdge(state, k) ? (state.min[k] ? text('expand', 'Expand') : text('collapse', 'Collapse')) : text('minimize', 'Minimize');
-        mn.setAttribute('aria-label', ml);
-        mn.setAttribute('title', ml);
+        setAttr(mn, 'aria-label', ml);
+        setAttr(mn, 'title', ml);
       }
       var closeButton = el.querySelector('[data-win-action="close"]');
-      if (closeButton) closeButton.hidden = requiredWindow(k);
+      if (closeButton && closeButton.hidden !== requiredWindow(k)) closeButton.hidden = requiredWindow(k);
       setHref(closeButton, urlFor(requiredWindow(k) ? state : closed(state, k)));
       var max = el.querySelector('[data-win-action="maximize"]');
       setHref(max, urlFor(maximizeToggled(state, k)));
       if (max) {
         var label = restricted(k) ? text('restore-floating', 'Restore to floating') : state.place[k].mode === 'floating' ? text('maximize', 'Maximize') : text('restore', 'Restore');
-        max.setAttribute('aria-disabled', String(restricted(k)));
-        max.setAttribute('aria-label', label);
-        max.setAttribute('title', label);
+        setAttr(max, 'aria-disabled', String(restricted(k)));
+        setAttr(max, 'aria-label', label);
+        setAttr(max, 'title', label);
       }
       var dock = el.querySelector('[data-win-action="dock"]');
       if (dock) {
-        dock.setAttribute('aria-disabled', String(restricted(k)));
+        setAttr(dock, 'aria-disabled', String(restricted(k)));
         var isDocked = !!dockEdge(state.place[k]);
         setHref(dock, urlFor(docked(state, k, isDocked ? null : 'bottom')));
         var dl = isDocked ? text('undock', 'Undock') : text('dock', 'Dock at the bottom');
-        dock.setAttribute('aria-label', dl);
-        dock.setAttribute('title', dl);
+        setAttr(dock, 'aria-label', dl);
+        setAttr(dock, 'title', dl);
       }
     });
   }
 
-  function setHref(a, href) { if (a && a.tagName === 'A') a.setAttribute('href', href); }
+  /* An attribute set only when its value differs (0.69.3), since setting
+     it to the value it has still tells everything watching the page that
+     it changed, and the window buttons are set again whenever the windows
+     are laid out. */
+  function setAttr(el, name, value) { if (el.getAttribute(name) !== value) el.setAttribute(name, value); }
+  function setHref(a, href) { if (a && a.tagName === 'A') setAttr(a, 'href', href); }
 
   /* A host may export a chosen state without changing the reader's workspace.
      The share address is independent of the title bar's Open as a page link. */
@@ -1952,22 +2013,35 @@
   }
 
   /* The dock has a tab for each top-level window only. */
+  /* The dock of open windows keeps its tabs from one layout to the next
+     (0.69.3), each found by its window's key, moved only when out of
+     place, and changed only where it differs; before, every tab was made
+     again whenever the windows were laid out. */
   function renderDocks() {
     var front = active(state);
     var topRoot = front ? rootOf(state, front) : null;
     document.querySelectorAll('[data-win-dock]').forEach(function (dock) {
-      dock.textContent = '';
-      state.open.forEach(function (k) {
-        if (parentOf(state, k)) return;
-        if (dock.hasAttribute('data-win-dock-omit-docked') && shownEdge(state, k)) return;
-        var a = document.createElement('a');
-        a.className = 'win-tab' + (state.min[k] ? ' minimized' : '');
-        a.href = urlFor(tabbed(state, k));
-        a.setAttribute('data-win-tab', k);
-        if (k === topRoot) a.setAttribute('aria-current', 'true');
-        windowMark(a, k);
-        a.title = state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(fullTitle(k)) : fullTitle(k);
-        dock.appendChild(a);
+      var have = new Map();
+      Array.prototype.forEach.call(dock.children, function (a) {
+        var k = a.getAttribute('data-win-tab');
+        if (k && !have.has(k)) have.set(k, a); else a.remove();
+      });
+      var want = state.open.filter(function (k) {
+        return !parentOf(state, k) && !(dock.hasAttribute('data-win-dock-omit-docked') && shownEdge(state, k));
+      });
+      have.forEach(function (a, k) { if (want.indexOf(k) < 0) { a.remove(); have.delete(k); } });
+      want.forEach(function (k, i) {
+        var a = have.get(k);
+        if (!a) {
+          a = document.createElement('a');
+          a.setAttribute('data-win-tab', k);
+        }
+        if (dock.children[i] !== a) dock.insertBefore(a, dock.children[i] || null);
+        var cls = 'win-tab' + (state.min[k] ? ' minimized' : '');
+        if (a.className !== cls) a.className = cls;
+        setAttr(a, 'href', urlFor(tabbed(state, k)));
+        if (k === topRoot) setAttr(a, 'aria-current', 'true'); else if (a.hasAttribute('aria-current')) a.removeAttribute('aria-current');
+        windowMark(a, k, state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(fullTitle(k)) : fullTitle(k));
       });
     });
   }
@@ -1975,39 +2049,53 @@
   /* A list row whose link opens a window follows that window: the row of the
      window in front is marked current, and each open child gets a row of
      its own beneath its parent's, which goes when the child closes. */
+  /* Only the rows whose link opens a window are looked at, not every row
+     in the page, and a child's row is kept from one layout to the next and
+     changed only where it differs (0.69.3); a long list no longer costs
+     every window that is raised. */
   function renderRows() {
-    document.querySelectorAll('.md-row-child[data-win-child]').forEach(function (r) { r.remove(); });
     var front = active(state);
     var topRoot = front ? rootOf(state, front) : null;
-    document.querySelectorAll('.md-row').forEach(function (row) {
-      var link = row.querySelector('a[data-win-open]');
-      if (!link) return;
+    var stale = new Set(document.querySelectorAll('.md-row-child[data-win-child]'));
+    document.querySelectorAll('.md-row a[data-win-open]').forEach(function (link) {
+      var row = link.closest('.md-row');
+      if (!row || row.classList.contains('md-row-child') || row.__pudlSeen === renderRows.pass) return;
+      row.__pudlSeen = renderRows.pass;
       var key = link.getAttribute('data-win-open');
       var current = key === topRoot && !isHidden(state, key);
       row.classList.toggle('active', current);
-      if (current) link.setAttribute('aria-current', 'true');
-      else link.removeAttribute('aria-current');
+      if (current) setAttr(link, 'aria-current', 'true');
+      else if (link.hasAttribute('aria-current')) link.removeAttribute('aria-current');
       /* A menu panel lists places, and a child window is not one, so a
          panel's rows are marked but gain no child rows. */
       if (state.open.indexOf(key) < 0 || row.closest('[popover]')) return;
 
       var after = row;
       childrenOf(state, key).forEach(function (c) {
-        var child = document.createElement('div');
-        child.className = 'md-row md-row-child' + (c === front ? ' active' : '');
-        child.setAttribute('data-win-child', c);
-        var a = document.createElement('a');
-        a.className = 'md-item';
-        a.href = urlFor(raised(state, c));
-        a.setAttribute('data-win-tab', c);
-        if (c === front) a.setAttribute('aria-current', 'true');
-        a.textContent = fullTitle(c);
-        child.appendChild(a);
-        after.after(child);
+        var child = after.nextElementSibling;
+        if (!(child && child.getAttribute('data-win-child') === c)) {
+          child = document.createElement('div');
+          child.setAttribute('data-win-child', c);
+          var made = document.createElement('a');
+          made.className = 'md-item';
+          made.setAttribute('data-win-tab', c);
+          child.appendChild(made);
+          after.after(child);
+        }
+        stale.delete(child);
+        var cls = 'md-row md-row-child' + (c === front ? ' active' : '');
+        if (child.className !== cls) child.className = cls;
+        var a = child.firstElementChild;
+        setAttr(a, 'href', urlFor(raised(state, c)));
+        if (c === front) setAttr(a, 'aria-current', 'true'); else if (a.hasAttribute('aria-current')) a.removeAttribute('aria-current');
+        setText(a, fullTitle(c));
         after = child;
       });
     });
+    renderRows.pass++;
+    stale.forEach(function (r) { r.remove(); });
   }
+  renderRows.pass = 1;
 
   /* In a master-detail layout narrow enough to show one pane at a time, the
      windows are the detail pane: it shows while any window the reader
@@ -2125,9 +2213,11 @@
   /* The title bar's spoken name, which carries the window's title. */
   function labelHead(key) {
     var head = wins[key] && wins[key].querySelector('.win-head');
-    if (head) head.setAttribute('aria-label', (restricted(key) ? text('head-restricted', 'Window: {title}. Placement is fixed at this workspace width. Shift F10 opens the window menu.') : text('head',
+    if (!head) return;
+    var label = (restricted(key) ? text('head-restricted', 'Window: {title}. Placement is fixed at this workspace width. Shift F10 opens the window menu.') : text('head',
       'Window: {title}. Arrow keys move it, Shift with arrow keys resizes it, Enter maximizes or restores it.')
-      ).split('{title}').join(titleOf(key)));
+      ).split('{title}').join(titleOf(key));
+    if (head.getAttribute('aria-label') !== label) head.setAttribute('aria-label', label);
   }
 
   /* Gives a window a new title, which the title bar's spoken name, its

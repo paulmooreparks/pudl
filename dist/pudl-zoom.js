@@ -166,7 +166,18 @@
     fit: function (v) { var p = records.get(v); if (p) change(p, 1, true); },
     state: function (v) { var p = records.get(v); return p ? { scale: p.scale, fit: p.fit } : null; }
   };
-  new MutationObserver(function () { enhance(); }).observe(document.documentElement, { subtree: true, childList: true });
+  /* Viewports the page adds, and zoom controls that may belong to one
+     already there, are noticed among the nodes it adds, not by searching
+     the whole page after every change in it (0.69.3). */
+  new MutationObserver(function (records) {
+    var again = false;
+    records.forEach(function (r) {
+      Array.prototype.forEach.call(r.addedNodes, function (n) {
+        if (n.nodeType === 1 && (n.matches('.zoom-viewport, .zoom') || (n.firstElementChild && n.querySelector('.zoom-viewport, .zoom')))) again = true;
+      });
+    });
+    if (again) enhance();
+  }).observe(document.documentElement, { subtree: true, childList: true });
   document.addEventListener('pudl:regions-swap', function () { enhance(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { enhance(); }); else enhance();
 })();

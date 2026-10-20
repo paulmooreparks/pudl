@@ -172,7 +172,11 @@
     var list = e.target.closest && e.target.closest('.doc-tabs');
     if (list && !list.contains(e.relatedTarget)) enhanceDocs(list);
   });
-  document.addEventListener('pudl:window-open', init);
+  /* A window that opens is set up on its own, not the whole page again (0.69.3). */
+  document.addEventListener('pudl:window-open', function (e) {
+    e.target.querySelectorAll('.tabs').forEach(enhance);
+    e.target.querySelectorAll('.doc-tabs').forEach(enhanceDocs);
+  });
   document.addEventListener('pudl:regions-swap', init);
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

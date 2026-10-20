@@ -119,7 +119,8 @@
 
   function init() { document.querySelectorAll('table.data-table[role="grid"]').forEach(enhance); }
   window.pudlGrid = { enhance: enhance };
-  document.addEventListener('pudl:window-open', init);
+  /* A window that opens is set up on its own, not the whole page again (0.69.3). */
+  document.addEventListener('pudl:window-open', function (e) { e.target.querySelectorAll('table.data-table[role="grid"]').forEach(enhance); });
   document.addEventListener('pudl:regions-swap', init);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

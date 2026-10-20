@@ -29,12 +29,48 @@
     });
   }
 
-  function stop(bar, on) {
+  /* The control that is the toolbar's one tab stop. With cheap set, a stop
+     that is still enabled and not inside anything hidden is kept as it is
+     without measuring every control (0.69.3), since measuring makes the
+     browser lay out a page that may still be being built; the full check,
+     which also skips controls a fold has put out of sight, runs after a
+     fold and as focus or the arrow keys move. A tab index is written only
+     when it changes. */
+  /* Whether a fold leaves a control in sight, read from the stages rather
+     than measured: a folded group shows only its fold button, an open one
+     everything but, and a group in More shows nothing. */
+  function inSight(c, bar) {
+    if (c.disabled || c.getAttribute('aria-disabled') === 'true' || c.closest('[hidden]')) return false;
+    if (c.closest('.toolbar-more')) return bar.hasAttribute('data-toolbar-more');
+    var g = c.closest('.toolbar-group'), st = g ? Number(g.getAttribute('data-toolbar-stage')) || 1 : 1;
+    if (st >= 5) return false;
+    return !!c.closest('.toolbar-fold') === (st >= 3);
+  }
+
+  function stop(bar, on, cheap) {
     var all = Array.prototype.filter.call(bar.querySelectorAll('button, a[href], input, select'), function (c) { return !c.closest('.menu-panel'); });
+    if (cheap && !on) {
+      /* New controls are tab stops until told otherwise, so of those that
+         are, the first in sight is kept, without measuring. */
+      var keep = all.filter(function (c) { return c.tabIndex === 0 && inSight(c, bar); })[0];
+      /* With none, the first control in sight stands in now, and the full
+         check runs in the next frame, when the page is laid out anyway. */
+      if (!keep) {
+        keep = all.filter(function (c) { return inSight(c, bar); })[0];
+        if (keep && !bar.__stopCheck) {
+          bar.__stopCheck = true;
+          requestAnimationFrame(function () { bar.__stopCheck = false; if (!bar.contains(document.activeElement)) stop(bar, null); });
+        }
+      }
+      if (keep) {
+        all.forEach(function (c) { var t = c === keep ? 0 : -1; if (c.tabIndex !== t) c.tabIndex = t; });
+        return;
+      }
+    }
     var live = controls(bar);
     if (!live.length) return;
     if (!on || live.indexOf(on) < 0) on = live.filter(function (c) { return c.tabIndex === 0; })[0] || live[0];
-    all.forEach(function (c) { c.tabIndex = c === on ? 0 : -1; });
+    all.forEach(function (c) { var t = c === on ? 0 : -1; if (c.tabIndex !== t) c.tabIndex = t; });
   }
 
   /* A menu button is disabled while its rows all are. */
@@ -52,10 +88,16 @@
   }
 
   function enhance(root) {
-    (root || document).querySelectorAll('.toolbar').forEach(function (bar) {
+    (root || document).querySelectorAll('.toolbar').forEach(enhanceBar);
+  }
+
+  /* A toolbar watches only itself (0.69.3): a change inside it updates its
+     tab stop and its menu buttons, and a folding toolbar folds again once
+     the change is done. Nothing else in the page wakes it. */
+  function enhanceBar(bar) {
       if (!bar.hasAttribute('role')) bar.setAttribute('role', 'toolbar');
       menus(bar);
-      stop(bar, null);
+      stop(bar, null, true);
       if (bar.__ready) return;
       bar.__ready = true;
       bar.addEventListener('keydown', function (e) {
@@ -77,9 +119,24 @@
         var c = e.target.closest('button, a[href], input, select');
         if (c && !c.closest('.menu-panel')) stop(bar, c);
       });
-      new MutationObserver(function () { menus(bar); stop(bar, null); })
-        .observe(bar, { subtree: true, childList: true, attributes: true, attributeFilter: ['disabled', 'aria-disabled', 'hidden'] });
-    });
+      new MutationObserver(function () {
+        menus(bar); stop(bar, null, true);
+        bar.__dirty = true;
+        if (bar.__fold) soonFit(bar);
+      }).observe(bar, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'aria-disabled', 'hidden'] });
+  }
+
+  /* Folding again in the next frame, once however many changes come
+     before it, since an application drawing its content may change a
+     toolbar many times in one frame; or after 100 ms, when a hidden or
+     headless page runs no frame for a while. pudl:toolbar-fit says when it
+     is done. */
+  function soonFit(bar) {
+    if (bar.__fitSoon) return;
+    bar.__fitSoon = true;
+    var go = function () { if (!bar.__fitSoon) return; bar.__fitSoon = false; fit(bar); };
+    requestAnimationFrame(go);
+    setTimeout(go, 100);
   }
 
   /* === Folding (preview, docs/proposals/toolbar-commands.md) ==============
@@ -230,11 +287,10 @@
     bar.__fold = { groups: groups };
     var pending = 0;
     var again = function () { if (!pending) pending = requestAnimationFrame(function () { pending = 0; fit(bar); }); };
+    /* A change of width folds it again in the next frame; a change of what
+       it holds, which its own observer sees, once the change is done. */
     if (window.ResizeObserver) new ResizeObserver(again).observe(bar);
-    /* Commands are drawn once a task is done, and the toolbar refolds at
-       once after them, rather than in a frame a hidden or headless page
-       may not run for a while. A change of size still waits for one. */
-    document.addEventListener('pudl:commands-change', function () { if (bar.isConnected) fit(bar); });
+    bar.__dirty = true;
     fit(bar);
     return bar.__fold;
   }
@@ -252,8 +308,17 @@
   /* Folds the toolbar to its row, then says so with pudl:toolbar-fit on
      the toolbar (0.69.1), so a host or a test waiting on a new width
      knows when the folding is done rather than guessing. */
-  function fit(bar) {
+  /* It measures only when what it holds has changed since it last folded,
+     or its width has (0.69.3); otherwise the folding it has is still
+     right, and measuring would only make the browser lay the page out. */
+  function fit(bar, force) {
+    if (!bar.__fold || !bar.isConnected) return;
+    var w = bar.clientWidth;
+    if (!force && !bar.__dirty && w === bar.__fitWidth) return;
+    bar.__dirty = false;
+    bar.__fitWidth = w;
     foldTo(bar);
+    stop(bar, null, true);
     bar.dispatchEvent(new CustomEvent('pudl:toolbar-fit', { bubbles: true }));
   }
 
@@ -283,10 +348,20 @@
     (root || document).querySelectorAll('.toolbar[data-toolbar-fold]').forEach(setupFold);
   }
 
-  window.pudlToolbar = { enhance: function (root) { enhance(root); enhanceFolds(root); }, fit: fit };
-  new MutationObserver(function () { enhanceFolds(); }).observe(document.documentElement, { subtree: true, childList: true });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { enhanceFolds(); }); else enhanceFolds();
-  new MutationObserver(function () { enhance(); }).observe(document.documentElement, { subtree: true, childList: true });
-  document.addEventListener('pudl:regions-swap', function () { enhance(); });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { enhance(); }); else enhance();
+  window.pudlToolbar = { enhance: function (root) { enhance(root); enhanceFolds(root); }, fit: function (bar) { fit(bar, true); } };
+
+  /* Toolbars the page adds later are found among the nodes it adds, not by
+     searching the whole page after every change anywhere in it (0.69.3). */
+  new MutationObserver(function (records) {
+    records.forEach(function (r) {
+      Array.prototype.forEach.call(r.addedNodes, function (n) {
+        if (n.nodeType !== 1) return;
+        if (n.matches('.toolbar')) { enhanceBar(n); if (n.matches('[data-toolbar-fold]')) setupFold(n); }
+        if (n.firstElementChild) n.querySelectorAll('.toolbar').forEach(function (b) { enhanceBar(b); if (b.matches('[data-toolbar-fold]')) setupFold(b); });
+      });
+    });
+  }).observe(document.documentElement, { subtree: true, childList: true });
+  document.addEventListener('pudl:regions-swap', function () { enhance(); enhanceFolds(); });
+  function start() { enhance(); enhanceFolds(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
