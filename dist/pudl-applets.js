@@ -551,9 +551,25 @@
      join the window menu, which asks for them with commandsIn(); on a page
      they get a menu of their own, in a row above the applet. */
 
+  /* A row may be the id of a command in the applet's command table, which
+     pudl-commands.js turns into the row (0.68.1). */
+  function resolveRows(list, root) {
+    return window.pudlCommands && window.pudlCommands.menuRows ? window.pudlCommands.menuRows(list, root) : list;
+  }
+  function resolveMenus(m, root) {
+    if (!m || typeof m !== 'object') return m;
+    var out = Object.assign({}, m);
+    if (Array.isArray(m.titles)) out.titles = m.titles.map(function (t) { return t && Array.isArray(t.items) ? Object.assign({}, t, { items: resolveRows(t.items, root) }) : t; });
+    if (m.into && typeof m.into === 'object') {
+      out.into = {};
+      Object.keys(m.into).forEach(function (k) { out.into[k] = resolveRows(m.into[k], root); });
+    }
+    return out;
+  }
+
   function commandsOf(entry) {
     var list;
-    try { list = entry.instance.commands(); }
+    try { list = resolveRows(entry.instance.commands(), entry.root); }
     catch (err) { if (window.console) console.warn('pudl-applets:', err); return []; }
     return (Array.isArray(list) ? list : []).filter(function (c) {
       return c && typeof c.label === 'string' && typeof c.run === 'function';
@@ -585,11 +601,11 @@
       if (!hasMenus && !hasCommands) continue;
       return {
         name: entry.name, root: entry.root, _instance: inst,
-        menus: hasMenus ? function (inst, name) {
+        menus: hasMenus ? function (inst, name, root) {
           return function () {
-            try { return inst.menus(); } catch (err) { if (window.console) console.warn('pudl-applets: ' + name + '.menus():', err); return null; }
+            try { return resolveMenus(inst.menus(), root); } catch (err) { if (window.console) console.warn('pudl-applets: ' + name + '.menus():', err); return null; }
           };
-        }(inst, entry.name) : null,
+        }(inst, entry.name, entry.root) : null,
         commands: hasCommands ? function (e) { return function () { return commandsOf(e); }; }(entry) : null
       };
     }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.68.1
+
+Two fixes to the commands preview, from example.com's `Architecture/pudl-proposal-menu-command-ids.md` and `pudl-proposal-toolbar-empty-groups.md`. Both were promised by `docs/proposals/toolbar-commands.md` and missing from 0.68.0. The specification is unchanged at 0.28.0.
+
+- **Menus name commands by id.** A row in an applet's `menus()` or `commands()` may be a command's id. It becomes the row, with the command's words, glyph, key, tick or radio, danger, and disabled state with its reason, read when the menu opens; a hidden command leaves no row, and a separator left at an end or doubled goes; a command with items is a submenu; an unknown id is reported once in the console and left out. `pudlCommands.menuRows(list, scope)` does the same for any list. The site's `commandRows` can go.
+- **A toolbar group with nothing to show leaves the row.** A group of commands whose controls are all hidden is hidden too, and comes back when one shows, so the folding measures only what is there. A hidden command's menu wrapper and an empty choice go with them. A hand-written group with no commands is left alone. The site's listener on `pudl:commands-change` can go.
+- **The sample.** In Preview, the note editor's Style, Text, Lists and Insert groups leave its toolbar.
+- Update `pudl-commands.js` and `pudl-applets.js`.
+
 ## 0.68.0
 
 This release implements PUDL specification 0.28.0, from the maintainer's decision that PUDL is AI-native and from example.com's proposal that PUDL take in applet actions (`docs/proposals/applet-actions.md`).

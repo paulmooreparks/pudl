@@ -121,6 +121,10 @@ The toolbar section gains group names and glyphs, the five stages and the order 
 
 The Editor's key table becomes its command table, with a glyph added where its toolbar shows one. Its menus become lists of ids, its formatting, view and comments toolbars become `toolbars()` data or markup with `data-command`, and `editor-toolbar.js`, the hand-built Comments bar and `.editor-toolbar-name` go.
 
+## As built
+
+A preview of the command table, `data-command` controls and folding shipped in 0.68.0, with the note editor sample. Two parts of the design above were missing from it, and example.com, moving its Editor and Files over, found both on the first day; 0.68.1 adds them. A menu's rows may be command ids (`pudlCommands.menuRows`, used for `menus()` and `commands()`), and a group whose commands are all hidden leaves the row.
+
 ## Questions for the maintainer
 
 1. **Opt in, or the new default?** I recommend that folding start as `data-toolbar-fold` and become the default in the release after an application has moved, since today's toolbars wrap and a project's layout may count on it.

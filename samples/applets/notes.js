@@ -186,6 +186,12 @@
         run: function () { ta.value = saved; update(); say('Changes discarded.'); } }
     ];
 
+    /* In Preview there is no text to edit, so the editing commands hide,
+       and the groups that hold only them leave the toolbar. */
+    ['style', 'bold', 'italic', 'code', 'bullets', 'numbers', 'quote', 'insert'].forEach(function (id) {
+      table.filter(function (c) { return c.id === id; })[0].hidden = function () { return view === 'preview'; };
+    });
+
     update();
 
     /* The actions that read and change the open note are answered here,

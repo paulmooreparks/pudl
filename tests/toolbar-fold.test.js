@@ -75,6 +75,28 @@ function check(name, ok, detail) {
   await p.waitForTimeout(80);
   check('a command an agent runs changes what the reader sees', agent.view === 'preview' && agent.pressed === 'true', JSON.stringify(agent));
 
+  /* Groups whose commands are all hidden leave the row (0.68.1). */
+  await p.evaluate(() => pudlCommands.run('view-preview', undefined, document.querySelector('[data-applet="notes"]')));
+  await p.waitForTimeout(150);
+  const hiddenGroups = await p.evaluate(() => [...document.querySelectorAll('.applet-toolbars .toolbar-group')].filter(g => g.hidden).map(g => g.getAttribute('data-toolbar-group')).sort().join());
+  check('in Preview the editing groups leave the toolbar', hiddenGroups === 'Insert,Lists,Style,Text', hiddenGroups);
+  await p.evaluate(() => pudlCommands.run('view-split', undefined, document.querySelector('[data-applet="notes"]')));
+  await p.waitForTimeout(150);
+  check('and come back with the text', await p.evaluate(() => ![...document.querySelectorAll('.applet-toolbars .toolbar-group')].some(g => g.hidden)));
+
+  /* Menu rows named by command id (0.68.1). */
+  const menu = await p.evaluate(() => {
+    const m = document.querySelector('[data-applet="notes"]');
+    const warn = console.warn; let warned = 0; console.warn = function () { warned++; };
+    const rows = pudlCommands.menuRows(['-', 'bold', '-', '-', 'save', 'no-such-command', '-', 'style', '-'], m);
+    pudlCommands.menuRows(['no-such-command'], m);
+    console.warn = warn;
+    return { rows: rows.map(r => r === '-' ? '-' : r.label + (r.shortcut ? '|' + r.shortcut : '') + (r.disabled ? '|disabled:' + r.reason : '') + (r.items ? '|items:' + r.items.length : '') + (r.checked != null ? '|checked' : '')), warned };
+  });
+  check('a menu of command ids becomes rows with each command\'s words, key and state, tidy separators',
+    JSON.stringify(menu.rows) === JSON.stringify(['Bold|Mod+B|checked', '-', 'Save|Mod+S|disabled:Nothing has changed since it was saved.', '-', 'Paragraph Style|items:4']), JSON.stringify(menu.rows));
+  check('an unknown id is reported once and left out', menu.warned === 1, String(menu.warned));
+
   /* The reference page's hand-written folding toolbar. */
   await p.goto(ROOT + '/reference.html#toolbar-fold');
   await p.waitForTimeout(300);

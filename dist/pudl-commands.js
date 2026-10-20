@@ -163,6 +163,8 @@
     ctl.disabled = !!val(cmd, 'disabled');
     if (val(cmd, 'disabled') && val(cmd, 'reason')) ctl.title = label + ': ' + val(cmd, 'reason');
     ctl.hidden = !!val(cmd, 'hidden');
+    /* A menu button's wrapper goes with it, so it leaves no gap. */
+    if (ctl.parentElement && ctl.parentElement.classList.contains('menu') && ctl.parentElement.children[0] === ctl) ctl.parentElement.hidden = ctl.hidden;
     ctl.classList.toggle('btn-danger', !!val(cmd, 'danger') && ctl.classList.contains('btn'));
     var checked = val(cmd, 'checked');
     if (checked != null && !items) ctl.setAttribute('aria-pressed', String(!!checked)); else ctl.removeAttribute('aria-pressed');
@@ -270,6 +272,7 @@
     var list = chain(seg).reduce(function (all, s) { return all.concat(flat(tableOf(s))); }, []).filter(function (c) { return val(c, 'choice') === name && !val(c, 'hidden'); });
     if (!seg.classList.contains('seg')) seg.classList.add('seg', 'sm');
     seg.setAttribute('role', 'group');
+    seg.hidden = !list.length;
     if (!seg.hasAttribute('aria-label') && list[0] && list[0].choiceLabel) seg.setAttribute('aria-label', list[0].choiceLabel);
     var have = Array.prototype.map.call(seg.children, function (b) { return b.getAttribute('data-command'); }).join();
     if (have !== list.map(function (c) { return c.id; }).join()) {
@@ -306,9 +309,26 @@
     return out;
   }
 
+  /* A toolbar group of commands with nothing to show leaves the row, and
+     comes back when one of them shows (0.68.1, from example.com's
+     pudl-proposal-toolbar-empty-groups.md), so the folding counts only
+     what is there. A group in hand-written markup with no command in it
+     is left alone. */
+  function emptyGroups(root) {
+    (root || document).querySelectorAll('.toolbar-group').forEach(function (g) {
+      var parts = Array.prototype.filter.call(g.querySelectorAll('[data-command], [data-command-choice]'), function (c) {
+        return !c.closest('.toolbar-fold') && !(c.parentElement && c.parentElement.closest('[data-command-choice]'));
+      });
+      if (!parts.length) return;
+      var any = parts.some(function (c) { return !c.hidden; });
+      if (g.hidden === any) g.hidden = !any;
+    });
+  }
+
   function draw(root) {
     (root || document).querySelectorAll('[data-command-choice]').forEach(fillChoice);
     (root || document).querySelectorAll('[data-command]').forEach(function (c) { if (!c.closest('[data-command-choice]')) fill(c); });
+    emptyGroups(root);
     document.dispatchEvent(new CustomEvent('pudl:commands-change'));
   }
 
@@ -394,6 +414,53 @@
     return runCmd(f.cmd, value, opts || { owner: { kind: 'script' } });
   }
 
+  /* Menu rows from a list that may hold command ids (0.68.1, from
+     example.com's pudl-proposal-menu-command-ids.md): an id becomes
+     the row the menu bar draws, with the command's words, glyph, key,
+     tick or radio, danger, and disabled state with its reason, read now; a
+     hidden command leaves no row, and a separator left at an end or
+     doubled by that goes; a command with items is a submenu of them; an
+     id the scope does not have is reported once and left out. Objects
+     pass through as they are. */
+  var warnedIds = {};
+  function menuRows(list, scope) {
+    if (!Array.isArray(list)) return list;
+    var out = [];
+    list.forEach(function (x) {
+      if (x === '-' || (x && typeof x === 'object')) {
+        if (x && typeof x === 'object' && Array.isArray(x.items)) x = Object.assign({}, x, { items: menuRows(x.items, scope) });
+        out.push(x);
+        return;
+      }
+      if (typeof x !== 'string') return;
+      var f = find(x, scope);
+      if (!f) {
+        if (!warnedIds[x] && window.console) { warnedIds[x] = true; console.warn('pudl-commands: a menu names the command ' + x + ', which its scope does not have'); }
+        return;
+      }
+      var c = f.cmd;
+      if (val(c, 'hidden')) return;
+      var row = { id: c.id, label: val(c, 'label') || c.id };
+      var glyph = val(c, 'glyph'), key = val(c, 'shortcut'), checked = val(c, 'checked'), choice = val(c, 'choice');
+      if (glyph) row.glyph = glyph;
+      if (key) row.shortcut = key;
+      if (checked != null) row.checked = !!checked;
+      if (choice) row.radio = choice;
+      if (val(c, 'danger')) row.danger = true;
+      if (val(c, 'disabled')) { row.disabled = true; if (val(c, 'reason')) row.reason = val(c, 'reason'); }
+      var items = val(c, 'items');
+      if (Array.isArray(items)) row.items = menuRows(items, scope);
+      else row.run = function () { runCmd(c, val(c, 'value')).catch(function () {}); };
+      out.push(row);
+    });
+    /* No separator first, last or twice running. */
+    return out.filter(function (r, i, all) {
+      if (r !== '-') return true;
+      var prev = all.slice(0, i).filter(function (x) { return x !== '-'; }).length;
+      return prev > 0 && i < all.length - 1 && all[i + 1] !== '-' && all.slice(i + 1).some(function (x) { return x !== '-'; });
+    });
+  }
+
   function register(scope, table) {
     var get = typeof table === 'function' ? table : function () { return table; };
     scopes.set(scope, get);
@@ -401,7 +468,7 @@
     return function () { if (scopes.get(scope) === get) scopes.delete(scope); changed(); };
   }
 
-  window.pudlCommands = { register: register, changed: changed, list: list, run: run, rows: rows, find: function (id, el) { var f = find(id, el); return f ? f.cmd : null; }, value: val };
+  window.pudlCommands = { register: register, changed: changed, list: list, run: run, rows: rows, menuRows: menuRows, find: function (id, el) { var f = find(id, el); return f ? f.cmd : null; }, value: val };
 
   new MutationObserver(function (records) {
     if (records.some(function (r) { return Array.prototype.some.call(r.addedNodes, function (n) { return n.nodeType === 1 && (n.matches('[data-command], [data-command-choice]') || n.querySelector('[data-command], [data-command-choice]')); }); })) changed();
