@@ -129,6 +129,8 @@ an application moved its toolbars next and found six gaps (`docs/proposals/pudl-
 
 ## Questions for the maintainer
 
+the maintainer decided all four as recommended. On 2026-10-20 he chose that folding stays opt-in with `data-toolbar-fold` until an application has moved, that group names sit beside the controls, and that every control shows its words at stage 1. On 2026-10-21 he agreed that no toolbar appears unless the applet asks for one.
+
 1. **Opt in, or the new default?** I recommend that folding start as `data-toolbar-fold` and become the default in the release after an application has moved, since today's toolbars wrap and a project's layout may count on it.
 2. **Group names beside the controls, or beneath them as in Office's ribbon?** I recommend beside, at stages 1 and 2, because a name beneath every group adds a line of height to every toolbar, and an application's windows are often short. A ribbon-style variant could follow if a host wants it.
 3. **Words on every control at stage 1?** I recommend yes, since it is what makes the toolbar learnable, and stage 2 is one step away for a reader with less room. A control can opt out with `data-command-words="never"`.
