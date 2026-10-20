@@ -272,9 +272,13 @@
       changed: function (s) {
         if (s === undefined && entry.instance && entry.instance.state) s = entry.instance.state();
         root.dispatchEvent(new CustomEvent('pudl:applet-change', { bubbles: true, detail: { state: s == null ? null : String(s) } }));
-      }
+      },
+      /* Says the instance's commands have changed state (preview,
+         docs/proposals/toolbar-commands.md). */
+      commandsChanged: function () { if (window.pudlCommands) window.pudlCommands.changed(); }
     });
     entry.instance = instance || null;
+    commandsFor(entry);
     running.push(entry);
     root.setAttribute('data-applet-state', 'running');
     if (!inWindow && entry.instance && typeof entry.instance.commands === 'function') addCommandRow(entry);
@@ -288,6 +292,69 @@
     var ready = entry.instance && entry.instance.ready;
     if (ready && typeof ready.then === 'function') ready.then(function () { settle(root); }, function () { settle(root); });
     else settle(root);
+  }
+
+  /* === Commands and toolbars (preview) =====================================
+     An instance's commandTable() is its commands, which pudl-commands.js
+     registers with the mount as their scope, so its menus, toolbars, keys
+     and agents all reach them by id. Its toolbars() describe toolbars of
+     those ids:
+       [{ label, groups: [{ label, glyph, priority, end, items: ['bold',
+          { choice: 'view' }, …] }] }]
+     drawn into the mount's [data-toolbar-slot] if it has one, or else
+     before the mount, folding as room runs out. */
+  function commandsFor(entry) {
+    var inst = entry.instance;
+    if (!inst || !window.pudlCommands) return;
+    if (typeof inst.commandTable === 'function') {
+      entry.unregister = window.pudlCommands.register(entry.root, function () { return inst.commandTable(); });
+    }
+    if (typeof inst.toolbars !== 'function') return;
+    var bars;
+    try { bars = inst.toolbars(); } catch (err) { if (window.console) console.warn('pudl-applets:', err); return; }
+    if (!Array.isArray(bars) || !bars.length) return;
+    var holder = document.createElement('div');
+    holder.className = 'applet-toolbars';
+    bars.forEach(function (t) {
+      var bar = document.createElement('div');
+      bar.className = 'toolbar';
+      bar.setAttribute('role', 'toolbar');
+      bar.setAttribute('aria-label', t.label || '');
+      bar.setAttribute('data-toolbar-fold', '');
+      (t.groups || []).forEach(function (g) {
+        var group = document.createElement('div');
+        group.className = 'toolbar-group';
+        if (g.label) group.setAttribute('data-toolbar-group', g.label);
+        if (g.glyph) group.setAttribute('data-toolbar-glyph', g.glyph);
+        if (g.priority != null) group.setAttribute('data-toolbar-priority', String(g.priority));
+        if (g.end) group.setAttribute('data-toolbar-end', '');
+        (g.items || []).forEach(function (item) {
+          var c;
+          if (item && typeof item === 'object' && item.choice) {
+            c = document.createElement('div');
+            c.setAttribute('data-command-choice', item.choice);
+          } else {
+            c = document.createElement('button');
+            c.type = 'button';
+            c.setAttribute('data-command', String(item));
+          }
+          group.appendChild(c);
+        });
+        bar.appendChild(group);
+      });
+      holder.appendChild(bar);
+    });
+    var slot = entry.root.querySelector('[data-toolbar-slot]');
+    if (slot) slot.appendChild(holder);
+    else entry.root.parentNode.insertBefore(holder, entry.root);
+    entry.toolbars = holder;
+    /* Toolbars drawn before the mount are outside it, so they are a scope
+       of the same commands. */
+    if (!slot && typeof inst.commandTable === 'function') {
+      var off = window.pudlCommands.register(holder, function () { return inst.commandTable(); });
+      var first = entry.unregister;
+      entry.unregister = function () { if (first) first(); off(); };
+    }
   }
 
   /* === When an applet starts ===============================================
@@ -468,6 +535,8 @@
       entry.root.removeAttribute('data-applet-state');
       if (entry.fitSet) entry.root.removeAttribute('data-applet-fit');
       if (entry.row) entry.row.remove();
+      if (entry.unregister) entry.unregister();
+      if (entry.toolbars) entry.toolbars.remove();
       return false;
     });
   }

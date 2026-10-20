@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commands and Folding Toolbars</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-commands.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="applets/registry.js" defer></script>
+  <script src="commands-page.js" defer></script>
+  <style>
+    .page { max-width: 76rem; margin: 0 auto; padding: 24px 16px 60px; }
+    .page h1 { margin: 12px 0 4px; font-size: 26px; }
+    .stage { width: var(--stage-w, 100%); max-width: 100%; min-width: 260px; resize: horizontal; overflow: auto; padding: var(--space-4); }
+    .width-row { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-4) 0 var(--space-2); flex-wrap: wrap; }
+    .width-row input[type="range"] { flex: 1 1 16rem; max-width: 28rem; }
+    .agent pre { max-height: 22rem; overflow: auto; font-size: var(--text-xs); }
+    .agent-run { display: flex; gap: var(--space-2); flex-wrap: wrap; align-items: center; margin: var(--space-3) 0; }
+    .agent-run .form-input { width: 14rem; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="brand" href="../reference.html">PUDL</a>
+    <div class="topbar-chrome">
+      <button class="theme-toggle" type="button" title="Toggle light / dark"
+              onclick="pudlToggleTheme()"></button>
+      <a class="topbar-pill" href="../reference.html#toolbar">Reference</a>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Commands and folding toolbars</h1>
+    <p>This is a preview of <a href="https://github.com/paulmooreparks/pudl/blob/main/docs/proposals/toolbar-commands.md">the toolbar and commands proposal</a>, built so it can be tried before it is settled. The note editor below is an applet that declares each of its commands once, with its words, glyph, key and state, and names the commands each group of its toolbar holds. PUDL draws the toolbar from that, keeps every control's state current, answers the keys, and folds the groups as the room runs out.</p>
+    <p>Narrow the editor with the slider, or drag its corner, and watch the groups fold: first to their glyphs, then the lowest priority ones into menu buttons with their names, then to the glyphs alone, then into More. Every command stays in reach, ticked or chosen as it is. Try <kbd>Ctrl</kbd>+<kbd>B</kbd>, <kbd>Ctrl</kbd>+<kbd>S</kbd> or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>2</kbd> in the text.</p>
+
+    <div class="width-row">
+      <label class="form-label" for="stage-width">Width</label>
+      <input type="range" id="stage-width" min="260" max="1200" value="1200">
+      <output id="stage-width-out" for="stage-width">1200px</output>
+    </div>
+
+    <div class="card stage" id="stage">
+      <div data-applet="notes">
+        <p class="card-desc">The note editor needs script to run.</p>
+      </div>
+    </div>
+
+    <section class="card agent" aria-labelledby="agent-title">
+      <h2 class="card-title" id="agent-title">As an agent sees it</h2>
+      <p class="card-desc">An agent never reads the toolbar. It lists the commands as data, with their state now and whether the toolbar shows them, has folded them or hides them, and runs one by its id. A disabled command refuses with its reason. In the console: <code>pudlCommands.list(el)</code> and <code>pudlCommands.run('bold')</code>.</p>
+      <div class="agent-run">
+        <button class="btn" type="button" id="agent-list">List the commands</button>
+        <input class="form-input" id="agent-id" value="next-comment" aria-label="Command id" list="agent-ids">
+        <datalist id="agent-ids"></datalist>
+        <button class="btn" type="button" id="agent-run">Run it</button>
+      </div>
+      <pre class="code" id="agent-out" aria-live="polite">Press List the commands.</pre>
+    </section>
+  </main>
+
+</body>
+</html>

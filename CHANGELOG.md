@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased (preview)
+
+Previews to try, on the branch and on GitHub Pages, before their proposal is settled. Nothing here is in a tagged release yet, and any of it may change.
+
+- **Declared commands** (`dist/pudl-commands.js`, `docs/proposals/toolbar-commands.md`). `pudlCommands.register(scope, table)` declares commands once, each with an id, words, glyph, key and state; a control with `data-command` and a segmented control with `data-command-choice` are filled from them and kept current; a command with items is a menu; the keys work while focus is in the scope; and `pudlCommands.list(el)` and `pudlCommands.run(id)` give an agent every command as data and run one by id, refusing a disabled one with its reason. An applet offers `commandTable()` and `toolbars()`, and gets `opts.commandsChanged()`.
+- **Toolbars that fold** (`pudl-toolbar.js`, `pudl.css`). A toolbar marked `data-toolbar-fold` keeps to one row, and its named groups fold through five stages, from names and words, to glyphs, to a menu button with the group's name, to its glyph alone, to the More menu, by priority. A folded group's menu holds every command, ticked or chosen as it is.
+- **Samples.** `samples/commands.html`, a note editor built this way, with a width slider and a panel showing the commands as an agent sees them; and a folding toolbar on the reference page.
+
 ## 0.67.0
 
 This release implements PUDL specification 0.27.0, from the maintainer's request for splitters between windows side by side (`docs/proposals/zone-splitters.md`).

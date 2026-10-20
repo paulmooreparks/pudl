@@ -1445,6 +1445,42 @@ button.link {
 .toolbar .icon-btn.menu-btn { width: auto; padding: 0 4px 0 6px; gap: 2px; }
 .toolbar .icon-btn.menu-btn::after { --glyph-size: 10px; }
 
+/* A folding toolbar (preview, docs/proposals/toolbar-commands.md) keeps to
+   one row. pudl-toolbar.js sets each group's data-toolbar-stage: at 1 the
+   group's name and each control's glyph and words, at 2 the glyphs alone,
+   at 3 one menu button with the group's glyph and name, at 4 that button
+   with its glyph alone, and at 5 the group is in the More menu at the
+   row's end. A group's name is flat and muted, since it only says what
+   the group holds. A control's words and its badge are spans that
+   pudl-commands.js fills, or a page writes. */
+.toolbar[data-toolbar-fold] { flex-wrap: nowrap; overflow: hidden; }
+.toolbar[data-toolbar-fold] > .toolbar-group { flex: none; border-inline-start: 0; }
+/* The rule between groups is drawn only between groups still on the row. */
+.toolbar[data-toolbar-fold] > .toolbar-group:not([data-toolbar-stage="5"]) ~ .toolbar-group:not([data-toolbar-stage="5"]) { border-inline-start: 1px solid var(--border); }
+.toolbar[data-toolbar-fold] > .toolbar-group[data-toolbar-end] { margin-inline-start: auto; }
+.toolbar[data-toolbar-fold] > .toolbar-group[data-toolbar-end] ~ .toolbar-group[data-toolbar-end] { margin-inline-start: 0; }
+.toolbar-label { font-size: var(--text-xs); font-weight: 600; color: var(--text-muted); white-space: nowrap; margin-inline-end: 2px; }
+.toolbar .btn > .glyph { --glyph-size: 14px; }
+.toolbar .btn.btn-sm { gap: 6px; }
+.toolbar-words { white-space: nowrap; }
+.toolbar-badge {
+  min-width: 18px; padding: 0 5px; border-radius: 999px; font-size: var(--text-2xs); font-weight: 700;
+  font-variant-numeric: tabular-nums; text-align: center; line-height: 16px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text);
+}
+.toolbar-group > .toolbar-fold.menu, .toolbar > .toolbar-more.menu { display: none; flex: none; }
+.toolbar-group[data-toolbar-stage="2"] :is(button, a):has(> .glyph) > .toolbar-words { display: none; }
+.toolbar-group[data-toolbar-stage="2"] .btn.btn-sm:has(> .glyph):not(.menu-btn) { padding-inline: 7px; }
+.toolbar-group:is([data-toolbar-stage="3"], [data-toolbar-stage="4"]) > :not(.toolbar-fold) { display: none; }
+.toolbar-group:is([data-toolbar-stage="3"], [data-toolbar-stage="4"]) > .toolbar-fold { display: inline-flex; }
+.toolbar-group[data-toolbar-stage="4"] > .toolbar-fold .menu-btn:has(> .glyph) > .toolbar-words { display: none; }
+.toolbar-group[data-toolbar-stage="5"] { display: none; }
+.toolbar[data-toolbar-more] > .toolbar-more { display: inline-flex; margin-inline-start: var(--space-2); }
+/* A folded group's menu rows: words, then a second line, then the key. */
+.menu-action > .menu-row-text { display: flex; flex-direction: column; min-width: 0; }
+.menu-row-detail { font-size: var(--text-xs); color: var(--text-muted); }
+.menu-row-key { margin-inline-start: auto; padding-inline-start: var(--space-4); font-size: var(--text-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
 /* === Code ================================================================
    A code block is for reading, so it is flat: a tinted panel with no
    shadow. An editor's surface takes input, so it is sunken like a field.

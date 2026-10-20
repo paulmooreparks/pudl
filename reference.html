@@ -1070,6 +1070,44 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </div>
     </div>
 
+    <h3 id="toolbar-fold">Toolbars that fold (preview)</h3>
+    <p>A toolbar marked <code>data-toolbar-fold</code> keeps to one row and folds its groups as the room runs out, instead of wrapping. Each group may carry a name, <code>data-toolbar-group</code>, shown before its controls; a glyph, <code>data-toolbar-glyph</code>; a priority, <code>data-toolbar-priority</code>, higher kept open longer; and <code>data-toolbar-end</code>, which keeps it at the end of the row. A group passes through five stages: its name and each control's glyph and words; its name and the glyphs alone; one menu button with its glyph and name; that button with its glyph alone; and a section of the More menu. Every group reaches the second stage before any becomes a menu, and the lower priorities fold first. Nothing is lost by folding: a folded group's menu holds each command, a pressed one ticked and a segmented control's choices as radio rows. Narrow the box below, with the slider or by its corner. This is a preview of <a href="https://github.com/paulmooreparks/pudl/blob/main/docs/proposals/toolbar-commands.md">a proposal</a> that is not settled yet; <a href="samples/commands.html">the commands sample</a> builds the same kind of toolbar from an applet's declared commands, with the keys and an agent's view of them.</p>
+    <div class="demo vstack gap-3">
+      <label class="demo-row" style="gap: 12px">Width
+        <input type="range" min="220" max="900" value="900" style="width: 16rem"
+               oninput="document.getElementById('ref-fold-box').style.width = this.value + 'px'; this.nextElementSibling.textContent = this.value + 'px'"><output>900px</output></label>
+      <div id="ref-fold-box" style="width: 900px; max-width: 100%; min-width: 200px; resize: horizontal; overflow: auto; padding: 8px; border: 1px dashed var(--border); border-radius: var(--radius-sm)">
+        <div class="toolbar" role="toolbar" aria-label="Formatting" data-toolbar-fold>
+          <div class="toolbar-group" data-toolbar-group="Style" data-toolbar-glyph="paragraph" data-toolbar-priority="1">
+            <div class="menu"><button type="button" class="btn btn-sm menu-btn" popovertarget="ref-fold-style" aria-label="Paragraph style"><span class="glyph" style="--glyph: var(--glyph-paragraph)" aria-hidden="true"></span><span class="toolbar-words">Heading 2</span></button>
+              <div class="menu-panel" id="ref-fold-style" popover><button type="button" class="menu-action">Paragraph</button><button type="button" class="menu-action">Heading 1</button><button type="button" class="menu-action">Heading 2</button></div></div>
+          </div>
+          <div class="toolbar-group" data-toolbar-group="Text" data-toolbar-glyph="bold" data-toolbar-priority="3">
+            <button type="button" class="btn btn-sm" aria-label="Bold" aria-pressed="true" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') !== 'true')"><span class="glyph" style="--glyph: var(--glyph-bold)" aria-hidden="true"></span><span class="toolbar-words">Bold</span></button>
+            <button type="button" class="btn btn-sm" aria-label="Italic" aria-pressed="false" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') !== 'true')"><span class="glyph" style="--glyph: var(--glyph-italic)" aria-hidden="true"></span><span class="toolbar-words">Italic</span></button>
+            <button type="button" class="btn btn-sm" aria-label="Code" aria-pressed="false" onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed') !== 'true')"><span class="glyph" style="--glyph: var(--glyph-code)" aria-hidden="true"></span><span class="toolbar-words">Code</span></button>
+          </div>
+          <div class="toolbar-group" data-toolbar-group="Lists" data-toolbar-glyph="list" data-toolbar-priority="1">
+            <button type="button" class="btn btn-sm" aria-label="Bulleted list"><span class="glyph" style="--glyph: var(--glyph-list)" aria-hidden="true"></span><span class="toolbar-words">Bullets</span></button>
+            <button type="button" class="btn btn-sm" aria-label="Numbered list"><span class="glyph" style="--glyph: var(--glyph-list-numbered)" aria-hidden="true"></span><span class="toolbar-words">Numbers</span></button>
+          </div>
+          <div class="toolbar-group" data-toolbar-group="Comments" data-toolbar-glyph="comments" data-toolbar-priority="2">
+            <div class="seg sm" role="group" aria-label="Show comments">
+              <button type="button" aria-pressed="false" onclick="this.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); this.setAttribute('aria-pressed', 'true')">Off</button>
+              <button type="button" aria-pressed="true" onclick="this.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); this.setAttribute('aria-pressed', 'true')">Open</button>
+              <button type="button" aria-pressed="false" onclick="this.parentNode.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); this.setAttribute('aria-pressed', 'true')">All</button>
+            </div>
+            <button type="button" class="btn btn-sm" aria-label="New comment"><span class="glyph" style="--glyph: var(--glyph-comments)" aria-hidden="true"></span><span class="toolbar-words">New</span><span class="toolbar-badge">2</span></button>
+            <button type="button" class="btn btn-sm" aria-label="Previous comment"><span class="glyph" style="--glyph: var(--glyph-arrow-up)" aria-hidden="true"></span><span class="toolbar-words">Previous</span></button>
+            <button type="button" class="btn btn-sm" aria-label="Next comment"><span class="glyph" style="--glyph: var(--glyph-arrow-down)" aria-hidden="true"></span><span class="toolbar-words">Next</span></button>
+          </div>
+          <div class="toolbar-group" data-toolbar-group="File" data-toolbar-glyph="document" data-toolbar-priority="4" data-toolbar-end>
+            <button type="button" class="btn btn-sm" aria-label="Save"><span class="glyph" style="--glyph: var(--glyph-download)" aria-hidden="true"></span><span class="toolbar-words">Save</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <h2>24. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
