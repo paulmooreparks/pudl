@@ -46,6 +46,15 @@ Copy the contents of `dist/` from a tagged release into your project, keeping th
 
 `pudl-theme.js` goes first so that the reader's theme is applied before the first paint. A reader's preference is light, dark or system, remembered in local storage; system follows the operating system's setting and keeps following it if that changes with the page open, and with nothing saved the page starts dark. The script sets `data-theme` on the `<html>` element to the theme in force, `light` or `dark`, which the stylesheet reads, and `data-theme-pref` to the preference, which a settings control can read. It gives you `pudlSetTheme('light' | 'dark' | 'system')` and `pudlThemePreference()` for a settings control, `pudlToggleTheme()` for a single toggle button, and a `pudl:theme-change` event on the document after every change, including one made in another tab. The reference page's segmented control section has a working Light / Dark / System setting.
 
+### Smaller downloads
+
+Every script and stylesheet in `dist/` also comes minified, as `pudl-theme.min.js`, `pudl.min.css` and so on, each beside its source with a source map that points back at it. A minified file behaves as its source does and the suite runs against both, so a project can load either and switch at will; compressed, the minified copies are about half the size. The readable files stay the source, and they are what this README and the specification describe. A script that loads another of PUDL's scripts loads the minified one when it is minified itself. `build/minify.js` writes the copies, and only a maintainer runs it.
+
+Text is set in Inter, and a page downloads a font only for the characters it shows ([font subsetting](docs/FONTS.md)). An English page downloads 71,284 bytes. Two stylesheets, loaded after `pudl.css` and before a theme, change that:
+
+- `pudl-fonts-full.css` sets text in the whole of Inter as PUDL shipped it before 0.70.0, with every weight, the optical-size axis that tightens headings, and the character variants and stylistic sets that a theme can ask for with `font-feature-settings`. An English page then downloads 162,188 bytes.
+- `pudl-fonts-system.css` sets text in the platform's own interface face, Segoe UI, San Francisco, Roboto or the Linux desktop's, and downloads no font at all.
+
 ### From a CDN
 
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
@@ -56,6 +65,17 @@ For a prototype, a demo or a documentation page, you can load a release from jsD
         crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.69.3/dist/pudl.css"
       integrity="sha384-T659gWLUSU+MhdDbiJ+IFAIF/b1aLPo/QEMj5X761+UZK82e8su2RhaUftrbGVDC"
+      crossorigin="anonymous">
+```
+
+The same two files minified, which every file below has too, with its own hash:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.69.3/dist/pudl-theme.min.js"
+        integrity="sha384-THEME.MIN-PENDING"
+        crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.69.3/dist/pudl.min.css"
+      integrity="sha384-PUDL.MIN-PENDING"
       crossorigin="anonymous">
 ```
 
@@ -201,9 +221,9 @@ The topbar can hold a site's main sections as **tabs**, as a browser puts its ta
 
 The row stands on the topbar's bottom edge. The tabs the reader can go to are raised in the topbar's chip colours, and the tab marked `aria-current` stands flat and taller, covers the topbar's bottom border and takes the colour of what lies below it, so it opens into the page as a section tab opens into its content. That colour is `--bg`; a page whose content directly below the topbar sits on another colour sets `--section-current-bg` on the `.topbar-tabs`. On a phone the tabs take the topbar's last row and scroll sideways.
 
-PUDL sets text in Inter, which it ships in `dist/fonts/` as variable upright and italic subsets selected by Unicode range, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too, and the font's optical-size axis tightens it at heading sizes. Machine values use the platform's monospace face.
+PUDL sets text in Inter, which it ships in `dist/fonts/` as variable upright and italic subsets selected by Unicode range, because Inter is not installed by default on Windows or macOS and a font loaded from a third-party server breaks offline and on an intranet. Until the file loads, and on any system where it cannot, the platform's own interface face stands in. Headings use Inter too. Machine values use the platform's monospace face.
 
-An English page downloads only the Latin upright subset (162,188 bytes); italic text adds the Latin italic subset (179,156 bytes). Other scripts load on demand, and a remainder subset preserves characters outside the named script ranges. All fonts retain the weight and optical-size axes. Copy the complete `fonts/` directory with `pudl.css` when upgrading to 0.44.0. The original whole files remain available for existing direct links and preloads, but the default stylesheet no longer requests them. Remove any whole-font preload to obtain the download saving. See [font subsetting](docs/FONTS.md) for rebuilding and verification.
+An English page downloads only the Latin upright subset (71,284 bytes); italic text adds the Latin italic subset (75,824 bytes). Other scripts load on demand, and a remainder subset preserves characters outside the named script ranges. Since 0.70.0 these subsets keep the weights from 400 to 900, the optical size of text, and the OpenType features CSS can ask for by name, such as tabular numerals and fractions, which together make them about 55% smaller. Headings are drawn at the optical size of text rather than tightened for their size. `pudl-fonts-full.css` restores the whole font, as the family "Inter Full", for a project that wants the optical-size axis or Inter's character variants and stylistic sets, and `pudl-fonts-system.css` uses the platform's face instead (see [Smaller downloads](#smaller-downloads)). The original whole files remain available for existing direct links and as the build's input, but no stylesheet requests them. See [font subsetting](docs/FONTS.md) for rebuilding and verification.
 
 ## What a project may change
 
@@ -1286,18 +1306,20 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - a notice and a toast keep an unbroken word, a code block and a long action inside the card (0.62.0); give a long action its whole label as `title`
   - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
   - `pudl-components.json`, the components described for tools, which `docs/COMPONENTS.md` explains; a page never loads it
-  - `fonts/`, Inter script subsets and retained whole variable fonts, with its licence
+  - `pudl-fonts-full.css` and `pudl-fonts-system.css`, the optional stylesheets that set text in the whole of Inter or in the platform's own face
+  - a minified copy of every script and stylesheet, `name.min.js` or `name.min.css`, with its source map
+  - `fonts/`, Inter script subsets, lean and full, and retained whole variable fonts, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
 - `samples/`, working pages built with PUDL: `article-reader.html` and its two category pages, a reading site with articles in windows, listings as child windows, a launcher, an applet and category tabs that swap only the list, also published at https://paulmooreparks.github.io/pudl/samples/article-reader.html; `windows/`, the markup of each of its windows, as a server would return it; `colour-mixer.html`, the applet in a page of its own; `applet-article.html`, the same applet embedded in an article; `applets/`, the applet and the registry that names it; and `expenses.html` with `expense.html`, `expense-edit.html`, `trips.html`, `trip.html`, `trip-edit.html` and `reports.html`, the expense tracker, whose `expenses-app.js` stands in for its server: it renders each page from its address and handles each form, keeping the data in the browser's localStorage; and `files.html`, the file browser, whose `files-app.js` does the same for it, with its editor and preview applets in `applets/` and pages of their own in `editor.html` and `preview.html`. The article reader fetches its windows, so it needs a web server; opened from the file system, its windows cannot load.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `vendor/pudl-spec/`, the specification's tokens and glyphs at the version this release implements, copied from a tag of pudl-spec and never edited here
-- `build/tokens.js`, which writes the token block of `dist/pudl.css` from them, the repository's only build step; a project never runs it
+- `build/`, the maintainer's build steps, which a project never runs: `tokens.js` writes the token block of `dist/pudl.css` from the specification's tokens, `fonts.py` writes the font subsets and their font faces, and `minify.js` writes the minified copies
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/COMPONENTS.md`, the component list for tools, the grammar categories its test measures, and the gaps it has found
 - `docs/proposals/`, design proposals and the decisions taken on them
 - `tests/`, the browser tests, their runner `run.js`, and in `fixtures/` the pages some of them need beyond the samples
-- `package.json`, which installs Playwright and axe for the tests, and `.github/workflows/test.yml`, which runs them in three engines on every push
+- `package.json`, which installs Playwright and axe for the tests and esbuild for `build/minify.js`, and `.github/workflows/test.yml`, which runs the tests in three engines on every push, and once more in Chromium against the minified copies
 - `RELEASING.md`, the steps for cutting a release
 - `CHANGELOG.md`, what changed in each release
 
@@ -1307,7 +1329,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.69.3, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.70.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

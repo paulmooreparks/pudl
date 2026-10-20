@@ -1,13 +1,14 @@
 {
   "name": "pudl-tests",
   "private": true,
-  "description": "Browser tests for PUDL. PUDL itself has no build and no dependencies; this file exists only to run the tests.",
+  "description": "Browser tests for PUDL and the maintainer's minifier. A project using PUDL builds nothing and depends on nothing; this file exists only for the tests and build/minify.js.",
   "scripts": {
     "test": "node tests/run.js chromium",
     "test:all": "node tests/run.js chromium firefox webkit"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
+    "esbuild": "0.28.2",
     "playwright": "1.63.0"
   }
 }

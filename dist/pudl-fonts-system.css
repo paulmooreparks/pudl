@@ -1,0 +1,9 @@
+/* PUDL's text in the platform's own interface face, with no font to
+   download: Segoe UI on Windows, San Francisco on Apple systems, Roboto on
+   Android and the desktop's face on Linux. Load it after pudl.css and before
+   a theme. pudl.css's Inter is then never requested, because a browser
+   fetches a font only for text set in it. Headings follow, since the display
+   face is the text face unless a theme says otherwise. */
+:root {
+  --font: system-ui, -apple-system, "Segoe UI", "Roboto", sans-serif;
+}

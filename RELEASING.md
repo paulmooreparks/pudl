@@ -5,7 +5,8 @@ A release is a tag. Projects copy a tagged release or load one from jsDelivr, wh
 1. Choose the version. A change to what a project sees or must do, such as a new palette, a renamed token or a new required file, raises the minor number while PUDL is below 1.0. A fix that changes nothing a project relies on raises the patch number.
 2. Update the version everywhere it appears: the header comment in `dist/pudl.css`, the version link in the topbar of `reference.html`, and the "Status" section of `README.md`.
 3. If the release takes a new version of the specification, copy `tokens/`, `glyphs/` and `VERSION` from that tag of [pudl-spec](https://github.com/paulmooreparks/pudl-spec) into `vendor/pudl-spec/`, run `node build/tokens.js`, and say in the changelog which specification version the release implements. Never edit `vendor/pudl-spec/` or the token block of `dist/pudl.css` by hand; the tests fail if the block and the vendored tokens disagree.
-4. Add the release to `CHANGELOG.md`, saying what changed and what a project must do about it.
+4. Run `node build/minify.js`, after the version change and any other edit to `dist/`, so that every minified copy matches its source; `node build/minify.js --check` confirms it, and CI fails if they disagree. If the fonts or their generator changed, run `python build/fonts.py` before it.
+5. Add the release to `CHANGELOG.md`, saying what changed and what a project must do about it.
 5. Open `reference.html` in both themes and check every section, and run any tests that cover what changed.
 6. Commit with the message `PUDL <version>: <what changed>`.
 7. Tag the commit `v<version>` and push the branch and the tag together:

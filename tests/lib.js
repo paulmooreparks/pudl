@@ -19,14 +19,29 @@ function adapt(opts) {
   return o;
 }
 
+/* With PUDL_MIN=1 every request for a script or stylesheet in dist/ is
+   served from its minified copy (build/minify.js), so the whole suite runs
+   against what a project loading the .min files gets. The page still sees
+   the readable file's address. */
+const MIN = process.env.PUDL_MIN === '1';
+const SOURCE = /\/dist\/([\w-]+)\.(js|css)(\?[^#]*)?$/;
+async function minified(target) {
+  if (!MIN) return target;
+  await target.route(SOURCE, route => {
+    const url = route.request().url().replace(SOURCE, (all, name, ext, query) => `/dist/${name}.min.${ext}${query || ''}`);
+    return route.continue({ url });
+  });
+  return target;
+}
+
 async function launch() {
   /* PUDL_EXECUTABLE points at a browser already installed, for machines
      whose browsers do not match Playwright's pinned builds. */
   const b = await pw[engine].launch(process.env.PUDL_EXECUTABLE ? { executablePath: process.env.PUDL_EXECUTABLE } : {});
   const newPage = b.newPage.bind(b);
   const newContext = b.newContext.bind(b);
-  b.newPage = opts => newPage(adapt(opts));
-  b.newContext = opts => newContext(adapt(opts));
+  b.newPage = async opts => minified(await newPage(adapt(opts)));
+  b.newContext = async opts => minified(await newContext(adapt(opts)));
   return b;
 }
 

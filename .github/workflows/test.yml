@@ -17,6 +17,21 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r build/fonts-requirements.txt
       - run: python build/fonts.py --check
+  minified:
+    name: Minified copies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node build/minify.js --check
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/run.js chromium
+        env:
+          PUDL_MIN: '1'
   browsers:
     name: ${{ matrix.browser }}
     runs-on: ubuntu-latest

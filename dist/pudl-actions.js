@@ -89,6 +89,9 @@
 
   var here = document.currentScript ? document.currentScript.src : location.href;
   function beside(rel, base) { return new URL(rel, base || here).href; }
+  /* A PUDL script this one loads, minified when this one is (0.70.0). */
+  var MIN = /\.min\.js$/.test(new URL(here).pathname);
+  function sibling(name) { return beside(name + (MIN ? '.min.js' : '.js')); }
   var C = null;   // pudlActionsCore, once validatorLib() has loaded it
 
   /* === Loading ============================================================ */
@@ -111,7 +114,7 @@
   var schemaLib = null;
   function validatorLib() {
     if (!schemaLib) {
-      schemaLib = (window.pudlActionsCore ? Promise.resolve() : loadScript(beside('pudl-actions-core.js' + new URL(here).search)))
+      schemaLib = (window.pudlActionsCore ? Promise.resolve() : loadScript(sibling('pudl-actions-core') + new URL(here).search))
         .then(function () {
           C = window.pudlActionsCore;
           return import(beside('vendor/cfworker-json-schema-4.1.1/index.js'));
@@ -339,7 +342,7 @@
     }
     if (caps.indexOf('notification.post') >= 0) {
       ctx.notify = function (text, kind) {
-        return (window.pudlToast ? Promise.resolve() : loadScript(beside('pudl-toast.js'))).then(function () {
+        return (window.pudlToast ? Promise.resolve() : loadScript(sibling('pudl-toast'))).then(function () {
           window.pudlToast(String(text), { kind: kind === 'info' ? undefined : kind, sticky: kind === 'danger' || kind === 'warn' });
         });
       };

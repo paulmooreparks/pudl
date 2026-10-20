@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.70.0
+
+Smaller downloads. A typical English page now downloads about 140 KB of PUDL, compressed, where 0.69.3 needed about 235 KB, and a project that wants it can go lower or keep everything as it was. The specification is unchanged at 0.28.0.
+
+- **A leaner Inter by default.** The font subsets `pudl.css` declares keep the weights from 400 to 900, the optical size of text, and the OpenType features CSS asks for by name, tabular numerals among them. An English page's Latin upright file falls from 162,188 bytes to 71,284, and italic from 179,156 to 75,824; every other script's file shrinks by about as much. Every character is still covered. Headings are drawn at the optical size of text, so they are a little looser than before. Every glyph keeps the whole font's advance at every weight, which `build/fonts.py` now proves at 400, 600 and 700, along with outlines that differ by under half a font unit.
+- **`pudl-fonts-full.css`** keeps PUDL's text the way it was. Loaded after `pudl.css` and before a theme, it sets text in the whole of Inter, every weight, the optical-size axis and every feature, as the family "Inter Full", in `fonts/Inter-Full-*.woff2`, which are byte for byte the subsets 0.69.3 shipped. A theme that asks for Inter's character variants or stylistic sets with `font-feature-settings` needs it.
+- **`pudl-fonts-system.css`** sets text in the platform's own interface face, Segoe UI, San Francisco, Roboto or the Linux desktop's, and downloads no font at all.
+- **Minified copies.** Every script and stylesheet in `dist/` comes minified as well, `pudl-windows.min.js`, `pudl.min.css` and so on, each with a source map that points at its readable source. Compressed, they are about half the size: all of PUDL falls from about 203 KB to 109 KB, and `pudl.css` from 37 KB to 18 KB. The readable files stay the source and what the documentation describes. `pudl-actions.js` loads the minified copies of the scripts it loads when it is minified itself. CI runs the whole suite against the minified copies in Chromium, and fails if any copy no longer matches its source.
+- `build/minify.js` writes the copies, with esbuild pinned as a maintainer's dependency; a project still builds nothing. `build/fonts.py` writes both font sets and `pudl-fonts-full.css`. `RELEASING.md` gains the step.
+- A project upgrading copies the whole of `dist/`, `fonts/` included, as before. A host that preloads `fonts/Inter-latin.woff2` keeps the right file. One that loads `pudl-fonts-full.css` should preload `fonts/Inter-Full-latin.woff2` instead.
+
 ## 0.69.3
 
 Performance. Applications built on PUDL had been getting slower with each release, most of all at startup and on a hard refresh with windows open. The cause was not one thing but a pattern that grew with every component: scripts that watched the whole page and answered any change in it by searching the whole page, measuring it, or drawing something again whether or not it had changed, which, while an application was still building its content, made the browser lay the page out over and over. The specification is unchanged at 0.28.0.
