@@ -368,9 +368,15 @@
     document.dispatchEvent(new CustomEvent('pudl:commands-change'));
   }
 
+  /* The controls are drawn again once the current task is done, however
+     many times it calls changed (0.69.1). An animation frame was used
+     before, but a browser runs none in a hidden tab and few in a headless
+     one, so a script or an agent reading a control's state just after
+     running a command could find the old state. */
   function changed() {
     if (frame) return;
-    frame = requestAnimationFrame(function () { frame = 0; draw(); });
+    frame = 1;
+    Promise.resolve().then(function () { frame = 0; draw(); });
   }
 
   /* === Keys =============================================================== */

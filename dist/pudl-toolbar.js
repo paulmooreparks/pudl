@@ -231,7 +231,10 @@
     var pending = 0;
     var again = function () { if (!pending) pending = requestAnimationFrame(function () { pending = 0; fit(bar); }); };
     if (window.ResizeObserver) new ResizeObserver(again).observe(bar);
-    document.addEventListener('pudl:commands-change', again);
+    /* Commands are drawn once a task is done, and the toolbar refolds at
+       once after them, rather than in a frame a hidden or headless page
+       may not run for a while. A change of size still waits for one. */
+    document.addEventListener('pudl:commands-change', function () { if (bar.isConnected) fit(bar); });
     fit(bar);
     return bar.__fold;
   }
@@ -246,7 +249,15 @@
 
   function fits(bar) { return bar.scrollWidth <= bar.clientWidth + 1; }
 
+  /* Folds the toolbar to its row, then says so with pudl:toolbar-fit on
+     the toolbar (0.69.1), so a host or a test waiting on a new width
+     knows when the folding is done rather than guessing. */
   function fit(bar) {
+    foldTo(bar);
+    bar.dispatchEvent(new CustomEvent('pudl:toolbar-fit', { bubbles: true }));
+  }
+
+  function foldTo(bar) {
     var f = bar.__fold;
     if (!f || !bar.isConnected || !bar.clientWidth) return;
     if (bar.querySelector('.menu-panel:popover-open')) return;

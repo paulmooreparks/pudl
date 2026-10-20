@@ -18,12 +18,19 @@ function check(name, ok, detail) {
   p.on('pageerror', e => errors.push(e.message));
   await p.goto(ROOT + '/samples/commands.html');
   await p.waitForSelector('.applet-toolbars .toolbar-group [data-command="bold"] .glyph');
+  /* The toolbar refolds once it has been laid out at its new width, which
+     a headless browser may take a while to reach, and says so with
+     pudl:toolbar-fit; each width waits for that rather than a fixed time. */
+  await p.evaluate(() => { window.__fits = 0; document.addEventListener('pudl:toolbar-fit', () => { window.__fits++; }); });
   const width = async w => {
-    await p.evaluate(w => { const r = document.getElementById('stage-width'); r.value = w; r.dispatchEvent(new Event('input')); }, w);
-    /* The toolbar refolds in the frame after its size changes, which a
-       busy machine may take a while to reach. */
-    await p.waitForFunction(() => { const bar = document.querySelector('.applet-toolbars .toolbar'); return bar.scrollWidth <= bar.clientWidth + 1; }, null, { timeout: 3000 }).catch(() => {});
-    await p.waitForTimeout(100);
+    const changed = await p.evaluate(w => {
+      const r = document.getElementById('stage-width'), was = r.value;
+      window.__fitsBefore = window.__fits;
+      r.value = w; r.dispatchEvent(new Event('input'));
+      return String(was) !== String(w);
+    }, w);
+    if (changed) await p.waitForFunction(() => window.__fits > window.__fitsBefore, null, { timeout: 10000 }).catch(() => {});
+    else await p.evaluate(() => pudlToolbar.fit(document.querySelector('.applet-toolbars .toolbar')));
     return p.evaluate(() => {
       const bar = document.querySelector('.applet-toolbars .toolbar');
       const stages = {};
@@ -189,8 +196,8 @@ function check(name, ok, detail) {
   await p.waitForTimeout(300);
   const ref = await p.evaluate(async () => {
     const box = document.getElementById('ref-fold-box'), bar = box.querySelector('.toolbar');
-    box.style.width = '340px';
-    await new Promise(r => setTimeout(r, 200));
+    /* Waits for the folding to report, not for a fixed time. */
+    await new Promise(r => { bar.addEventListener('pudl:toolbar-fit', r, { once: true }); box.style.width = '340px'; setTimeout(r, 10000); });
     return { fits: bar.scrollWidth <= bar.clientWidth + 1, stages: [...bar.querySelectorAll(':scope > .toolbar-group')].map(g => g.getAttribute('data-toolbar-stage')),
       find: bar.querySelector('[data-toolbar-group="Find"]').getAttribute('data-toolbar-stage'), field: !!bar.querySelector('input[type="search"]').getClientRects().length };
   });

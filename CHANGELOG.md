@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.69.2
+
+The tests have failed on GitHub since the commands preview, in WebKit on Linux alone, which the releases were not tested on. Headless WebKit there runs animation frames slowly, and the commands and the folding waited for one. The specification is unchanged at 0.28.0.
+
+- **Commands are drawn again once the current task is done**, not in the next animation frame. A browser runs none in a hidden tab and few in a headless one, so a script or an agent reading a control's state just after running a command could find the old state.
+- **A folding toolbar refolds as soon as its commands are drawn**, and says when it has folded with `pudl:toolbar-fit` on the toolbar, so a host or a test waiting on a new width knows when the folding is done.
+- **The tests** wait for the folding to report, and for focus to reach a menu's first row, instead of fixed times, and pass in all three engines in Playwright's Linux image as well as on Windows.
+- Update `pudl-commands.js` and `pudl-toolbar.js`.
+
 ## 0.69.1
 
 From an application's `docs/proposals/pudl-commands-gaps.md`, the gap 0.69.0 left open. The specification is unchanged at 0.28.0.
