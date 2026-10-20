@@ -553,7 +553,7 @@
       } else if (list.nextElementSibling !== dockToggle) group.insertBefore(dockToggle, list.nextElementSibling);
       group.toggleAttribute('data-dock-rail', rail);
       group.toggleAttribute('data-dock-collapsed', collapsed);
-      group.style.zIndex = String(2 * state.open.length + 2);
+      group.style.zIndex = String(4 * state.open.length + 2);
       list.setAttribute('aria-orientation', rail ? 'vertical' : 'horizontal');
       Array.from(list.children).forEach(function (tab) {
         if (members.indexOf(tab.getAttribute('data-dock-entry')) < 0) tab.remove();
@@ -665,6 +665,7 @@
       if (place[k].zone) place[k].zone = Object.assign({}, place[k].zone);
     });
     var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place, recent: recentOf(st) };
+    if (!gridEmpty(st.grid)) out.grid = copyGrid(st.grid);
     if (st.docks) {
       out.docks = {};
       Object.keys(st.docks).forEach(function (edge) {
@@ -792,6 +793,200 @@
     return p.mode + ':' + nums.map(fmt).join(',');
   }
 
+  /* === The grid's lines (0.67.0) ==========================================
+     The sixths grid has lines 0 to 6 across (x) and down (y), and a reader
+     may move lines 1 to 5 with the splitters drawn where two snapped
+     windows meet (docs/proposals/zone-splitters.md). A placement still
+     holds its cells of the grid; only where the lines are drawn changes,
+     so every snapped window with an edge on a moved line follows it. A
+     state keeps the moved lines as grid: { x: { 3: 0.42 }, y: {} }, shares
+     of the inner area, and a line nobody moved sits evenly between the
+     nearest moved lines on either side, or the edges. A moved line is
+     forgotten once no snapped window has an edge on it. In the address the
+     moved lines are grid=x3:0.42,y3:0.6. */
+
+  var drawGrid = null;     // the moved lines of the state being applied
+  var LINE_GAP = 0.02;     // the least share of the inner area between two moved lines
+  var LINE_STEP = 0.01;    // the share an arrow key moves a line, and a sixth with Shift
+
+  function cells(z) { return sixths(z).split(',').map(Number); }
+
+  function moved(grid, axis) { return (grid && grid[axis]) || {}; }
+
+  /* Where line i of an axis is drawn, as a share of the inner area. */
+  function linePos(grid, axis, i) {
+    if (i <= 0) return 0;
+    if (i >= 6) return 1;
+    var m = moved(grid, axis);
+    if (m[i] != null) return m[i];
+    var lo = 0, loPos = 0, hi = 6, hiPos = 1, j;
+    for (j = i - 1; j > 0; j--) if (m[j] != null) { lo = j; loPos = m[j]; break; }
+    for (j = i + 1; j < 6; j++) if (m[j] != null) { hi = j; hiPos = m[j]; break; }
+    return loPos + (hiPos - loPos) * (i - lo) / (hi - lo);
+  }
+
+  /* A zone's rectangle as the grid draws it now. */
+  function warped(grid, z) {
+    var c = cells(z);
+    var x = linePos(grid, 'x', c[0]), y = linePos(grid, 'y', c[1]);
+    return { x: x, y: y, w: linePos(grid, 'x', c[2]) - x, h: linePos(grid, 'y', c[3]) - y };
+  }
+
+  function copyGrid(grid) {
+    return { x: Object.assign({}, moved(grid, 'x')), y: Object.assign({}, moved(grid, 'y')) };
+  }
+
+  function gridEmpty(grid) {
+    return !Object.keys(moved(grid, 'x')).length && !Object.keys(moved(grid, 'y')).length;
+  }
+
+  /* grid=x3:0.42,y3:0.6, read leniently: a line out of range, a share out
+     of range or out of order with the lines before it is left out. */
+  function parseGrid(value) {
+    var grid = { x: {}, y: {} };
+    (value || '').split(',').forEach(function (part) {
+      var m = /^([xy])([1-5]):([0-9.]+)$/.exec(part);
+      if (!m) return;
+      var axis = m[1], i = Number(m[2]), p = Number(m[3]);
+      if (!(p > 0 && p < 1)) return;
+      var lower = 0, upper = 1;
+      Object.keys(grid[axis]).forEach(function (k) {
+        if (+k < i) lower = Math.max(lower, grid[axis][k]);
+        if (+k > i) upper = Math.min(upper, grid[axis][k]);
+      });
+      if (p - lower >= LINE_GAP && upper - p >= LINE_GAP) grid[axis][i] = p;
+    });
+    return grid;
+  }
+
+  function formatGrid(grid) {
+    var parts = [];
+    ['x', 'y'].forEach(function (axis) {
+      Object.keys(moved(grid, axis)).sort().forEach(function (i) { parts.push(axis + i + ':' + fmt(grid[axis][i])); });
+    });
+    return parts.join(',');
+  }
+
+  /* The snapped windows a line move can change: each open window snapped
+     to a zone, a half or a quarter, with its cells. A window the layer
+     shows maximised for want of room is left out, since its zone is not
+     drawn. */
+  function snappedCells(st) {
+    var out = [];
+    st.open.forEach(function (k) {
+      var p = st.place[k];
+      if (!p || p.mode === 'maximized' || !zoneFilled(p)) return;
+      out.push({ key: k, c: cells(zoneFilled(p)) });
+    });
+    return out;
+  }
+
+  /* The lines two open snapped windows meet across, minimised or covered
+     or not, as { x3: true }: the lines a splitter divides, now or once the
+     windows are shown again. */
+  function dividingLines(st) {
+    var ws = snappedCells(st), out = {};
+    ['x', 'y'].forEach(function (axis) {
+      var lo = axis === 'x' ? 0 : 1, hi = lo + 2, a0 = axis === 'x' ? 1 : 0, a1 = a0 + 2;
+      ws.forEach(function (a) {
+        ws.forEach(function (b) {
+          if (a !== b && a.c[hi] === b.c[lo] && Math.max(a.c[a0], b.c[a0]) < Math.min(a.c[a1], b.c[a1])) out[axis + a.c[hi]] = true;
+        });
+      });
+    });
+    return out;
+  }
+
+  /* Forgets each moved line that no longer divides two snapped windows,
+     such as the middle once one of two halves is closed or floated, and
+     each that sits where the grid would put it anyway. */
+  function pruneGrid(st) {
+    if (gridEmpty(st.grid)) { delete st.grid; return; }
+    var used = dividingLines(st);
+    ['x', 'y'].forEach(function (axis) {
+      Object.keys(st.grid[axis]).forEach(function (i) {
+        if (!used[axis + i]) { delete st.grid[axis][i]; return; }
+        var keep = st.grid[axis][i];
+        delete st.grid[axis][i];
+        if (Math.abs(linePos(st.grid, axis, +i) - keep) >= 0.0005) st.grid[axis][i] = keep;
+      });
+    });
+    if (gridEmpty(st.grid)) delete st.grid;
+  }
+
+  /* Before line i moves, every other line two snapped windows meet across
+     on the same axis is held where it is drawn now, so moving the first
+     third's edge leaves the last third alone. */
+  function pinLines(grid, st, axis, i) {
+    var used = dividingLines(st);
+    for (var j = 1; j < 6; j++) {
+      if (j !== i && used[axis + j] && grid[axis][j] == null) grid[axis][j] = linePos(grid, axis, j);
+    }
+  }
+
+  /* The least share of the inner area each snapped window may take on each
+     axis: its least size, or the size its cells have on the plain grid if
+     that is smaller, so a move never forces a window below the size it
+     would have had anyway. */
+  function gridMins(st) {
+    var W = innerW(), H = innerH(), out = {};
+    snappedCells(st).forEach(function (w) {
+      if (restricted(w.key)) return;
+      var min = minFractions(W, H, wins[w.key]);
+      out[w.key] = { c: w.c, w: Math.min(min.w, (w.c[2] - w.c[0]) / 6), h: Math.min(min.h, (w.c[3] - w.c[1]) / 6) };
+    });
+    return out;
+  }
+
+  function gridOk(grid, mins) {
+    return Object.keys(mins).every(function (k) {
+      var m = mins[k], c = m.c;
+      return linePos(grid, 'x', c[2]) - linePos(grid, 'x', c[0]) >= m.w - 1e-6 &&
+             linePos(grid, 'y', c[3]) - linePos(grid, 'y', c[1]) >= m.h - 1e-6;
+    });
+  }
+
+  /* The nearest share to want that line i may move to: between the moved
+     lines either side of it, and as far toward want as every snapped
+     window's least size allows, found by halving from where it is. */
+  function clampLine(grid, mins, axis, i, want) {
+    var m = moved(grid, axis), lower = 0, upper = 1;
+    Object.keys(m).forEach(function (k) {
+      if (+k < i) lower = Math.max(lower, m[k]);
+      if (+k > i) upper = Math.min(upper, m[k]);
+    });
+    want = Math.max(lower + LINE_GAP, Math.min(upper - LINE_GAP, want));
+    var at = function (p) { var g = copyGrid(grid); g[axis][i] = p; return g; };
+    if (gridOk(at(want), mins)) return want;
+    var a = linePos(grid, axis, i), b = want;
+    if (!gridOk(at(a), mins)) return a;
+    for (var n = 0; n < 24; n++) {
+      var mid = (a + b) / 2;
+      if (gridOk(at(mid), mins)) a = mid; else b = mid;
+    }
+    return a;
+  }
+
+  /* After the inner area changes size, a moved line that now squeezes a
+     window below its least size goes back toward where the grid puts it,
+     and is forgotten if even that will not do. */
+  function settleGrid(st) {
+    if (gridEmpty(st.grid)) return;
+    var mins = gridMins(st);
+    if (gridOk(st.grid, mins)) return;
+    ['x', 'y'].forEach(function (axis) {
+      Object.keys(st.grid[axis]).forEach(function (i) {
+        var keep = st.grid[axis][i];
+        delete st.grid[axis][i];
+        var plain = linePos(st.grid, axis, +i);
+        st.grid[axis][i] = plain;
+        if (!gridOk(st.grid, mins)) { delete st.grid[axis][i]; return; }
+        st.grid[axis][i] = clampLine(st.grid, mins, axis, +i, keep);
+      });
+    });
+    if (gridEmpty(st.grid)) delete st.grid;
+  }
+
   /* === Docked windows ======================================================
      A docked window holds an edge of the layer, and takes that strip from
      every other window, which lays itself out in what remains, the inner
@@ -879,6 +1074,8 @@
        is then the window that comes back in front on restoring them. */
     var top = q.get('top');
     st.top = (top && st.open.indexOf(top) >= 0) ? top : null;
+    var grid = parseGrid(q.get('grid'));
+    if (!gridEmpty(grid)) st.grid = grid;
     return st;
   }
 
@@ -894,6 +1091,7 @@
     st.open.forEach(function (k) {
       if (st.place[k]) parts.push('p.' + k + '=' + formatPlacement(st.place[k]));
     });
+    if (!gridEmpty(st.grid)) parts.push('grid=' + formatGrid(st.grid));
     if (st.docks) ['left', 'right', 'top', 'bottom'].forEach(function (edge) {
       var d = st.docks[edge];
       if (!d) return;
@@ -956,7 +1154,7 @@
       if (!seg) return;
       var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      if (k === 'open' || k === 'top' || k === 'min' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2)))) return;
+      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2)))) return;
       var owner = scopedOwner(k);
       if (owner) {
         if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
@@ -1039,6 +1237,201 @@
       seenWins.add(el);
       el.dispatchEvent(new CustomEvent('pudl:window-seen', { bubbles: true, detail: { key: k } }));
     });
+  }
+
+  /* === Splitters between snapped windows (0.67.0) =========================
+     A splitter is drawn on a grid line wherever two snapped windows that
+     can be seen meet across it, as long as they share it, and moves that
+     line for every snapped window with an edge on it. Where a vertical and
+     a horizontal splitter cross inside both, as the four quarters do, a
+     handle moves both lines at once. Each splitter is a focusable
+     separator: the arrow keys move its line by a hundredth of the inner
+     area, a sixth with Shift, Home and End to its limits, and Enter or a
+     double-click returns the line to the grid. The elements are kept from
+     one apply to the next, so a drag or the keyboard's focus survives the
+     windows being laid out again. */
+
+  var splitEls = {};       // splitter id -> its element
+
+  function splitSegments(st) {
+    var seen = [];
+    st.open.forEach(function (k) {
+      if (!shown(st, k) || shownEdge(st, k)) return;
+      var p = effectivePlacement(st, k);
+      if (!p || p.mode === 'maximized' || !zoneFilled(p)) return;
+      seen.push({ key: k, c: cells(zoneFilled(p)) });
+    });
+    var lines = {};
+    ['x', 'y'].forEach(function (axis) {
+      /* Across x a window's left and right edges are cells 0 and 2 and it
+         spans cells 1 to 3; across y, its top and bottom are 1 and 3. */
+      var lo = axis === 'x' ? 0 : 1, hi = lo + 2, a0 = axis === 'x' ? 1 : 0, a1 = a0 + 2;
+      seen.forEach(function (a) {
+        seen.forEach(function (b) {
+          if (a === b || a.c[hi] !== b.c[lo] || a.c[hi] <= 0 || a.c[hi] >= 6) return;
+          var from = Math.max(a.c[a0], b.c[a0]), to = Math.min(a.c[a1], b.c[a1]);
+          if (from >= to) return;
+          var id = axis + a.c[hi];
+          (lines[id] = lines[id] || []).push({ from: from, to: to, before: a.key, after: b.key });
+        });
+      });
+    });
+    var out = [];
+    Object.keys(lines).forEach(function (id) {
+      var cur = null;
+      lines[id].sort(function (p, q) { return p.from - q.from; }).forEach(function (s) {
+        if (cur && s.from <= cur.to) {
+          cur.to = Math.max(cur.to, s.to);
+          if (cur.before.indexOf(s.before) < 0) cur.before.push(s.before);
+          if (cur.after.indexOf(s.after) < 0) cur.after.push(s.after);
+        } else {
+          cur = { axis: id[0], line: +id.slice(1), from: s.from, to: s.to, before: [s.before], after: [s.after] };
+          out.push(cur);
+        }
+      });
+    });
+    return out;
+  }
+
+  function splitterEl(id, cls) {
+    var el = splitEls[id];
+    if (!el) {
+      el = document.createElement('div');
+      el.className = cls;
+      layer.insertBefore(el, ghost);
+      splitEls[id] = el;
+    }
+    return el;
+  }
+
+  function renderSplitters(st) {
+    var segs = splitSegments(st), keep = {};
+    var mins = segs.length ? gridMins(st) : {};
+    var zOf = function (k) { return +(wins[k] && wins[k].style.zIndex) || 0; };
+    var names = function (keys) { return keys.map(titleOf).join(text('splitter-and', ' and ')); };
+    segs.forEach(function (s) {
+      var id = s.axis + s.line + ':' + s.from + '-' + s.to;
+      keep[id] = true;
+      var el = splitterEl(id, 'win-splitter');
+      var other = s.axis === 'x' ? 'y' : 'x';
+      var at = linePos(st.grid, s.axis, s.line);
+      var n = Math.round(at * 100);
+      el.setAttribute('role', 'separator');
+      el.tabIndex = 0;
+      el.setAttribute('aria-orientation', s.axis === 'x' ? 'vertical' : 'horizontal');
+      el.setAttribute('data-win-grid', s.axis + s.line);
+      el.style.setProperty('--split-at', String(at));
+      el.style.setProperty('--split-from', String(linePos(st.grid, other, s.from)));
+      el.style.setProperty('--split-to', String(linePos(st.grid, other, s.to)));
+      el.style.zIndex = String(Math.max.apply(null, s.before.concat(s.after).map(zOf)) + 1);
+      el.setAttribute('aria-valuenow', String(n));
+      el.setAttribute('aria-valuemin', String(Math.round(clampLine(st.grid, mins, s.axis, s.line, 0) * 100)));
+      el.setAttribute('aria-valuemax', String(Math.round(clampLine(st.grid, mins, s.axis, s.line, 1) * 100)));
+      el.setAttribute('aria-valuetext', text('splitter-value', '{n}%').split('{n}').join(String(n)));
+      el.setAttribute('aria-label', text('splitter', 'Resize {before} and {after}')
+        .split('{before}').join(names(s.before)).split('{after}').join(names(s.after)));
+    });
+    segs.forEach(function (v) {
+      if (v.axis !== 'x') return;
+      segs.forEach(function (h) {
+        if (h.axis !== 'y' || !(v.from < h.line && h.line < v.to && h.from < v.line && v.line < h.to)) return;
+        var id = 'c' + v.line + ',' + h.line;
+        keep[id] = true;
+        var el = splitterEl(id, 'win-splitter-cross');
+        el.setAttribute('aria-hidden', 'true');
+        el.setAttribute('data-win-grid', 'x' + v.line + ' y' + h.line);
+        el.style.setProperty('--split-x', String(linePos(st.grid, 'x', v.line)));
+        el.style.setProperty('--split-y', String(linePos(st.grid, 'y', h.line)));
+        el.style.zIndex = String(Math.max.apply(null, v.before.concat(v.after, h.before, h.after).map(zOf)) + 1);
+      });
+    });
+    Object.keys(splitEls).forEach(function (id) {
+      if (keep[id]) return;
+      splitEls[id].remove();
+      delete splitEls[id];
+    });
+  }
+
+  /* The lines a splitter or a crossing moves, as [axis, line] pairs. */
+  function splitLines(el) {
+    return el.getAttribute('data-win-grid').split(' ').map(function (g) { return [g[0], +g.slice(1)]; });
+  }
+
+  /* The state as it stands, with a grid to change. */
+  function withGrid() {
+    var work = copy(state);
+    work.grid = copyGrid(state.grid);
+    return work;
+  }
+
+  function forgetLines(lines) {
+    var work = withGrid();
+    lines.forEach(function (l) { delete work.grid[l[0]][l[1]]; });
+    commit(work, false);
+  }
+
+  function onSplitterDown(e) {
+    var el = e.target.closest && e.target.closest('.win-splitter, .win-splitter-cross');
+    if (!el || e.button !== 0 || !layer.contains(el)) return;
+    e.preventDefault();
+    var lines = splitLines(el), r = innerRect(), mins = gridMins(state), work = withGrid();
+    lines.forEach(function (l) { pinLines(work.grid, state, l[0], l[1]); });
+    var lastX = e.clientX, lastY = e.clientY, frame = 0, movedAny = false;
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('dragging');
+    layer.classList.add('dragging');
+    function step() {
+      frame = 0;
+      lines.forEach(function (l) {
+        var f = l[0] === 'x' ? (lastX - r.left) / r.width : (lastY - r.top) / r.height;
+        work.grid[l[0]][l[1]] = clampLine(work.grid, mins, l[0], l[1], f);
+      });
+      var view = copy(work);
+      view.grid = copyGrid(work.grid);
+      apply(view);
+    }
+    function move(ev) {
+      lastX = ev.clientX; lastY = ev.clientY;
+      if (!movedAny && Math.abs(lastX - e.clientX) + Math.abs(lastY - e.clientY) < CLICK_PX) return;
+      movedAny = true;
+      if (!frame) frame = requestAnimationFrame(step);
+    }
+    function up() {
+      if (frame) { cancelAnimationFrame(frame); step(); }
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.removeEventListener('pointercancel', up);
+      el.classList.remove('dragging');
+      layer.classList.remove('dragging');
+      if (movedAny) commit(withGrid(), false);
+    }
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  }
+
+  function onSplitterKey(e) {
+    var el = e.target;
+    if (!el.classList || !el.classList.contains('win-splitter') || !layer.contains(el)) return;
+    var l = splitLines(el)[0], axis = l[0], i = l[1];
+    var back = axis === 'x' ? 'ArrowLeft' : 'ArrowUp', fwd = axis === 'x' ? 'ArrowRight' : 'ArrowDown';
+    var at = linePos(state.grid, axis, i), want;
+    if (e.key === back || e.key === fwd) want = at + (e.key === fwd ? 1 : -1) * (e.shiftKey ? 1 / 6 : LINE_STEP);
+    else if (e.key === 'Home') want = 0;
+    else if (e.key === 'End') want = 1;
+    else if (e.key === 'Enter') { e.preventDefault(); forgetLines([l]); return; }
+    else return;
+    e.preventDefault();
+    var work = withGrid();
+    pinLines(work.grid, state, axis, i);
+    work.grid[axis][i] = clampLine(work.grid, gridMins(state), axis, i, want);
+    commitSoon(work);
+  }
+
+  function onSplitterDoubleClick(e) {
+    var el = e.target.closest && e.target.closest('.win-splitter, .win-splitter-cross');
+    if (!el || !layer.contains(el)) return;
+    forgetLines(splitLines(el));
   }
 
   /* The window in front, the active one: top, unless top is hidden, in
@@ -1351,12 +1744,14 @@
     /* A zone's rectangle, and a hairline on each side that meets another
        zone rather than the edge of the area. */
     if (p.mode === 'zone') {
-      el.style.setProperty('--zone-x', fmt(p.zone.x));
-      el.style.setProperty('--zone-y', fmt(p.zone.y));
-      el.style.setProperty('--zone-w', fmt(p.zone.w));
-      el.style.setProperty('--zone-h', fmt(p.zone.h));
-      el.style.setProperty('--zone-rule-e', p.zone.x + p.zone.w < 0.999 ? '1px' : '0px');
-      el.style.setProperty('--zone-rule-s', p.zone.y + p.zone.h < 0.999 ? '1px' : '0px');
+      /* Drawn on the grid's lines as they are now. */
+      var z = warped(drawGrid, p.zone), c = cells(p.zone);
+      el.style.setProperty('--zone-x', String(z.x));
+      el.style.setProperty('--zone-y', String(z.y));
+      el.style.setProperty('--zone-w', String(z.w));
+      el.style.setProperty('--zone-h', String(z.h));
+      el.style.setProperty('--zone-rule-e', c[2] < 6 ? '1px' : '0px');
+      el.style.setProperty('--zone-rule-s', c[3] < 6 ? '1px' : '0px');
     } else {
       ['--zone-x', '--zone-y', '--zone-w', '--zone-h', '--zone-rule-e', '--zone-rule-s'].forEach(function (v) { el.style.removeProperty(v); });
     }
@@ -1413,6 +1808,14 @@
     });
     normalizeDocks(st);
     roomRails = roomFor(st);
+    /* The grid's moved lines: those no snapped window uses are forgotten,
+       and those that squeeze a window are let back. The halves are drawn
+       by the stylesheet, from the middle line. */
+    pruneGrid(st);
+    settleGrid(st);
+    drawGrid = st.grid || null;
+    if (drawGrid && drawGrid.x[3] != null) layer.style.setProperty('--win-grid-x3', String(linePos(drawGrid, 'x', 3)));
+    else layer.style.removeProperty('--win-grid-x3');
     /* A window leaving the page says so first, however it was closed, so
        its content can tear down what it set up, and says why, so a project
        can tell a reader closing it from the address moving on. */
@@ -1462,7 +1865,9 @@
       el.toggleAttribute('data-win-dock-shared', sharedEdge(edge));
       el.toggleAttribute('data-win-dock-peek', sharedEdge(edge) && railMode(st, edge) && dockPeek[edge] === k);
       if (sharedEdge(edge)) el.style.setProperty('--win-dock-panel-size', ((st.place[k].s || DOCK_SIZE) * 100) + '%');
-      el.style.zIndex = String((edge ? zOrder.length : 0) + i + 1);
+      /* Two apart, so a splitter can sit just above the windows it
+         divides and below the next window up. */
+      el.style.zIndex = String(2 * ((edge ? zOrder.length : 0) + i + 1));
     });
     setDocks(st);
     state = st;
@@ -1471,6 +1876,7 @@
     renderDockGroups();
     renderRows();
     syncPane();
+    renderSplitters(st);
     announceSeen(st);
   }
 
@@ -2648,10 +3054,12 @@
       var bottom = state.open.some(function (k) { return shownEdge(state, k) === 'bottom'; }) ? B : (DOCK_SIZE * 100) + '%';
       g = ['0px', 'calc(100% - ' + bottom + ')', '100%', bottom];
     } else {
-      var z = ZONES[snap];
+      /* The zone as the grid's lines are drawn now, so a window dragged
+         beside a moved line previews the space it will take. */
+      var z = warped(state.grid, zoneOf(ZONES[snap]));
       var iw = '(100% - ' + L + ' - ' + R + ')', ih = '(100% - ' + T + ' - ' + B + ')';
-      g = ['calc(' + L + ' + ' + iw + ' * ' + z[0] + ' / 6)', 'calc(' + T + ' + ' + ih + ' * ' + z[1] + ' / 6)',
-           'calc(' + iw + ' * ' + (z[2] - z[0]) + ' / 6)', 'calc(' + ih + ' * ' + (z[3] - z[1]) + ' / 6)'];
+      g = ['calc(' + L + ' + ' + iw + ' * ' + z.x + ')', 'calc(' + T + ' + ' + ih + ' * ' + z.y + ')',
+           'calc(' + iw + ' * ' + z.w + ')', 'calc(' + ih + ' * ' + z.h + ')'];
     }
     ghost.style.left = g[0]; ghost.style.top = g[1];
     ghost.style.width = g[2]; ghost.style.height = g[3];
@@ -3059,7 +3467,10 @@
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
     layer.addEventListener('pointerdown', onPointerDown);
+    layer.addEventListener('pointerdown', onSplitterDown);
     layer.addEventListener('dblclick', onDoubleClick);
+    layer.addEventListener('dblclick', onSplitterDoubleClick);
+    layer.addEventListener('keydown', onSplitterKey);
     layer.addEventListener('focusin', onFocusIn);
     layer.addEventListener('keydown', function (e) {
       var head = e.target.classList && e.target.classList.contains('win-head') ? e.target : null;
@@ -3177,6 +3588,17 @@
       /* Whether a window can be seen now, and whether it has been seen
          since it opened. */
       shown: function (key) { return shown(state, key); },
+      /* Moves a line of the zones' grid, "x" or "y" and 1 to 5, to a share
+         of the inner area, within its limits, or with null returns it to
+         the grid. */
+      grid: function (axis, line, position) {
+        if ((axis !== 'x' && axis !== 'y') || !(line >= 1 && line <= 5)) return;
+        if (position == null) { forgetLines([[axis, line]]); return; }
+        var work = withGrid();
+        pinLines(work.grid, state, axis, line);
+        work.grid[axis][line] = clampLine(work.grid, gridMins(state), axis, line, Number(position));
+        commit(work, false);
+      },
       seen: function (key) { return !!wins[key] && seenWins.has(wins[key]); },
       reload: reload,
       update: update,

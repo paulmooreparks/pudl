@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zone splitters</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 600px; }</style>
+</head>
+<body>
+  <!-- A test fixture: four plain windows to snap side by side, and move
+       the lines between them with the splitters. -->
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}"></div>
+  </div>
+  <template id="tpl-a"><section class="win" data-win="a"><header class="win-head"><h2 class="win-title">Alpha</h2></header><div class="win-body"><p>Alpha</p></div></section></template>
+  <template id="tpl-b"><section class="win" data-win="b"><header class="win-head"><h2 class="win-title">Bravo</h2></header><div class="win-body"><p>Bravo</p></div></section></template>
+  <template id="tpl-c"><section class="win" data-win="c"><header class="win-head"><h2 class="win-title">Charlie</h2></header><div class="win-body"><p>Charlie</p></div></section></template>
+  <template id="tpl-d"><section class="win" data-win="d"><header class="win-head"><h2 class="win-title">Delta</h2></header><div class="win-body"><p>Delta</p></div></section></template>
+</body>
+</html>

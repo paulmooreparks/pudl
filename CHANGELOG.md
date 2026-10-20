@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.67.0
+
+This release implements PUDL specification 0.27.0, from the maintainer's request for splitters between windows side by side (`docs/proposals/zone-splitters.md`).
+
+- **Splitters between snapped windows.** Where two snapped windows meet, a splitter on their shared grid line moves the whole line, so two halves can be 40% and 60%, a half beside two quarters keeps all three edges together, and thirds move one boundary at a time. Each window keeps its cells of the grid, so its placement and the layout picker are unchanged. Where two splitters cross, as in the four quarters, a handle moves both. The splitter is a focusable separator: arrows move its line 1%, Shift a sixth, Home and End to its limits, and Enter or a double-click returns it to the grid. Lines stop at each window's least size, never cross, give way when the workspace shrinks, and are forgotten once no two snapped windows meet across them.
+- **The address.** Moved lines are kept as `grid=x3:0.4,y3:0.35`, absent while nothing has moved, so every existing address is unchanged. `pudlWindows.grid(axis, line, share)` moves a line from script, and `state().grid` lists them.
+- **Stacking.** A window's `z-index` is now twice what it was, two apart from the next, so a splitter can lie between them; a project that compares windows' `z-index` values with its own should check them.
+- Update `pudl-windows.js` and `pudl-windows.css`.
+
 ## 0.66.0
 
 This release implements PUDL specification 0.26.0, from an application's proposals `pudl-danger-control-glyph.md` and `pudl-applet-start-when-seen.md`.
