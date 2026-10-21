@@ -354,6 +354,8 @@ Tabs within a page switch between panels of one thing in place, where section ta
 
 With the optional `pudl-tabs.js`, one panel shows at a time; a tab is chosen by pressing it, or with the arrow keys, Home and End once the list has focus; the list is one stop in the Tab order; and the chosen panel's id is the address's fragment, so `…#receipt` opens that panel and a reload keeps it. The fragment is replaced, not pushed, so switching panels does not fill the history. Without the script the tab list is hidden and every panel shows, one after another.
 
+Tabs in a dialog or a window keep one size (0.71.0). Every panel is laid in the same place, and the ones not chosen are kept out of sight rather than out of the layout, so the tab set is as large as its largest panel and choosing a tab never resizes or moves the dialog or the window. A panel out of sight still cannot be seen, focused, found in the page or reached by assistive technology. In a dialog, a `.tabs` that is a child of the `dialog`, or of a `form` that is, reaches the dialog's sides: the bar runs from edge to edge under the title, and the panels take the dialog's colour and padding. In a window, a `.tabs` that is the whole of the `.win-body` fills it: the bar runs from edge to edge under the title bar, the chosen panel takes the rest of the body and scrolls on its own, and a window that sizes to its content is as large as its largest panel. Elsewhere, `data-tabs-size="largest"` on the `.tabs` asks for the same sizing, and in a dialog or a window `data-tabs-size="each"` lets the tab set follow each panel's size instead. [Building screens](docs/BUILDING-SCREENS.md) has the tabbed settings window and dialog in full.
+
 ## Document tabs
 
 Tabs that come and go, one per open document, record or view, as in an editor, are a `.tablist.doc-tabs`, so they look like every other tab:
@@ -1316,6 +1318,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
 - `examples/`, three example themes: `brand.css` changes only the accent, `slate.css` replaces the whole palette, and `parchment.css` is the warm palette PUDL used by default up to 0.2.0
 - `vendor/pudl-spec/`, the specification's tokens and glyphs at the version this release implements, copied from a tag of pudl-spec and never edited here
 - `build/`, the maintainer's build steps, which a project never runs: `tokens.js` writes the token block of `dist/pudl.css` from the specification's tokens, `fonts.py` writes the font subsets and their font faces, and `minify.js` writes the minified copies
+- `docs/BUILDING-SCREENS.md`, putting the components together into screens, written for agents first
 - `docs/CONTRACT.md`, everything a project may rely on
 - `docs/COMPONENTS.md`, the component list for tools, the grammar categories its test measures, and the gaps it has found
 - `docs/proposals/`, design proposals and the decisions taken on them
@@ -1330,7 +1333,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.70.3, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.71.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

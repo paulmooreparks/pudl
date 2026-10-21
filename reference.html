@@ -121,7 +121,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.70.3</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.71.0</a>
     </div>
   </header>
 
@@ -505,10 +505,54 @@
     <h2 id="dialogs">14. Dialogs</h2>
     <p>A dialog is a native <code>&lt;dialog class="dialog"&gt;</code> that the server renders into the page, never the browser's own <code>confirm()</code>. A button opens it with <code>command="show-modal"</code>, and the browser keeps focus inside it, closes it on Escape and draws the backdrop, which dims the page gently while the panel's shadow does the lifting. The panel is one step brighter than the page. It offers two actions, the safe one first and the committing one last, and a destructive commit carries its warning glyph. The optional <code>pudl-dialog.js</code> provides the command buttons in browsers that do not have them yet.</p>
     <p>When a dialog's content is taller than the window, the title and the actions stay in view and only the content between them scrolls, so the way out is never scrolled away. A <code>.dialog-head</code> keeps a filter or another control with the title. A line separates the head or the actions from the content only while something is hidden beneath it, which <code>pudl-dialog.js</code> works out; without it the bands still stay in view, with no lines. The markup is the same as for a short dialog, and the actions may sit in a form that wraps the fields.</p>
+    <p>A dialog with tabs keeps the size of its largest panel, so choosing a tab never resizes or moves it, and its tab bar runs from edge to edge under the title. The <code>.tabs</code> goes straight inside the dialog, or inside a form that is, and needs nothing else. A dialog that has grown many tabs, or settings the reader comes back to, belongs in a window, whose tabs fill it in the same way. <a href="https://github.com/paulmooreparks/pudl/blob/main/docs/BUILDING-SCREENS.md">Building screens</a> covers both.</p>
     <div class="demo demo-row">
       <button class="btn btn-danger" type="button" commandfor="demo-dialog" command="show-modal">Discard changes…</button>
       <button class="btn" type="button" commandfor="demo-dialog-long" command="show-modal">Notification settings…</button>
+      <button class="btn" type="button" commandfor="demo-dialog-tabs" command="show-modal">Export the report…</button>
     </div>
+    <dialog class="dialog" id="demo-dialog-tabs" aria-labelledby="demo-dialog-tabs-title">
+      <form method="dialog">
+        <h3 class="dialog-title" id="demo-dialog-tabs-title">Export the Report</h3>
+        <div class="tabs">
+          <div class="tablist" role="tablist" aria-label="Export">
+            <button role="tab" id="demo-export-tab-format" aria-controls="demo-export-format" aria-selected="true">Format</button>
+            <button role="tab" id="demo-export-tab-pages" aria-controls="demo-export-pages">Pages</button>
+            <button role="tab" id="demo-export-tab-send" aria-controls="demo-export-send">Send</button>
+          </div>
+          <section role="tabpanel" id="demo-export-format" aria-labelledby="demo-export-tab-format">
+            <div class="vstack">
+              <label class="check"><input type="radio" name="demo-export-kind" checked> PDF</label>
+              <label class="check"><input type="radio" name="demo-export-kind"> Spreadsheet</label>
+            </div>
+          </section>
+          <section role="tabpanel" id="demo-export-pages" aria-labelledby="demo-export-tab-pages">
+            <div class="vstack">
+              <label class="check"><input type="checkbox" checked> A cover page</label>
+              <label class="check"><input type="checkbox" checked> The summary</label>
+              <label class="check"><input type="checkbox" checked> Every expense</label>
+              <label class="check"><input type="checkbox"> The receipts, one to a page</label>
+              <label class="check"><input type="checkbox"> The approvals and their comments</label>
+              <label class="check"><input type="checkbox"> The policy each expense was checked against</label>
+              <div class="form-group">
+                <label class="form-label" for="demo-export-paper">Paper</label>
+                <span class="form-select-wrap"><select class="form-select" id="demo-export-paper"><option selected>A4</option><option>Letter</option></select></span>
+              </div>
+            </div>
+          </section>
+          <section role="tabpanel" id="demo-export-send" aria-labelledby="demo-export-tab-send">
+            <div class="form-group">
+              <label class="form-label" for="demo-export-to">Send it to</label>
+              <input class="form-input" id="demo-export-to" type="email" placeholder="name@example.com">
+            </div>
+          </section>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn" value="cancel">Cancel</button>
+          <button class="btn btn-primary" value="export">Export</button>
+        </div>
+      </form>
+    </dialog>
     <dialog class="dialog" id="demo-dialog-long" aria-labelledby="demo-dialog-long-title">
       <form method="dialog">
         <div class="dialog-head">

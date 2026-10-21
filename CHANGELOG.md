@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.71.0
+
+Tabs in a dialog or a window keep one size, from an agent that kept building tabbed dialogs that jumped as their tabs were chosen. This release implements specification 0.29.0.
+
+- **Tabs in a dialog** keep the size of their largest panel. Every panel is laid in the same place and the ones not chosen are kept out of sight rather than out of the layout, so choosing a tab never resizes or moves the dialog; a panel out of sight still cannot be seen, focused, found in the page or reached by assistive technology. A `.tabs` straight inside the `dialog`, or inside a `form` that is, reaches the dialog's sides, its bar running from edge to edge under the title, and its panels take the dialog's colour and padding.
+- **Tabs that are a window's whole body** fill it. The body gives up its padding, the bar runs from edge to edge under the title bar, and the chosen panel takes the rest of the window and scrolls on its own, so the bar stays in view. A window that sizes to its content takes the size of its largest panel.
+- `data-tabs-size="largest"` asks for the same sizing anywhere else, and `data-tabs-size="each"` lets a dialog's or a window's tabs follow each panel's size.
+- **Building screens** (`docs/BUILDING-SCREENS.md`), a guide to putting components together, written for agents first: page, window or dialog; a tabbed settings window; a tabbed dialog; a long dialog; actions; toolbars and commands; status and colour; and a checklist. The reference page's Dialogs section gains a tabbed dialog and links to it.
+- The specification's windows chapter now describes the window menu as 0.70.2 and 0.70.3 draw it.
+- A new test, `tabbed-surfaces`.
+
 ## 0.70.3
 
 The window menu reads as blocks. Reset size and position (Reset position on a window that sizes to its content) is one of the window's own commands, so it now ends them, after Maximize, instead of following the Dock list as though it were part of it; a menu bar's Window menu has the same order. A line sets the Snap and Dock lists apart as well as their headings, so the window's own commands above them stand as a block of their own. The specification is unchanged at 0.28.0.

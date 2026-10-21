@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tabbed surfaces</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-tabs.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 700px; } .tall { height: 420px; } .wide { width: 440px; }</style>
+</head>
+<body>
+  <!-- A test fixture: tabs whose panels differ in size, in a dialog, in a
+       dialog whose tabs follow each panel, in a window the reader sizes and
+       in a window sized by its content (0.71.0). -->
+  <button id="open" type="button" onclick="document.getElementById('settings').showModal()">Settings</button>
+  <button id="open-each" type="button" onclick="document.getElementById('each').showModal()">Each</button>
+  <dialog class="dialog" id="settings" aria-labelledby="settings-title">
+    <h2 class="dialog-title" id="settings-title">Settings</h2>
+    <div class="tabs">
+      <div class="tablist" role="tablist" aria-label="Settings">
+        <button role="tab" id="t-short" aria-controls="p-short" aria-selected="true">Short</button>
+        <button role="tab" id="t-tall" aria-controls="p-tall">Tall</button>
+      </div>
+      <section role="tabpanel" id="p-short" aria-labelledby="t-short"><p>One line.</p></section>
+      <section role="tabpanel" id="p-tall" aria-labelledby="t-tall"><div class="tall">Tall.</div><button id="deep" type="button">Deep</button></section>
+    </div>
+    <div class="dialog-actions"><button class="btn" type="button" onclick="this.closest('dialog').close()">Close</button></div>
+  </dialog>
+  <dialog class="dialog" id="each" aria-labelledby="each-title">
+    <h2 class="dialog-title" id="each-title">Each</h2>
+    <div class="tabs" data-tabs-size="each">
+      <div class="tablist" role="tablist" aria-label="Each">
+        <button role="tab" id="e-short" aria-controls="ep-short" aria-selected="true">Short</button>
+        <button role="tab" id="e-tall" aria-controls="ep-tall">Tall</button>
+      </div>
+      <section role="tabpanel" id="ep-short" aria-labelledby="e-short"><p>One line.</p></section>
+      <section role="tabpanel" id="ep-tall" aria-labelledby="e-tall"><div class="tall">Tall.</div></section>
+    </div>
+  </dialog>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-default="prefs,sized">
+      <section class="win" data-win="prefs" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.45; --win-h: 0.6">
+        <header class="win-head"><h2 class="win-title">Preferences</h2></header>
+        <div class="win-body">
+          <div class="tabs">
+            <div class="tablist" role="tablist" aria-label="Preferences">
+              <button role="tab" id="w-short" aria-controls="wp-short" aria-selected="true">Short</button>
+              <button role="tab" id="w-tall" aria-controls="wp-tall">Tall</button>
+            </div>
+            <section role="tabpanel" id="wp-short" aria-labelledby="w-short"><p>One line.</p></section>
+            <section role="tabpanel" id="wp-tall" aria-labelledby="w-tall"><div class="tall">Tall.</div><div class="tall">Taller.</div></section>
+          </div>
+        </div>
+      </section>
+      <section class="win" data-win="sized" data-win-size="content" style="--win-x: 0.5; --win-y: 0.05">
+        <header class="win-head"><h2 class="win-title">Sized</h2></header>
+        <div class="win-body">
+          <div class="tabs">
+            <div class="tablist" role="tablist" aria-label="Sized">
+              <button role="tab" id="s-short" aria-controls="sp-short" aria-selected="true">Short</button>
+              <button role="tab" id="s-wide" aria-controls="sp-wide">Wide</button>
+            </div>
+            <section role="tabpanel" id="sp-short" aria-labelledby="s-short"><p>One line.</p></section>
+            <section role="tabpanel" id="sp-wide" aria-labelledby="s-wide"><div class="wide">Wide.</div></section>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
