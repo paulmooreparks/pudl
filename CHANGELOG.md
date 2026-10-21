@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.70.3
+
+The window menu reads as blocks. Reset size and position (Reset position on a window that sizes to its content) is one of the window's own commands, so it now ends them, after Maximize, instead of following the Dock list as though it were part of it; a menu bar's Window menu has the same order. A line sets the Snap and Dock lists apart as well as their headings, so the window's own commands above them stand as a block of their own. The specification is unchanged at 0.28.0.
+
 ## 0.70.2
 
 The window menu's layout picker stands under the heading Snap, as the Dock list stands under Dock, so the two are told apart: snapping places a floating window in a zone of the layer, and docking fastens it to an edge. A page sets its own word with `data-win-text-snap-menu` on the layer. The specification is unchanged at 0.28.0.

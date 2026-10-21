@@ -2537,9 +2537,14 @@
     list.push(command(minId, dock ? (state.min[key] ? text('expand', 'Expand') : text('collapse', 'Collapse'))
       : (state.min[key] ? text('restore', 'Restore') : text('minimize', 'Minimize')), 'minimize'));
     if (fixed) list.push(command('restore', text('restore-floating', 'Restore to floating'), 'maximize', { disabled: true }));
+    var floating = p.mode === 'floating';
     if (!dock && !sized && !fixed) {
-      var floating = p.mode === 'floating';
       list.push(command(floating ? 'maximize' : 'restore', floating ? text('maximize', 'Maximize') : text('restore', 'Restore'), 'maximize'));
+    }
+    /* Resetting is the window's own command, so it ends the window's own
+       commands, before the Snap and Dock lists (0.70.3). */
+    if (!fixed && !dockOnly(key)) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
+    if (!dock && !sized && !fixed) {
       var now = zoneFilled(p), here = now ? sixths(now) : '';
       list.push({ id: 'snap', label: text('snap', 'Snap to a zone'), mnemonic: text('snap-mnemonic', '') || undefined, items: Object.keys(ZONE_WORDS).map(function (name) {
         return command('snap:' + name, text('zone-' + name, ZONE_WORDS[name]), 'snap:' + name, { checked: here === ZONES[name].join(',') });
@@ -2554,7 +2559,6 @@
       if (dock && !dockOnly(key)) edges.push('-', command('undock', text('undock', 'Undock'), 'undock'));
       list.push({ id: 'dock', label: text('dock-menu', 'Dock'), mnemonic: text('dock-mnemonic', '') || undefined, items: edges });
     }
-    if (!fixed && !dockOnly(key)) list.push(command('reset', sized ? text('reset-position', 'Reset position') : text('reset', 'Reset size and position'), 'reset'));
     if (!requiredWindow(key)) list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
     return list;
   }
@@ -2564,7 +2568,10 @@
     if (!win) return;
     panel.textContent = '';
     var standard = menuCommands(key);
+    /* A headed list is set apart by a line as well, so that the window's
+       own commands above it read as a block of their own (0.70.3). */
     function heading(label) {
+      if (panel.children.length) panel.appendChild(sep());
       var head = document.createElement('div');
       head.className = 'md-section-label';
       head.setAttribute('role', 'presentation');

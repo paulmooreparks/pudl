@@ -1004,7 +1004,7 @@ A layer carrying `data-win-menu` gives every window a menu button at the left of
 
 The menu is built afresh each time it opens, in three groups:
 
-1. The window's own commands. These are Open as a page when the window has a page link, Copy the link when it has a share address, Minimize (Collapse or Expand on a docked window), Maximize or Restore, the layout picker under the heading Snap, whose zones place a floating window in part of the layer, a Dock list under the heading Dock, whose edges fasten the window to a side of the layer, of Top, Bottom, Left and Right, ticking the edge the window is docked at and ending with Undock on a docked window, and Reset size and position, which returns the window to the placement its markup gave it. A menu bar's Window menu shows the Dock list as a submenu.
+1. The window's own commands. These are Open as a page when the window has a page link, Copy the link when it has a share address, Minimize (Collapse or Expand on a docked window), Maximize or Restore, and Reset size and position, which returns the window to the placement its markup gave it; then, each set apart by a line and under its heading, the layout picker under Snap, whose zones place a floating window in part of the layer, and a Dock list under Dock, whose edges fasten the window to a side of the layer, of Top, Bottom, Left and Right, ticking the edge the window is docked at and ending with Undock on a docked window. A menu bar's Window menu shows the Dock list as a submenu.
 2. The commands of what the window holds, after a separator. An applet's come from its `commands()`, described under Applets. Any other content adds its own when `pudl:window-menu` fires on the window as the menu opens: `detail.key` names the window, and `detail.add(label, run, { checked, disabled })` adds a command.
 3. Close, last and after a separator, so it is never chosen by a slip from the command above it.
 
@@ -1330,7 +1330,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.70.2, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.70.3, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

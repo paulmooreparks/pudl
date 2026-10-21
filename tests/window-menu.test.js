@@ -34,7 +34,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await openMenu('counter');
   let r = await rows('counter');
   check('the window commands come first, then the applet\'s, then Close after a separator',
-        r.join(',') === 'Open as a page,Copy the link,Minimize,Maximize,Snap,picker,Dock,Top[false],Bottom[false],Left[false],Right[false],Reset size and position,|,Add one,Wrap lines[false],Clear(off),|,Close', r.join(','));
+        r.join(',') === 'Open as a page,Copy the link,Minimize,Maximize,Reset size and position,|,Snap,picker,|,Dock,Top[false],Bottom[false],Left[false],Right[false],|,Add one,Wrap lines[false],Clear(off),|,Close', r.join(','));
   const placed = await p.evaluate(([bs, ps]) => {
     const a = document.querySelector(bs).getBoundingClientRect(), m = document.querySelector(ps).getBoundingClientRect();
     return Math.abs(m.left - a.left) <= 2 && m.top >= a.bottom - 1;
@@ -93,7 +93,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
 
   await openMenu('notes');
   r = await rows('notes');
-  check('plain content adds its commands through pudl:window-menu', r.join(',') === 'Minimize,Maximize,Snap,picker,Dock,Top[false],Bottom[false],Left[false],Right[false],Reset size and position,|,Shout,|,Close', r.join(','));
+  check('plain content adds its commands through pudl:window-menu', r.join(',') === 'Minimize,Maximize,Reset size and position,|,Snap,picker,|,Dock,Top[false],Bottom[false],Left[false],Right[false],|,Shout,|,Close', r.join(','));
   await p.click(panel('notes') + ' .menu-action >> text="Shout"');
   check('and they run', (await p.textContent('#notes-text')) === 'PLAIN CONTENT.');
 
@@ -104,7 +104,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await openMenu('notes');
   r = await rows('notes');
   check('a docked window\'s menu offers Collapse, ticks its edge, ends the list with Undock, and has no Maximize',
-        r.join(',') === 'Collapse,Dock,Top[false],Bottom[true],Left[false],Right[false],|,Undock,Reset size and position,|,Shout,|,Close', r.join(','));
+        r.join(',') === 'Collapse,Reset size and position,|,Dock,Top[false],Bottom[true],Left[false],Right[false],|,Undock,|,Shout,|,Close', r.join(','));
   await p.keyboard.press('Escape');
   for (const [edge, mode] of [['Left', 'dock-left'], ['Top', 'dock-top'], ['Right', 'dock-right']]) {
     await choose('notes', edge);
