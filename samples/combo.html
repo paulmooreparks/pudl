@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Combo boxes</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-dialog.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script>
+  <script src="../dist/pudl-combo.js" defer></script>
+  <style>
+    main { max-width: 920px; margin: 0 auto; padding: var(--space-5) var(--space-4) 80px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: var(--space-3); align-items: start; }
+    .log { font: var(--text-xs)/1.5 var(--mono); color: var(--text-muted); height: 9em; overflow: auto; margin: 0; white-space: pre-wrap; }
+    kbd { font: 600 var(--text-xs) var(--font); padding: 1px 5px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-alt); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Combo boxes</h1>
+  <p class="card-desc">A combo box takes any value, and its list only suggests; a searchable select keeps to its options. Try typing, <kbd>↓</kbd> <kbd>↑</kbd>, <kbd>Alt</kbd>+<kbd>↓</kbd>, <kbd>Enter</kbd>, <kbd>Esc</kbd> twice and <kbd>Tab</kbd>, and press the button at a field's end. <button class="btn btn-sm" type="button" onclick="pudlToggleTheme()">Light or dark</button></p>
+
+  <div class="cards">
+    <section class="card">
+      <h2 class="card-title">A currency sign</h2>
+      <p class="card-desc">The field holds the sign. Type the code, such as PHP or HKD, or the currency's name, and the sign goes in; a sign that is not listed may be typed too.</p>
+      <div class="form-group">
+        <label class="form-label" for="sign">Sign</label>
+        <span class="combo">
+          <input class="form-input" id="sign" name="sign" list="signs" autocomplete="off" placeholder="A sign, or a code">
+          <datalist id="signs">
+            <option value="₱" data-combo-keys="PHP, Philippines">PHP · Philippine peso</option>
+            <option value="S$" data-combo-keys="SGD, Singapore">SGD · Singapore dollar</option>
+            <option value="$" data-combo-keys="USD, United States, America">USD · US dollar</option>
+            <option value="€" data-combo-keys="EUR">EUR · Euro</option>
+            <option value="£" data-combo-keys="GBP, United Kingdom, Britain">GBP · Pound sterling</option>
+            <option value="¥" data-combo-keys="JPY, Japan">JPY · Japanese yen</option>
+            <option value="CN¥" data-combo-keys="CNY, RMB, China">CNY · Chinese yuan</option>
+            <option value="₩" data-combo-keys="KRW">KRW · South Korean won</option>
+            <option value="HK$" data-combo-keys="HKD">HKD · Hong Kong dollar</option>
+            <option value="NT$" data-combo-keys="TWD">TWD · New Taiwan dollar</option>
+            <option value="A$" data-combo-keys="AUD">AUD · Australian dollar</option>
+            <option value="NZ$" data-combo-keys="NZD">NZD · New Zealand dollar</option>
+            <option value="C$" data-combo-keys="CAD">CAD · Canadian dollar</option>
+            <option value="RM" data-combo-keys="MYR, Malaysia">MYR · Malaysian ringgit</option>
+            <option value="฿" data-combo-keys="THB, Thailand">THB · Thai baht</option>
+            <option value="Rp" data-combo-keys="IDR">IDR · Indonesian rupiah</option>
+            <option value="₫" data-combo-keys="VND">VND · Vietnamese dong</option>
+            <option value="₹" data-combo-keys="INR">INR · Indian rupee</option>
+            <option value="₨" data-combo-keys="PKR">PKR · Pakistani rupee</option>
+            <option value="৳" data-combo-keys="BDT">BDT · Bangladeshi taka</option>
+            <option value="CHF" data-combo-keys="CHF">CHF · Swiss franc</option>
+            <option value="kr" data-combo-keys="SEK">SEK · Swedish krona</option>
+            <option value="kr" data-combo-keys="NOK">NOK · Norwegian krone</option>
+            <option value="kr" data-combo-keys="DKK">DKK · Danish krone</option>
+            <option value="zł" data-combo-keys="PLN">PLN · Polish złoty</option>
+            <option value="Kč" data-combo-keys="CZK">CZK · Czech koruna</option>
+            <option value="₺" data-combo-keys="TRY">TRY · Turkish lira</option>
+            <option value="₽" data-combo-keys="RUB">RUB · Russian rouble</option>
+            <option value="₴" data-combo-keys="UAH">UAH · Ukrainian hryvnia</option>
+            <option value="₪" data-combo-keys="ILS">ILS · Israeli new shekel</option>
+            <option value="د.إ" data-combo-keys="AED">AED · UAE dirham</option>
+            <option value="﷼" data-combo-keys="SAR">SAR · Saudi riyal</option>
+            <option value="R" data-combo-keys="ZAR">ZAR · South African rand</option>
+            <option value="₦" data-combo-keys="NGN">NGN · Nigerian naira</option>
+            <option value="E£" data-combo-keys="EGP">EGP · Egyptian pound</option>
+            <option value="R$" data-combo-keys="BRL">BRL · Brazilian real</option>
+            <option value="MX$" data-combo-keys="MXN">MXN · Mexican peso</option>
+            <option value="₡" data-combo-keys="CRC">CRC · Costa Rican colón</option>
+            <option value="₿" data-combo-keys="BTC, XBT">BTC · Bitcoin</option>
+          </datalist>
+        </span>
+        <p class="form-help">Three Nordic currencies share kr, so each is found by its own code.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">A searchable select</h2>
+      <p class="card-desc">The value must be one of the options; typing only finds it. Leave the field with something that is not an option and the choice comes back.</p>
+      <div class="form-group">
+        <label class="form-label" for="ccy">Currency</label>
+        <span class="form-select-wrap"><select class="form-select" id="ccy" name="ccy" data-combo>
+          <option value="AUD">AUD · Australian dollar</option><option value="BRL">BRL · Brazilian real</option><option value="CAD">CAD · Canadian dollar</option>
+          <option value="CHF">CHF · Swiss franc</option><option value="CNY">CNY · Chinese yuan</option><option value="DKK">DKK · Danish krone</option>
+          <option value="EUR">EUR · Euro</option><option value="GBP">GBP · Pound sterling</option><option value="HKD">HKD · Hong Kong dollar</option>
+          <option value="IDR">IDR · Indonesian rupiah</option><option value="INR">INR · Indian rupee</option><option value="JPY">JPY · Japanese yen</option>
+          <option value="KRW">KRW · South Korean won</option><option value="MYR">MYR · Malaysian ringgit</option><option value="NOK">NOK · Norwegian krone</option>
+          <option value="NZD">NZD · New Zealand dollar</option><option value="PHP" selected>PHP · Philippine peso</option><option value="SEK">SEK · Swedish krona</option>
+          <option value="SGD">SGD · Singapore dollar</option><option value="THB">THB · Thai baht</option><option value="USD">USD · US dollar</option>
+          <option value="VND">VND · Vietnamese dong</option>
+        </select></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Options from the server</h2>
+      <p class="card-desc">With <code>data-combo-src</code> the options are asked for after a pause in typing. This page has no server, so it asks a file and the script filters what comes back. Type "plan" or "notes".</p>
+      <div class="form-group">
+        <label class="form-label" for="page">Page</label>
+        <span class="combo" data-combo-src="combo-pages.html?q={q}">
+          <input class="form-input" id="page" name="page" list="pages" autocomplete="off" placeholder="Search the pages">
+          <datalist id="pages"></datalist>
+        </span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">Completing as you type</h2>
+      <p class="card-desc">Off unless a field asks for it with <code>data-combo-complete</code>. Type "Si" or "Ho".</p>
+      <div class="form-group">
+        <label class="form-label" for="city">City</label>
+        <span class="combo">
+          <input class="form-input" id="city" list="cities" autocomplete="off" data-combo-complete>
+          <datalist id="cities">
+            <option value="Singapore"></option><option value="Sydney"></option><option value="Seoul"></option><option value="Hong Kong"></option>
+            <option value="Ho Chi Minh City"></option><option value="Manila"></option><option value="Makati"></option><option value="Kuala Lumpur"></option>
+          </datalist>
+        </span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">In a toolbar and a dialog</h2>
+      <p class="card-desc">In a toolbar the field keeps its own keys, and the arrows pass over its button. In a dialog the list opens above the backdrop.</p>
+      <div class="toolbar" role="toolbar" aria-label="Report">
+        <div class="toolbar-group" role="group" aria-label="Go">
+          <button type="button" class="btn btn-sm">Back</button>
+        </div>
+        <div class="toolbar-group" role="group" aria-label="Currency" data-toolbar-keep>
+          <span class="combo" style="width: 10rem">
+            <input class="form-input" list="signs" autocomplete="off" aria-label="Currency sign">
+          </span>
+        </div>
+        <div class="toolbar-group" role="group" aria-label="Next">
+          <button type="button" class="btn btn-sm">Next</button>
+        </div>
+      </div>
+      <p><button class="btn" type="button" commandfor="dlg" command="show-modal">Add a configuration…</button></p>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">What the application hears</h2>
+      <p class="card-desc">Each field's <code>input</code> and <code>change</code>, as from any text field, or from the select.</p>
+      <pre class="log" id="log"></pre>
+    </section>
+  </div>
+</main>
+
+<dialog class="dialog" id="dlg" aria-labelledby="dlg-title">
+  <form method="dialog">
+    <h2 class="dialog-title" id="dlg-title">Add a Configuration</h2>
+    <p class="dialog-body">Name the configuration and say which one it copies.</p>
+    <div class="form-group">
+      <label class="form-label" for="dlg-name">Name</label>
+      <input class="form-input" id="dlg-name" autofocus>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="dlg-copy">Copy from</label>
+      <span class="combo">
+        <input class="form-input" id="dlg-copy" list="configs" autocomplete="off">
+        <datalist id="configs">
+          <option value="main">C:\apps\main · Version5.29.0</option>
+          <option value="test">C:\apps\test · Version5.27.2</option>
+          <option value="legacy">C:\apps\legacy · Version5.29.0</option>
+        </datalist>
+      </span>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn" value="cancel">Cancel</button>
+      <button class="btn btn-primary" value="add">Add</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  ['input', 'change'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      var el = e.target;
+      if (!el.closest || !el.closest('.combo, .form-select-wrap')) return;
+      var log = document.getElementById('log');
+      log.textContent += type + (type === 'input' ? ' ' : '') + ' on ' + (el.id || el.getAttribute('aria-label')) + ': "' + el.value + '"\n';
+      log.scrollTop = log.scrollHeight;
+    });
+  });
+</script>
+</body>
+</html>

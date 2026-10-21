@@ -15,6 +15,7 @@
   <script src="dist/pudl-dialog.js" defer></script>
   <script src="dist/pudl-toast.js" defer></script>
   <script src="dist/pudl-tabs.js" defer></script>
+  <script src="dist/pudl-combo.js" defer></script>
   <script src="dist/pudl-tooltip.js" defer></script>
   <script src="dist/pudl-tree.js" defer></script>
   <script src="dist/pudl-grid.js" defer></script>
@@ -121,7 +122,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.71.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.72.0</a>
     </div>
   </header>
 
@@ -226,8 +227,39 @@
       </div>
     </div>
 
+    <p>A combo box is a field with a list of suggestions: the reader may type anything, or open the list with the raised button at its end and choose. It is an input with a <code>list</code> and a <code>datalist</code> in a <code>.combo</code>, which works without a script, and <code>pudl-combo.js</code> draws PUDL's list in place of the browser's. An option's <code>data-combo-keys</code> are words to find it by that are not its value, so typing PHP finds the peso and puts its sign in the field. A select marked <code>data-combo</code> becomes a searchable select, which filters as the reader types and keeps a select's value.</p>
+    <div class="demo" style="max-width: 560px;">
+      <div class="form-group">
+        <label class="form-label" for="f-sign">Currency sign</label>
+        <span class="combo">
+          <input class="form-input" id="f-sign" list="f-signs" autocomplete="off" placeholder="A sign, or PHP, SGD, EUR…">
+          <datalist id="f-signs">
+            <option value="₱" data-combo-keys="PHP, Philippines">PHP · Philippine peso</option>
+            <option value="S$" data-combo-keys="SGD, Singapore">SGD · Singapore dollar</option>
+            <option value="$" data-combo-keys="USD, United States, America">USD · US dollar</option>
+            <option value="€" data-combo-keys="EUR">EUR · Euro</option>
+            <option value="£" data-combo-keys="GBP, United Kingdom, Britain">GBP · Pound sterling</option>
+            <option value="¥" data-combo-keys="JPY, Japan">JPY · Japanese yen</option>
+            <option value="HK$" data-combo-keys="HKD">HKD · Hong Kong dollar</option>
+            <option value="RM" data-combo-keys="MYR, Malaysia">MYR · Malaysian ringgit</option>
+            <option value="฿" data-combo-keys="THB, Thailand">THB · Thai baht</option>
+          </datalist>
+        </span>
+        <p class="form-help">Type a code or a name, or choose from the list.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="f-country">Country</label>
+        <span class="form-select-wrap"><select class="form-select" id="f-country" data-combo>
+          <option value="AU">Australia</option><option value="DE">Germany</option><option value="HK">Hong Kong</option>
+          <option value="ID">Indonesia</option><option value="JP">Japan</option><option value="MY">Malaysia</option>
+          <option value="PH" selected>Philippines</option><option value="SG">Singapore</option><option value="TH">Thailand</option>
+          <option value="GB">United Kingdom</option><option value="US">United States</option><option value="VN">Vietnam</option>
+        </select></span>
+      </div>
+    </div>
+
     <h2>4. Segmented control</h2>
-    <p>A segmented control offers two to four choices in a sunken trough: a small scale, kg or lbs, Read or Edit. It is a switch with more than two positions, as macOS and iOS draw it: the trough is the track, the chosen choice is the raised thumb, and pressing another position moves the thumb there. Its choices are buttons marked with <code>aria-pressed</code>, or links to views marked with <code>aria-current</code>.</p>
+    <p>A segmented control offers two to four choices side by side, one of which is chosen: a small scale, kg or lbs, Read or Edit. Its choices are raised keys joined in a row, because they are pressed, and the chosen one is pressed in, as a pressed toolbar button is. Its choices are buttons marked with <code>aria-pressed</code>, or links to views marked with <code>aria-current</code>.</p>
     <div class="demo demo-row">
       <div class="seg"><button aria-pressed="true">Read</button><button aria-pressed="false">Edit</button></div>
       <div class="seg sm"><button aria-pressed="false">S1</button><button aria-pressed="true">S2</button><button aria-pressed="false">S3</button><button aria-pressed="false">S4</button><button aria-pressed="false">S5</button></div>

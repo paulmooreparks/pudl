@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.72.0
+
+Combo boxes and searchable selects, from an application, and segmented controls drawn as keys, from the maintainer's review. This release implements specification 0.30.1.
+
+- **A combo box** is a native input with a `datalist`, in a `.combo`, so it works without a script. The new `pudl-combo.js` draws PUDL's list in place of the browser's: a raised opener joined to the field's end, and a list drawn as a menu, with each suggestion's text on a second line and the field's own value ticked. Typing filters the list; Down, Up, Alt+Down, Alt+Up, Enter, Escape and Tab follow the ARIA pattern for an editable combo box; choosing fires `input` and `change` on the field, once. Inline completion is off unless the field asks for it with `data-combo-complete`.
+- **Keys that are not the value.** An option's `data-combo-keys`, separated by commas, are words it is found by but not shown, so a list of currency signs is searched by code, name and country, and PHP typed exactly becomes ₱ when the reader leaves the field or presses Enter. Only a key that one option alone has looks it up; text several share stays as typed. The sample and the reference page show the code in each option's text as well, so the reader sees why a row was found.
+- **A searchable select** is a select marked `data-combo`, which becomes a combo box that keeps the select's value, so its value is always one of its options and the form sends what it always sent. `pudlCombo.refresh(select)` shows a value a script has set.
+- **Options from the server.** `data-combo-src` asks an address on the page's own origin as the reader types, after a pause, and takes only the value, text and keys of the `option` elements it returns.
+- **Segmented controls are keys.** Every choice that can be pressed is a raised key, joined in a row, and the chosen one is pressed in, as a pressed button is. Before, the choices lay flat on a sunken track and the chosen one stood raised, which drew what can be pressed as display. The markup is unchanged.
+- `data-toolbar-skip` keeps a control out of a toolbar's arrow order; a combo box's opener carries it.
+- `samples/combo.html` shows every case, and the reference page's Forms section gains a combo box and a searchable select. `docs/proposals/combo-box.md` records the design and the decisions.
+- A new test, `combo`.
+
 ## 0.71.0
 
 Tabs in a dialog or a window keep one size, from an agent that kept building tabbed dialogs that jumped as their tabs were chosen. This release implements specification 0.29.0.

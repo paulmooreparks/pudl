@@ -25,12 +25,12 @@ function check(name, ok, extra) {
       const s = el => getComputedStyle(el).boxShadow;
       return { on: s(on), off: s(off) };
     });
-    /* A segmented control is a switch with more positions: the chosen
-       segment is the raised thumb, the lit edge inside and a shadow cast
-       outside, and the others lie flat on the track. */
-    check(theme + ': the chosen segment is raised as a thumb and the others lie flat',
-          seg.off === 'none' &&
-          seg.on.split(',').length === 2 && /inset/.test(seg.on.split(',')[0]) && !/inset/.test(seg.on.split(',')[1]), JSON.stringify(seg));
+    /* A segmented control is a row of keys (0.72.0): the others are
+       raised, the lit edge inside and a shadow cast outside, and the
+       chosen one is pressed in, its only shadow inside its top edge. */
+    check(theme + ': the other segments are raised and the chosen one is pressed in',
+          seg.off.split(/,(?![^(]*\))/).length === 2 && /inset/.test(seg.off.split(/,(?![^(]*\))/)[0]) && !/inset/.test(seg.off.split(/,(?![^(]*\))/)[1]) &&
+          seg.on.split(/,(?![^(]*\))/).length === 1 && /inset/.test(seg.on), JSON.stringify(seg));
 
     /* A segmented control of links on the topbar keeps its own text colour
        (from example.com's Architecture/pudl-bug-topbar-seg-link.md). */

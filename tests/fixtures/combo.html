@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Combo boxes</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <script src="../../dist/pudl-combo.js" defer></script>
+  <style>body { margin: 24px; } .form-group { max-width: 320px; }</style>
+</head>
+<body>
+  <!-- A test fixture for combo boxes and searchable selects (0.72.0). -->
+  <form id="form" action="#" onsubmit="return false">
+    <div class="form-group">
+      <label class="form-label" for="currency">Currency</label>
+      <span class="combo">
+        <input class="form-input" id="currency" name="currency" list="currencies" value="PHP">
+        <datalist id="currencies">
+          <option value="PHP">Philippine peso</option>
+          <option value="SGD">Singapore dollar</option>
+          <option value="USD">US dollar</option>
+          <option value="EUR">Euro</option>
+          <option value="HKD">Hong Kong dollar</option>
+        </datalist>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="sign">Currency sign</label>
+      <span class="combo">
+        <input class="form-input" id="sign" name="sign" list="signs">
+        <datalist id="signs">
+          <option value="₱" data-combo-keys="PHP">Philippine peso</option>
+          <option value="S$" data-combo-keys="SGD">Singapore dollar</option>
+          <option value="HK$" data-combo-keys="HKD, Hong Kong">Hong Kong dollar</option>
+          <option value="€" data-combo-keys="EUR">Euro</option>
+          <option value="kr" data-combo-keys="SEK, Sweden, Nordic">SEK · Swedish krona</option>
+          <option value="kr" data-combo-keys="NOK, Norway, Nordic">NOK · Norwegian krone</option>
+        </datalist>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="completing">Completing</label>
+      <span class="combo">
+        <input class="form-input" id="completing" list="currencies" data-combo-complete>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="world">Currency of the world</label>
+      <span class="form-select-wrap">
+        <select class="form-select" id="world" name="world" data-combo>
+          <option value="PHP">PHP · Philippine peso</option>
+          <option value="SGD" selected>SGD · Singapore dollar</option>
+          <option value="CHF">CHF · Swiss franc</option>
+          <option value="DKK">DKK · Danish krone</option>
+          <option value="NOK">NOK · Norwegian krone</option>
+        </select>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="page">Page</label>
+      <span class="combo" data-combo-src="combo-options.html?q={q}">
+        <input class="form-input" id="page" name="page" list="pages">
+        <datalist id="pages"></datalist>
+      </span>
+    </div>
+  </form>
+
+  <div class="toolbar" role="toolbar" aria-label="Report">
+    <div class="toolbar-group" role="group" aria-label="Go">
+      <button id="tb1" type="button" class="btn btn-sm">Back</button>
+    </div>
+    <div class="toolbar-group" role="group" aria-label="Currency" data-toolbar-keep>
+      <span class="combo">
+        <input class="form-input" id="tbc" list="currencies" aria-label="Currency">
+      </span>
+    </div>
+    <div class="toolbar-group" role="group" aria-label="Then">
+      <button id="tb2" type="button" class="btn btn-sm">Next</button>
+    </div>
+  </div>
+
+  <button id="open-dialog" type="button" onclick="document.getElementById('dlg').showModal()">Dialog</button>
+  <dialog class="dialog" id="dlg" aria-labelledby="dlg-title">
+    <h2 class="dialog-title" id="dlg-title">In a dialog</h2>
+    <div class="form-group">
+      <label class="form-label" for="dlgc">Copy from</label>
+      <span class="combo">
+        <input class="form-input" id="dlgc" list="currencies">
+      </span>
+    </div>
+  </dialog>
+</body>
+</html>

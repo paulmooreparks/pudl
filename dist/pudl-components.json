@@ -90,6 +90,48 @@
       ]
     },
     {
+      "id": "combo-box",
+      "name": "Combo box",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-combo.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"currency\">Label</label><span class=\"combo\"><input class=\"form-input\" id=\"currency\" name=\"currency\" list=\"currency-options\" autocomplete=\"off\"><datalist id=\"currency-options\"><option value=\"PHP\">Philippine peso</option><option value=\"SGD\">Singapore dollar</option></datalist></span></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".combo > .form-input", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": ".form-input" },
+        { "name": "Invalid", "attribute": "aria-invalid", "value": "true", "on": ".form-input" },
+        { "name": "Read-only", "attribute": "readonly", "on": ".form-input" },
+        { "name": "Disabled", "attribute": "disabled", "on": ".form-input" }
+      ],
+      "properties": [
+        { "name": "Options from the server", "attribute": "data-combo-src", "on": ".combo" },
+        { "name": "Completes a match", "attribute": "data-combo-complete", "on": ".form-input", "boolean": true },
+        { "name": "An option's keys", "attribute": "data-combo-keys", "on": "option" }
+      ]
+    },
+    {
+      "id": "searchable-select",
+      "name": "Searchable select",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-combo.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"country\">Label</label><span class=\"form-select-wrap\"><select class=\"form-select\" id=\"country\" name=\"country\" data-combo><option value=\"PH\">Philippines</option><option value=\"SG\">Singapore</option></select></span></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".form-select", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": ".form-select" },
+        { "name": "Disabled", "attribute": "disabled", "on": ".form-select" }
+      ],
+      "properties": [
+        { "name": "Options from the server", "attribute": "data-combo-src", "on": ".form-select" }
+      ]
+    },
+    {
       "id": "text-area",
       "name": "Text area",
       "kind": "sunken",
@@ -150,13 +192,15 @@
     {
       "id": "segmented",
       "name": "Segmented control",
-      "kind": "sunken",
+      "kind": "raised",
       "spec": "08-components/segmented-controls.md",
       "requires": ["pudl-menu.js"],
       "template": "<div class=\"seg\" role=\"group\" aria-label=\"View\"><button type=\"button\" aria-pressed=\"true\">First</button><button type=\"button\" aria-pressed=\"false\">Second</button></div>",
       "parts": [
-        { "selector": ".seg", "surface": "sunken" },
-        { "selector": ".seg > [aria-pressed=\"true\"]", "surface": "raised" }
+        { "selector": ".seg > [aria-pressed=\"false\"]", "surface": "raised" }
+      ],
+      "states": [
+        { "name": "Chosen, pressed in", "attribute": "aria-pressed", "value": "true", "on": ".seg > button" }
       ],
       "variants": [
         { "name": "Pill", "class": "pill" },

@@ -32,6 +32,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-dialog.js` | | Dialog command buttons for browsers that lack them |
 | `pudl-toast.js` | `pudl.css` | Toasts and dismissing notices |
 | `pudl-tabs.js` | `pudl.css` | Tabs within a page |
+| `pudl-combo.js` | `pudl.css` | Combo boxes and searchable selects |
 | `pudl-tooltip.js` | `pudl.css` | Tooltips on glyph-only controls |
 | `pudl-tree.js` | `pudl.css` | Trees |
 | `pudl-grid.js` | `pudl.css` | Tables whose rows are choices |
@@ -71,7 +72,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Status area | `nav.status-area`, last in `.topbar-chrome`, of `.status-item` links or buttons, each holding a `.glyph` or an `img`, or `.glyph.status-picture` with `--glyph-account` for an account with no picture, then optionally a `.badge` with its status class and words in a `span`; beside a menu bar it is drawn as the menu bar's groups | a `.badge` that is empty or `hidden` is not shown; the item's `aria-label` says what the badge means |
 | Section tabs | `nav.app-section-bar` of `a.section-tab` | aria-current on the current tab: `"page"` for the section's page, `"true"` for a page inside it |
 | Buttons | `.btn`, with `.btn-primary`, `.btn-danger`, `.btn-sm`, `.disclosure` (with `aria-expanded`, the chevron after its words); `.icon-btn`, with `.danger`; `.link` and `.link-muted` on a button or link | `disabled`; `aria-pressed="true"` latches a `.btn` |
-| Form fields | `.form-group` holding `label.form-label`, `.form-input`, `span.form-select-wrap` holding `.form-select` (a `.form-select` alone keeps the browser's drawing), or `.form-textarea`, `.form-help`, `.form-error`; `.form-fieldset` with a `legend`; `.form-options`, with `.inline`; `label.check`; `input.form-file` | `required`, `aria-invalid="true"`, `aria-describedby`, `readonly`, `disabled` |
+| Form fields | `.form-group` holding `label.form-label`, `.form-input`, `span.form-select-wrap` holding `.form-select` (a `.form-select` alone keeps the browser's drawing), or `.form-textarea`, `.form-help`, `.form-error`; `.form-fieldset` with a `legend`; `.form-options`, with `.inline`; `label.check`; `input.form-file`; a combo box, `span.combo` holding an `input.form-input[list]` and its `datalist`, its options' `data-combo-keys`, with `data-combo-src` and `data-combo-complete`; a searchable select, `select.form-select[data-combo]` (0.72.0) | `required`, `aria-invalid="true"`, `aria-describedby`, `readonly`, `disabled` |
 | Switch | `button.switch[role="switch"]` holding `.switch-track` holding `.switch-thumb`, then the label | `aria-checked` |
 | Segmented control | `.seg`, with `.pill`, `.sm`, of `button` or `a`; with `data-seg-menu` and an `aria-label`, a pop-up `.seg-menu` beside it on a phone | `aria-pressed`, `aria-checked` or aria-current |
 | Badges and chips | `.badge`, with `.warn`, `.danger`, `.positive`, `.accent`; `.chip`; `.filter-chip` holding `.filter-chip-kind` and `.filter-chip-x` | |
@@ -202,6 +203,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()`, `setState(s)`, `commands()`, which returns `[{ label, run, checked, disabled }]`, and `menus()`, which returns `{ titles, into }` for a menu bar, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
+| `pudlCombo.enhance(root)`, `pudlCombo.refresh(select)` | `pudl-combo.js` | Take in combo boxes and searchable selects added later; show a searchable select's value after a script has set it |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
 | `pudlWindows.menuCommands(key)` | `pudl-windows.js` | Fresh standard command descriptors for a window, or the visible front window when omitted; missing windows return `[]`. Each has `id`, `label`, and `run` or nested `items`, with optional `checked`, `disabled`, or `danger`. Callbacks bind to the original element and recheck capabilities; applet commands and extension hooks are excluded. IDs and generated-menu rules are listed in the migration guide. |

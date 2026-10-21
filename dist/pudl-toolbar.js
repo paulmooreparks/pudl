@@ -28,11 +28,13 @@
 (function () {
   'use strict';
 
-  var CONTROL = 'button, a[href], input, select, textarea';
+  /* A control marked data-toolbar-skip is part of another, such as a combo
+     box's opener (0.72.0), and is never one of the toolbar's stops. */
+  var CONTROL = 'button:not([data-toolbar-skip]), a[href]:not([data-toolbar-skip]), input:not([data-toolbar-skip]), select:not([data-toolbar-skip]), textarea:not([data-toolbar-skip])';
 
   function controls(bar) {
     return Array.prototype.filter.call(bar.querySelectorAll(CONTROL), function (c) {
-      return !c.closest('.menu-panel') && !c.disabled && c.getAttribute('aria-disabled') !== 'true' && c.getClientRects().length > 0;
+      return !c.closest('.menu-panel') && !c.closest('[hidden]') && !c.disabled && c.getAttribute('aria-disabled') !== 'true' && c.getClientRects().length > 0;
     });
   }
 

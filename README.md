@@ -337,6 +337,36 @@ A form the server has refused comes back with every value the reader typed, a no
 </div>
 ```
 
+## Combo boxes and searchable selects
+
+A combo box (0.72.0) is a field the reader may type any value in, or fill from a list of suggestions, as a Windows combo box is. Its markup is a native input with a `datalist`, in a `.combo`:
+
+```html
+<label class="form-label" for="sign">Currency sign</label>
+<span class="combo">
+  <input class="form-input" id="sign" name="sign" list="signs" autocomplete="off">
+  <datalist id="signs">
+    <option value="₱" data-combo-keys="PHP, Philippines">PHP · Philippine peso</option>
+    <option value="HK$" data-combo-keys="HKD, Hong Kong">HKD · Hong Kong dollar</option>
+    …
+  </datalist>
+</span>
+```
+
+Without a script the browser draws its own list, so the field works as it stands. The optional `pudl-combo.js` draws PUDL's instead: a raised opener joined to the field's end, because it is pressed while the field is typed in, and a list drawn as a menu, each suggestion's value with its text on a second line, the one the field holds ticked. Typing filters the list by value, text and keys. Down and Up move through it, Alt+Down opens it without moving, Enter chooses, Escape closes it and then clears the field, and Tab leaves with what was typed. Choosing fires `input` and `change` on the field. The opener shows the whole list.
+
+What the reader types to find a suggestion need not be what it puts in the field. An option's `data-combo-keys`, separated by commas, are words to find it by that are not shown, so typing PHP, peso or Philippines finds the first row above, and choosing it puts ₱ in the field. Leaving the field, or pressing Enter, with exactly a key or a value typed that only one suggestion has looks that suggestion up and puts its value in, so a reader with no ₱ on the keyboard types PHP and gets ₱; text several suggestions share, such as kr for three currencies, stays as typed. Put the code in the option's text as well as in its keys: the text shows the reader why a row was found and tells apart rows with the same sign, and the key is what an exact code looks up.
+
+A searchable select is a select whose value must be one of its options, marked `data-combo`:
+
+```html
+<span class="form-select-wrap"><select class="form-select" id="currency" name="currency" data-combo>…</select></span>
+```
+
+Without the script it is a plain select. With it, a combo box stands in its place and filters as the reader types, the select's label moves to the field, and the hidden select keeps the value, fires `input` and `change` and is what the form sends. Leaving with text that names no option puts the choice back. After setting the select's value from a script, call `pudlCombo.refresh(select)`.
+
+`data-combo-src` on the `.combo`, or on the select, is an address on the page's own origin with `{q}` for what is typed. After a pause in typing the script asks it and puts the `option` elements it returns, as `text/html`, into the list, taking only each option's value, text and keys; a searchable select keeps its chosen option among them. `data-combo-complete` on the field or the select completes a match as the reader types, which is off unless asked for. In a toolbar the field keeps its own keys, and the arrow keys pass over the opener, which carries `data-toolbar-skip`, the mark that keeps any control out of a toolbar's arrow order. `samples/combo.html` has every case to try.
+
 ## Tabs within a page
 
 Tabs within a page switch between panels of one thing in place, where section tabs go to other addresses. They follow the ARIA tab pattern and look like section tabs, since to the reader both are tabs.
@@ -1294,6 +1324,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-dialog.js`, the optional script that supplies the dialog command buttons in browsers that lack them
   - `pudl-toast.js`, the optional script that raises and dismisses toasts and dismisses notices
   - `pudl-tabs.js`, the optional script for tabs within a page
+  - `pudl-combo.js`, the optional script for combo boxes and searchable selects
   - `pudl-tooltip.js`, the optional script that shows tooltips on glyph-only controls
   - `pudl-tree.js`, the optional script that makes nested lists of links into trees
   - `pudl-grid.js`, the optional script for tables whose rows are choices
@@ -1333,7 +1364,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.71.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.72.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 
