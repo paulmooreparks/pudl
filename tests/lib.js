@@ -20,16 +20,22 @@ function adapt(opts) {
 }
 
 /* With PUDL_MIN=1 every request for a script or stylesheet in dist/ is
-   served from its minified copy (build/minify.js), so the whole suite runs
-   against what a project loading the .min files gets. The page still sees
-   the readable file's address. */
+   served from its minified copy in dist/min/ (build/minify.js), so the
+   whole suite runs against what a project loading the minified files
+   gets. */
 const MIN = process.env.PUDL_MIN === '1';
 const SOURCE = /\/dist\/([\w-]+)\.(js|css)(\?[^#]*)?$/;
 async function minified(target) {
   if (!MIN) return target;
-  await target.route(SOURCE, route => {
-    const url = route.request().url().replace(SOURCE, (all, name, ext, query) => `/dist/${name}.min.${ext}${query || ''}`);
-    return route.continue({ url });
+  await target.route(SOURCE, async route => {
+    /* The copy is served at the readable file's address, so a stylesheet's
+       addresses, written to reach up from dist/min/, are made whole first,
+       as they resolve for a project loading the copy from there. */
+    const url = route.request().url().replace(SOURCE, (all, name, ext, query) => `/dist/min/${name}.${ext}${query || ''}`);
+    const response = await route.fetch({ url });
+    let body = await response.text();
+    if (/\.css(\?|$)/.test(url)) body = body.replace(/url\((["']?)\.\.\//g, (all, q) => 'url(' + q + new URL('../', url).href);
+    return route.fulfill({ response, body });
   });
   return target;
 }

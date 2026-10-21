@@ -89,9 +89,12 @@
 
   var here = document.currentScript ? document.currentScript.src : location.href;
   function beside(rel, base) { return new URL(rel, base || here).href; }
-  /* A PUDL script this one loads, minified when this one is (0.70.0). */
-  var MIN = /\.min\.js$/.test(new URL(here).pathname);
-  function sibling(name) { return beside(name + (MIN ? '.min.js' : '.js')); }
+  /* A PUDL script this one loads sits beside it, minified in dist/min/ when
+     this one is (0.73.0), and the vendored library is in dist/vendor/,
+     one folder up from the minified copies. */
+  var MIN = /\/min\/[^/]+\.js$/.test(new URL(here).pathname);
+  function sibling(name) { return beside(name + '.js'); }
+  function vendored(rel) { return beside((MIN ? '../' : '') + 'vendor/' + rel); }
   var C = null;   // pudlActionsCore, once validatorLib() has loaded it
 
   /* === Loading ============================================================ */
@@ -117,7 +120,7 @@
       schemaLib = (window.pudlActionsCore ? Promise.resolve() : loadScript(sibling('pudl-actions-core') + new URL(here).search))
         .then(function () {
           C = window.pudlActionsCore;
-          return import(beside('vendor/cfworker-json-schema-4.1.1/index.js'));
+          return import(vendored('cfworker-json-schema-4.1.1/index.js'));
         })
         .catch(function (err) {
           schemaLib = null;

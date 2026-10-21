@@ -42,7 +42,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-menubar.js` | `pudl.css`, `pudl-menu.js`; uses `pudl-windows.js` and `pudl-applets.js` when present | An application's menu bar in its topbar |
 | `pudl-fonts-full.css` | `pudl.css` and `fonts/`, loaded after `pudl.css` and before a theme | Text in the whole of Inter, as the family "Inter Full": every weight, the optical-size axis and every OpenType feature |
 | `pudl-fonts-system.css` | `pudl.css`, loaded after it and before a theme | Text in the platform's own interface face, with no font downloaded |
-| `name.min.js`, `name.min.css` | what its source needs | Each script and stylesheet minified, with a source map; it behaves as its source does, and a script loads the minified copies of the scripts it loads when it is minified itself |
+| `min/name.js`, `min/name.css` | what its source needs, with `min/` beside `fonts/` and `vendor/` | Each script and stylesheet minified, under its own name, with a source map; it behaves as its source does, and a script loads the scripts it loads from its own folder (0.73.0; from 0.70.0 to 0.72.0 the copies were `name.min.js` and `name.min.css` beside their sources) |
 | `pudl-components.json` | | The components, their templates, the grammar of their parts, variants and states, for tools; [described here](COMPONENTS.md). It agrees with the component table below. Until 1.0 its fields may change in a minor release. |
 
 ## Tokens

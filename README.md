@@ -48,7 +48,9 @@ Copy the contents of `dist/` from a tagged release into your project, keeping th
 
 ### Smaller downloads
 
-Every script and stylesheet in `dist/` also comes minified, as `pudl-theme.min.js`, `pudl.min.css` and so on, each beside its source with a source map that points back at it. A minified file behaves as its source does and the suite runs against both, so a project can load either and switch at will; compressed, the minified copies are about half the size. The readable files stay the source, and they are what this README and the specification describe. A script that loads another of PUDL's scripts loads the minified one when it is minified itself. `build/minify.js` writes the copies, and only a maintainer runs it.
+Every script and stylesheet in `dist/` also comes minified, under the same name in `dist/min/`, as `min/pudl-theme.js`, `min/pudl.css` and so on, each with a source map that points back at its source. A minified file behaves as its source does and the suite runs against both, so a project can load either and switch at will; compressed, the minified copies are about half the size. The readable files stay the source, and they are what this README and the specification describe. A script that loads another of PUDL's scripts loads it from its own folder, so a minified one loads minified ones, and a minified stylesheet finds the fonts one folder up. Keep `min/` beside `fonts/` and `vendor/` when copying. `build/minify.js` writes the copies, and only a maintainer runs it.
+
+From 0.70.0 to 0.72.0 the minified copies sat beside their sources as `name.min.js` and `name.min.css`. jsDelivr minifies a `.min.js` or `.min.css` file itself when it believes the file is missing, and for a release it has only just seen it did so for some of ours that existed, and then kept serving its own copies, whose integrity hashes do not match ours. Names without `.min` are never minified by it, which is why the copies moved (0.73.0).
 
 Text is set in Inter, and a page downloads a font only for the characters it shows ([font subsetting](docs/FONTS.md)). An English page downloads 71,284 bytes. Two stylesheets, loaded after `pudl.css` and before a theme, change that:
 
@@ -71,11 +73,11 @@ For a prototype, a demo or a documentation page, you can load a release from jsD
 The same two files minified, which every file below has too, with its own hash:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.72.0/dist/pudl-theme.min.js"
-        integrity="sha384-BzTU+rieGbqi67hCJO5HQ0wrlv2yTSkRoNoKBUPMnsSsteZ+6FfwHWm5gEBIjmgc"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.72.0/dist/min/pudl-theme.js"
+        integrity="sha384-MIN-THEME-PENDING"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.72.0/dist/pudl.min.css"
-      integrity="sha384-zVPZfrDT0AXAk3J2G3PFr6jyO6/9NIVVUen6xrQi4hMur6fVbfg0gw8uj/nvJQn2"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.72.0/dist/min/pudl.css"
+      integrity="sha384-MIN-PUDL-PENDING"
       crossorigin="anonymous">
 ```
 
@@ -1341,7 +1343,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-menubar.js`, the optional script for an application's menu bar in its topbar
   - `pudl-components.json`, the components described for tools, which `docs/COMPONENTS.md` explains; a page never loads it
   - `pudl-fonts-full.css` and `pudl-fonts-system.css`, the optional stylesheets that set text in the whole of Inter or in the platform's own face
-  - a minified copy of every script and stylesheet, `name.min.js` or `name.min.css`, with its source map
+  - `min/`, a minified copy of every script and stylesheet under the same name, with its source map
   - `fonts/`, Inter script subsets, lean and full, and retained whole variable fonts, with its licence
   - `LICENSE`, a copy of PUDL's licence, so that it travels with the files
 - `reference.html`, the living reference for every component, also published at https://paulmooreparks.github.io/pudl/reference.html
@@ -1364,7 +1366,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.72.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.73.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

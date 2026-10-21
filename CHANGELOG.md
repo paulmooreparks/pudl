@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.73.0
+
+The minified copies move to `dist/min/`, under the same names as their sources: `min/pudl.css`, `min/pudl-windows.js` and so on. From 0.70.0 to 0.72.0 they sat beside their sources as `name.min.js` and `name.min.css`. jsDelivr documents that it minifies a `.min.js` or `.min.css` file itself when the file does not exist, and for a release it had only just seen it did so for files that did exist, and then kept serving its own copies: one in 0.70.1 and eight in 0.72.0. Those are the same code, but their integrity hashes do not match the tag's. A name without `.min` is never minified by jsDelivr, so the move rests on what it documents rather than on how quickly it reads a new tag. The specification is unchanged at 0.30.1.
+
+- A project loading the minified files changes `dist/name.min.js` to `dist/min/name.js` and `dist/name.min.css` to `dist/min/name.css`, and keeps `min/` beside `fonts/` and `vendor/` when copying. A minified stylesheet finds the fonts one folder up, and a minified script loads the scripts it loads from its own folder.
+- Copies of 0.70.0 to 0.72.0 taken from a release's files, rather than from jsDelivr, were always right.
+
 ## 0.72.0
 
 Combo boxes and searchable selects, from an application, and segmented controls drawn as keys, from the maintainer's review. This release implements specification 0.30.1.
