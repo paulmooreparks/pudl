@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steppers</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <style>body { margin: 24px; max-width: 760px; } .stepper { margin-bottom: 32px; } .side { width: 260px; }</style>
+</head>
+<body>
+  <!-- A test fixture for steppers (0.74.0). -->
+  <ol class="stepper" id="across" aria-label="Add a configuration">
+    <li class="done"><a href="#client">Client<span class="visually-hidden"> (done)</span></a></li>
+    <li class="done"><a href="#folder">Folder<span class="visually-hidden"> (done)</span></a></li>
+    <li aria-current="step"><span>Languages</span></li>
+    <li><span>Review</span></li>
+  </ol>
+  <ol class="stepper vertical side" id="down" aria-label="Add a configuration">
+    <li class="done"><a href="#client">Choose the client<span class="visually-hidden"> (done)</span></a></li>
+    <li aria-current="step"><span>Find its folder</span></li>
+    <li><span>Pick the languages</span></li>
+    <li><span>Review and add</span></li>
+  </ol>
+</body>
+</html>

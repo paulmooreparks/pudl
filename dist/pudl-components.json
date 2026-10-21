@@ -132,6 +132,179 @@
       ]
     },
     {
+      "id": "progress-bar",
+      "name": "Progress bar",
+      "kind": "flat",
+      "spec": "08-components/progress-and-meters.md",
+      "template": "<div class=\"progress-row\"><span class=\"progress-label\" id=\"p-name\">Uploading</span><progress class=\"progress\" value=\"42\" max=\"100\" aria-labelledby=\"p-name\"></progress><span class=\"progress-value\">42%</span></div>",
+      "parts": [
+        { "selector": ".progress", "surface": "flat" },
+        { "selector": ".progress-value", "surface": "flat" }
+      ]
+    },
+    {
+      "id": "meter",
+      "name": "Meter",
+      "kind": "flat",
+      "spec": "08-components/progress-and-meters.md",
+      "requires": ["pudl-fields.js"],
+      "template": "<div class=\"meter-row\"><span class=\"meter-label\" id=\"m-name\">Storage</span><meter class=\"meter\" min=\"0\" max=\"100\" low=\"75\" high=\"90\" optimum=\"0\" value=\"31\" aria-labelledby=\"m-name\"></meter><span class=\"meter-value\">31%</span></div>",
+      "parts": [
+        { "selector": ".meter", "surface": "flat" },
+        { "selector": ".meter-value", "surface": "flat" }
+      ],
+      "variants": [{ "name": "With marks", "class": "marks", "on": ".meter" }]
+    },
+    {
+      "id": "slider",
+      "name": "Slider",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-fields.js"],
+      "template": "<div class=\"range-row\"><input class=\"form-range\" type=\"range\" id=\"r\" min=\"0\" max=\"100\" value=\"40\" aria-label=\"Width\"><output for=\"r\">40</output></div>",
+      "parts": [
+        { "selector": ".range-row > output", "surface": "flat" }
+      ],
+      "states": [{ "name": "Disabled", "attribute": "disabled", "on": "input" }]
+    },
+    {
+      "id": "number-field",
+      "name": "Number field",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-fields.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"n\">Label</label><span class=\"number-field\"><input class=\"form-input\" type=\"number\" id=\"n\" name=\"n\" min=\"0\" max=\"20\" value=\"3\"></span></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".number-field > .form-input", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": "input" },
+        { "name": "Disabled", "attribute": "disabled", "on": "input" }
+      ]
+    },
+    {
+      "id": "password-field",
+      "name": "Password field",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-fields.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"pw\">Label</label><span class=\"password-field\"><input class=\"form-input\" type=\"password\" id=\"pw\" name=\"pw\"></span></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".password-field > .form-input", "surface": "sunken" }
+      ],
+      "properties": [{ "name": "Glyph key", "attribute": "data-password-toggle", "value": "glyph", "on": "input" }]
+    },
+    {
+      "id": "figure",
+      "name": "Figure",
+      "kind": "flat",
+      "spec": "08-components/images-and-avatars.md",
+      "requires": ["pudl-fields.js"],
+      "template": "<figure class=\"figure\"><img src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\" alt=\"A receipt\" width=\"160\" height=\"90\"><figcaption>Caption.</figcaption></figure>",
+      "parts": [
+        { "selector": ".figure > figcaption", "surface": "flat" }
+      ],
+      "variants": [
+        { "name": "Caption over the picture", "class": "caption-over" },
+        { "name": "Unframed", "class": "plain" },
+        { "name": "Fitted inside", "class": "contain" }
+      ]
+    },
+    {
+      "id": "avatar",
+      "name": "Avatar",
+      "kind": "flat",
+      "spec": "08-components/images-and-avatars.md",
+      "template": "<span class=\"avatar-wrap\"><span class=\"avatar\" role=\"img\" aria-label=\"Ana Reyes\">PP</span><span class=\"avatar-status\" data-status=\"online\" aria-label=\"Online\"></span></span>",
+      "parts": [
+        { "selector": ".avatar", "surface": "flat" }
+      ],
+      "variants": [
+        { "name": "Small", "class": "sm" },
+        { "name": "Large", "class": "lg" },
+        { "name": "Extra large", "class": "xl" },
+        { "name": "Tinted by name", "class": "tint" }
+      ]
+    },
+    {
+      "id": "list-box",
+      "name": "List box",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-listbox.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"accounts\">Label</label><select class=\"form-select\" id=\"accounts\" name=\"accounts\" multiple size=\"4\" data-listbox><option selected>Billable</option><option>Non-billable</option><option>Internal</option></select></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": "select" },
+        { "name": "Disabled", "attribute": "disabled", "on": "select" }
+      ],
+      "properties": [
+        { "name": "Several may be chosen", "attribute": "multiple", "on": "select", "boolean": true },
+        { "name": "Rows tall", "attribute": "size", "on": "select" }
+      ]
+    },
+    {
+      "id": "token-field",
+      "name": "Token field",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-combo.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"tags\">Label</label><span class=\"combo\" data-combo-tokens><input class=\"form-input\" id=\"tags\" name=\"tags\" value=\"receipts, q4\"></span></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": ".combo > .form-input", "surface": "sunken" }
+      ],
+      "properties": [
+        { "name": "Separator", "attribute": "data-combo-separator", "on": ".combo" },
+        { "name": "Most values", "attribute": "data-combo-max", "on": ".combo" }
+      ]
+    },
+    {
+      "id": "date-field",
+      "name": "Date field",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-date.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"due\">Label</label><input class=\"form-input\" type=\"date\" id=\"due\" name=\"due\" value=\"2026-10-22\" data-date></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": "input[type=date]", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": "input" },
+        { "name": "Disabled", "attribute": "disabled", "on": "input" }
+      ],
+      "properties": [
+        { "name": "Style", "attribute": "data-date-style", "on": "input", "values": ["iso", "short", "medium", "long"] },
+        { "name": "Earliest", "attribute": "min", "on": "input" },
+        { "name": "Latest", "attribute": "max", "on": "input" }
+      ]
+    },
+    {
+      "id": "time-field",
+      "name": "Time field",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-date.js"],
+      "template": "<div class=\"form-group\"><label class=\"form-label\" for=\"at\">Label</label><input class=\"form-input\" type=\"time\" id=\"at\" name=\"at\" value=\"13:30\" step=\"900\" data-date></div>",
+      "parts": [
+        { "selector": ".form-label", "surface": "flat" },
+        { "selector": "input[type=time]", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Required", "attribute": "required", "on": "input" },
+        { "name": "Disabled", "attribute": "disabled", "on": "input" }
+      ],
+      "properties": [
+        { "name": "List interval in minutes", "attribute": "data-time-list", "on": "input" },
+        { "name": "Step in seconds", "attribute": "step", "on": "input" }
+      ]
+    },
+    {
       "id": "text-area",
       "name": "Text area",
       "kind": "sunken",
@@ -482,6 +655,48 @@
       "parts": [
         { "selector": "[role=\"tab\"][aria-selected=\"true\"]", "surface": "tab" },
         { "selector": "[role=\"tab\"][aria-selected=\"false\"]", "surface": "raised" }
+      ]
+    },
+    {
+      "id": "split-button",
+      "name": "Split button",
+      "kind": "raised",
+      "spec": "08-components/buttons.md",
+      "requires": ["pudl-menu.js"],
+      "template": "<span class=\"split-btn\"><button class=\"btn\" type=\"button\">Save</button><span class=\"menu\"><button class=\"btn menu-btn\" type=\"button\" popovertarget=\"split-more\" aria-label=\"More ways to save\"></button><nav class=\"menu-panel\" id=\"split-more\" popover aria-label=\"More ways to save\"><button class=\"menu-action\" type=\"button\">Save as…</button></nav></span></span>",
+      "parts": [
+        { "selector": ".split-btn > .btn", "surface": "raised" },
+        { "selector": ".split-btn .menu-btn", "surface": "raised" }
+      ],
+      "variants": [{ "name": "Primary", "class": "btn-primary", "on": ".btn" }]
+    },
+    {
+      "id": "popover",
+      "name": "Popover",
+      "kind": "flat",
+      "spec": "08-components/popovers.md",
+      "requires": ["pudl-menu.js"],
+      "template": "<div class=\"popover\" id=\"popover\" popover role=\"dialog\" aria-labelledby=\"popover-title\"><div class=\"popover-head\"><h2 class=\"popover-title\" id=\"popover-title\">Title</h2><button class=\"icon-btn popover-close\" type=\"button\" popovertarget=\"popover\" popovertargetaction=\"hide\" aria-label=\"Close\"></button></div><p>Content.</p><div class=\"popover-actions\"><button class=\"btn btn-sm\" type=\"button\">Done</button></div></div>",
+      "opener": "<button class=\"btn\" type=\"button\" popovertarget=\"popover\">Open</button>",
+      "parts": [
+        { "selector": ".popover-title", "surface": "flat" },
+        { "selector": ".popover-close", "surface": "raised" }
+      ],
+      "variants": [{ "name": "Pointer", "class": "pointer" }]
+    },
+    {
+      "id": "stepper",
+      "name": "Stepper",
+      "kind": "flat",
+      "spec": "08-components/steppers.md",
+      "template": "<ol class=\"stepper\" aria-label=\"Task\"><li class=\"done\"><a href=\"#one\">One<span class=\"visually-hidden\"> (done)</span></a></li><li aria-current=\"step\"><span>Two</span></li><li><span>Three</span></li></ol>",
+      "parts": [
+        { "selector": ".stepper > li", "surface": "flat" }
+      ],
+      "variants": [{ "name": "Down the side", "class": "vertical" }],
+      "states": [
+        { "name": "Done", "class": "done", "on": "li" },
+        { "name": "Current", "attribute": "aria-current", "value": "step", "on": "li" }
       ]
     },
     {

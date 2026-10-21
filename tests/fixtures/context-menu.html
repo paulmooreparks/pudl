@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Context menus</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <style>body { margin: 24px; } textarea { width: 360px; height: 120px; } #plain { margin-top: 12px; padding: 20px; border: 1px dashed #999; width: 300px; }</style>
+</head>
+<body>
+  <!-- A test fixture for context menus (0.74.0): an editor that answers
+       pudl:contextmenu, an area that does not, and one in a dialog. -->
+  <textarea id="editor" aria-label="Notes">Some text to edit.</textarea>
+  <div id="plain" tabindex="0">Nothing here answers.</div>
+  <button id="open-dialog" type="button" onclick="document.getElementById('dlg').showModal()">Dialog</button>
+  <dialog class="dialog" id="dlg" aria-labelledby="dlg-title">
+    <h2 class="dialog-title" id="dlg-title">In a dialog</h2>
+    <p id="in-dialog" tabindex="0">Right-click here.</p>
+  </dialog>
+  <script>
+    window.ran = [];
+    var wrap = { on: true };
+    function rows() {
+      return [
+        { label: 'Cut', shortcut: 'Mod+X', run: function () { ran.push('cut'); } },
+        { label: 'Copy', shortcut: 'Mod+C', glyph: 'copy', run: function () { ran.push('copy'); } },
+        { label: 'Paste', shortcut: 'Mod+V', glyph: 'clip', disabled: true, reason: 'The clipboard is empty.', run: function () { ran.push('paste'); } },
+        '-',
+        { label: 'Wrap lines', checked: wrap.on, run: function () { wrap.on = !wrap.on; ran.push('wrap'); } },
+        { label: 'Insert', items: [
+          { label: 'Link', run: function () { ran.push('link'); } },
+          { label: 'Table', run: function () { ran.push('table'); } }
+        ] },
+        '-',
+        { label: 'Delete', danger: true, run: function () { ran.push('delete'); } }
+      ];
+    }
+    document.getElementById('editor').addEventListener('pudl:contextmenu', function (e) { e.detail.add(rows()); });
+    document.getElementById('in-dialog').addEventListener('pudl:contextmenu', function (e) { e.detail.add({ label: 'Inside', run: function () { ran.push('inside'); } }); });
+    window.lastNative = null;
+    window.addEventListener('contextmenu', function (e) { window.lastNative = !e.defaultPrevented; e.preventDefault(); });
+  </script>
+</body>
+</html>

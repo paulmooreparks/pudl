@@ -32,6 +32,12 @@
   }
 
   function isOpen(panel) { return panel.matches(':popover-open'); }
+
+  /* The panels this script places: menu panels, and popovers (0.74.0), a
+     panel of any content anchored to the control that opened it, which is
+     placed as a menu is but has no rows to move through. */
+  var PLACED = '.menu-panel, .popover';
+  function placed(el) { return !!(el && el.classList && (el.classList.contains('menu-panel') || el.classList.contains('popover'))); }
   var opening = new WeakSet();
 
   var insets;
@@ -71,9 +77,18 @@
   function place(panel) {
     var scroll = opening.has(panel) ? 0 : panel.scrollTop;
     opening.delete(panel);
+    if (panel.__menuAt) { placeAtPoint(panel, panel.__menuAt, scroll); return; }
     var btn = invokerOf(panel);
     if (!btn) { placeAsPalette(panel, scroll); return; }
-    var r = btn.getBoundingClientRect();
+    /* A split button's menu lines up under the whole button, not only its
+       caret (0.74.0). */
+    var r = (btn.closest('.split-btn') || btn).getBoundingClientRect();
+    /* A popover with a pointer stands off a little further, for the
+       pointer, and the pointer is aimed at the middle of its control. */
+    var pointer = panel.classList.contains('popover') && panel.classList.contains('pointer');
+    var gap = pointer ? GAP + 7 : GAP;
+    if (pointer) r = { top: r.top - (gap - GAP), bottom: r.bottom + (gap - GAP), left: r.left, right: r.right, width: r.width, height: r.height };
+    var aim = btn.getBoundingClientRect();
     var v = viewport(), vw = v.right - v.left;
     var beside = panel.getAttribute('data-menu-placement') === 'beside';
     var narrow = !beside && vw <= NARROW;
@@ -117,6 +132,12 @@
       panel.style.left = Math.max(v.left, Math.min(start, v.right - w - EDGE)) + 'px';
     }
     panel.style.top = (down ? bottomAnchor : Math.max(v.top, topAnchor - panel.offsetHeight)) + 'px';
+    panel.setAttribute('data-menu-side', down ? 'below' : 'above');
+    if (pointer) {
+      var pr = panel.getBoundingClientRect();
+      var x = Math.max(14, Math.min(pr.width - 14, aim.left + aim.width / 2 - pr.left));
+      panel.style.setProperty('--popover-pointer-x', x + 'px');
+    }
     panel.scrollTop = scroll;
     cues(panel);
   }
@@ -139,6 +160,33 @@
     fitHeight(panel, v.bottom - top - EDGE, Math.ceil(panel.getBoundingClientRect().height));
     panel.style.left = (narrow ? v.left : Math.max(v.left, v.left + Math.round((vw - panel.offsetWidth) / 2))) + 'px';
     panel.style.top = top + 'px';
+    panel.scrollTop = scroll;
+    cues(panel);
+  }
+
+  /* A context menu opens at a point, the pointer's or the focused
+     element's (0.74.0): its top left corner there, or its bottom left when
+     there is more room above, kept inside the window, and as tall as the
+     room allows, scrolling past that. */
+  function placeAtPoint(panel, at, scroll) {
+    var v = viewport();
+    panel.classList.remove('sheet');
+    panel.style.margin = '0';
+    panel.style.inset = 'auto';
+    panel.style.width = '';
+    panel.style.minWidth = 'min(14rem, ' + (v.right - v.left) + 'px)';
+    panel.style.maxWidth = 'min(22rem, ' + (v.right - v.left) + 'px)';
+    panel.classList.remove('menu-overflow');
+    panel.style.maxHeight = 'none';
+    var natural = Math.ceil(panel.getBoundingClientRect().height);
+    var below = Math.max(0, v.bottom - at.y - EDGE), above = Math.max(0, at.y - v.top - EDGE);
+    var down = below >= natural || below >= above;
+    fitHeight(panel, down ? below : above, natural);
+    var w = panel.offsetWidth;
+    var rtl = getComputedStyle(document.documentElement).direction === 'rtl';
+    var left = rtl ? at.x - w : at.x;
+    panel.style.left = Math.max(v.left + EDGE, Math.min(left, v.right - w - EDGE)) + 'px';
+    panel.style.top = (down ? at.y : Math.max(v.top + EDGE, at.y - panel.offsetHeight)) + 'px';
     panel.scrollTop = scroll;
     cues(panel);
   }
@@ -193,7 +241,7 @@
      until it has been placed. */
   document.addEventListener('beforetoggle', function (e) {
     var panel = e.target;
-    if (!panel.classList || !panel.classList.contains('menu-panel')) return;
+    if (!placed(panel)) return;
     /* The filter starts empty every time the panel opens. beforetoggle
        fires for every opening, whereas the toggle events of a quick close
        and reopen can be merged into one, so the clearing belongs here. */
@@ -207,10 +255,19 @@
   var watchers = new WeakMap();
   document.addEventListener('toggle', function (e) {
     var panel = e.target;
-    if (!panel.classList || !panel.classList.contains('menu-panel')) return;
+    if (!placed(panel)) return;
     if (e.newState === 'open') {
       place(panel);
       panel.classList.remove('placing');
+      /* A popover takes focus into its first field, or its first control,
+         so the reader can use it at once; when it closes, the browser
+         returns focus to the control that opened it. */
+      if (panel.classList.contains('popover') && (!panel.contains(document.activeElement) || document.activeElement.matches('.popover-close'))) {
+        var first = panel.querySelector('[autofocus]') ||
+          panel.querySelector('input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled)') ||
+          panel.querySelector('button:not(.popover-close):not(:disabled), a[href], [tabindex]:not([tabindex="-1"])');
+        if (first) first.focus();
+      }
       if (!watchers.has(panel)) {
         var observer = new MutationObserver(function (records) {
           if (!isOpen(panel)) return;
@@ -234,6 +291,15 @@
       if (watchers.has(panel)) watchers.get(panel).disconnect();
       panel.classList.remove('placing');
       resetFilter(panel);
+      /* A popover gives focus back to its control. The browser does this
+         where it knows which element had focus before, and an engine that
+         does not focus a button when it is pressed does not know, so focus
+         left on nothing, or left inside the closed popover, goes back to
+         the control that opened it. */
+      if (panel.classList.contains('popover') && (!document.activeElement || document.activeElement === document.body || panel.contains(document.activeElement))) {
+        var opener = invokerOf(panel);
+        if (opener && opener.isConnected) opener.focus({ preventScroll: true });
+      }
     }
   }, true);
 
@@ -242,14 +308,14 @@
      panel's own rows moves nothing, so it is ignored. */
   var placing = 0;
   function placeOpen(e) {
-    if (e && e.type === 'scroll' && e.target.closest && e.target.closest('.menu-panel')) return;
+    if (e && e.type === 'scroll' && e.target.closest && e.target.closest(PLACED)) return;
     if (placing) return;
     /* Scrolling anywhere comes here, many times a second; with no menu
        open there is nothing to place (0.69.3). */
-    if (!document.querySelector('.menu-panel:popover-open')) return;
+    if (!document.querySelector('.menu-panel:popover-open, .popover:popover-open')) return;
     placing = requestAnimationFrame(function () {
       placing = 0;
-      document.querySelectorAll('.menu-panel').forEach(function (p) { if (isOpen(p)) place(p); });
+      document.querySelectorAll(PLACED).forEach(function (p) { if (isOpen(p)) place(p); });
     });
   }
   window.addEventListener('resize', placeOpen);
@@ -424,9 +490,296 @@
      that opens a panel and moves focus into it in the same moment, such as
      the menu bar, since a panel is hidden until the toggle event that
      places it, and toggle events can be merged. */
+  /* === Context menus (0.74.0) =============================================
+     A right-click, Shift+F10 or the Menu key fires pudl:contextmenu on what
+     it was over or what has focus, bubbling, with detail.add(rows), the
+     point, whether the keyboard opened it, and the target. Whatever adds
+     rows gets a menu of them at the point, and the browser's own menu does
+     not open; where nothing adds a row, the browser's menu opens as it
+     always has. pudlMenu.openAt(x, y, rows, { owner, label }) opens one
+     from a script.
+
+     A row is the menu bar's: { label, run, disabled, checked, radio,
+     danger, detail, shortcut, glyph, items }, or '-' for a separator, or a
+     command's id, which pudl-commands.js turns into its row. A shortcut is
+     shown in the platform's form and bound by nothing here, since the key
+     belongs to whatever owns it, such as the field for Ctrl+C. Rows with
+     items open a submenu beside them.
+
+     Up and Down move through the rows, wrapping, Home and End go to the
+     ends, a letter goes to the next row starting with it, Right opens a
+     submenu and Left closes it, Enter and Space choose, and Escape closes
+     one level. A press outside, Tab, or the window losing focus closes the
+     menu, and focus goes back to where it was. Shift with a right-click
+     leaves the browser's own menu to open. */
+  var MAC = /Mac|iPhone|iPad|iPod/.test(navigator.platform || '');
+  function keyShown(k) {
+    var parts = k.split('+'), key = parts.pop();
+    if (MAC) {
+      var sym = { Ctrl: '⌃', Alt: '⌥', Shift: '⇧', Mod: '⌘' };
+      return ['Ctrl', 'Alt', 'Shift', 'Mod'].filter(function (m) { return parts.indexOf(m) >= 0; }).map(function (m) { return sym[m]; }).join('') + key;
+    }
+    return parts.map(function (m) { return m === 'Mod' ? 'Ctrl' : m; }).concat(key).join('+');
+  }
+  function keyAria(k) {
+    return k.split('+').map(function (p) { return p === 'Mod' ? (MAC ? 'Meta' : 'Control') : p === 'Ctrl' ? 'Control' : p; }).join('+');
+  }
+
+  var ctx = { panels: [], owner: null, quiet: false };
+  var ctxUid = 0;
+
+  function rowsFrom(list, target) {
+    var out = [];
+    (list || []).forEach(function (r) {
+      if (typeof r === 'string' && r !== '-') {
+        if (window.pudlCommands && window.pudlCommands.menuRows) out = out.concat(window.pudlCommands.menuRows([r], target));
+      } else if (r) out.push(r);
+    });
+    return out;
+  }
+
+  function closeContext(level) {
+    level = level || 0;
+    while (ctx.panels.length > level) {
+      var p = ctx.panels.pop();
+      if (p.__parentRow) p.__parentRow.setAttribute('aria-expanded', 'false');
+      if (isOpen(p)) p.hidePopover();
+      p.remove();
+    }
+    if (level === 0) {
+      var owner = ctx.owner;
+      ctx.owner = null;
+      if (owner && owner.isConnected && (!document.activeElement || document.activeElement === document.body)) owner.focus({ preventScroll: true });
+    }
+  }
+
+  function ctxRows(panel) {
+    return Array.prototype.slice.call(panel.querySelectorAll(':scope > .menu-action'));
+  }
+
+  function buildContext(rows, at, label, level, parentRow) {
+    var panel = document.createElement('div');
+    panel.className = 'menu-panel context-menu';
+    panel.id = 'pudl-context-' + (++ctxUid);
+    panel.setAttribute('popover', 'manual');
+    panel.setAttribute('role', 'menu');
+    if (label) panel.setAttribute('aria-label', label);
+    rows.forEach(function (c) {
+      if (c === '-' || (c && c.separator)) {
+        var hr = document.createElement('hr');
+        hr.className = 'menu-sep';
+        hr.setAttribute('role', 'separator');
+        panel.appendChild(hr);
+        return;
+      }
+      if (!c || typeof c.label !== 'string') return;
+      var r = document.createElement('button');
+      r.type = 'button';
+      r.className = 'menu-action';
+      r.setAttribute('role', 'menuitem');
+      r.tabIndex = -1;
+      if (c.glyph) {
+        var g = document.createElement('span');
+        g.className = 'glyph';
+        g.setAttribute('aria-hidden', 'true');
+        g.style.setProperty('--glyph', 'var(--glyph-' + c.glyph + ')');
+        r.appendChild(g);
+      }
+      var words = document.createElement('span');
+      words.className = 'menubar-label';
+      var main = document.createElement('span');
+      main.className = 'menubar-words';
+      main.textContent = c.label;
+      words.appendChild(main);
+      var detail = c.disabled && c.reason ? c.reason : c.detail;
+      if (detail) {
+        var d = document.createElement('span');
+        d.className = 'menubar-detail';
+        d.textContent = detail;
+        words.appendChild(d);
+      }
+      r.appendChild(words);
+      if (c.checked !== undefined && c.checked !== null) {
+        r.setAttribute('role', c.radio ? 'menuitemradio' : 'menuitemcheckbox');
+        r.setAttribute('aria-checked', c.checked ? 'true' : 'false');
+      }
+      if (c.disabled) r.setAttribute('aria-disabled', 'true');
+      if (c.danger) r.classList.add('danger');
+      var key = c.shortcut || c.key;
+      if (key) {
+        var s = document.createElement('span');
+        s.className = 'menubar-shortcut';
+        s.setAttribute('aria-hidden', 'true');
+        s.textContent = keyShown(key);
+        r.appendChild(s);
+        r.setAttribute('aria-keyshortcuts', keyAria(key));
+      }
+      if (c.items && c.items.length) {
+        r.setAttribute('aria-haspopup', 'menu');
+        r.setAttribute('aria-expanded', 'false');
+        r.classList.add('menubar-has-sub');
+      }
+      r.id = panel.id + '-' + panel.children.length;
+      r._row = c;
+      panel.appendChild(r);
+    });
+    (document.querySelector('dialog[open]:modal') || document.body).appendChild(panel);
+    if (parentRow) {
+      panel.setAttribute('data-menu-placement', 'beside');
+      panel.setAttribute('data-menu-anchor', parentRow.id);
+      panel.__parentRow = parentRow;
+      parentRow.setAttribute('aria-expanded', 'true');
+      parentRow.setAttribute('aria-controls', panel.id);
+    } else {
+      panel.__menuAt = at;
+    }
+    panel.__level = level;
+    panel.showPopover();
+    place(panel);
+    panel.classList.remove('placing');
+    ctx.panels.push(panel);
+    panel.addEventListener('click', function (e) {
+      var r = e.target.closest('.menu-action');
+      if (!r || r.parentElement !== panel) return;
+      e.stopPropagation();
+      choose(panel, r);
+    });
+    /* The row under a pointer that moves takes focus. A menu that opens
+       under a pointer at rest leaves focus where the keyboard put it. */
+    panel.addEventListener('pointermove', function (e) {
+      var r = e.target.closest('.menu-action');
+      if (r && r.parentElement === panel && document.activeElement !== r) r.focus({ preventScroll: true });
+    });
+    panel.addEventListener('keydown', function (e) { ctxKey(panel, e); });
+    return panel;
+  }
+
+  function openSub(panel, row) {
+    closeContext(panel.__level + 1);
+    var sub = buildContext(rowsFrom(row._row.items, ctx.owner), null, row._row.label, panel.__level + 1, row);
+    var first = ctxRows(sub)[0];
+    if (first) first.focus();
+  }
+
+  function choose(panel, r) {
+    var c = r._row;
+    if (c.items && c.items.length) { openSub(panel, r); return; }
+    if (c.disabled) return;
+    closeContext(0);
+    if (typeof c.run === 'function') c.run();
+  }
+
+  function ctxKey(panel, e) {
+    if (e.ctrlKey || e.metaKey) return;
+    var rows = ctxRows(panel), i = rows.indexOf(document.activeElement), next = null;
+    var rtl = getComputedStyle(panel).direction === 'rtl';
+    var inKey = rtl ? 'ArrowLeft' : 'ArrowRight', outKey = rtl ? 'ArrowRight' : 'ArrowLeft';
+    if (e.key === 'ArrowDown') next = rows[(i + 1) % rows.length];
+    else if (e.key === 'ArrowUp') next = rows[(i <= 0 ? rows.length : i) - 1];
+    else if (e.key === 'Home') next = rows[0];
+    else if (e.key === 'End') next = rows[rows.length - 1];
+    else if (e.key === inKey) { if (rows[i] && rows[i]._row.items) { openSub(panel, rows[i]); } e.preventDefault(); e.stopPropagation(); return; }
+    else if (e.key === outKey || e.key === 'Escape') {
+      e.preventDefault(); e.stopPropagation();
+      if (panel.__level > 0) { var row = panel.__parentRow; closeContext(panel.__level); row.focus(); }
+      else if (e.key === 'Escape') closeContext(0);
+      return;
+    }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); if (rows[i]) choose(panel, rows[i]); return; }
+    else if (e.key === 'Tab') { e.preventDefault(); closeContext(0); return; }
+    else if (e.key.length === 1 && !e.altKey) {
+      var letter = e.key.toLowerCase();
+      for (var n = 1; n <= rows.length; n++) {
+        var cand = rows[(i + n) % rows.length];
+        if (cand.textContent.trim().toLowerCase().indexOf(letter) === 0) { next = cand; break; }
+      }
+      if (!next) return;
+    } else return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (next) next.focus();
+  }
+
+  function openAt(x, y, rows, opts) {
+    opts = opts || {};
+    closeContext(0);
+    rows = rowsFrom(rows, opts.owner);
+    if (!rows.some(function (r) { return r && r !== '-' && typeof r.label === 'string'; })) return null;
+    ctx.owner = opts.owner || document.activeElement;
+    var panel = buildContext(rows, { x: x, y: y }, opts.label, 0, null);
+    var first = ctxRows(panel).filter(function (r) { return r.getAttribute('aria-disabled') !== 'true'; })[0] || ctxRows(panel)[0];
+    if (first) first.focus({ preventScroll: true });
+    return panel;
+  }
+
+  /* Asks the page for rows, by pudl:contextmenu on the target. */
+  function ask(target, x, y, keyboard) {
+    var rows = [];
+    var detail = {
+      x: x, y: y, keyboard: keyboard, target: target,
+      add: function (r) { rows = rows.concat(Array.isArray(r) ? r : [r]); }
+    };
+    target.dispatchEvent(new CustomEvent('pudl:contextmenu', { bubbles: true, detail: detail }));
+    return rows;
+  }
+
+  /* Where a menu summoned from the keyboard opens: under the focused
+     element's start, or at the caret's line in a text field, kept on
+     screen. */
+  function keyboardPoint(el) {
+    var r = el.getBoundingClientRect();
+    var rtl = getComputedStyle(el).direction === 'rtl';
+    return { x: Math.round(rtl ? r.right - 8 : r.left + 8), y: Math.round(Math.min(r.bottom, r.top + 24)) };
+  }
+
+  document.addEventListener('contextmenu', function (e) {
+    /* The keyboard already asked, and either opened a menu or found no
+       rows, in which case the browser's own menu is left to open. */
+    if (ctx.quiet) {
+      ctx.quiet = false;
+      if (ctx.panels.length) e.preventDefault();
+      return;
+    }
+    if (e.defaultPrevented || !e.target || !e.target.closest) return;
+    if (e.target.closest('.context-menu')) { e.preventDefault(); return; }
+    /* Shift with a right-click always gives the browser's own menu, with
+       its spelling suggestions and its copy, paste and inspect, the thing
+       readers miss most where a page replaces it. */
+    if (e.shiftKey) return;
+    var rows = ask(e.target, e.clientX, e.clientY, false);
+    if (!rows.length) return;
+    e.preventDefault();
+    openAt(e.clientX, e.clientY, rows, { owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    var summon = e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey);
+    if (!summon) { ctx.quiet = false; return; }
+    if (e.defaultPrevented) return;
+    var target = document.activeElement && document.activeElement !== document.body ? document.activeElement : document.body;
+    if (target.closest && target.closest('.context-menu')) { e.preventDefault(); return; }
+    var at = keyboardPoint(target);
+    var rows = ask(target, at.x, at.y, true);
+    ctx.quiet = true;
+    if (!rows.length) return;
+    e.preventDefault();
+    openAt(at.x, at.y, rows, { owner: target });
+  });
+
+  document.addEventListener('pointerdown', function (e) {
+    ctx.quiet = false;
+    if (!ctx.panels.length) return;
+    if (e.target.closest && e.target.closest('.context-menu')) return;
+    closeContext(0);
+  }, true);
+  window.addEventListener('blur', function () { if (ctx.panels.length) closeContext(0); });
+  window.addEventListener('resize', function () { if (ctx.panels.length) closeContext(0); });
+
   window.pudlMenu = {
     refresh: segMenus,
-    place: function (panel) { if (isOpen(panel)) { place(panel); panel.classList.remove('placing'); } }
+    place: function (panel) { if (isOpen(panel)) { place(panel); panel.classList.remove('placing'); } },
+    openAt: openAt,
+    closeContext: function () { closeContext(0); }
   };
 
   /* Choosing a row or an action closes the panel. A row that leaves the page

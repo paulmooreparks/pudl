@@ -1,0 +1,164 @@
+<!doctype html>
+<html data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Progress, meters, sliders, number and password fields, pictures and avatars</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-fields.js" defer></script>
+  <style>
+    body { margin: 24px; }
+    .cols { display: grid; grid-template-columns: repeat(3, 300px); gap: 20px 32px; align-items: start; }
+    .cols > section { display: flex; flex-direction: column; gap: 14px; }
+    h2 { font-size: var(--text-md); margin: 0; }
+    .avs { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <!-- A test fixture for the controls of pudl-fields.js (0.74.0). The page
+       has no language, so a field outside any lang writes plain numbers;
+       each other field takes its language from the element around it. -->
+  <form id="form" action="#" onsubmit="return false" class="cols">
+    <section>
+      <h2>Progress</h2>
+      <div class="progress-row">
+        <span class="progress-label" id="up-name">Uploading receipts</span>
+        <progress class="progress" id="up" value="42" max="100" aria-labelledby="up-name"></progress>
+        <span class="progress-value">42%</span>
+      </div>
+      <div class="progress-row">
+        <span class="progress-label" id="busy-name">Exporting the report</span>
+        <progress class="progress" id="busy" aria-labelledby="busy-name"></progress>
+        <span class="progress-value">Working…</span>
+      </div>
+      <progress class="progress" id="bare" value="0.9" aria-label="Copying"></progress>
+
+      <h2>Meters</h2>
+      <div class="meter-row" id="fuel-row">
+        <span class="meter-label" id="fuel-name">Fuel (low is bad)</span>
+        <meter class="meter" id="fuel" min="0" max="100" low="20" high="50" optimum="90" value="35" aria-labelledby="fuel-name"></meter>
+        <span class="meter-value">35%</span>
+      </div>
+      <div class="meter-row" id="air-row">
+        <span class="meter-label" id="air-name">Pollution (high is bad)</span>
+        <meter class="meter" id="air" min="0" max="300" low="50" high="150" optimum="0" value="210" aria-labelledby="air-name"></meter>
+        <span class="meter-value">210</span>
+      </div>
+      <div class="meter-row" id="ctx-row">
+        <span class="meter-label" id="ctx-name">Context window</span>
+        <meter class="meter" id="ctx" min="0" max="100" low="75" high="90" optimum="0" value="31" aria-labelledby="ctx-name"></meter>
+        <span class="meter-value">31%</span>
+      </div>
+      <div class="meter-row" id="temp-row">
+        <span class="meter-label" id="temp-name">Room temperature (middle is good)</span>
+        <meter class="meter" id="temp" min="10" max="35" low="19" high="24" optimum="21" value="27" aria-labelledby="temp-name"></meter>
+        <span class="meter-value">27 °C</span>
+      </div>
+      <div class="meter-row" id="store-row">
+        <span class="meter-label" id="store-name">Storage, with marks</span>
+        <meter class="meter marks" id="store" min="0" max="100" low="75" high="90" optimum="0" value="78" aria-labelledby="store-name"></meter>
+        <span class="meter-value">78%, high</span>
+      </div>
+      <meter class="meter" id="plain-meter" value="0.6" aria-label="Plain meter"></meter>
+    </section>
+
+    <section>
+      <h2>Sliders</h2>
+      <div class="form-group">
+        <label class="form-label" for="width">Width</label>
+        <div class="range-row"><input class="form-range" type="range" id="width" name="width" min="0" max="200" value="50"><output for="width"></output></div>
+      </div>
+      <div class="form-group" lang="de-DE">
+        <label class="form-label" for="gain">Verstärkung</label>
+        <div class="range-row"><input class="form-range" type="range" id="gain" name="gain" min="0" max="2" step="0.25" value="1.5"><output for="gain"></output></div>
+      </div>
+
+      <h2>Number fields</h2>
+      <div class="form-group">
+        <label class="form-label" for="guests">Guests</label>
+        <span class="number-field"><input class="form-input" type="number" id="guests" name="guests" value="3" min="0" max="20" aria-describedby="guests-help"></span>
+        <p class="form-help" id="guests-help">Up to twenty.</p>
+      </div>
+      <div class="form-group" lang="en-US">
+        <label class="form-label" for="amount">Amount</label>
+        <span class="number-field"><input class="form-input" type="number" id="amount" name="amount" value="1234.5" step="0.01"></span>
+      </div>
+      <div class="form-group" lang="de-DE">
+        <label class="form-label" for="betrag">Betrag</label>
+        <span class="number-field"><input class="form-input" type="number" id="betrag" name="betrag" value="1234.5" step="0.01"></span>
+      </div>
+      <div class="form-group" lang="ar-EG">
+        <label class="form-label" for="kamiya">الكمية</label>
+        <span class="number-field"><input class="form-input" type="number" id="kamiya" name="kamiya" value="12" step="0.5"></span>
+      </div>
+      <div class="form-group" lang="hi-IN">
+        <label class="form-label" for="rashi">राशि</label>
+        <span class="number-field"><input class="form-input" type="number" id="rashi" name="rashi" value="1234567" step="1"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="half">Hours, in halves from 1 to 10</label>
+        <span class="number-field"><input class="form-input" type="number" id="half" name="half" min="1" max="10" step="0.5" value="2"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="locked">Locked</label>
+        <span class="number-field"><input class="form-input" type="number" id="locked" name="locked" value="7" disabled></span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Password fields</h2>
+      <div class="form-group">
+        <label class="form-label" for="pw">Password</label>
+        <span class="password-field"><input class="form-input" type="password" id="pw" name="pw" value="correct horse" autocomplete="current-password"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="pw2">Password, with the eye</label>
+        <span class="password-field" data-password-toggle="glyph"><input class="form-input" type="password" id="pw2" name="pw2" value="battery staple" autocomplete="new-password"></span>
+      </div>
+
+      <h2>Pictures</h2>
+      <figure class="figure" id="fig-good">
+        <img alt="A receipt on a café table" width="160" height="90" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 90' width='160' height='90'%3E%3Crect width='160' height='90' fill='%23c9b79c'/%3E%3Crect x='58' y='8' width='44' height='76' rx='2' fill='%23fbfaf6' transform='rotate(-6 80 46)'/%3E%3Ccircle cx='128' cy='24' r='14' fill='%237d5a3c'/%3E%3C/svg%3E">
+        <figcaption>The receipt, photographed at check-out.</figcaption>
+      </figure>
+      <figure class="figure caption-over" id="fig-over">
+        <img alt="A receipt on a café table" width="160" height="90" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 90' width='160' height='90'%3E%3Crect width='160' height='90' fill='%23e8e2d0'/%3E%3Crect x='58' y='8' width='44' height='76' rx='2' fill='%23ffffff'/%3E%3C/svg%3E">
+        <figcaption>Caption over a pale picture.</figcaption>
+      </figure>
+      <figure class="figure" id="fig-broken">
+        <img alt="The hotel bill for 21 October" width="160" height="90" src="missing-picture.png">
+        <figcaption>A picture that fails to load.</figcaption>
+      </figure>
+      <figure class="figure" id="fig-slow">
+        <img alt="A slow picture" width="200" height="100" src="slow-picture.svg">
+        <figcaption>A picture that takes its time.</figcaption>
+      </figure>
+
+      <h2>Avatars</h2>
+      <div class="avs" id="avs">
+        <span class="avatar sm" role="img" aria-label="Mei Tan">MT</span>
+        <span class="avatar" role="img" aria-label="Ana Cruz">AC</span>
+        <span class="avatar lg" role="img" aria-label="Jun Reyes">JR</span>
+        <span class="avatar xl" role="img" aria-label="Ana Reyes">PP</span>
+        <span class="avatar lg" id="av-broken" role="img" aria-label="Devin Agent"><img alt="" src="missing-face.png"></span>
+      </div>
+      <div class="avs" id="tints">
+        <span class="avatar lg tint" role="img" aria-label="Ana Reyes">PP</span>
+        <span class="avatar lg tint" role="img" aria-label="Ana Cruz">AC</span>
+        <span class="avatar lg tint" role="img" aria-label="Jun Reyes">JR</span>
+        <span class="avatar lg tint" role="img" aria-label="Mei Tan">MT</span>
+        <span class="avatar lg tint" id="av-set" role="img" aria-label="Set by the page" style="--avatar-hue: 120">SP</span>
+      </div>
+      <div class="avs" id="statuses">
+        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Ana Reyes">PP</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
+        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Ana Cruz">AC</span><span class="avatar-status" data-status="away" aria-label="Away"></span></span>
+        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Jun Reyes">JR</span><span class="avatar-status" data-status="busy" aria-label="Busy"></span></span>
+        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Mei Tan">MT</span><span class="avatar-status" data-status="offline" aria-label="Offline"></span></span>
+        <span class="avatar-wrap"><span class="avatar" role="img" aria-label="Ana Cruz">AC</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
+        <span class="avatar-wrap"><span class="avatar xl tint" role="img" aria-label="Ana Reyes">PP</span><span class="avatar-status" data-status="busy" aria-label="Busy"></span></span>
+      </div>
+      <button class="btn" type="reset" id="reset">Reset</button>
+    </section>
+  </form>
+</body>
+</html>

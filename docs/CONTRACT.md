@@ -25,7 +25,10 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl.css`, `fonts/` | | Tokens and every component's appearance |
 | `pudl-theme.js` | loaded in `<head>` before `pudl.css` | The reader's theme, applied before the first paint |
 | `pudl-windows.css`, `pudl-windows.js` | `pudl.css` | Floating windows |
-| `pudl-menu.js` | `pudl.css` | Menu placement, arrow keys, filtering, keys that summon menus |
+| `pudl-menu.js` | `pudl.css` | Menu placement, arrow keys, filtering, keys that summon menus; context menus, popover placement and focus, split buttons' menus (0.74.0) |
+| `pudl-date.js` | `pudl.css` | Date and time fields with PUDL's calendar and time list (0.74.0) |
+| `pudl-listbox.js` | `pudl.css` | List boxes (0.74.0) |
+| `pudl-fields.js` | `pudl.css` | Meters' bands and marks, sliders' fill and output, number fields, password fields, and pictures that fail in figures and avatars (0.74.0) |
 | `pudl-applets.js` | | The applet runtime; works with or without windows |
 | `pudl-regions.js` | | Swapping regions on navigation |
 | `pudl-md.js` | `pudl.css` | Resizing the master-detail sidebar |
@@ -86,7 +89,20 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Tabs within a page | `.tabs` holding `.tablist[role=tablist]` of `[role=tab][aria-controls]`, then `[role=tabpanel]` panels; in a dialog, and as the whole of a `.win-body`, they keep the size of their largest panel and reach the edges (0.71.0); `data-tabs-size="largest"` or `"each"` chooses | `aria-selected` |
 | Empty and loading | `.empty-state` holding `.empty-state-title`, `.empty-state-body`, `.empty-state-actions`; `.loading[role=status]` holding `.spinner` | |
 | Pagination | `nav.pagination` holding `.pagination-summary`, `a.page-link` (with `rel="prev"` or `rel="next"`), `.page-gap` | aria-current `"page"`; `aria-disabled="true"` |
-| Dialog | `dialog.dialog` holding `.dialog-title`, `.dialog-body`, `.dialog-actions`; opened by a button with `command="show-modal"` and `commandfor` | `open` |
+| Dialog | `dialog.dialog` holding `.dialog-title`, `.dialog-body`, `.dialog-actions`; opened by a button with `command="show-modal"` and `commandfor`; head and actions pinned unless `data-dialog-pin="none"` (0.74.0) | `open` |
+| Popover | `.popover[popover]`, with `.pointer`, opened by a button with `popovertarget`; optional `.popover-head` holding `.popover-title` and `.popover-close`, and `.popover-actions` (0.74.0) | `role="dialog"` with a name |
+| Split button | `.split-btn` holding a `.btn` and a `.menu` whose `.menu-btn` holds only the caret (0.74.0) | an `aria-label` on the menu button |
+| Stepper | `ol.stepper`, with `.vertical`, of `li`, a done one `.done` holding an `a`, the current one `aria-current="step"` (0.74.0) | `aria-label` on the list |
+| Progress bar | `progress.progress`, in a `.progress-row` with `.progress-label` and `.progress-value` (0.74.0) | `value`, `max`; none for busy |
+| Meter | `meter.meter`, with `.marks`, in a `.meter-row` with `.meter-label` and `.meter-value` (0.74.0) | `min`, `max`, `low`, `high`, `optimum`, `value`; `data-band` set by the script |
+| Slider | `input.form-range[type=range]`, in a `.range-row` with an `output[for]` (0.74.0) | `min`, `max`, `step`, `disabled` |
+| Number field | `span.number-field` holding `input.form-input[type=number]` (0.74.0) | `min`, `max`, `step`, `required`, `disabled`, `readonly` |
+| Password field | `span.password-field` holding `input.form-input[type=password]`, with `data-password-toggle="glyph"` (0.74.0) | `aria-pressed` on the key |
+| Figure | `figure.figure` holding `img[width][height][alt]` and `figcaption`, with `.caption-over`, `.plain`, `.contain` (0.74.0) | `data-broken` set by the script |
+| Avatar | `.avatar[role=img][aria-label]` with `.sm`, `.lg`, `.xl`, `.tint`, holding initials or `img[alt=""]`; `.avatar-wrap` with `.avatar-status[data-status]` (0.74.0) | `data-status` `online`, `away`, `busy`, `offline` |
+| List box | `select.form-select[data-listbox]` with `multiple` or a `size` above 1 (0.74.0) | `required`, `disabled` |
+| Token field | `span.combo[data-combo-tokens]` with `data-combo-separator` and `data-combo-max`, holding the combo box's input and datalist (0.74.0) | `required`, `disabled` |
+| Date and time fields | `input[type=date][data-date]`, `input[type=time][data-date]`, with `data-date-style` and `data-time-list` (0.74.0) | `min`, `max`, `step`, `required`, `disabled`, `readonly` |
 | Menu | `.menu` holding `.menu-btn[popovertarget]` and `.menu-panel[popover]`, whose content is `.md-section-label`, `.md-row` with `.md-item`, `.menu-sep`, `button.menu-action` (with `.danger`), `label.check.menu-check` holding a checkbox, an `.md-filter` and a `.menu-empty` | `data-menu-key`, `data-menu-empty`; `data-filter-menu` on a panel with an id makes a filter menu: a box belonging to a form sends it on change, and after the region swap that causes the panel opens again with focus on that box |
 | Master-detail | `.md-layout` holding `.md-toolbar` (with `.md-site-tools`), `.md-chips`, `.md-body` holding `.md-sidebar`, `.md-resize`, `.md-detail[tabindex="0"]`; toolbar parts `.md-filter`, `.md-filter-group`, `.md-filter-go`, `.md-toolbar-spacer`, `.md-toolbar-cmds`, `.md-toolbar-sep`, `.md-chips-clear`; list parts `.md-section-label`, `.md-row` holding `a.md-item` with any number of `.md-meta` lines, which wrap, `.md-grip`; `a.md-back` in the detail | `data-md-pane="detail"` or `"list"`; aria-current on a row's link |
 | Windows | `.win-host` holding `.win-layer[data-win-layer][data-win-src]`; `section.win[data-win]` holding `header.win-head` with `.win-title` and `.win-chrome` of `.win-btn[data-win-action]`, then `.win-body`; `nav.win-dock[data-win-dock]`; a list row `.md-row-child[data-win-child]` | `data-win-mode`, `hidden` for minimised, the four `--win-` position properties, `.active` on the window in front; for a zone `--zone-x`, `--zone-y`, `--zone-w` and `--zone-h`, with `--zone-rule-e` and `--zone-rule-s` for its hairlines; for a docked window `data-win-edge` and `--win-dock-size`, and on the layer `--dock-top`, `--dock-bottom`, `--dock-left` and `--dock-right` |
@@ -178,6 +194,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:split` | a splitter's handle, bubbles | `size` in pixels, or null after a reset | When a change to the split ends |
 | `pudl:code-copy`, `pudl:code-download` | the code block's `pre`, bubbles | `ok` for a copy, `name` for a download | After each action |
 | `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
+| `pudl:contextmenu` | what was under the pointer or has focus, bubbles | `add(rows)`, `x`, `y`, `keyboard`, `target` | On a right-click, Shift+F10 or the Menu key; rows added open a context menu in place of the browser's (0.74.0) |
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
 | `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
@@ -210,6 +227,10 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
 | `pudlMenu.place(panel)` | `pudl-menu.js` | Place an open panel at once and show it, for a script that moves focus into it in the same moment |
 | `pudlMenu.refresh()` | `pudl-menu.js` | Build the pop-up button for segmented controls with `data-seg-menu` added by other means |
+| `pudlMenu.openAt(x, y, rows, { owner, label })`, `pudlMenu.closeContext()` | `pudl-menu.js` | Open a context menu at a point from a script, and close it (0.74.0) |
+| `pudlFields.enhance(root)`, `pudlFields.refresh(el)` | `pudl-fields.js` | Take in fields added later; show a value a script has set (0.74.0) |
+| `pudlListbox.enhance(root)`, `pudlListbox.refresh(select)` | `pudl-listbox.js` | Take in list boxes added later; show a choice a script has set (0.74.0) |
+| `pudlDate.enhance(root)`, `pudlDate.refresh(input)` | `pudl-date.js` | Take in date and time fields added later; show a value a script has set (0.74.0) |
 | `pudlSplit.refresh()` | `pudl-split.js` | Bring the handles' values and limits up to date after a change the script did not see |
 | `pudlCode.enhance(scope or pre)`, `.names`, `.extensions`, `.words` | `pudl-code.js` | Take in code blocks added by other means; the maps and words a project extends |
 | `pudlRegions.refresh()` | `pudl-regions.js` | Carry the live windows into region links a script has rendered |

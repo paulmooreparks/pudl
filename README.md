@@ -369,6 +369,79 @@ Without the script it is a plain select. With it, a combo box stands in its plac
 
 `data-combo-src` on the `.combo`, or on the select, is an address on the page's own origin with `{q}` for what is typed. After a pause in typing the script asks it and puts the `option` elements it returns, as `text/html`, into the list, taking only each option's value, text and keys; a searchable select keeps its chosen option among them. `data-combo-complete` on the field or the select completes a match as the reader types, which is off unless asked for. In a toolbar the field keeps its own keys, and the arrow keys pass over the opener, which carries `data-toolbar-skip`, the mark that keeps any control out of a toolbar's arrow order. `samples/combo.html` has every case to try.
 
+## Progress bars and meters
+
+A progress bar and a meter (0.74.0) are the native `<progress class="progress">` and `<meter class="meter">`, drawn by `pudl.css` alike in every browser: a flat bar 16px tall, always with words. In a `.progress-row` or `.meter-row` the bar stands beside its `.progress-value` or `.meter-value` under its `.progress-label` or `.meter-label`.
+
+```html
+<div class="progress-row">
+  <span class="progress-label" id="up-name">Uploading receipts</span>
+  <progress class="progress" value="42" max="100" aria-labelledby="up-name"></progress>
+  <span class="progress-value">42%</span>
+</div>
+<div class="meter-row">
+  <span class="meter-label" id="fuel-name">Fuel</span>
+  <meter class="meter" min="0" max="100" low="20" high="50" optimum="90" value="35" aria-labelledby="fuel-name"></meter>
+  <span class="meter-value">35%</span>
+</div>
+```
+
+A progress bar with no `value` slides a block and says "Working…" in its words; with reduced motion the block stands still. A meter's own `low`, `high` and `optimum` say which end is bad and where the bands begin, so a low fuel level and a high pollution level are both marked bad. With the optional `pudl-fields.js` a meter takes the band's colour, positive, warn or danger, and its words lead with the warning or the stop glyph; `.meter.marks` keeps the accent and marks its thresholds instead. A progress bar needs no script.
+
+## Sliders, number fields and password fields
+
+These three (0.74.0) take `pudl-fields.js`, and each is the browser's own control without it.
+
+```html
+<div class="range-row"><input class="form-range" type="range" id="w" min="0" max="100" value="40"><output for="w">40</output></div>
+<span class="number-field"><input class="form-input" type="number" name="guests" min="0" max="20" step="1" value="3"></span>
+<span class="password-field"><input class="form-input" type="password" name="password"></span>
+```
+
+A slider's track is sunken and filled with the accent to its value, and its thumb raised; the script keeps an `<output for>` showing the value in the page's language. A number field is shown as a text field with its digits at the end and raised minus and plus keys joined to it, reading and writing numbers in the page's language, 1.234,5 in German, while the hidden original sends a plain number; it refuses letters, snaps to its step, keeps to its range, steps with Up and Down, Page Up and Page Down by ten, the keys held down, and the wheel only while it has focus and the pointer is over it. A password field gains a Show key, pressed in while the password shows, or the eye glyph with `data-password-toggle="glyph"`, and a line that says when Caps Lock is on; pasting is never blocked. `pudlFields.refresh(el)` shows a value a script has set.
+
+## Images, figures and avatars
+
+A `.figure` (0.74.0) holds an `img` with its `width` and `height`, which keep its frame's proportion before it loads, and a `figcaption`. `.figure.caption-over` lays the caption over the picture's foot, `.figure.plain` drops the frame, and `.figure.contain` fits the picture inside it. A picture that fails shows its `alt` under the image glyph rather than the browser's broken picture.
+
+```html
+<figure class="figure"><img src="receipt.jpg" alt="The receipt on a café table" width="1600" height="900" loading="lazy"><figcaption>Photographed at check-out.</figcaption></figure>
+<span class="avatar-wrap"><span class="avatar" role="img" aria-label="Ana Reyes">PP</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
+```
+
+A `.avatar` is a person's or an agent's initials, or an `img` with empty `alt`, in a neutral circle of 32px, or 24px (`.sm`), 40px (`.lg`) and 64px (`.xl`); a picture that fails gives way to the initials. `.avatar.tint` takes a soft tint from the name. A status mark has a shape as well as a colour: online a filled circle, away a half-filled one, busy a minus, offline a ring.
+
+## List boxes
+
+A list box (0.74.0) is a native `<select class="form-select" multiple size="6">`, or one without `multiple` and with a `size` above 1, marked `data-listbox`. Without a script it is the browser's list. With the optional `pudl-listbox.js` the select is hidden, keeps the value, the name, `required` and `disabled`, and is what the form sends, and a sunken list stands in its place, as many rows tall as `size`, each row carrying a check box where several may be chosen and a radio button where one may. An `optgroup` heads its rows. A press or Space switches one row and leaves the rest, so nobody needs Ctrl to choose several; Shift with a press or a key sets a range; Ctrl+A, or Command+A, chooses all, or none when all are chosen. In a single-choice list the choice follows the arrow keys. Letters jump to the rows they begin. `pudlListbox.refresh(select)` shows a choice a script has set.
+
+## Token fields
+
+A token field (0.74.0) is a combo box marked `data-combo-tokens`, whose values `pudl-combo.js` gathers as chips below the field, each with its remove key. The form receives the values joined by `data-combo-separator`, a comma unless it says otherwise, which is also what a reader types without the script.
+
+```html
+<label class="form-label" for="tags">Tags</label>
+<span class="combo" data-combo-tokens data-combo-separator=";">
+  <input class="form-input" id="tags" name="tags" list="tag-options" value="receipts; q4">
+  <datalist id="tag-options">…</datalist>
+</span>
+```
+
+Enter, the separator, Tab or leaving the field adds what is typed, and a value already there flashes its chip instead of being added again. Pasting splits at the separator and new lines, or at commas and new lines where the separator is not in the text. Backspace in the empty field, or a press on a chip's words, takes that value back into the field to edit; Escape puts it back. Left in the empty field moves along the chips, where Delete removes one and F2 edits it. Suggestions and keys work for each value as in a combo box, and `data-combo-max` limits the count.
+
+## Date and time fields
+
+A date or time field (0.74.0) is a native `<input type="date">` or `<input type="time">` marked `data-date`. Without a script it is the browser's own field. With the optional `pudl-date.js` the original is hidden, keeps the value and the name and is what the form sends, always ISO 8601 in the Gregorian calendar, and a text field joined to a raised opener stands in its place, as a combo box does:
+
+```html
+<label class="form-label" for="due">Due</label>
+<input class="form-input" type="date" id="due" name="due" value="2026-10-22" min="2026-01-01" max="2026-12-31" data-date>
+<label class="form-label" for="at">Starts</label>
+<input class="form-input" type="time" id="at" name="at" value="13:30" step="900" data-time-list="15" data-date>
+```
+
+The field shows its value in the language of the nearest `lang` and in that language's calendar, Japanese eras, Thai years, the Hijri, Hebrew and Persian calendars included, and in ISO 8601 with a 24-hour clock where no `lang` is given. `data-date-style` asks for `iso`, `short` (numbers, the default), `medium` or `long` (the month by name). The reader types however they are likely to: ISO, the language's order, a four-digit year first, month names, "t" or the language's word for today, "+3" for three days on, digits of any script, an era's name or initial; and for times "9", "930", "9pm" or "21:30". The echo line under the field says back in words what it understood, "Thursday, 1 February 2026", so 01/02 is never read the wrong way, shows an example while the field is empty, and says why when it refuses. The calendar's month and year key opens a chooser of months and years, for a distant date, with Today and Clear at its foot; the week starts on the language's day; the chosen day is pressed in and today ringed. A time field's list is at `data-time-list` minutes, any whole number such as 5, 6 or 30, or at the field's step, or every 30 minutes. The wheel steps a focused time by its step or a minute, and the chooser's year by one, only while the pointer is over it. `pudlDate.refresh(input)` shows a value a script has set. `datetime-local` is left to the browser.
+
 ## Tabs within a page
 
 Tabs within a page switch between panels of one thing in place, where section tabs go to other addresses. They follow the ARIA tab pattern and look like section tabs, since to the reader both are tabs.
@@ -479,6 +552,20 @@ A long list comes in pages, each an address such as `?page=3`:
 ```
 
 Page links are raised small buttons, and the current page is pressed in, since the reader is already there. Previous and next carry glyphs, mirrored on a right-to-left page, and at either end are marked `aria-disabled="true"` with no `href`. With `pudl-regions.js`, a pagination inside a region pages the list without disturbing anything else.
+
+## Steppers
+
+A stepper (0.74.0) shows the steps of a task that takes several pages: which are done, which one the reader is on, and which are to come, each told by its mark's shape as well as its colour.
+
+```html
+<ol class="stepper" aria-label="Add a configuration">
+  <li class="done"><a href="?step=1">Client<span class="visually-hidden"> (done)</span></a></li>
+  <li aria-current="step"><span>Languages</span></li>
+  <li><span>Review</span></li>
+</ol>
+```
+
+A done step is the tick on an accent circle and a link back to its page, the current step its number in a heavy accent ring with its name in bold, and a step to come its number in a light ring with its name muted. The steps run across, joined by lines that take the accent after a done step, and on a narrow screen only the current step keeps its name in sight. `.stepper.vertical` runs them down the side, the current one lit as a list's current row.
 
 ## Data tables
 
@@ -616,6 +703,22 @@ The command attributes are newer than PUDL's 2024 browser floor, so the optional
 
 When a dialog's content is taller than the window, its title and its `.dialog-actions` stay in view and only the content between them scrolls (0.65.0). Both are bands that stick to the panel's edges, so the markup does not change, and the actions may be the dialog's own or sit in a form that wraps the fields or the whole dialog. A `.dialog-head` around the title keeps a control that goes with it, such as a filter, in view as well. A line separates a band from the content only while content is hidden beneath it. `pudl-dialog.js` works that out, and it also sets the dialog's scroll padding to the bands' measured heights so that a focused field is scrolled clear of them. Without the script the bands still stay in view, with no lines, and the scroll padding is an estimate. The actions keep 24px between them and whatever comes before them, a list or a table as well as the body.
 
+A dialog's head and actions are pinned by default. A dialog that reads better scrolled as one, its title and actions with its content, is marked `data-dialog-pin="none"` (0.74.0).
+
+## Popovers
+
+A popover (0.74.0) is a panel of any content anchored to the control that opened it, such as a small form, a help text or an item's details: not a menu, and not modal. It is an HTML popover, so Escape and a press outside close it without a script, and `pudl-menu.js` places it against its control as a menu is placed, takes focus into its first field, and gives focus back to the control when it closes.
+
+```html
+<button class="btn" type="button" popovertarget="filter">Filter…</button>
+<div class="popover" id="filter" popover role="dialog" aria-label="Filter the expenses">
+  <div class="form-group">…</div>
+  <div class="popover-actions"><button class="btn btn-sm btn-primary" type="button">Apply</button></div>
+</div>
+```
+
+`.popover.pointer` points at its control, for controls that sit close together. A `.popover-head` holding an `h2.popover-title` and a `button.icon-btn.popover-close` with `popovertarget` and `popovertargetaction="hide"` gives it a title and a close key. Its head and its actions stay in view while what lies between them scrolls, as a dialog's do.
+
 ## Names that changed
 
 These old names keep working until 2.0, and new work should use the new ones.
@@ -642,6 +745,37 @@ A **disclosure button** shows or hides content in place, such as a note under a 
 A button that latches, such as a mode switch, is a `.btn` with `aria-pressed`. While the attribute is `"true"` the button stays pressed in, and the same attribute tells assistive technology that it is on. The project's own script flips it; a group of mutually exclusive choices is a segmented control instead. A primary button may latch too, such as a flash card's Reveal: latched, it keeps its accent fill and its text and loses its lift, pressed in rather than darkened, so its label reads in both themes.
 
 The `hidden` attribute always hides an element, even a component that sets its own `display`, because `pudl.css` gives it `display: none !important`. The one exception is `hidden="until-found"`, which the browser hides in its own way so that in-page search can still reveal it.
+
+## Split buttons
+
+A split button (0.74.0) does its usual thing when its main key is pressed, and offers the alternatives from a menu button joined to its end, the two sharing a border so the reader sees two things to press. The menu button holds only the caret, its accessible name says what it offers, and its menu lines up under the whole button. Both keys are of one kind, plain or primary.
+
+```html
+<span class="split-btn">
+  <button class="btn btn-primary" type="submit">Save</button>
+  <span class="menu">
+    <button class="btn btn-primary menu-btn" type="button" popovertarget="save-more" aria-label="More ways to save"></button>
+    <nav class="menu-panel" id="save-more" popover aria-label="More ways to save">…</nav>
+  </span>
+</span>
+```
+
+## Context menus
+
+A right-click, Shift+F10 or the Menu key fires `pudl:contextmenu` (0.74.0) on what was under the pointer or what has focus, bubbling, and whatever answers by calling `event.detail.add(rows)` gets a context menu of those rows at the point, in place of the browser's own. Where nothing answers, the browser's menu opens as always, and Shift with a right-click always gives the browser's, with its spelling suggestions. `pudl-menu.js` draws it.
+
+```js
+editor.addEventListener('pudl:contextmenu', e => e.detail.add([
+  { label: 'Cut', shortcut: 'Mod+X', glyph: 'strike', run: cut },
+  { label: 'Copy', shortcut: 'Mod+C', glyph: 'copy', run: copy },
+  { label: 'Paste', shortcut: 'Mod+V', glyph: 'clip', disabled: !canPaste, reason: 'The clipboard is empty.', run: paste },
+  '-',
+  { label: 'Wrap lines', checked: wrap, run: toggleWrap },
+  { label: 'Insert', items: [{ label: 'Link', run: link }, { label: 'Table', run: table }] }
+]));
+```
+
+A row is a menu bar's row: `label`, `run`, `disabled` with its `reason`, `checked` (with `radio`), `danger`, `detail`, `shortcut`, `glyph` (a glyph token's name) and `items` for a submenu, or `'-'` for a separator, or a command's id where `pudl-commands.js` is loaded. A shortcut is shown in the platform's form and bound by nothing, since the key belongs to whatever owns it. The detail also carries `x`, `y`, `keyboard` and `target`. `pudlMenu.openAt(x, y, rows, { owner, label })` opens one from a script, and `pudlMenu.closeContext()` closes it. Up and Down move, wrapping; a letter goes to the next row starting with it; Right and Left open and close a submenu; Enter and Space choose; Escape closes a level; focus returns where it was.
 
 ## Menus
 
@@ -1326,7 +1460,10 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-dialog.js`, the optional script that supplies the dialog command buttons in browsers that lack them
   - `pudl-toast.js`, the optional script that raises and dismisses toasts and dismisses notices
   - `pudl-tabs.js`, the optional script for tabs within a page
-  - `pudl-combo.js`, the optional script for combo boxes and searchable selects
+  - `pudl-combo.js`, the optional script for combo boxes, searchable selects and token fields
+  - `pudl-date.js`, the optional script for date and time fields with PUDL's calendar
+  - `pudl-listbox.js`, the optional script for list boxes
+  - `pudl-fields.js`, the optional script for meters, sliders, number fields, password fields, and failed pictures in figures and avatars
   - `pudl-tooltip.js`, the optional script that shows tooltips on glyph-only controls
   - `pudl-tree.js`, the optional script that makes nested lists of links into trees
   - `pudl-grid.js`, the optional script for tables whose rows are choices
@@ -1366,7 +1503,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.73.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.74.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

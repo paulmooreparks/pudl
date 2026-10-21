@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Token fields</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-combo.js" defer></script>
+  <style>body { margin: 24px; } form { display: grid; grid-template-columns: repeat(3, 300px); gap: 0 24px; align-items: start; }</style>
+</head>
+<body>
+  <!-- A test fixture for token fields (0.74.0). -->
+  <form id="form" action="#" onsubmit="return false">
+    <div class="form-group">
+      <label class="form-label" for="tags">Tags</label>
+      <span class="combo" data-combo-tokens>
+        <input class="form-input" id="tags" name="tags" list="tag-options" value="receipts, q4" placeholder="Add a tag">
+        <datalist id="tag-options">
+          <option value="receipts">Receipts</option>
+          <option value="travel">Travel</option>
+          <option value="meals">Meals</option>
+          <option value="mileage">Mileage</option>
+          <option value="q4">Fourth quarter</option>
+        </datalist>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="people">People</label>
+      <span class="combo" data-combo-tokens data-combo-separator=";">
+        <input class="form-input" id="people" name="people" value="Cruz, Ana; Reyes, Jun">
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="path">Path</label>
+      <span class="combo" data-combo-tokens data-combo-separator=" | ">
+        <input class="form-input" id="path" name="path" value="Home | Reports">
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="signs">Currencies</label>
+      <span class="combo" data-combo-tokens>
+        <input class="form-input" id="signs" name="signs" list="sign-options">
+        <datalist id="sign-options">
+          <option value="₱" data-combo-keys="PHP">Philippine peso</option>
+          <option value="S$" data-combo-keys="SGD">Singapore dollar</option>
+          <option value="€" data-combo-keys="EUR">Euro</option>
+        </datalist>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="three">Up to three</label>
+      <span class="combo" data-combo-tokens data-combo-max="3">
+        <input class="form-input" id="three" name="three" value="one, two">
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="plain">Plain combo</label>
+      <span class="combo">
+        <input class="form-input" id="plain" name="plain" list="tag-options">
+      </span>
+    </div>
+    <button id="after" type="button" class="btn">After</button>
+  </form>
+</body>
+</html>

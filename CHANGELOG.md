@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.74.0
+
+PUDL's gap to a complete UI library, closed in one release, from the maintainer's question of what it still lacked (`docs/proposals/completeness.md`) and the controls he chose from mockups. Every control is built from the grammar, sunken where it takes input, raised where it is pressed, pressed in where it is chosen, glyph and colour together; follows the page's language and culture; and answers the complaints made most often about it elsewhere. This release implements specification 0.31.0.
+
+- **Context menus.** A right-click, Shift+F10 or the Menu key fires `pudl:contextmenu`; rows a page adds with `detail.add` open a menu at the pointer or the focused element, with the menu bar's rows, glyphs in one column with ticks and warnings, keys shown, submenus, letters to jump, and focus returned. Where nothing answers, and always with Shift, the browser's own menu opens. `pudlMenu.openAt` opens one from a script. an application asked for it.
+- **Split buttons** (`.split-btn`), a main key joined to a caret key whose menu lines up under the whole button.
+- **Popovers** (`.popover`), a non-modal panel anchored to its control, placed as a menu is, focus taken in and given back, with `.pointer` and a `.popover-head` as variants, head and actions pinned.
+- **Progress bars and meters** on the native elements: 16px flat bars with words; a busy bar that stands still for less motion; meters banded by their own `low`, `high` and `optimum` in either direction, with the band's colour and glyph, or `.meter.marks`.
+- **Sliders, number fields and password fields** (`pudl-fields.js`): a sunken 16px track with a raised 24px thumb and its value in words; a number field read and written in the page's language with joined minus and plus keys; a password field with a Show key, or the eye with `data-password-toggle="glyph"`, and a Caps Lock line.
+- **List boxes** (`pudl-listbox.js`), a select marked `data-listbox` drawn as a sunken list whose rows carry check boxes or radio buttons, choosing several without Ctrl.
+- **Token fields**, a combo box marked `data-combo-tokens`, chips below the field, the separator of `data-combo-separator`, pasting split, chips edited by Backspace or a press.
+- **Date and time fields** (`pudl-date.js`), native inputs marked `data-date`, typed in every form a reader is likely to use, echoed in words under the field, shown in the page's language and calendar, Japanese, Thai, Hijri, Hebrew and Persian included, or in ISO 8601 where there is none, with PUDL's calendar, a chooser of months and years, Today and Clear, and a time list at `data-time-list` minutes. The value sent is always ISO 8601 Gregorian.
+- **Figures and avatars**: a frame that keeps its picture's proportion and shows a failed picture's words; neutral avatars in four sizes, `.tint` by name, status marks with shapes.
+- **Steppers** (`ol.stepper`), across or `.vertical`, done steps links back, only the current step's name on a narrow screen.
+- **Two rules everywhere.** A tick reports a state and a check box asks the reader to set one. The wheel changes a field only while it has focus and the pointer is over it.
+- **Dialogs** keep their head and actions pinned by default; `data-dialog-pin="none"` turns it off.
+- **Segmented controls** are 30px tall, a menu bar's groups' height.
+- **Fixed:** a combo box's list could run past the bottom of a short window; it is now held to the room there. A `button.filter-chip-x` squeezed its glyph.
+- **Glyphs** `forward`, `eye` and `eye-off`.
+- New tests: `context-menu`, `popover`, `stepper`, `date`, `fields`, `listbox`, `token-field`.
+
 ## 0.73.0
 
 The minified copies move to `dist/min/`, under the same names as their sources: `min/pudl.css`, `min/pudl-windows.js` and so on. From 0.70.0 to 0.72.0 they sat beside their sources as `name.min.js` and `name.min.css`. jsDelivr documents that it minifies a `.min.js` or `.min.css` file itself when the file does not exist, and for a release it had only just seen it did so for files that did exist, and then kept serving its own copies: one in 0.70.1 and eight in 0.72.0. Those are the same code, but their integrity hashes do not match the tag's. A name without `.min` is never minified by jsDelivr, so the move rests on what it documents rather than on how quickly it reads a new tag. The specification is unchanged at 0.30.1.

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split buttons and popovers</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <style>body { margin: 24px; } .row { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; } .low { position: fixed; bottom: 12px; left: 300px; }</style>
+</head>
+<body>
+  <!-- A test fixture for split buttons and popovers (0.74.0). -->
+  <div class="row">
+    <span class="split-btn" id="split">
+      <button class="btn btn-primary" type="button" id="save">Save</button>
+      <span class="menu">
+        <button class="btn btn-primary menu-btn" type="button" popovertarget="save-more" aria-label="More ways to save"></button>
+        <nav class="menu-panel" id="save-more" popover aria-label="More ways to save">
+          <button class="menu-action" type="button">Save as…</button>
+          <button class="menu-action" type="button">Save a copy…</button>
+        </nav>
+      </span>
+    </span>
+  </div>
+  <div class="row">
+    <button class="btn" type="button" id="open-a" popovertarget="pop-a">Filter…</button>
+    <div class="popover" id="pop-a" popover role="dialog" aria-label="Filter">
+      <div class="form-group"><label class="form-label" for="min">Amount at least</label><input class="form-input" id="min" value="100"></div>
+      <div class="popover-actions"><button class="btn btn-sm" type="button" popovertarget="pop-a" popovertargetaction="hide">Done</button></div>
+    </div>
+    <button class="btn" type="button" id="open-b" popovertarget="pop-b">Help</button>
+    <div class="popover pointer" id="pop-b" popover role="dialog" aria-label="Help">
+      <p>The amount is in the currency of the receipt.</p>
+    </div>
+    <button class="btn" type="button" id="open-c" popovertarget="pop-c">Details</button>
+    <div class="popover" id="pop-c" popover role="dialog" aria-labelledby="pop-c-title">
+      <div class="popover-head"><h2 class="popover-title" id="pop-c-title">Details</h2>
+        <button class="icon-btn popover-close" type="button" popovertarget="pop-c" popovertargetaction="hide" aria-label="Close"></button></div>
+      <p>Paid on 22 October.</p><button class="btn btn-sm" type="button" id="c-act">Open the receipt</button>
+    </div>
+  </div>
+  <button class="btn low" type="button" id="open-low" popovertarget="pop-low">Low</button>
+  <div class="popover pointer" id="pop-low" popover role="dialog" aria-label="Low"><p>Opens above.</p></div>
+</body>
+</html>

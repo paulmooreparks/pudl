@@ -16,6 +16,9 @@
   <script src="dist/pudl-toast.js" defer></script>
   <script src="dist/pudl-tabs.js" defer></script>
   <script src="dist/pudl-combo.js" defer></script>
+  <script src="dist/pudl-listbox.js" defer></script>
+  <script src="dist/pudl-fields.js" defer></script>
+  <script src="dist/pudl-date.js" defer></script>
   <script src="dist/pudl-tooltip.js" defer></script>
   <script src="dist/pudl-tree.js" defer></script>
   <script src="dist/pudl-grid.js" defer></script>
@@ -122,7 +125,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.73.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.74.0</a>
     </div>
   </header>
 
@@ -1187,7 +1190,94 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </div>
     </div>
 
-    <h2>24. Invariants</h2>
+    <h2 id="more-menus">24. Context menus, split buttons and popovers</h2>
+    <p>A right-click, Shift+F10 or the Menu key opens a context menu where the page offers one, at the pointer or the focused element, with rows as a menu bar's are; Shift with a right-click always gives the browser's own. A split button's main key does the usual thing and its caret key offers the alternatives. A popover is a panel of any content anchored to its control, not a menu and not modal: Escape or a press outside closes it.</p>
+    <div class="demo">
+      <div id="ref-ctx" tabindex="0" style="padding: var(--space-4); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--text-muted)">Right-click here, or focus here and press Shift+F10.</div>
+      <div class="demo-row" style="margin-top: var(--space-3)">
+        <span class="split-btn">
+          <button class="btn btn-primary" type="button">Save</button>
+          <span class="menu"><button class="btn btn-primary menu-btn" type="button" popovertarget="ref-save-more" aria-label="More ways to save"></button>
+            <nav class="menu-panel" id="ref-save-more" popover aria-label="More ways to save"><button class="menu-action" type="button">Save as…</button><button class="menu-action" type="button">Save a copy…</button></nav></span>
+        </span>
+        <button class="btn" type="button" popovertarget="ref-pop-a">Filter…</button>
+        <div class="popover" id="ref-pop-a" popover role="dialog" aria-label="Filter the expenses">
+          <div class="form-group"><label class="form-label" for="ref-pop-min">Amount at least</label><input class="form-input" id="ref-pop-min" value="100"></div>
+          <label class="check"><input type="checkbox" checked> Only billable</label>
+          <div class="popover-actions"><button class="btn btn-sm" type="button" popovertarget="ref-pop-a" popovertargetaction="hide">Done</button></div>
+        </div>
+        <button class="btn" type="button" popovertarget="ref-pop-b">Help</button>
+        <div class="popover pointer" id="ref-pop-b" popover role="dialog" aria-label="Help"><p style="margin:0">The amount is in the currency of the receipt.</p></div>
+        <button class="btn" type="button" popovertarget="ref-pop-c">Details</button>
+        <div class="popover" id="ref-pop-c" popover role="dialog" aria-labelledby="ref-pop-c-title">
+          <div class="popover-head"><h2 class="popover-title" id="ref-pop-c-title">Hotel, Makati</h2><button class="icon-btn popover-close" type="button" popovertarget="ref-pop-c" popovertargetaction="hide" aria-label="Close"></button></div>
+          <p style="margin:0">Three nights, paid on 22 October.</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      document.getElementById('ref-ctx').addEventListener('pudl:contextmenu', function (e) {
+        e.detail.add([
+          { label: 'Cut', shortcut: 'Mod+X', run: function () {} },
+          { label: 'Copy', shortcut: 'Mod+C', glyph: 'copy', run: function () {} },
+          { label: 'Paste', shortcut: 'Mod+V', glyph: 'clip', disabled: true, reason: 'The clipboard is empty.', run: function () {} },
+          '-',
+          { label: 'Wrap lines', checked: true, run: function () {} },
+          { label: 'Insert', items: [{ label: 'Link', glyph: 'link', run: function () {} }, { label: 'Table', glyph: 'table', run: function () {} }] },
+          '-',
+          { label: 'Delete', danger: true, run: function () {} }
+        ]);
+      });
+    </script>
+
+    <h2 id="levels">25. Progress bars and meters</h2>
+    <p>Both are flat bars, since they are read, and both always have words. A progress bar fills with the accent, and one with no value slides a block and says it is working. A meter's own low, high and optimum say which end is bad, so a low fuel level and a high pollution level are both marked bad, by colour and by the glyph in its words; a meter with marks keeps the accent and marks its thresholds.</p>
+    <div class="demo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--space-3) var(--space-5)">
+      <div class="progress-row"><span class="progress-label" id="ref-up">Uploading receipts</span><progress class="progress" value="42" max="100" aria-labelledby="ref-up"></progress><span class="progress-value">42%</span></div>
+      <div class="progress-row"><span class="progress-label" id="ref-busy">Exporting the report</span><progress class="progress" aria-labelledby="ref-busy"></progress><span class="progress-value">Working…</span></div>
+      <div class="meter-row"><span class="meter-label" id="ref-fuel">Fuel</span><meter class="meter" min="0" max="100" low="20" high="50" optimum="90" value="15" aria-labelledby="ref-fuel"></meter><span class="meter-value">15%</span></div>
+      <div class="meter-row"><span class="meter-label" id="ref-ctxw">Context window</span><meter class="meter" min="0" max="100" low="75" high="90" optimum="0" value="31" aria-labelledby="ref-ctxw"></meter><span class="meter-value">31%</span></div>
+      <div class="meter-row"><span class="meter-label" id="ref-store">Storage</span><meter class="meter" min="0" max="100" low="75" high="90" optimum="0" value="81" aria-labelledby="ref-store"></meter><span class="meter-value">81%</span></div>
+      <div class="meter-row"><span class="meter-label" id="ref-budget">Monthly budget, with marks</span><meter class="meter marks" min="0" max="100" low="75" high="90" optimum="0" value="78" aria-labelledby="ref-budget"></meter><span class="meter-value">78%, high</span></div>
+    </div>
+
+    <h2 id="more-fields">26. More fields</h2>
+    <p>Each takes input, so each is sunken, and each joins raised keys to its end where it has any. A number field reads and writes the page's language. A list box carries check boxes, since it sets state, and needs no Ctrl to choose several. A token field gathers its values below the field. A date or time field says back in words what it understood, and its calendar and time list are PUDL's.</p>
+    <div class="demo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--space-3) var(--space-5); align-items: start">
+      <div class="form-group"><label class="form-label" for="ref-width">Width</label><div class="range-row"><input class="form-range" type="range" id="ref-width" min="0" max="100" value="40"><output for="ref-width">40</output></div></div>
+      <div class="form-group"><label class="form-label" for="ref-guests">Guests</label><span class="number-field"><input class="form-input" type="number" id="ref-guests" min="0" max="20" value="3"></span></div>
+      <div class="form-group"><label class="form-label" for="ref-pw">Password</label><span class="password-field"><input class="form-input" type="password" id="ref-pw" value="correct horse"></span></div>
+      <div class="form-group"><label class="form-label" for="ref-pw2">Password, with the eye</label><span class="password-field"><input class="form-input" type="password" id="ref-pw2" value="battery staple" data-password-toggle="glyph"></span></div>
+      <div class="form-group"><label class="form-label" for="ref-accounts">Accounts</label><select class="form-select" id="ref-accounts" multiple size="5" data-listbox><option selected>Billable</option><option>Non-billable</option><option selected>Internal</option><option>Training</option><option>Travel</option><option>Pre-sales</option></select></div>
+      <div class="form-group"><label class="form-label" for="ref-tags">Tags</label><span class="combo" data-combo-tokens><input class="form-input" id="ref-tags" list="ref-tag-options" value="receipts, q4"><datalist id="ref-tag-options"><option value="receipts"></option><option value="q4"></option><option value="travel"></option><option value="billable"></option></datalist></span></div>
+      <div class="form-group"><label class="form-label" for="ref-due">Due</label><input class="form-input" type="date" id="ref-due" value="2026-10-22" data-date></div>
+      <div class="form-group"><label class="form-label" for="ref-at">Starts</label><input class="form-input" type="time" id="ref-at" value="13:30" step="900" data-date></div>
+    </div>
+
+    <h2 id="people">27. Pictures, avatars and steppers</h2>
+    <p>A figure's frame keeps its picture's proportion before it loads, and a picture that fails shows its words. An avatar is neutral, or tinted by name, and its status mark has a shape as well as a colour. A stepper tells done, current and to come by shape as well as colour, and each done step is a link back.</p>
+    <div class="demo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--space-4); align-items: start">
+      <figure class="figure"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 90'%3E%3Crect width='160' height='90' fill='%23c9b79c'/%3E%3Crect x='58' y='8' width='44' height='76' rx='2' fill='%23fbfaf6' transform='rotate(-6 80 46)'/%3E%3Ccircle cx='128' cy='24' r='14' fill='%237d5a3c'/%3E%3C/svg%3E" alt="A receipt on a café table" width="160" height="90"><figcaption>The receipt, photographed at check-out.</figcaption></figure>
+      <figure class="figure"><img src="data:image/png;base64,AAAA" alt="The second page of the receipt" width="160" height="90"><figcaption>A picture that failed to load.</figcaption></figure>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Ana Reyes">PP</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
+        <span class="avatar-wrap"><span class="avatar" role="img" aria-label="Ana Cruz">AC</span><span class="avatar-status" data-status="away" aria-label="Away"></span></span>
+        <span class="avatar-wrap"><span class="avatar" role="img" aria-label="Jun Reyes">JR</span><span class="avatar-status" data-status="busy" aria-label="Busy"></span></span>
+        <span class="avatar sm" role="img" aria-label="Mei Tan">MT</span>
+        <span class="avatar tint" role="img" aria-label="Devin">D</span>
+        <span class="avatar tint lg" role="img" aria-label="Ana Cruz">AC</span>
+      </div>
+    </div>
+    <div class="demo" style="margin-top: var(--space-3)">
+      <ol class="stepper" aria-label="Add a configuration">
+        <li class="done"><a href="#people">Client<span class="visually-hidden"> (done)</span></a></li>
+        <li class="done"><a href="#people">Folder<span class="visually-hidden"> (done)</span></a></li>
+        <li aria-current="step"><span>Languages</span></li>
+        <li><span>Review</span></li>
+      </ol>
+    </div>
+
+    <h2>28. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>

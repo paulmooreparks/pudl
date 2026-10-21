@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>List boxes</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-listbox.js" defer></script>
+  <style>body { margin: 24px; } form { display: grid; grid-template-columns: repeat(3, 280px); gap: 0 24px; align-items: start; }</style>
+</head>
+<body>
+  <!-- A test fixture for list boxes (0.74.0). -->
+  <form id="form" action="#" onsubmit="return false">
+    <div class="form-group">
+      <label class="form-label" for="accounts">Accounts</label>
+      <select class="form-select" id="accounts" name="accounts" multiple size="6" data-listbox>
+        <option value="bill" selected>Billable</option>
+        <option value="nonbill">Non-billable</option>
+        <option value="int" selected>Internal</option>
+        <option value="train">Training</option>
+        <option value="travel" disabled>Travel</option>
+        <option value="pre">Pre-sales</option>
+        <option value="sup">Support</option>
+        <option value="mkt">Marketing</option>
+        <option value="rnd">Research</option>
+        <option value="adm">Administration</option>
+        <option value="hol">Holiday</option>
+        <option value="sick">Sick leave</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="office">Office</label>
+      <select class="form-select" id="office" name="office" size="5" data-listbox>
+        <optgroup label="Asia">
+          <option value="sg" selected>Singapore</option>
+          <option value="mnl">Manila</option>
+          <option value="kl">Kuala Lumpur</option>
+          <option value="bkk" disabled>Bangkok</option>
+          <option value="tyo">Tokyo</option>
+        </optgroup>
+        <optgroup label="Europe">
+          <option value="ber">Berlin</option>
+          <option value="ham">Hamburg</option>
+          <option value="lon">London</option>
+          <option value="lis">Lisbon</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="closed">Closed codes</label>
+      <select class="form-select" id="closed" name="closed" multiple size="3" disabled data-listbox>
+        <option value="a" selected>Archive</option>
+        <option value="b">Backlog</option>
+        <option value="c">Cancelled</option>
+      </select>
+    </div>
+    <button id="after" type="button" class="btn">After</button>
+  </form>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!doctype html>
+<html data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Date and time fields</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-date.js" defer></script>
+  <style>body { margin: 24px; } .form-group { max-width: 320px; } form { display: grid; grid-template-columns: repeat(3, 320px); gap: 0 24px; }</style>
+</head>
+<body>
+  <!-- A test fixture for date and time fields (0.74.0). The page has no
+       language, so a field outside any lang writes ISO; each other field
+       takes its language from the group around it. -->
+  <form id="form" action="#" onsubmit="return false">
+    <div class="form-group" lang="">
+      <label class="form-label" for="isod">ISO date</label>
+      <input class="form-input" type="date" id="isod" name="isod" value="2026-10-22" data-date>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="isot">ISO time</label>
+      <input class="form-input" type="time" id="isot" name="isot" value="21:30" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="due">Due</label>
+      <input class="form-input" type="date" id="due" name="due" value="2026-10-22" min="2026-01-01" max="2026-12-31" aria-describedby="due-help" required data-date>
+      <p class="form-help" id="due-help">Within 2026.</p>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="at">At</label>
+      <input class="form-input" type="time" id="at" name="at" value="13:30" step="900" min="08:00" max="18:00" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="off">Closed on</label>
+      <input class="form-input" type="date" id="off" name="off" value="2026-03-01" disabled data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="birth">Born</label>
+      <input class="form-input" type="date" id="birth" name="birth" value="2026-10-22" data-date-style="medium" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="long">Long</label>
+      <input class="form-input" type="date" id="long" name="long" value="2026-10-22" data-date-style="long" data-date>
+    </div>
+    <div class="form-group" lang="en-US">
+      <label class="form-label" for="us">American date</label>
+      <input class="form-input" type="date" id="us" name="us" data-date>
+    </div>
+    <div class="form-group" lang="en-US">
+      <label class="form-label" for="ust">American time</label>
+      <input class="form-input" type="time" id="ust" name="ust" value="21:30" data-date>
+    </div>
+    <div class="form-group" lang="ja-JP-u-ca-japanese">
+      <label class="form-label" for="jp">和暦</label>
+      <input class="form-input" type="date" id="jp" name="jp" value="2026-10-22" data-date>
+    </div>
+    <div class="form-group" lang="ja-JP">
+      <label class="form-label" for="jpt">時刻</label>
+      <input class="form-input" type="time" id="jpt" name="jpt" value="21:30" data-date>
+    </div>
+    <div class="form-group" lang="th-TH">
+      <label class="form-label" for="th">วันที่</label>
+      <input class="form-input" type="date" id="th" name="th" value="2026-10-22" data-date>
+    </div>
+    <div class="form-group" lang="ar-SA-u-ca-islamic-umalqura" dir="rtl">
+      <label class="form-label" for="hijri">التاريخ</label>
+      <input class="form-input" type="date" id="hijri" name="hijri" value="2026-10-22" data-date>
+    </div>
+    <div class="form-group" lang="he-IL-u-ca-hebrew" dir="rtl">
+      <label class="form-label" for="heb">תאריך</label>
+      <input class="form-input" type="date" id="heb" name="heb" value="2026-10-22" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="t5">Every five minutes</label>
+      <input class="form-input" type="time" id="t5" name="t5" data-time-list="5" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="t6">Every six minutes</label>
+      <input class="form-input" type="time" id="t6" name="t6" data-time-list="6" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="t30">Any minute</label>
+      <input class="form-input" type="time" id="t30" name="t30" value="23:59" data-date>
+    </div>
+    <div class="form-group" lang="en-GB">
+      <label class="form-label" for="stamp">Not enhanced</label>
+      <input class="form-input" type="datetime-local" id="stamp" name="stamp" data-date>
+    </div>
+  </form>
+  <button id="after" type="button">After</button>
+
+  <button id="open-dialog" type="button" onclick="document.getElementById('dlg').showModal()">Dialog</button>
+  <dialog class="dialog" id="dlg" aria-labelledby="dlg-title" lang="en-GB">
+    <h2 class="dialog-title" id="dlg-title">In a dialog</h2>
+    <div class="form-group">
+      <label class="form-label" for="dlgd">Start</label>
+      <input class="form-input" type="date" id="dlgd" name="dlgd" value="2026-05-10" data-date>
+    </div>
+  </dialog>
+</body>
+</html>
