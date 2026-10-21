@@ -2564,16 +2564,21 @@
     if (!win) return;
     panel.textContent = '';
     var standard = menuCommands(key);
+    function heading(label) {
+      var head = document.createElement('div');
+      head.className = 'md-section-label';
+      head.setAttribute('role', 'presentation');
+      head.textContent = label;
+      panel.appendChild(head);
+    }
     standard.filter(function (c) { return c.id !== 'close'; }).forEach(function (c) {
-      if (c.id === 'snap') { snapItems(panel, key); return; }
-      /* The Dock list stands in the menu under its heading, as the layout
-         picker does, since this menu has no submenus. */
+      /* The layout picker and the Dock list each stand in the menu under a
+         heading, since this menu has no submenus; Snap's heading (0.70.2)
+         sets the zones of the layer apart from the edges a window docks
+         at. */
+      if (c.id === 'snap') { heading(text('snap-menu', 'Snap')); snapItems(panel, key); return; }
       if (c.id === 'dock') {
-        var head = document.createElement('div');
-        head.className = 'md-section-label';
-        head.setAttribute('role', 'presentation');
-        head.textContent = c.label;
-        panel.appendChild(head);
+        heading(c.label);
         c.items.forEach(function (d) { panel.appendChild(d === '-' ? sep() : menuItem(d.label, d.id, d)); });
         return;
       }

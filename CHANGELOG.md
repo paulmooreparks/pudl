@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.70.2
+
+The window menu's layout picker stands under the heading Snap, as the Dock list stands under Dock, so the two are told apart: snapping places a floating window in a zone of the layer, and docking fastens it to an edge. A page sets its own word with `data-win-text-snap-menu` on the layer. The specification is unchanged at 0.28.0.
+
 ## 0.70.1
 
 A field in a toolbar keeps its own keys, from example.com's proposal after its Sight Reader put its first and last bar numbers on its toolbar. The specification is unchanged at 0.28.0; it does not describe a toolbar's keys.
