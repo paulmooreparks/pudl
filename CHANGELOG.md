@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.74.1
+
+Every small raised key is 28px tall, a glyph button's height: a `.btn-sm`, whatever it holds, which was 25px with words and 26px with a glyph, and a `.seg.sm`'s keys, which were 21px. A small segmented control now stands as tall as the small buttons and glyph buttons beside it in a toolbar, as in the reader application's reader toolbar. This release implements specification 0.31.1. A project that stretched its small segmented control to match its buttons, as the reader application's `.reader-panes` rule does, can drop that rule.
+
 ## 0.74.0
 
 PUDL's gap to a complete UI library, closed in one release, from the maintainer's question of what it still lacked (`docs/proposals/completeness.md`) and the controls he chose from mockups. Every control is built from the grammar, sunken where it takes input, raised where it is pressed, pressed in where it is chosen, glyph and colour together; follows the page's language and culture; and answers the complaints made most often about it elsewhere. This release implements specification 0.31.0.
