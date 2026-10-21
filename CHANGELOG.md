@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.70.1
+
+A field in a toolbar keeps its own keys, from example.com's proposal after its Sight Reader put its first and last bar numbers on its toolbar. The specification is unchanged at 0.28.0; it does not describe a toolbar's keys.
+
+- A field the reader types in, a text area or an input other than a box, a button, a file or a colour, keeps Left, Right, Home and End for itself. Before, Left in a field moved to the button before it instead of moving the caret.
+- Left with the caret at a field's start moves to the control before it, and Right at its end to the control after, so the arrow keys still cross a toolbar with a search field in the middle. A field that does not report its caret, such as a number or a date field, keeps its arrow keys always and is left with Tab. Arriving by an arrow key, the caret starts at the edge the reader came in by.
+- Every field is a Tab stop of its own, so Tab and Shift+Tab move from field to field as in a form, and the toolbar's one stop is on its buttons and links alone. Focusing a field no longer moves that stop.
+- A key a page's own handler has already called `preventDefault()` on is left alone.
+- A site that worked around this, as the Sight Reader does, keeps working and can drop the workaround.
+- A new test, `toolbar-fields`.
+
 ## 0.70.0
 
 Smaller downloads. A typical English page now downloads about 140 KB of PUDL, compressed, where 0.69.3 needed about 235 KB, and a project that wants it can go lower or keep everything as it was. The specification is unchanged at 0.28.0.

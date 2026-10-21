@@ -804,7 +804,7 @@ A **zoom group** is `.zoom[role="group"]` with `[data-zoom="out"]` and `[data-zo
 
 A **row list** is `ul.row-list` of `li.md-row > a.md-item` rows, the master-detail list's rows standing on their own, each a link to its thing's address, with `aria-current="true"` on the one that is open. `pudl-md.js` makes every list of rows, the sidebar's too, one tab stop with Up, Down, Home and End moving among them.
 
-A **toolbar** (0.61.0) is `.toolbar[role="toolbar"]` of `.toolbar-group[role="group"]`s holding glyph buttons, menu buttons and small buttons, as a page editor's formatting toolbar; groups are set apart by a hairline and wrap whole. A button in the state the cursor is in carries `aria-pressed="true"` and is drawn pressed in. `pudl-toolbar.js` makes the toolbar one tab stop, on the control last used: Left and Right move along the enabled controls, Home and End to the ends, and a menu button whose every `.menu-action` is disabled is disabled with them. The glyphs `bold`, `italic`, `underline`, `strike`, `code`, `list`, `list-numbered`, `quote`, `table`, `panel`, `colour` and `paragraph` came with it.
+A **toolbar** (0.61.0) is `.toolbar[role="toolbar"]` of `.toolbar-group[role="group"]`s holding glyph buttons, menu buttons and small buttons, as a page editor's formatting toolbar; groups are set apart by a hairline and wrap whole. A button in the state the cursor is in carries `aria-pressed="true"` and is drawn pressed in. `pudl-toolbar.js` makes the toolbar one tab stop, on the button last used: Left and Right move along the enabled controls, Home and End to the ends, and a menu button whose every `.menu-action` is disabled is disabled with them. A field the reader types in, a text area, or an input other than a box, a button, a file or a colour, keeps its own keys and is a Tab stop of its own, so that two fields are filled one after the other as in a form (0.70.1). Left, Right, Home and End move its caret; Left with the caret at the field's start moves to the control before it, and Right at its end to the control after. A field that does not report its caret, such as a number or a date, keeps its arrow keys always and is left with Tab. A key a field's own handler has already called `preventDefault()` on is left alone. The glyphs `bold`, `italic`, `underline`, `strike`, `code`, `list`, `list-numbered`, `quote`, `table`, `panel`, `colour` and `paragraph` came with it.
 
 A field's label line may end in a command: a `.form-label-row` holding the `.form-label` and a `.form-label-end` slot of small raised controls, such as a `.menu-btn.btn-sm`. The command wraps under the label when the line is too narrow. A select is never used for this, since it is an input and holds no value.
 
@@ -1300,7 +1300,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-disclose.js`, the optional script for cards that open and close
   - `pudl-zoom.js`, the optional script that scales a picture in a viewport that scrolls
   - `pudl-rows.js`, the optional script that keeps focus right in a row editor
-  - `pudl-toolbar.js`, the optional script that makes a toolbar one tab stop, and folds one marked `data-toolbar-fold` (preview)
+  - `pudl-toolbar.js`, the optional script that makes a toolbar one tab stop besides its fields, and folds one marked `data-toolbar-fold` (preview)
   - `pudl-actions.js`, `pudl-actions-core.js` and `vendor/cfworker-json-schema-4.1.1/`, the optional applet actions: the broker, the rules any host shares, and the JSON Schema validator it loads (MIT, see its `NOTICE.txt`)
   - `pudl-commands.js`, the optional declared commands (preview)
   - a notice and a toast keep an unbroken word, a code block and a long action inside the card (0.62.0); give a long action its whole label as `title`
@@ -1329,7 +1329,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.70.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.70.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

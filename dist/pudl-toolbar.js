@@ -13,20 +13,48 @@
        </div>
      </div>
 
-   The toolbar is one stop in the Tab order, on the last control used or
+   The toolbar is one stop in the Tab order, on the last button used or
    the first: Left and Right move along its enabled controls, Home and End
-   to its ends, and Tab leaves. A control in the state the cursor is in
-   carries aria-pressed="true" and is drawn pressed in. A menu button whose
+   to its ends, and Tab leaves. A field a reader types in keeps its own
+   keys and is a Tab stop of its own, as in a form (0.70.1): Left, Right,
+   Home and End move its caret, Left with the caret at the field's start
+   moves to the control before and Right at its end to the control after,
+   and a field that does not say where its caret is, such as a number
+   field, keeps them always and is left with Tab. A control in the state
+   the cursor is in carries aria-pressed="true" and is drawn pressed in. A menu button whose
    every row is disabled is disabled with them, and enabled again when a
    row is; the script watches the rows. pudlToolbar.enhance(root) takes in
    toolbars a host has added. */
 (function () {
   'use strict';
 
+  var CONTROL = 'button, a[href], input, select, textarea';
+
   function controls(bar) {
-    return Array.prototype.filter.call(bar.querySelectorAll('button, a[href], input, select'), function (c) {
+    return Array.prototype.filter.call(bar.querySelectorAll(CONTROL), function (c) {
       return !c.closest('.menu-panel') && !c.disabled && c.getAttribute('aria-disabled') !== 'true' && c.getClientRects().length > 0;
     });
+  }
+
+  /* A field a reader types in or sets with the arrow keys: a text area, or
+     an input other than a box, a button, a file or a colour. A range is one,
+     since its arrows set its value. */
+  function isField(c) {
+    if (c.tagName === 'TEXTAREA') return true;
+    if (c.tagName !== 'INPUT') return false;
+    return !/^(checkbox|radio|button|submit|reset|image|file|color)$/.test(c.type);
+  }
+
+  /* Whether the caret is at the field's start, or with forward at its end,
+     with nothing selected. HTML gives selectionStart only for text, search,
+     URL, telephone and password fields and text areas, and null for every
+     other type, which then never lets an arrow key leave
+     (https://html.spec.whatwg.org/multipage/input.html#do-not-apply). */
+  function atEdge(c, forward) {
+    var s, e;
+    try { s = c.selectionStart; e = c.selectionEnd; } catch (err) { return false; }
+    if (typeof s !== 'number' || s !== e) return false;
+    return forward ? s === c.value.length : s === 0;
   }
 
   /* The control that is the toolbar's one tab stop. With cheap set, a stop
@@ -48,7 +76,15 @@
   }
 
   function stop(bar, on, cheap) {
-    var all = Array.prototype.filter.call(bar.querySelectorAll('button, a[href], input, select'), function (c) { return !c.closest('.menu-panel'); });
+    var all = [];
+    /* Every field is a Tab stop of its own, and the toolbar's one stop is
+       among the rest (0.70.1). */
+    Array.prototype.forEach.call(bar.querySelectorAll(CONTROL), function (c) {
+      if (c.closest('.menu-panel')) return;
+      if (isField(c)) { if (c.tabIndex !== 0) c.tabIndex = 0; }
+      else all.push(c);
+    });
+    if (on && isField(on)) on = null;
     if (cheap && !on) {
       /* New controls are tab stops until told otherwise, so of those that
          are, the first in sight is kept, without measuring. */
@@ -67,7 +103,7 @@
         return;
       }
     }
-    var live = controls(bar);
+    var live = controls(bar).filter(function (c) { return !isField(c); });
     if (!live.length) return;
     if (!on || live.indexOf(on) < 0) on = live.filter(function (c) { return c.tabIndex === 0; })[0] || live[0];
     all.forEach(function (c) { var t = c === on ? 0 : -1; if (c.tabIndex !== t) c.tabIndex = t; });
@@ -101,23 +137,33 @@
       if (bar.__ready) return;
       bar.__ready = true;
       bar.addEventListener('keydown', function (e) {
-        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-        if (e.target.closest('.menu-panel')) return;
-        var list = controls(bar), i = list.indexOf(e.target.closest('button, a[href], input, select')), next;
+        if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+        if (e.target.isContentEditable || e.target.closest('.menu-panel')) return;
+        if (!/^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key)) return;
+        var c = e.target.closest(CONTROL), list = controls(bar), i = list.indexOf(c), next;
         if (i < 0) return;
         var rtl = getComputedStyle(bar).direction === 'rtl';
-        if (e.key === (rtl ? 'ArrowLeft' : 'ArrowRight')) next = list[(i + 1) % list.length];
-        else if (e.key === (rtl ? 'ArrowRight' : 'ArrowLeft')) next = list[(i + list.length - 1) % list.length];
+        var forward = e.key === (rtl ? 'ArrowLeft' : 'ArrowRight');
+        var back = e.key === (rtl ? 'ArrowRight' : 'ArrowLeft');
+        /* A field keeps its keys but at its edges (0.70.1). */
+        if (isField(c) && !((forward || back) && atEdge(c, forward))) return;
+        if (forward) next = list[(i + 1) % list.length];
+        else if (back) next = list[(i + list.length - 1) % list.length];
         else if (e.key === 'Home') next = list[0];
-        else if (e.key === 'End') next = list[list.length - 1];
-        else return;
+        else next = list[list.length - 1];
         e.preventDefault();
-        stop(bar, next);
-        next.focus();
+        if (isField(next)) {
+          next.focus();
+          /* Entering a field, the caret starts at the edge it came in by. */
+          try { var at = forward ? 0 : next.value.length; next.setSelectionRange(at, at); } catch (err) { /* no caret */ }
+        } else {
+          stop(bar, next);
+          next.focus();
+        }
       });
       bar.addEventListener('focusin', function (e) {
-        var c = e.target.closest('button, a[href], input, select');
-        if (c && !c.closest('.menu-panel')) stop(bar, c);
+        var c = e.target.closest(CONTROL);
+        if (c && !c.closest('.menu-panel') && !isField(c)) stop(bar, c);
       });
       new MutationObserver(function () {
         menus(bar); stop(bar, null, true);

@@ -127,6 +127,8 @@ A preview of the command table, `data-command` controls and folding shipped in 0
 
 an application moved its toolbars next and found six gaps (`docs/proposals/pudl-commands-gaps.md` there), which 0.69.0 fills. The command table gains `panel(container)`, for a command that draws its own menu; `tone`, a status colour with no other meaning, which brings its status glyph where the command has none; `detail`, a line saying what the command does; and `bind: false`, for a key shown but bound elsewhere, chosen over an application's separate `key` field so that a command has one field for its key. A control's name carries its badge. A group marked `data-toolbar-keep` never folds, which replaces the rule above that a field becomes a glyph button at stage 5. `list` describes a command by its own scope's controls, and `run` with an element stays in that element's scopes, which is the default rather than the opt-in an application asked for, since an agent naming one window must never reach another's.
 
+In 0.70.1, after example.com's Sight Reader put two number fields on its toolbar, a field keeps its own keys and is a Tab stop of its own, so the keyboard described above holds for the toolbar's buttons. Left at a field's start and Right at its end move on, and a field that does not report its caret, a number field among them, is left with Tab.
+
 ## Questions for the maintainer
 
 the maintainer decided all four as recommended. On 2026-10-20 he chose that folding stays opt-in with `data-toolbar-fold` until an application has moved, that group names sit beside the controls, and that every control shows its words at stage 1. On 2026-10-21 he agreed that no toolbar appears unless the applet asks for one.
