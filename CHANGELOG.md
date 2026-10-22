@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.77.0
+
+A menu bar's panel now lines up its commands as a context menu does. Wherever any command in a panel has a glyph or a picture, glyphs, pictures, ticks and the warning on a dangerous command share one 16px column, and a command with none leaves the column empty, so every command's words start in one line. A command's glyph is 14px in `text-muted`, as in a context menu, and a picture such as an applet's icon keeps 16px. Until now a command without a glyph started at the panel's edge while those with one were pushed in, as the maintainer saw in the reader application's Story menu beside its tidy context menu. The `.menubar-icon` no longer has a margin of its own, since the row's gap spaces it. This release implements specification 0.34.0.
+
 ## 0.76.0
 
 A context menu now shows which element it acts on. The `pudl:contextmenu` event's detail gains `mark(element)`, and `pudlMenu.openAt` gains a `for` option; the marked element has `data-menu-for`, set to the menu's id, while the menu is open, and loses it when the menu closes, however it closes. Only one element is marked at a time. The stylesheet gives `:where([data-menu-for])` the background of a row under the pointer, and a data table's row its own hover look, so the row a reader right-clicked stays lit after the pointer moves into the menu; in high-contrast mode it is outlined in the highlight colour. A menu opened by Shift+F10 or the Menu key is marked the same way, since focus has left the row there too. Where the page marks nothing, nothing changes. an application asked for it, after the row of its workspace tree lost its highlight as the pointer moved into the menu; its own `data-context-open` workaround can go. This release implements specification 0.33.0.
