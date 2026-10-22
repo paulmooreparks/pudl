@@ -1,6 +1,6 @@
 # Menu-bar standardization implementation
 
-This design implements the [menu-bar conventions](../MENU-BARS.md) in PUDL 0.40.0. It preserves existing explicit applet menu definitions while supplying a migration for legacy fallback menus. The canonical architectural principles remain in `C:\Users\example\OneDrive\Documents\Architectural Principles.md`.
+This design implements the [menu-bar conventions](../MENU-BARS.md) in PUDL 0.40.0. It preserves existing explicit applet menu definitions while supplying a migration for legacy fallback menus.
 
 ## Contract decisions
 
