@@ -82,6 +82,36 @@ function check(name, ok, detail) {
   await p.keyboard.press(' ');
   check('Space chooses too', await ran() === 'wrap' && await open() === 0);
 
+  /* Marking what the menu is for (0.76.0). */
+  const marked = () => p.evaluate(() => Array.from(document.querySelectorAll('[data-menu-for]')).map(el => el.textContent.trim()).join(','));
+  check('a menu where the page marks nothing marks nothing', await marked() === '');
+  const lbox = await p.locator('#row-a .label').boundingBox();
+  await p.mouse.click(lbox.x + 5, lbox.y + 5, { button: 'right' });
+  check('detail.mark marks the row the menu is for, not the label under the pointer', await marked() === 'Alpha' && await p.evaluate(() => document.querySelector('#row-a a').getAttribute('data-menu-for') === document.querySelector('.context-menu:popover-open').id));
+  await p.mouse.move(lbox.x + 400, lbox.y + 300);
+  const lit = await p.evaluate(() => [getComputedStyle(document.querySelector('#row-a a')).backgroundColor, getComputedStyle(document.querySelector('#row-b a')).backgroundColor]);
+  check('the marked row stays lit after the pointer leaves it', lit[0] !== lit[1], JSON.stringify(lit));
+  const bbox = await p.locator('#row-b .label').boundingBox();
+  await p.mouse.click(bbox.x + 5, bbox.y + 5, { button: 'right' });
+  check('opening another menu moves the mark, one element at a time', await marked() === 'Beta' && await open() === 1, await marked() + ' ' + await open() + ' ' + JSON.stringify(bbox));
+  await p.keyboard.press('Escape');
+  check('Escape takes the mark away', await marked() === '');
+  await p.mouse.click(lbox.x + 5, lbox.y + 5, { button: 'right' });
+  await p.click('.context-menu:popover-open .menu-action');
+  check('choosing a row takes it away', await marked() === '' && await ran() === 'open Alpha');
+  await p.mouse.click(lbox.x + 5, lbox.y + 5, { button: 'right' });
+  await p.mouse.click(600, 500);
+  check('a press outside takes it away', await marked() === '');
+  await p.focus('#row-a a');
+  await p.keyboard.press('Shift+F10');
+  check('a menu opened from the keyboard marks it too', await marked() === 'Alpha');
+  await p.keyboard.press('Tab');
+  check('Tab takes it away', await marked() === '');
+  await p.evaluate(() => pudlMenu.openAt(100, 100, [{ label: 'One', run() {} }], { for: document.querySelector('#row-b a') }));
+  check('openAt marks its for', await marked() === 'Beta');
+  await p.keyboard.press('Escape');
+  check('and Escape takes that away', await marked() === '');
+
   /* From a script, at an edge. */
   await p.evaluate(() => pudlMenu.openAt(innerWidth - 4, innerHeight - 4, [{ label: 'One', run() {} }, { label: 'Two', run() {} }]));
   const inside = await p.evaluate(() => { const r = document.querySelector('.context-menu:popover-open').getBoundingClientRect(); return r.right <= innerWidth && r.bottom <= innerHeight && r.left >= 0 && r.top >= 0; });

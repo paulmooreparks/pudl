@@ -775,7 +775,18 @@ editor.addEventListener('pudl:contextmenu', e => e.detail.add([
 ]));
 ```
 
-A row is a menu bar's row: `label`, `run`, `disabled` with its `reason`, `checked` (with `radio`), `danger`, `detail`, `shortcut`, `glyph` (a glyph token's name) and `items` for a submenu, or `'-'` for a separator, or a command's id where `pudl-commands.js` is loaded. A shortcut is shown in the platform's form and bound by nothing, since the key belongs to whatever owns it. The detail also carries `x`, `y`, `keyboard` and `target`. `pudlMenu.openAt(x, y, rows, { owner, label })` opens one from a script, and `pudlMenu.closeContext()` closes it. Up and Down move, wrapping; a letter goes to the next row starting with it; Right and Left open and close a submenu; Enter and Space choose; Escape closes a level; focus returns where it was.
+A row is a menu bar's row: `label`, `run`, `disabled` with its `reason`, `checked` (with `radio`), `danger`, `detail`, `shortcut`, `glyph` (a glyph token's name) and `items` for a submenu, or `'-'` for a separator, or a command's id where `pudl-commands.js` is loaded. A shortcut is shown in the platform's form and bound by nothing, since the key belongs to whatever owns it. The detail also carries `x`, `y`, `keyboard` and `target`. `pudlMenu.openAt(x, y, rows, { owner, label, for })` opens one from a script, and `pudlMenu.closeContext()` closes it. Up and Down move, wrapping; a letter goes to the next row starting with it; Right and Left open and close a submenu; Enter and Space choose; Escape closes a level; focus returns where it was.
+
+A handler should also say which element the menu is for, with `event.detail.mark(element)` (0.76.0), or `for` when a script calls `openAt`. The event's `target` is whatever was under the pointer, often a word or a glyph inside a row, so only the page knows which element is the row. While the menu is open that element has `data-menu-for`, set to the menu's id, and the stylesheet keeps it lit as a row under the pointer is, so the reader can still see which row the commands act on after moving into the menu. Call it whether the pointer or the keyboard opened the menu, since focus leaves the row in both cases. The mark goes when the menu closes, however it closes, and only one element is marked at a time. The rule is `:where([data-menu-for])`, with no weight, so a component whose rows have their own hover look restyles `[data-menu-for]` as it does `:hover`.
+
+```js
+tree.addEventListener('pudl:contextmenu', e => {
+  const row = e.detail.target.closest('a');
+  if (!row) return;
+  e.detail.mark(row);
+  e.detail.add([{ label: 'Rename', run: () => rename(row) }]);
+});
+```
 
 ## Menus
 
@@ -1503,7 +1514,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.75.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.76.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 

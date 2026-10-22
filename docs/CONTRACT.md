@@ -158,6 +158,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-menu-key`, `data-menu-empty` | a menu panel | `pudl-menu.js` | Its summoning key, its "nothing matches" text |
 | `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |
 | `data-menu-placement` | a menu panel | `pudl-menu.js` | `beside` places a submenu beside its anchor, using the same visible viewport bounds and overflow cues |
+| `data-menu-for` | the element a context menu acts on | the stylesheet | Set by `pudl-menu.js` to the open menu's id where the page marks the element, and removed when the menu closes; the element keeps its pointed-at look (0.76.0) |
 | `data-md-pane` | `.md-layout` | the stylesheet, `pudl-windows.js` | Which pane a narrow layout shows |
 | `data-md-side` | `.md-layout` | the stylesheet, `pudl-md.js` | `end` puts the sidebar at the end edge of the writing direction, mirrored; `start`, the default, at the start |
 | `data-md-peek` | a persistent `.md-layout` | `pudl-md.js`, the stylesheet | Let the reader peek at the collapsed sidebar by resting the pointer on, or keyboard-focusing, its handle; PUDL marks an open peek with `data-md-peek-open` and `--md-peek-shift`, which are its own |
@@ -194,7 +195,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:split` | a splitter's handle, bubbles | `size` in pixels, or null after a reset | When a change to the split ends |
 | `pudl:code-copy`, `pudl:code-download` | the code block's `pre`, bubbles | `ok` for a copy, `name` for a download | After each action |
 | `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
-| `pudl:contextmenu` | what was under the pointer or has focus, bubbles | `add(rows)`, `x`, `y`, `keyboard`, `target` | On a right-click, Shift+F10 or the Menu key; rows added open a context menu in place of the browser's (0.74.0) |
+| `pudl:contextmenu` | what was under the pointer or has focus, bubbles | `add(rows)`, `mark(element)`, `x`, `y`, `keyboard`, `target` | On a right-click, Shift+F10 or the Menu key; rows added open a context menu in place of the browser's (0.74.0), and `mark` says which element it acts on (0.76.0) |
 | `pudl:row-select` | a grid's row, bubbles | | After the selection moves to the row |
 | `pudl:row-open` | a grid's row, bubbles | | When a row with no link is opened, by Enter or a double-click |
 | `pudl:md-resize` | the `.md-layout`, bubbles | `width`, `reset` | When a sidebar resize ends |
@@ -227,7 +228,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
 | `pudlMenu.place(panel)` | `pudl-menu.js` | Place an open panel at once and show it, for a script that moves focus into it in the same moment |
 | `pudlMenu.refresh()` | `pudl-menu.js` | Build the pop-up button for segmented controls with `data-seg-menu` added by other means |
-| `pudlMenu.openAt(x, y, rows, { owner, label })`, `pudlMenu.closeContext()` | `pudl-menu.js` | Open a context menu at a point from a script, and close it (0.74.0) |
+| `pudlMenu.openAt(x, y, rows, { owner, label, for })`, `pudlMenu.closeContext()` | `pudl-menu.js` | Open a context menu at a point from a script, and close it (0.74.0); `for` is the element it acts on (0.76.0) |
 | `pudlFields.enhance(root)`, `pudlFields.refresh(el)` | `pudl-fields.js` | Take in fields added later; show a value a script has set (0.74.0) |
 | `pudlListbox.enhance(root)`, `pudlListbox.refresh(select)` | `pudl-listbox.js` | Take in list boxes added later; show a choice a script has set (0.74.0) |
 | `pudlDate.enhance(root)`, `pudlDate.refresh(input)` | `pudl-date.js` | Take in date and time fields added later; show a value a script has set (0.74.0) |

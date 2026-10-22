@@ -496,8 +496,15 @@
      point, whether the keyboard opened it, and the target. Whatever adds
      rows gets a menu of them at the point, and the browser's own menu does
      not open; where nothing adds a row, the browser's menu opens as it
-     always has. pudlMenu.openAt(x, y, rows, { owner, label }) opens one
-     from a script.
+     always has. pudlMenu.openAt(x, y, rows, { owner, label, for }) opens
+     one from a script.
+
+     The target is whatever was under the pointer, often a label or glyph
+     inside a row, so the page says which element the menu is for, with
+     detail.mark(element) or openAt's for (0.76.0). That element carries
+     data-menu-for while the menu is open, however it closes, and the
+     stylesheet keeps it lit as it was under the pointer, so the reader
+     can see what the commands act on. One element is marked at a time.
 
      A row is the menu bar's: { label, run, disabled, checked, radio,
      danger, detail, shortcut, glyph, items }, or '-' for a separator, or a
@@ -525,7 +532,7 @@
     return k.split('+').map(function (p) { return p === 'Mod' ? (MAC ? 'Meta' : 'Control') : p === 'Ctrl' ? 'Control' : p; }).join('+');
   }
 
-  var ctx = { panels: [], owner: null, quiet: false };
+  var ctx = { panels: [], owner: null, marked: null, quiet: false };
   var ctxUid = 0;
 
   function rowsFrom(list, target) {
@@ -547,6 +554,8 @@
       p.remove();
     }
     if (level === 0) {
+      if (ctx.marked) ctx.marked.removeAttribute('data-menu-for');
+      ctx.marked = null;
       var owner = ctx.owner;
       ctx.owner = null;
       if (owner && owner.isConnected && (!document.activeElement || document.activeElement === document.body)) owner.focus({ preventScroll: true });
@@ -707,6 +716,11 @@
     if (!rows.some(function (r) { return r && r !== '-' && typeof r.label === 'string'; })) return null;
     ctx.owner = opts.owner || document.activeElement;
     var panel = buildContext(rows, { x: x, y: y }, opts.label, 0, null);
+    var mark = opts['for'];
+    if (mark && mark.nodeType === 1) {
+      mark.setAttribute('data-menu-for', panel.id);
+      ctx.marked = mark;
+    }
     var first = ctxRows(panel).filter(function (r) { return r.getAttribute('aria-disabled') !== 'true'; })[0] || ctxRows(panel)[0];
     if (first) first.focus({ preventScroll: true });
     return panel;
@@ -714,13 +728,14 @@
 
   /* Asks the page for rows, by pudl:contextmenu on the target. */
   function ask(target, x, y, keyboard) {
-    var rows = [];
+    var asked = { rows: [], mark: null };
     var detail = {
       x: x, y: y, keyboard: keyboard, target: target,
-      add: function (r) { rows = rows.concat(Array.isArray(r) ? r : [r]); }
+      add: function (r) { asked.rows = asked.rows.concat(Array.isArray(r) ? r : [r]); },
+      mark: function (el) { asked.mark = el && el.nodeType === 1 ? el : null; }
     };
     target.dispatchEvent(new CustomEvent('pudl:contextmenu', { bubbles: true, detail: detail }));
-    return rows;
+    return asked;
   }
 
   /* Where a menu summoned from the keyboard opens: under the focused
@@ -746,10 +761,10 @@
        its spelling suggestions and its copy, paste and inspect, the thing
        readers miss most where a page replaces it. */
     if (e.shiftKey) return;
-    var rows = ask(e.target, e.clientX, e.clientY, false);
-    if (!rows.length) return;
+    var asked = ask(e.target, e.clientX, e.clientY, false);
+    if (!asked.rows.length) return;
     e.preventDefault();
-    openAt(e.clientX, e.clientY, rows, { owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target });
+    openAt(e.clientX, e.clientY, asked.rows, { owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
   });
 
   document.addEventListener('keydown', function (e) {
@@ -759,11 +774,11 @@
     var target = document.activeElement && document.activeElement !== document.body ? document.activeElement : document.body;
     if (target.closest && target.closest('.context-menu')) { e.preventDefault(); return; }
     var at = keyboardPoint(target);
-    var rows = ask(target, at.x, at.y, true);
+    var asked = ask(target, at.x, at.y, true);
     ctx.quiet = true;
-    if (!rows.length) return;
+    if (!asked.rows.length) return;
     e.preventDefault();
-    openAt(at.x, at.y, rows, { owner: target });
+    openAt(at.x, at.y, asked.rows, { owner: target, 'for': asked.mark });
   });
 
   document.addEventListener('pointerdown', function (e) {

@@ -13,6 +13,12 @@
        pudl:contextmenu, an area that does not, and one in a dialog. -->
   <textarea id="editor" aria-label="Notes">Some text to edit.</textarea>
   <div id="plain" tabindex="0">Nothing here answers.</div>
+  <!-- Rows whose menu marks the row it is for (0.76.0), whatever inside the
+       row was under the pointer. -->
+  <ul id="rows" class="tree" style="width: 300px">
+    <li id="row-b"><a href="#b"><span class="label">Beta</span></a></li>
+    <li id="row-a"><a href="#a"><span class="label">Alpha</span></a></li>
+  </ul>
   <button id="open-dialog" type="button" onclick="document.getElementById('dlg').showModal()">Dialog</button>
   <dialog class="dialog" id="dlg" aria-labelledby="dlg-title">
     <h2 class="dialog-title" id="dlg-title">In a dialog</h2>
@@ -38,6 +44,12 @@
     }
     document.getElementById('editor').addEventListener('pudl:contextmenu', function (e) { e.detail.add(rows()); });
     document.getElementById('in-dialog').addEventListener('pudl:contextmenu', function (e) { e.detail.add({ label: 'Inside', run: function () { ran.push('inside'); } }); });
+    document.getElementById('rows').addEventListener('pudl:contextmenu', function (e) {
+      var a = e.detail.target.closest('a');
+      if (!a) return;
+      e.detail.mark(a);
+      e.detail.add({ label: 'Open ' + a.textContent, run: function () { ran.push('open ' + a.textContent); } });
+    });
     window.lastNative = null;
     window.addEventListener('contextmenu', function (e) { window.lastNative = !e.defaultPrevented; e.preventDefault(); });
   </script>
