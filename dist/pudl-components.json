@@ -468,7 +468,27 @@
       "requires": ["pudl-toolbar.js"],
       "template": "<div class=\"toolbar\" role=\"toolbar\" aria-label=\"Formatting\"><div class=\"toolbar-group\" role=\"group\" aria-label=\"Text\"><button type=\"button\" class=\"icon-btn\" aria-label=\"Bold\" aria-pressed=\"false\"><span class=\"glyph\" style=\"--glyph: var(--glyph-bold)\" aria-hidden=\"true\"></span></button><button type=\"button\" class=\"icon-btn\" aria-label=\"Italic\" aria-pressed=\"false\"><span class=\"glyph\" style=\"--glyph: var(--glyph-italic)\" aria-hidden=\"true\"></span></button></div><div class=\"toolbar-group\" role=\"group\" aria-label=\"Lists\"><button type=\"button\" class=\"icon-btn\" aria-label=\"Bulleted list\"><span class=\"glyph\" style=\"--glyph: var(--glyph-list)\" aria-hidden=\"true\"></span></button></div></div>",
       "parts": [{ "selector": ".toolbar .icon-btn", "surface": "raised" }],
+      "properties": [
+        { "name": "Folds to one row", "attribute": "data-toolbar-fold" },
+        { "name": "Captions", "attribute": "data-toolbar-captions", "values": ["start", "none"] },
+        { "name": "Label", "attribute": "aria-label", "required": true }
+      ],
       "slots": [{ "selector": ".toolbar", "name": "Groups" }]
+    },
+    {
+      "id": "ribbon",
+      "name": "Ribbon",
+      "kind": "tab",
+      "spec": "08-components/ribbons.md",
+      "requires": ["pudl-menu.js", "pudl-toolbar.js"],
+      "template": "<div class=\"ribbon\" id=\"ribbon-sample\" aria-label=\"Editor\"><div class=\"tablist\" role=\"tablist\" aria-label=\"Editor\"><button role=\"tab\" aria-controls=\"ribbon-sample-home\" aria-selected=\"true\">Home</button><button role=\"tab\" aria-controls=\"ribbon-sample-insert\">Insert</button></div><div class=\"toolbar\" id=\"ribbon-sample-home\" aria-label=\"Home\" data-toolbar-fold><div class=\"toolbar-group\" data-toolbar-group=\"Text\" data-toolbar-glyph=\"bold\"><button type=\"button\" class=\"btn btn-sm\" aria-pressed=\"false\" data-toolbar-glyph-only><span class=\"glyph\" style=\"--glyph: var(--glyph-bold)\" aria-hidden=\"true\"></span><span class=\"toolbar-words\">Bold</span></button></div></div><div class=\"toolbar\" id=\"ribbon-sample-insert\" aria-label=\"Insert\" data-toolbar-fold><div class=\"toolbar-group\" data-toolbar-group=\"Blocks\" data-toolbar-glyph=\"table\"><button type=\"button\" class=\"btn btn-sm\"><span class=\"glyph\" style=\"--glyph: var(--glyph-table)\" aria-hidden=\"true\"></span><span class=\"toolbar-words\">Table</span></button></div></div></div>",
+      "parts": [
+        { "selector": ".ribbon [role=\"tab\"]:not([aria-selected=\"true\"])", "surface": "tab" },
+        { "selector": ".ribbon .toolbar .btn", "surface": "raised" }
+      ],
+      "states": [{ "name": "Folded into menus", "attribute": "data-ribbon-folded" }],
+      "properties": [{ "name": "Toggle words", "attribute": "data-ribbon-toggle-text" }],
+      "slots": [{ "selector": ".ribbon > .toolbar", "name": "Groups" }]
     },
     {
       "id": "zoom",

@@ -35,6 +35,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-dialog.js` | | Dialog command buttons for browsers that lack them |
 | `pudl-toast.js` | `pudl.css` | Toasts and dismissing notices |
 | `pudl-tabs.js` | `pudl.css` | Tabs within a page |
+| `pudl-toolbar.js` | `pudl.css`, `pudl-menu.js` | Toolbars' keys, folding toolbars, command bars and ribbons (folding released in 0.78.0) |
 | `pudl-combo.js` | `pudl.css` | Combo boxes and searchable selects |
 | `pudl-tooltip.js` | `pudl.css` | Tooltips on glyph-only controls |
 | `pudl-tree.js` | `pudl.css` | Trees |
@@ -92,6 +93,10 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Dialog | `dialog.dialog` holding `.dialog-title`, `.dialog-body`, `.dialog-actions`; opened by a button with `command="show-modal"` and `commandfor`; head and actions pinned unless `data-dialog-pin="none"` (0.74.0) | `open` |
 | Popover | `.popover[popover]`, with `.pointer`, opened by a button with `popovertarget`; optional `.popover-head` holding `.popover-title` and `.popover-close`, and `.popover-actions` (0.74.0) | `role="dialog"` with a name |
 | Split button | `.split-btn` holding a `.btn` and a `.menu` whose `.menu-btn` holds only the caret (0.74.0) | an `aria-label` on the menu button |
+| Toolbar | `.toolbar[role=toolbar]` of `.toolbar-group[role=group]`s; a control's words in `.toolbar-words` | an `aria-label` on the toolbar and each group |
+| Folding toolbar | a `.toolbar` with `data-toolbar-fold`, its groups with `data-toolbar-group`, `data-toolbar-glyph`, `data-toolbar-priority`, `data-toolbar-end`, `data-toolbar-keep`; `data-toolbar-captions="none"` on the toolbar, `data-toolbar-glyph-only` on a control (0.78.0) | a name for every group |
+| Command bar | a folding toolbar whose first group has `data-toolbar-menus` and holds a `.menubar-menu` of a `.menubar-glyph` and `.menu`s, each a `.menubar-title.menu-btn` and its `.menu-panel` (0.78.0) | |
+| Ribbon | `.ribbon` holding a `.tablist` of `[role=tab][aria-controls]` and the folding `.toolbar`s they control; the script adds `.ribbon-bar`, `.ribbon-toggle` and `.ribbon-menus` (0.78.0) | an `id` to remember its folding, an `aria-label` on the tab list |
 | Stepper | `ol.stepper`, with `.vertical`, of `li`, a done one `.done` holding an `a`, the current one `aria-current="step"` (0.74.0) | `aria-label` on the list |
 | Progress bar | `progress.progress`, in a `.progress-row` with `.progress-label` and `.progress-value` (0.74.0) | `value`, `max`; none for busy |
 | Meter | `meter.meter`, with `.marks`, in a `.meter-row` with `.meter-label` and `.meter-value` (0.74.0) | `min`, `max`, `low`, `high`, `optimum`, `value`; `data-band` set by the script |
@@ -140,6 +145,9 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-size` | a window | `pudl-windows.js`, `pudl-windows.css`, `pudl-applets.js` | `content` for a window sized by its content, or `user`, the default |
 | `data-win-narrow`, `data-win-narrow-width` | a window, the layer | `pudl-windows.js` | `maximized` opts a window into restricted presentation at or below the layer width in CSS pixels, default 640; the URL placement is preserved; content-sized windows ignore the option |
 | `data-win-chrome` | a window | `pudl-windows.js`, `pudl-windows.css` | `compact` retains the title and menu and hides secondary chrome; `--win-button-size` and `--win-glyph-size` set independent sizes |
+| `data-toolbar-stage` | a folding toolbar's group | `pudl.css` | Set by `pudl-toolbar.js`: 1 to 5, how far the group has folded |
+| `data-ribbon-folded` | a `.ribbon` | `pudl.css`, `pudl-toolbar.js` | Present while the ribbon is folded into menus; an author may set it for the first visit, before the reader has chosen |
+| `data-ribbon-toggle-text` | a `.ribbon` | `pudl-toolbar.js` | The words of Show as ribbon |
 | `data-split-pane` | a `.split` | `pudl-split.js`, `pudl.css` | `first` or `second` shows one mounted pane and preserves the split value; removal restores split presentation; `--split-target-size` and `--split-rule-size` set track and line sizes |
 | `data-win-min`, `data-win-max` | a window | `pudl-windows.js` | Its smallest and largest width and height, `w,h` in pixels |
 | `data-win-action` | a window button | `pudl-windows.js` | `menu`, `page`, `minimize`, `maximize`, `dock` or `close` |
@@ -193,6 +201,8 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
 | `pudl:split` | a splitter's handle, bubbles | `size` in pixels, or null after a reset | When a change to the split ends |
+| `pudl:toolbar-fit` | a folding toolbar, bubbles | | When it has folded to its row (0.69.1) |
+| `pudl:ribbon-fold` | a `.ribbon`, bubbles | `folded` | When the ribbon folds into menus or shows again (0.78.0) |
 | `pudl:code-copy`, `pudl:code-download` | the code block's `pre`, bubbles | `ok` for a copy, `name` for a download | After each action |
 | `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
 | `pudl:contextmenu` | what was under the pointer or has focus, bubbles | `add(rows)`, `mark(element)`, `x`, `y`, `keyboard`, `target` | On a right-click, Shift+F10 or the Menu key; rows added open a context menu in place of the browser's (0.74.0), and `mark` says which element it acts on (0.76.0) |
@@ -221,6 +231,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlApplets.register(name, { init })`, `.boot(scope)`, `.destroy(scope)` | `pudl-applets.js` | The applet contract: `init(root, opts)` returns `{ destroy }` and optionally `state()`, `setState(s)`, `commands()`, which returns `[{ label, run, checked, disabled }]`, and `menus()`, which returns `{ titles, into }` for a menu bar, with `opts.host`, `opts.fit`, `opts.instance`, `opts.ownsUrl`, `opts.pageUrl`, `opts.state`, `opts.changed(s)` |
 | `pudlToast(message, { kind, ms, sticky })` | `pudl-toast.js` | Raise a toast |
 | `pudlTabs.enhance()` | `pudl-tabs.js` | Enhance tabs added to the page by other means |
+| `pudlToolbar.enhance(root)`, `pudlToolbar.fit(bar)` | `pudl-toolbar.js` | Enhance toolbars, command bars and ribbons added by other means; fold a toolbar now |
 | `pudlCombo.enhance(root)`, `pudlCombo.refresh(select)` | `pudl-combo.js` | Take in combo boxes and searchable selects added later; show a searchable select's value after a script has set it |
 | `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |

@@ -1,6 +1,6 @@
 # Proposal: the command bar and the single-line ribbon
 
-Status: decided 2026-10-22. Every option below was chosen from the live mockup at `samples/command-bar-mockup.html`, which stays uncommitted as a working sketch. This proposal builds on [toolbars that fold](toolbar-commands.md), whose folding stages it keeps.
+Status: decided 2026-10-22 and delivered in PUDL 0.78.0 with specification 0.35.0. The delivery also keeps the ribbon's tab band and its folded menu bar one height, so nothing on the bar moves, and shows a switching menu row's glyph while it is off and its tick while it is on. Every option below was chosen from the live mockup at `samples/command-bar-mockup.html`, which stays uncommitted as a working sketch. This proposal builds on [toolbars that fold](toolbar-commands.md), whose folding stages it keeps.
 
 ## The idea
 

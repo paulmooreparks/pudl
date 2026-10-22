@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.78.0
+
+Folding toolbars are released, with two shapes built on them, the command bar and the single-line ribbon, as `docs/proposals/command-bar-and-ribbon.md` sets out. This release implements specification 0.35.0.
+
+- **Folding toolbars.** `data-toolbar-fold` is no longer a preview. A folded group's menu now holds everything the group holds: a `select` as a row whose submenu lists its options, the current one ticked and shown as the row's second line; a field typed into as a row that opens the field itself in a popover against the fold button and puts it back when the popover closes; keys that step a value as rows that keep the menu open; a switching key as a ticked row that keeps the menu open; and a menu button as a row that opens its menu beside it with its headings and separators. On a window 640px wide or less a submenu shows in the menu's place with a Back row first. Right opens a submenu, Left closes it, and the pointer resting on its row opens it.
+- **Glyph-only commands and captions.** `data-toolbar-glyph-only` on a control shows its glyph alone at every stage, its `.toolbar-words` becoming its accessible name and tooltip. `data-toolbar-captions="none"` on a toolbar hides the group names before its groups.
+- **Command bars.** A folding toolbar whose first group is marked `data-toolbar-menus` and holds a `.menubar-menu` of `.menubar-title.menu-btn` titles is a command bar: menus and tools in one row. The menu group folds last, into the `menu` glyph alone, and its menus become submenus. Left and Right in an open menu, and the pointer moving onto another title, move between its menus.
+- **Ribbons.** A `.ribbon` of a `.tablist` and the folding toolbars its tabs control shows one row at a time. `pudl-toolbar.js` adds Show as ribbon beside the tabs, with the new `ribbon` glyph, which folds the ribbon into a menu bar of the same names, each menu holding its tab's groups under their names, and back. The choice is kept in `localStorage` under the ribbon's `id`, `pudl:ribbon-fold` says when it changes, and the tab band and the menu bar are one height, 44px, so nothing on the bar moves.
+- **Menu rows line up everywhere.** Every menu panel, a menu button's or a fold menu's as well as the menu bar's and context menus, puts glyphs, ticks and the warning in one column wherever any row has a glyph, and mutes the glyphs. A `menuitemcheckbox` or `menuitemradio` row is ticked by `aria-checked`; `aria-pressed` on a row still works. A switching row that also has a glyph, such as Pin this story with the pin glyph, shows its glyph while it is off and the tick while it is on, so its words line up with the rest; until now it stood one step to the right.
+
 ## 0.77.1
 
 A menu's panel, or a popover, now drops below its button and opens above only when it does not fit below and either fits whole above or has less than 240px below, with more room above. A long panel with plenty of room below used to flip up over the page because there was more room above; now it stays below, shortened, and scrolls, as desktop menus do. Context menus, which open at the pointer, are unchanged.

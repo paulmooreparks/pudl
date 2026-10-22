@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Command bars and ribbons</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <style>body { margin: 16px; } .wrap { border: 1px solid #999; margin-bottom: 24px; }</style>
+</head>
+<body>
+  <!-- A test fixture for command bars and ribbons (0.78.0): a command bar
+       whose menu group holds menus with headings, and tool groups holding
+       a glyph-only command, a segmented control, a select, a switching
+       key, a stepper, a search field and a menu; and a ribbon of two tabs. -->
+  <div class="wrap" id="cb-wrap" style="width: 1200px">
+    <div class="toolbar" role="toolbar" aria-label="Commands" data-toolbar-fold data-toolbar-captions="none" id="cb">
+      <div class="toolbar-group" data-toolbar-menus>
+        <div class="menubar-menu">
+          <span class="menubar-glyph" aria-hidden="true"></span>
+          <div class="menu"><button class="menubar-title menu-btn" type="button" popovertarget="m-go">Go</button>
+            <div class="menu-panel" id="m-go" popover>
+              <div class="md-section-label">Feeds</div>
+              <button class="menu-action" type="button" id="go-front"><span class="glyph" style="--glyph: var(--glyph-home)" aria-hidden="true"></span> Front page</button>
+              <hr class="menu-sep">
+              <div class="md-section-label">Yours</div>
+              <button class="menu-action" type="button" id="go-saved">Saved stories</button>
+            </div></div>
+          <div class="menu"><button class="menubar-title menu-btn" type="button" popovertarget="m-view">View</button>
+            <div class="menu-panel" id="m-view" popover>
+              <button class="menu-action" type="button" role="menuitemcheckbox" aria-checked="true" id="view-wrap">Wrap lines</button>
+              <button class="menu-action" type="button" id="view-zoom"><span class="glyph" style="--glyph: var(--glyph-search)" aria-hidden="true"></span> Zoom</button>
+              <button class="menu-action" type="button" role="menuitemcheckbox" aria-checked="true" id="view-pin"><span class="glyph" style="--glyph: var(--glyph-pin)" aria-hidden="true"></span> Pin</button>
+              <button class="menu-action" type="button" id="view-plain">Plain</button>
+            </div></div>
+          <div class="menu"><button class="menubar-title menu-btn" type="button" popovertarget="m-help">Help</button>
+            <div class="menu-panel" id="m-help" popover>
+              <button class="menu-action" type="button" id="help-about">About</button>
+            </div></div>
+        </div>
+      </div>
+      <div class="toolbar-group" data-toolbar-group="Feed" data-toolbar-glyph="list" data-toolbar-priority="40">
+        <button class="btn btn-sm" type="button" id="refresh" data-toolbar-glyph-only><span class="glyph" style="--glyph: var(--glyph-reload)" aria-hidden="true"></span><span class="toolbar-words">Refresh</span></button>
+        <div class="seg sm" role="group" aria-label="List">
+          <button type="button" aria-pressed="true" id="list-top">Top</button><button type="button" aria-pressed="false" id="list-new">New</button>
+        </div>
+      </div>
+      <div class="toolbar-group" data-toolbar-group="Format" data-toolbar-glyph="bold" data-toolbar-priority="30">
+        <select class="form-select" id="font" aria-label="Font"><option>Inter</option><option>Georgia</option><option>Mono</option></select>
+        <button class="btn btn-sm" type="button" id="bold" aria-pressed="false" data-toolbar-glyph-only><span class="glyph" style="--glyph: var(--glyph-bold)" aria-hidden="true"></span><span class="toolbar-words">Bold</span></button>
+        <span class="stepper-keys" id="size"><button class="icon-btn" type="button" id="smaller" aria-label="Smaller text"><span class="glyph" style="--glyph: var(--glyph-minus)" aria-hidden="true"></span></button><button class="icon-btn" type="button" id="larger" aria-label="Larger text"><span class="glyph" style="--glyph: var(--glyph-plus)" aria-hidden="true"></span></button></span>
+      </div>
+      <div class="toolbar-group" data-toolbar-group="Find" data-toolbar-glyph="search" data-toolbar-priority="20">
+        <input class="form-input" type="search" id="find" aria-label="Find" style="width: 12rem; height: 28px">
+      </div>
+      <div class="toolbar-group" data-toolbar-group="Share" data-toolbar-glyph="link" data-toolbar-priority="10">
+        <button class="btn btn-sm" type="button" id="copy-link"><span class="glyph" style="--glyph: var(--glyph-link)" aria-hidden="true"></span><span class="toolbar-words">Copy link</span></button>
+        <div class="menu"><button class="btn btn-sm menu-btn" type="button" popovertarget="m-export">Export</button>
+          <div class="menu-panel" id="m-export" popover>
+            <div class="md-section-label">Formats</div>
+            <button class="menu-action" type="button" id="export-pdf">PDF</button>
+            <button class="menu-action" type="button" id="export-html">HTML</button>
+          </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" id="rb-wrap" style="width: 1200px">
+    <div class="ribbon" id="rb" aria-label="Editor">
+      <div class="tablist" role="tablist" aria-label="Editor">
+        <button role="tab" aria-controls="rb-home" aria-selected="true" id="tab-home">Home</button>
+        <button role="tab" aria-controls="rb-insert" id="tab-insert">Insert</button>
+      </div>
+      <div class="toolbar" id="rb-home" aria-label="Home" data-toolbar-fold>
+        <div class="toolbar-group" data-toolbar-group="Clipboard" data-toolbar-glyph="clip">
+          <button class="btn btn-sm" type="button" id="paste"><span class="glyph" style="--glyph: var(--glyph-clip)" aria-hidden="true"></span><span class="toolbar-words">Paste</span></button>
+          <button class="btn btn-sm" type="button" id="copy" data-toolbar-glyph-only><span class="glyph" style="--glyph: var(--glyph-copy)" aria-hidden="true"></span><span class="toolbar-words">Copy</span></button>
+        </div>
+        <div class="toolbar-group" data-toolbar-group="Font" data-toolbar-glyph="bold">
+          <select class="form-select" id="rb-size" aria-label="Size"><option>10</option><option selected>11</option><option>12</option></select>
+          <button class="btn btn-sm" type="button" id="rb-bold" aria-pressed="false" data-toolbar-glyph-only><span class="glyph" style="--glyph: var(--glyph-bold)" aria-hidden="true"></span><span class="toolbar-words">Bold</span></button>
+        </div>
+      </div>
+      <div class="toolbar" id="rb-insert" aria-label="Insert" data-toolbar-fold>
+        <div class="toolbar-group" data-toolbar-group="Blocks" data-toolbar-glyph="table">
+          <button class="btn btn-sm" type="button" id="table"><span class="glyph" style="--glyph: var(--glyph-table)" aria-hidden="true"></span><span class="toolbar-words">Table</span></button>
+          <button class="btn btn-sm" type="button" id="picture"><span class="glyph" style="--glyph: var(--glyph-image)" aria-hidden="true"></span><span class="toolbar-words">Picture</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p id="below">The page below.</p>
+
+  <script>
+    window.log = [];
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('button[id]');
+      if (b && !b.closest('.menu-panel') || b && b.closest('#cb .menu-panel, #rb .menu-panel')) window.log.push(b.id);
+      var seg = e.target.closest('.seg > button');
+      if (seg) seg.parentElement.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === seg ? 'true' : 'false'); });
+      var t = e.target.closest('#bold, #rb-bold');
+      if (t) t.setAttribute('aria-pressed', t.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+    });
+    document.addEventListener('change', function (e) { if (e.target.id) window.log.push(e.target.id + '=' + e.target.value); });
+  </script>
+</body>
+</html>

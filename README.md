@@ -14,7 +14,7 @@ The web implementation is a stylesheet, a small theme script and a font, with op
 - **[The article reader](https://paulmooreparks.github.io/pudl/samples/article-reader.html)** is a working reading site built with PUDL: articles in windows, listings as child windows, a launcher, category tabs that change only the list, and an applet.
 - **[The colour mixer](https://paulmooreparks.github.io/pudl/samples/colour-mixer.html)** is that applet in a page of its own.
 - **[The expense tracker](https://paulmooreparks.github.io/pudl/samples/expenses.html)** is a small working application: expenses, trips and reports. Its list sorts, filters, pages and acts on several expenses at once; an expense moves from draft to paid through dialogs and menus, takes a receipt, and keeps its history; its forms refuse what is wrong field by field; and reports total everything and download as CSV. GitHub Pages has no server, so a script stands in for one in the browser, keeping the data in localStorage, and every view is still an address.
-- **[Commands and folding toolbars](https://paulmooreparks.github.io/pudl/samples/commands.html)** is a preview of [a proposal not yet settled](docs/proposals/toolbar-commands.md): a note editor applet declares each command once, with its words, glyph, key and state, and PUDL draws its toolbar from them, folds the groups into menus as the room runs out, answers the keys, and lets an agent list and run the same commands by id. Its scripts, `pudl-commands.js` and the folding in `pudl-toolbar.js`, may change before they are released.
+- **[Commands and folding toolbars](https://paulmooreparks.github.io/pudl/samples/commands.html)** is a preview of [a proposal not yet settled](docs/proposals/toolbar-commands.md): a note editor applet declares each command once, with its words, glyph, key and state, and PUDL draws its toolbar from them, folds the groups into menus as the room runs out, answers the keys, and lets an agent list and run the same commands by id. Its command table, `pudl-commands.js`, may change before it is released; the folding is released in 0.78.0.
 - **[Files](https://paulmooreparks.github.io/pudl/samples/files.html)** is a file browser and editor: a folder tree, a path bar, the folder's contents as a grid of rows to choose from, files dropped on it to add them, and an editor with document tabs and a Markdown preview that open in windows. The editor and the preview are applets that answer requests, so the browser asks to open a file without naming either. Like the expense tracker, it keeps its files in localStorage.
 
 The article reader fetches its windows from the server, so to run it from a copy of this repository, serve the folder, for example with `python -m http.server`, rather than opening the file directly. The reference works either way.
@@ -985,6 +985,49 @@ A **row list** is `ul.row-list` of `li.md-row > a.md-item` rows, the master-deta
 
 A **toolbar** (0.61.0) is `.toolbar[role="toolbar"]` of `.toolbar-group[role="group"]`s holding glyph buttons, menu buttons and small buttons, as a page editor's formatting toolbar; groups are set apart by a hairline and wrap whole. A button in the state the cursor is in carries `aria-pressed="true"` and is drawn pressed in. `pudl-toolbar.js` makes the toolbar one tab stop, on the button last used: Left and Right move along the enabled controls, Home and End to the ends, and a menu button whose every `.menu-action` is disabled is disabled with them. A field the reader types in, a text area, or an input other than a box, a button, a file or a colour, keeps its own keys and is a Tab stop of its own, so that two fields are filled one after the other as in a form (0.70.1). Left, Right, Home and End move its caret; Left with the caret at the field's start moves to the control before it, and Right at its end to the control after. A field that does not report its caret, such as a number or a date, keeps its arrow keys always and is left with Tab. A key a field's own handler has already called `preventDefault()` on is left alone. The glyphs `bold`, `italic`, `underline`, `strike`, `code`, `list`, `list-numbered`, `quote`, `table`, `panel`, `colour` and `paragraph` came with it.
 
+### Folding toolbars, command bars and ribbons
+
+A toolbar marked `data-toolbar-fold` keeps to one row (0.78.0; a preview before). Each group may carry `data-toolbar-group`, its name; `data-toolbar-glyph`, its glyph; `data-toolbar-priority`, higher kept open longer; `data-toolbar-end`, which keeps it at the row's end; and `data-toolbar-keep`, which never folds it. As room runs out `pudl-toolbar.js` takes each group, one step at a time, from its name and its controls with their words, to their glyphs alone, to one menu button with the group's glyph and name, to that button's glyph alone, to a section of a More menu at the row's end, and back as the row widens. `pudl:toolbar-fit` fires on the toolbar when it has folded.
+
+Nothing is lost by folding. A folded group's menu holds a row for each command; a switching command (`aria-pressed`) as a ticked row that keeps the menu open, so several can be set in turn; a segmented control's choices as radio rows under its name; a `select` as a row whose submenu holds its options, the current one ticked and shown as the row's second line; a set of keys that step a value, such as a minus and a plus, as rows that keep the menu open; a field typed into, such as a search field or a combo box, as a row that opens the field itself in a popover against the fold button, focus in it, and puts it back when the popover closes; and a menu button as a row that opens its menu beside it, with its headings and separators. On a window 640px wide or less a submenu shows in the menu's place, with a Back row first.
+
+A command whose glyph nearly every reader knows, such as bold, the lists, copy, the arrows or reload, can be marked `data-toolbar-glyph-only`: it shows its glyph alone at every stage, and its `.toolbar-words` become its accessible name and tooltip. A field shows its value, such as a font's name, and needs no label of its own. A toolbar marked `data-toolbar-captions="none"` shows no group names before its groups; each group's name is still its fold button's words.
+
+A **command bar** is a folding toolbar whose first group, marked `data-toolbar-menus`, holds a menu bar, so one row holds the menus and the tools. The menu group folds last, into the `menu` glyph alone, and its menus then become submenus. While one of its menus is open, Left and Right open the menu beside it and the pointer moving onto another title opens that one.
+
+```html
+<div class="toolbar" role="toolbar" aria-label="Commands" data-toolbar-fold>
+  <div class="toolbar-group" data-toolbar-menus>
+    <div class="menubar-menu">
+      <span class="menubar-glyph" aria-hidden="true"></span>
+      <div class="menu"><button class="menubar-title menu-btn" type="button" popovertarget="m-story">Story</button>
+        <div class="menu-panel" id="m-story" popover>
+          <div class="md-section-label">Keep</div>
+          <button class="menu-action" type="button" role="menuitemcheckbox" aria-checked="false"><span class="glyph" style="--glyph: var(--glyph-pin)" aria-hidden="true"></span> Pin this story</button>
+        </div></div>
+    </div>
+  </div>
+  <div class="toolbar-group" data-toolbar-group="Feed" data-toolbar-glyph="list">
+    <button class="btn btn-sm" type="button" data-toolbar-glyph-only><span class="glyph" style="--glyph: var(--glyph-reload)" aria-hidden="true"></span><span class="toolbar-words">Refresh</span></button>
+  </div>
+</div>
+```
+
+A **ribbon** is for a long set of tools, such as an editor's: a `.ribbon` holding a `.tablist` of tabs, each with `aria-controls` naming its folding toolbar, and those toolbars after it. One row shows at a time, under its tab, which is momentary and not in the address. `pudl-toolbar.js` puts **Show as ribbon** beside the tabs, a toggle with the `ribbon` glyph, pressed while the ribbon shows; releasing it folds the ribbon into a menu bar of the same names, each menu holding its tab's groups under their names, and the choice is kept in `localStorage` under the ribbon's `id`. The tab band and the menu bar are one height, so folding takes away only the row. `pudl:ribbon-fold` fires with `detail.folded`, and `data-ribbon-toggle-text` gives the toggle other words. Without the script every row shows, one after another.
+
+```html
+<div class="ribbon" id="editor-ribbon" aria-label="Editor">
+  <div class="tablist" role="tablist" aria-label="Editor">
+    <button role="tab" aria-controls="r-home" aria-selected="true">Home</button>
+    <button role="tab" aria-controls="r-insert">Insert</button>
+  </div>
+  <div class="toolbar" id="r-home" aria-label="Home" data-toolbar-fold>…</div>
+  <div class="toolbar" id="r-insert" aria-label="Insert" data-toolbar-fold>…</div>
+</div>
+```
+
+In every menu panel (0.78.0), glyphs, ticks and the warning on a dangerous row stand in one column wherever any row has a glyph, so every row's words start in one line, and a switching row with a glyph shows its glyph while it is off and the tick while it is on. A switching row is a `menuitemcheckbox` or `menuitemradio` with `aria-checked`; `aria-pressed` on a row still works.
+
 A field's label line may end in a command: a `.form-label-row` holding the `.form-label` and a `.form-label-end` slot of small raised controls, such as a `.menu-btn.btn-sm`. The command wraps under the label when the line is too narrow. A select is never used for this, since it is an input and holds no value.
 
 With the optional `pudl-split.js`, the handle moves by pointer and by keyboard. It is a focusable separator in the ARIA window-splitter pattern. The arrow keys along its axis move it a step, and with Shift a larger one; Home and End go to its limits; Enter or a double-click returns the stylesheet's size. Its limits are `data-split-min` in pixels, 80 unless it says otherwise, and `data-split-max` in pixels or as a percentage of the split, by default all but the minimum, so the second pane never vanishes. They follow the split's own size, whatever changes it. PUDL keeps no state: when a change ends, `pudl:split` fires on the handle with `detail.size` in pixels, or null after a return to the stylesheet's size, and a project that wants the size remembered stores it and renders it in the `style` next time. `data-split-valuetext` gives the handle's spoken size in the page's words, with `{n}` for the pixels.
@@ -1514,7 +1557,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.77.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.78.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
