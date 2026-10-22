@@ -66,7 +66,7 @@ For a prototype, a demo or a documentation page, you can load a release from jsD
         integrity="sha384-kd6cwrRNLEIY/49jBdC7mBi1fiFbf9DSlyMfmX61QgrtAc8YnUTEKkrBjKoBMgnY"
         crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl.css"
-      integrity="sha384-2NRIbdzwRod5auaWHs05ZFy3GIPBRB+oWLg9GmMIipBgolRYT6B7yNt1NaKYtd7K"
+      integrity="sha384-QnJYqcsumkUdb8MyepoIyaevMTcSi95thL6rwIQbEafjZsDloT0vQHSFbASGrF9S"
       crossorigin="anonymous">
 ```
 
