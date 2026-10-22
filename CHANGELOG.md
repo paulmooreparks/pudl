@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.75.0
+
+Every field with a key in it is now one sunken field whose border runs round everything, with each key a raised strip inside that border behind a hairline. Until now each key was joined to the field from outside, sharing its border, so the field's border stopped where the key began; the maintainer found that look dated and chose this one from four drawn alternatives. The field's focus ring, danger border and dimming go round the whole control, keys included, and a key shows its keyboard focus as a ring inside its strip. This covers the combo box and searchable select (`.combo-open`), the token field's combo, the number field (`.number-step`), the password field with its Show key or eye (`.password-toggle`), the date and time fields, the year in the calendar's chooser (`.date-step`) and a master-detail toolbar's filter with its apply button (`.md-filter-group`). The markup is unchanged. A page that restyled one of these keys with negative margins or end radii should drop those rules. This release implements specification 0.32.0.
+
 ## 0.74.1
 
 Every small raised key is 28px tall, a glyph button's height: a `.btn-sm`, whatever it holds, which was 25px with words and 26px with a glyph, and a `.seg.sm`'s keys, which were 21px. A small segmented control now stands as tall as the small buttons and glyph buttons beside it in a toolbar, as in the reader application's reader toolbar. This release implements specification 0.31.1. A project that stretched its small segmented control to match its buttons, as the reader application's `.reader-panes` rule does, can drop that rule.

@@ -355,7 +355,7 @@ A combo box (0.72.0) is a field the reader may type any value in, or fill from a
 </span>
 ```
 
-Without a script the browser draws its own list, so the field works as it stands. The optional `pudl-combo.js` draws PUDL's instead: a raised opener joined to the field's end, because it is pressed while the field is typed in, and a list drawn as a menu, each suggestion's value with its text on a second line, the one the field holds ticked. Typing filters the list by value, text and keys. Down and Up move through it, Alt+Down opens it without moving, Enter chooses, Escape closes it and then clears the field, and Tab leaves with what was typed. Choosing fires `input` and `change` on the field. The opener shows the whole list.
+Without a script the browser draws its own list, so the field works as it stands. The optional `pudl-combo.js` draws PUDL's instead: a raised opener inside the field's border at its end, behind a hairline, because it is pressed while the field is typed in, and a list drawn as a menu, each suggestion's value with its text on a second line, the one the field holds ticked. Typing filters the list by value, text and keys. Down and Up move through it, Alt+Down opens it without moving, Enter chooses, Escape closes it and then clears the field, and Tab leaves with what was typed. Choosing fires `input` and `change` on the field. The opener shows the whole list.
 
 What the reader types to find a suggestion need not be what it puts in the field. An option's `data-combo-keys`, separated by commas, are words to find it by that are not shown, so typing PHP, peso or Philippines finds the first row above, and choosing it puts ₱ in the field. Leaving the field, or pressing Enter, with exactly a key or a value typed that only one suggestion has looks that suggestion up and puts its value in, so a reader with no ₱ on the keyboard types PHP and gets ₱; text several suggestions share, such as kr for three currencies, stays as typed. Put the code in the option's text as well as in its keys: the text shows the reader why a row was found and tells apart rows with the same sign, and the key is what an exact code looks up.
 
@@ -398,7 +398,7 @@ These three (0.74.0) take `pudl-fields.js`, and each is the browser's own contro
 <span class="password-field"><input class="form-input" type="password" name="password"></span>
 ```
 
-A slider's track is sunken and filled with the accent to its value, and its thumb raised; the script keeps an `<output for>` showing the value in the page's language. A number field is shown as a text field with its digits at the end and raised minus and plus keys joined to it, reading and writing numbers in the page's language, 1.234,5 in German, while the hidden original sends a plain number; it refuses letters, snaps to its step, keeps to its range, steps with Up and Down, Page Up and Page Down by ten, the keys held down, and the wheel only while it has focus and the pointer is over it. A password field gains a Show key, pressed in while the password shows, or the eye glyph with `data-password-toggle="glyph"`, and a line that says when Caps Lock is on; pasting is never blocked. `pudlFields.refresh(el)` shows a value a script has set.
+A slider's track is sunken and filled with the accent to its value, and its thumb raised; the script keeps an `<output for>` showing the value in the page's language. A number field is shown as a text field with its digits at the end and raised minus and plus keys inside its border, reading and writing numbers in the page's language, 1.234,5 in German, while the hidden original sends a plain number; it refuses letters, snaps to its step, keeps to its range, steps with Up and Down, Page Up and Page Down by ten, the keys held down, and the wheel only while it has focus and the pointer is over it. A password field gains a Show key, pressed in while the password shows, or the eye glyph with `data-password-toggle="glyph"`, and a line that says when Caps Lock is on; pasting is never blocked. `pudlFields.refresh(el)` shows a value a script has set.
 
 ## Images, figures and avatars
 
@@ -431,7 +431,7 @@ Enter, the separator, Tab or leaving the field adds what is typed, and a value a
 
 ## Date and time fields
 
-A date or time field (0.74.0) is a native `<input type="date">` or `<input type="time">` marked `data-date`. Without a script it is the browser's own field. With the optional `pudl-date.js` the original is hidden, keeps the value and the name and is what the form sends, always ISO 8601 in the Gregorian calendar, and a text field joined to a raised opener stands in its place, as a combo box does:
+A date or time field (0.74.0) is a native `<input type="date">` or `<input type="time">` marked `data-date`. Without a script it is the browser's own field. With the optional `pudl-date.js` the original is hidden, keeps the value and the name and is what the form sends, always ISO 8601 in the Gregorian calendar, and a text field with a raised opener inside its border stands in its place, as a combo box does:
 
 ```html
 <label class="form-label" for="due">Due</label>
@@ -904,7 +904,7 @@ The bar is one tab stop and follows the WAI-ARIA menu bar pattern: Left and Righ
 
 ## Filtering a list
 
-A master-detail toolbar's filter that applies on submission pairs its input with a raised apply button, since an action that can be pressed must look pressable. The two are drawn joined, and the button's magnifying glass comes from the stylesheet:
+A master-detail toolbar's filter that applies on submission pairs its input with a raised apply button, since an action that can be pressed must look pressable. The group is drawn as one sunken field with the button as a raised strip inside its border, as every field with a key is, and the button's magnifying glass comes from the stylesheet:
 
 ```html
 <form class="md-filter-group" action="/expenses" method="get" role="search">
@@ -1503,7 +1503,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.74.1, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.75.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
 
