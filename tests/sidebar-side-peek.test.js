@@ -1,6 +1,5 @@
 /* A persistent sidebar at either edge, and a peek at it while collapsed
-   (from example.com's pudl-proposal-sidebar-side.md and
-   pudl-proposal-sidebar-peek.md, specification 0.13.0). */
+   (specification 0.13.0). */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

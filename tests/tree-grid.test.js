@@ -1,5 +1,4 @@
-/* Trees, path bars, grids, glyphs as elements and drop targets, from
-   example.com's Architecture/pudl-proposal-tree-crumbs-editor.md. */
+/* Trees, path bars, grids, glyphs as elements and drop targets. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

@@ -1,5 +1,4 @@
-/* an application's second batch (docs/proposals/menu-bar-keys-and-toolbar.md, specification
-   0.22.0): a desktop host's keys, mnemonics on every platform, function
+/* Desktop menu bar features (specification 0.22.0): a desktop host's keys, mnemonics on every platform, function
    keys from a field, more of a markup row, radio rows from markup, the
    listing of keys, the toolbar, the glyphs, and a window title's detail. */
 const { launch, ROOT, out } = require('./lib');
@@ -69,7 +68,7 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   await waitOpen();
   await p.keyboard.press('r');
   await p.waitForFunction(() => document.getElementById('menubar-sub') && document.getElementById('menubar-sub').matches(':popover-open'));
-  check('a submenu row\'s letter opens it with the first row focused', (await active()) === 'row:1. Plan 12 One-Pager');
+  check('a submenu row\'s letter opens it with the first row focused', (await active()) === 'row:1. Report 12 Summary');
   await p.keyboard.press('2');
   check('a numbered row takes its digit', (await log()).includes('recent-2'));
   await p.locator('.menubar-title:has-text("Documents")').focus();
@@ -136,7 +135,7 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   check('a disabled row shows its reason as its second line, tooltip and description', extras.reason === 'Open a workspace first' && extras.described === extras.reason && extras.tip === extras.reason, extras);
   check('a row shows its detail as a second line', extras.detail === 'From this workspace');
   await escape();
-  await p.click('.menubar-title:has-text("an application")');
+  await p.click('.menubar-title:has-text("Logbook")');
   await waitOpen();
   const ident = await p.evaluate(() => { const rows = [...document.querySelectorAll('#menubar-panel .menu-action')]; return { glyph: rows[0].querySelector('.glyph.menubar-icon') && rows[0].querySelector('.glyph.menubar-icon').style.getPropertyValue('--glyph'), danger: rows[1].classList.contains('danger') }; });
   check('a markup row takes a glyph and is drawn dangerous', ident.glyph === 'var(--glyph-gear)' && ident.danger, ident);
@@ -165,7 +164,7 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   const winRow = await p.evaluate(() => { const r = [...document.querySelectorAll('#menubar-panel .menu-action')].find(x => x.querySelector('.menubar-words').textContent === 'Minimize'); return r && r.getAttribute('data-letter'); });
   check('a window command\'s letter comes from data-win-text-<id>-mnemonic', winRow === 'm', winRow);
   const winList = await p.evaluate(() => [...document.querySelectorAll('#menubar-panel .menu-action')].map(x => x.querySelector('.menubar-words').textContent).filter(t => /^\d\./.test(t)));
-  check('the Window list shows the title and its detail', winList[0] === '1. Plan 12 One-Pager: Report Layout · Customers', winList);
+  check('the Window list shows the title and its detail', winList[0] === '1. Report 12 Summary: Quarterly Sales by Every Region · Customers', winList);
   await escape();
 
   /* 9. A window title's detail. */
@@ -174,10 +173,10 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
     const tab = document.querySelector('[data-win-tab="editor"]');
     return { shown: d && !d.hidden && d.textContent, titleOnly: w.querySelector('.win-title').textContent, tabDetail: tab.querySelector('.win-item-detail').textContent, tabLabel: tab.getAttribute('aria-label'), none: document.querySelector('.win[data-win="log"] .win-title-detail') === null, sep: getComputedStyle(d, '::before').content };
   });
-  check('the detail is drawn after the title in the title bar and the taskbar, and the title stays itself', detail.shown === 'Customers' && detail.titleOnly.startsWith('Plan 12') && detail.tabDetail === 'Customers' && detail.tabLabel === 'Plan 12 One-Pager: Report Layout · Customers' && detail.none && /·/.test(detail.sep), detail);
-  await p.evaluate(() => pudlWindows.retitle('editor', 'Plan 12', 'Customer'));
-  check('retitle with a detail changes both', await p.evaluate(() => document.querySelector('.win[data-win="editor"] .win-title').textContent === 'Plan 12' && pudlWindows.detailOf('editor') === 'Customer' && document.querySelector('[data-win-tab="editor"] .win-item-detail').textContent === 'Customer'));
-  await p.evaluate(() => pudlWindows.retitle('editor', 'Plan 12 One-Pager: Report Layout', 'Customers'));
+  check('the detail is drawn after the title in the title bar and the taskbar, and the title stays itself', detail.shown === 'Customers' && detail.titleOnly.startsWith('Report 12') && detail.tabDetail === 'Customers' && detail.tabLabel === 'Report 12 Summary: Quarterly Sales by Every Region · Customers' && detail.none && /·/.test(detail.sep), detail);
+  await p.evaluate(() => pudlWindows.retitle('editor', 'Report 12', 'Suppliers'));
+  check('retitle with a detail changes both', await p.evaluate(() => document.querySelector('.win[data-win="editor"] .win-title').textContent === 'Report 12' && pudlWindows.detailOf('editor') === 'Suppliers' && document.querySelector('[data-win-tab="editor"] .win-item-detail').textContent === 'Suppliers'));
+  await p.evaluate(() => pudlWindows.retitle('editor', 'Report 12 Summary: Quarterly Sales by Every Region', 'Customers'));
   const widths = await p.evaluate(async () => {
     const w = document.querySelector('.win[data-win="editor"]'), head = w.querySelector('.win-head');
     const t = () => head.querySelector('.win-title').getBoundingClientRect().width, d = () => head.querySelector('.win-title-detail').getBoundingClientRect().width;

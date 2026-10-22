@@ -104,7 +104,7 @@ function check(name, ok, detail) {
     JSON.stringify(menu.rows) === JSON.stringify(['Bold|Mod+B|checked', '-', 'Save|Mod+S|disabled:Nothing has changed since it was saved.', '-', 'Paragraph Style|items:4']), JSON.stringify(menu.rows));
   check('an unknown id is reported once and left out', menu.warned === 1, String(menu.warned));
 
-  /* 0.69.0, from an application's pudl-commands-gaps.md. */
+  /* Command features added in 0.69.0. */
   await width(1200);
   const named = await p.getAttribute('[data-command="new-comment"]', 'aria-label');
   check('a badge is part of the control\'s name', named === 'New Comment, 1 open', named);

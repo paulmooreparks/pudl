@@ -15,16 +15,16 @@
   <style>body { margin: 0; } .win-host { height: 520px; position: relative; } #editor-text { width: 100%; }</style>
 </head>
 <body>
-  <!-- A desktop application's bar, as an application's is: letters declared
-       on titles and rows, more of a markup row, a radio list, the browser's
-       keys taken, and windows with a detail beside the title. -->
+  <!-- A desktop application's bar: letters declared on titles and rows,
+       more of a markup row, a radio list, the browser's keys taken, and
+       windows with a detail beside the title. -->
   <header class="topbar">
-    <nav class="menubar" data-menubar aria-label="an application" data-menubar-host="desktop" data-menubar-key="">
+    <nav class="menubar" data-menubar aria-label="Logbook" data-menubar-host="desktop" data-menubar-key="">
       <ul data-menubar-source hidden>
-        <li data-mnemonic="g"><span class="logo-mark" aria-hidden="true">G</span> an application
+        <li data-mnemonic="g"><span class="logo-mark" aria-hidden="true">L</span> Logbook
           <ul>
             <li><button type="button" id="settings" data-mnemonic="s" data-menu-glyph="gear">Settings…</button></li>
-            <li><button type="button" id="quit" data-mnemonic="q" data-menu-danger>Quit the Companion</button></li>
+            <li><button type="button" id="quit" data-mnemonic="q" data-menu-danger>Quit Logbook</button></li>
           </ul></li>
         <li data-mnemonic="d">Documents
           <ul>
@@ -37,7 +37,7 @@
             <li><button type="button" id="dup-letter" data-mnemonic="s">Send</button></li>
             <li data-mnemonic="r">Recent
               <ul>
-                <li><button type="button" id="recent-1">1. Plan 12 One-Pager</button></li>
+                <li><button type="button" id="recent-1">1. Report 12 Summary</button></li>
                 <li><button type="button" id="recent-2">2. Decision log</button></li>
               </ul></li>
           </ul></li>
@@ -56,7 +56,7 @@
           </ul></li>
         <li data-menubar-if="windows" data-menubar-windows data-mnemonic="w">Window<ul></ul></li>
       </ul>
-      <a class="brand" href="#" id="fallback">an application</a>
+      <a class="brand" href="#" id="fallback">Logbook</a>
     </nav>
     <div class="topbar-chrome"></div>
   </header>
@@ -82,7 +82,7 @@
   <div class="win-host">
     <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="editor,log" data-win-menu data-win-text-minimize-mnemonic="m" data-win-text-title-sep=" · ">
       <section class="win" data-win="editor" data-win-detail="Customers" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.5; --win-h: 0.7">
-        <header class="win-head"><h2 class="win-title">Plan 12 One-Pager: Report Layout</h2>
+        <header class="win-head"><h2 class="win-title">Report 12 Summary: Quarterly Sales by Every Region</h2>
           <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
         <div class="win-body"><div data-applet="editor"></div></div>
       </section>

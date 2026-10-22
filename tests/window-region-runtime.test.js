@@ -1,5 +1,4 @@
-/* The four runtime features the reader application patched into its copies of PUDL
-   (the reader application's PUDL-PROPOSAL.md, Part A), now PUDL's own: window-scoped
+/* Four runtime features of windows and regions: window-scoped
    address parameters, pudlRegions.reload(), collapsed segment choices that
    swap regions, and pudlWindows.rekey(). */
 const { launch, ROOT } = require('./lib');
@@ -22,7 +21,7 @@ function check(name, ok, extra) {
   await p.goto(S + 'article-reader.html');
   await p.evaluate(() => document.querySelector('[data-win-layer]').setAttribute('data-win-params', 'r'));
 
-  /* === A1: window-scoped parameters ===================================== */
+  /* === Window-scoped parameters ========================================= */
   await p.click('.md-sidebar a[data-win-open="url-state"]');
   await p.waitForSelector('.win[data-win="url-state"]');
   await p.evaluate(() => {
@@ -49,7 +48,7 @@ function check(name, ok, extra) {
   await settled();
   check('and with Back', /r\.url-state=chapter-2/.test(await q()), await q());
 
-  /* === A4: re-keying a window =========================================== */
+  /* === Re-keying a window =============================================== */
   await p.evaluate(() => {
     const w = document.querySelector('.win[data-win="url-state"]');
     w.__marker = 'same';
@@ -92,7 +91,7 @@ function check(name, ok, extra) {
   await p.waitForFunction(() => !document.querySelector('.win[data-win="story-10"]'));
   check('closing the window takes its window-scoped parameter away', !/r\.story-10/.test(await q()), await q());
 
-  /* === A2: reloading the regions ======================================== */
+  /* === Reloading the regions ============================================ */
   const reload = await p.evaluate(async () => {
     const list = document.querySelector('[data-region="list"]');
     list.__old = true;
@@ -115,7 +114,7 @@ function check(name, ok, extra) {
   await p.waitForTimeout(300);
   check('a reload whose page has other regions rejects, leaves the regions and never navigates', failed.rejected && failed.kept && !failed.busy && loads.length === loadsNow, JSON.stringify(failed));
 
-  /* === A3: collapsed segment choices swap regions ======================= */
+  /* === Collapsed segment choices swap regions =========================== */
   await p.setViewportSize({ width: 390, height: 800 });
   await p.evaluate(() => {
     const region = document.querySelector('[data-region="sections"]');

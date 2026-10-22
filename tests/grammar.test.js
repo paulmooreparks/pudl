@@ -32,8 +32,7 @@ function check(name, ok, extra) {
           seg.off.split(/,(?![^(]*\))/).length === 2 && /inset/.test(seg.off.split(/,(?![^(]*\))/)[0]) && !/inset/.test(seg.off.split(/,(?![^(]*\))/)[1]) &&
           seg.on.split(/,(?![^(]*\))/).length === 1 && /inset/.test(seg.on), JSON.stringify(seg));
 
-    /* A segmented control of links on the topbar keeps its own text colour
-       (from example.com's Architecture/pudl-bug-topbar-seg-link.md). */
+    /* A segmented control of links on the topbar keeps its own text colour. */
     const onBar = await p.evaluate(() => {
       const bar = document.querySelector('.topbar');
       const seg = document.createElement('nav');

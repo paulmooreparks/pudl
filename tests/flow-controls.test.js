@@ -1,5 +1,5 @@
-/* The controls an application's Flow window built for itself (specification
-   0.21.0, docs/proposals/flow-ui-controls.md): disclosure cards, the zoom
+/* The controls for a dense working window (specification 0.21.0,
+   docs/proposals/flow-ui-controls.md): disclosure cards, the zoom
    group, the arrow glyphs, row editors, a command on a label's line, row
    lists with a tree's keys, and window buttons sized to the title. */
 const { launch, ROOT, out } = require('./lib');

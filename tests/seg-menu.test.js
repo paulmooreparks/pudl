@@ -1,5 +1,5 @@
 /* A segmented control marked data-seg-menu becomes a pop-up button on a
-   phone, for example.com's Window/Classic switcher on its topbar. */
+   phone, such as a Window/Classic switcher on a topbar. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

@@ -1,6 +1,6 @@
 # Proposal: splitters between snapped windows
 
-Status: accepted 2026-10-20, with the maintainer's decisions recorded at the end, and released in PUDL 0.67.0 with specification 0.27.0. Building it changed two rules, which "As built" at the end records. the maintainer asked for a splitter that resizes two windows docked next to each other, left and right or top and bottom, and for the same idea across PUDL's other arrangements, such as four windows in the corners or two on one side and one on the other.
+Status: accepted 2026-10-20, with the decisions recorded at the end, and released in PUDL 0.67.0 with specification 0.27.0. Building it changed two rules, which "As built" at the end records. The request was for a splitter that resizes two windows docked next to each other, left and right or top and bottom, and for the same idea across PUDL's other arrangements, such as four windows in the corners or two on one side and one on the other.
 
 ## Which windows this is about
 
@@ -8,7 +8,7 @@ PUDL has two ways for windows to sit side by side, and only one of them needs an
 
 A window docked at an edge of the workspace already resizes along its free edge, and everything in the inner area follows it, so the line between a dock and the windows beside it is a splitter today. Two docks never meet along a line both of them can move: a left dock and a right dock have the inner area between them, and a top or bottom dock spans the whole width, so the line it shares with a side dock is its own free edge.
 
-Windows snapped to zones are the case this proposal is for. Two windows snapped to the left and right halves meet along the middle of the inner area, and neither can be resized, because a snapped window does not resize from its frame. The reader who wants the left one wider has to float both and arrange them by hand, which loses the snapping. the maintainer's examples (halves, quarters, two on one side and one on the other) are all zone arrangements, so I read "docked next to each other" as "snapped next to each other". If he meant the edge docks, the first two paragraphs answer it and the rest can be set aside.
+Windows snapped to zones are the case this proposal is for. Two windows snapped to the left and right halves meet along the middle of the inner area, and neither can be resized, because a snapped window does not resize from its frame. The reader who wants the left one wider has to float both and arrange them by hand, which loses the snapping. The request's examples (halves, quarters, two on one side and one on the other) are all zone arrangements, so I read "docked next to each other" as "snapped next to each other". If the request meant the edge docks, the first two paragraphs answer it and the rest can be set aside.
 
 ## The idea: the grid's lines move
 
@@ -86,7 +86,7 @@ The windows section's paragraph on snap zones gains the moving grid: that a read
 1. **Whole grid lines move.** There is no tree of splits; the four quarters share their middle lines, and the cross handle moves both.
 2. **A moved line is forgotten when no snapped window has an edge on it.**
 3. **A lone snapped window's edge against empty space is not draggable,** for now.
-4. **A double-click on a splitter returns its line to the default position on the grid,** which also forgets it, as Enter does. the maintainer asked for this explicitly, and the section on how a reader uses it already provides it.
+4. **A double-click on a splitter returns its line to the default position on the grid,** which also forgets it, as Enter does. The section on how a reader uses it already provides it.
 
 ## As built, 20 October 2026
 

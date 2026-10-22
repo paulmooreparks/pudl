@@ -1,5 +1,5 @@
 /* A field in a toolbar keeps its own keys and is a Tab stop of its own
-   (0.70.1, from example.com's Sight Reader): Left, Right, Home and
+   (0.70.1): Left, Right, Home and
    End edit the field, Left at its start and Right at its end move on, a
    number field keeps its arrows always, and Tab moves from field to field
    as in a form, while the toolbar's one stop stays on its buttons. */

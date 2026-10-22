@@ -1,5 +1,4 @@
-/* Code blocks with copy and download, from example.com's
-   Architecture/pudl-proposal-code-actions.md. The clipboard is stood in for
+/* Code blocks with copy and download. The clipboard is stood in for
    by a script, so the test runs the same in every engine. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;

@@ -1,6 +1,6 @@
 # Response: applets and their hosts
 
-Status: accepted with changes, 2026-09-28, released in 0.20.0. Answers `Architecture/pudl-proposal-applet-hosts.md` in the example repository.
+Status: accepted with changes, 2026-09-28, released in 0.20.0.
 
 The proposal's principle, that an applet knows itself and never its host, is kept throughout. Its four sections, and what became of them:
 

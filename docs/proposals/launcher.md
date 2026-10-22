@@ -1,6 +1,6 @@
 # Proposal: menus and a launcher
 
-Status: accepted 2026-09-26 and built in 0.8.0. the maintainer chose the general primitive, the one-column panel and the 2024 browser floor, as recommended below.
+Status: accepted 2026-09-26 and built in 0.8.0. The general primitive, the one-column panel and the 2024 browser floor were chosen, as recommended below.
 
 One detail changed in building it. Panels are placed by `pudl-menu.js` in every browser, not by CSS anchor positioning with a script fallback. One code path on documented APIs is simpler than two, anchor positioning would have needed a unique anchor name for every menu on a page, and it removed the need to track Firefox's support. Without the script a panel opens centred and works.
 
@@ -8,7 +8,7 @@ The build also added `.md-site-tools`, a marker for a master-detail toolbar that
 
 ## Why PUDL needs this
 
-PUDL has no vocabulary for a control that opens a panel of choices. The gap already shows. The master-detail toolbar on the reference page has "Trip ▾" and "Account ▾" buttons whose arrows promise a dropdown that PUDL does not define, and the classic view of example.com draws its dropdowns with site CSS because PUDL offers none.
+PUDL has no vocabulary for a control that opens a panel of choices. The gap already shows. The master-detail toolbar on the reference page has "Trip ▾" and "Account ▾" buttons whose arrows promise a dropdown that PUDL does not define, and the classic view of one adopting site draws its dropdowns with site CSS because PUDL offers none.
 
 A launcher, a Start-menu-style button at the left end of a window dock that opens a categorised panel of everything the site offers, is the case that prompted this proposal. I would build it as the first use of a general primitive, a **menu button** and the **menu panel** it opens, rather than as a one-off, so that the toolbar dropdowns get the same control.
 
@@ -66,7 +66,7 @@ The launcher complements the other ways the site is organising articles. The cat
 
 It would be a minor release, with nothing existing changing.
 
-## Decisions for the maintainer
+## Decisions to make
 
 1. **General primitive or launcher only.** I recommend the general menu button and panel, with the launcher as its first use, because the toolbar dropdowns need the same thing and two designs for one idea is the debt DIRT warns about.
 2. **Panel layout.** I recommend one column of categorised sections with an optional filter. The alternative is the Windows 7 layout, categories on the left and their items on the right, which is more "desktop" but needs script to switch categories and is poor on a phone.

@@ -1,8 +1,6 @@
-/* The patterns the reader application and example.com each built for themselves,
-   now PUDL's (the reader application's PUDL-PROPOSAL.md, Part B): a filter menu that stays
-   open across the swap its boxes cause (B1), a settings panel (B2), a
-   disclosure button (B4), toasts carried by content loaded later (B5) and
-   a window's default identity menu (B6). */
+/* Page patterns: a filter menu that stays open across the swap its boxes
+   cause, a settings panel, a disclosure button, toasts carried by content
+   loaded later, and a window's default identity menu. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
@@ -20,7 +18,7 @@ function check(name, ok, extra) {
     return p;
   };
 
-  /* === B1: a filter menu ================================================ */
+  /* === A filter menu ==================================================== */
   let p = await page(ROOT + '/tests/fixtures/filter-menu.html');
   const loads = [];
   p.on('load', () => loads.push(p.url()));
@@ -47,7 +45,7 @@ function check(name, ok, extra) {
   check('the menu opens again on the new region with focus on the same box', after.open && after.focus === 'lobsters', JSON.stringify(after));
   await p.close();
 
-  /* === B2, B4: a settings panel and a disclosure button ================= */
+  /* === A settings panel and a disclosure button ========================= */
   p = await page(ROOT + '/reference.html');
   const layout = await p.evaluate(() => {
     document.body.innerHTML =
@@ -75,7 +73,7 @@ function check(name, ok, extra) {
   check('it is a raised button', await p.evaluate(() => getComputedStyle(document.getElementById('d')).backgroundImage !== 'none'));
   await p.close();
 
-  /* === B5: toasts in content loaded later =============================== */
+  /* === Toasts in content loaded later =================================== */
   p = await page(ROOT + '/samples/expenses.html');
   const toast = await p.evaluate(() => new Promise(resolve => {
     const win = document.createElement('section');
@@ -93,7 +91,7 @@ function check(name, ok, extra) {
   check('where it is announced, with a dismiss button', toast.live === 'polite' && toast.close, JSON.stringify(toast));
   await p.close();
 
-  /* === B6: a window's default identity menu ============================= */
+  /* === A window's default identity menu ================================= */
   p = await page(ROOT + '/tests/fixtures/menubar.html', { viewport: { width: 1500, height: 800 } });
   await p.waitForFunction(() => document.querySelectorAll('[data-applet-state="running"]').length === 2);
   await p.evaluate(() => {
@@ -108,7 +106,7 @@ function check(name, ok, extra) {
   await p.waitForSelector('.win[data-win="plain"]');
   /* The bar follows the window in front a frame later, so this waits for
      the bar to say so rather than sleeping a fixed time, which a busy
-     runner can outrun (an application's pudl-menu-readiness.md). */
+     runner can outrun. */
   await p.waitForFunction(() => { const g = document.querySelector('.menubar-front'); return g && g.offsetParent && g.getAttribute('aria-label') === 'Settings'; });
   const menu = await p.evaluate(() => { const g = document.querySelector('.menubar-front'); return g && [...g.querySelectorAll('.menubar-title')].map(t => t.textContent.trim()); });
   check('a window whose content offers no menu gets one title, its own', JSON.stringify(menu) === '["Settings"]', JSON.stringify(menu));

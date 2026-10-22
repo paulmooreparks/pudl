@@ -1,4 +1,4 @@
-/* an application's third batch (specification 0.23.0): the window switcher
+/* Specification 0.23.0: the window switcher
    on Ctrl+Tab, long text in a notice, disabled rows faded, and two
    glyphs. */
 const { launch, ROOT, out } = require('./lib');

@@ -2,8 +2,7 @@
    with defer, after pudl-applets.js. An applet publishes actions, which a
    script, the page, a command or an agent calls by reference, with input
    and output checked against their schemas, without opening the applet's
-   window unless the action is about a window. The contract is an application's, as example.com runs it; this is that site's broker,
-   made PUDL's.
+   window unless the action is about a window.
 
    An applet's define() names its manifest:
 
@@ -75,9 +74,9 @@
    opts: id, owner { kind, id }, grant, runMs (60 s), answerMs (10 min).
    pudl:applet-invocation fires on the document as each record changes.
 
-   window.pudlActions is the same functions under the name example.com
-   and the applet package format used first. It is deprecated, says so
-   once in the console, and goes at PUDL 1.0. */
+   window.pudlActions is the same functions under an earlier name, which
+   the applet package format also used. It is deprecated, says so once in
+   the console, and goes at PUDL 1.0. */
 (function () {
   'use strict';
   if (window.pudlApplets && window.pudlApplets.invoke) return;

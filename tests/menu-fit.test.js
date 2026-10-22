@@ -1,5 +1,4 @@
-/* A menu whose rows fit shows no scrollbar, at any display scale, from
-   example.com's Architecture/pudl-bug-menu-scrollbar.md. */
+/* A menu whose rows fit shows no scrollbar, at any display scale. */
 const { launch, ROOT, engine } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
@@ -36,8 +35,8 @@ function check(name, ok, extra) {
        with, which says nothing about the page. */
     await ctx.close().catch(() => {});
   }
-  /* A hovered row shows against its panel in both themes (from
-     example.com's menu bar notes: in the dark theme it did not). */
+  /* A hovered row shows against its panel in both themes. In the dark
+     theme it once did not. */
   for (const theme of ['light', 'dark']) {
     const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
     const p = await ctx.newPage();

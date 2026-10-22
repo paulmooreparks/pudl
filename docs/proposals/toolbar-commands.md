@@ -1,12 +1,12 @@
 # Proposal: toolbars that fold, built from an applet's commands
 
-Status: proposed 2026-10-20, awaiting the maintainer's decisions on the questions at the end. the maintainer asked for toolbars in a ribbon's direction: labelled while there is room, folding predictably as room runs out, so that an application's Comments toolbar might become a "Comments" menu button and then only a glyph. He also asked whether applets should register their commands with PUDL in a standard way, and whether toolbars should use that registry by themselves. an application's proposal `docs/proposals/pudl-toolbar-labels.md` asks for the labels and the folding, and this proposal takes it in.
+Status: proposed 2026-10-20; the questions at the end were since decided as recommended. The aim is toolbars in a ribbon's direction: labelled while there is room, folding predictably as room runs out, so that an editor applet's Comments toolbar might become a "Comments" menu button and then only a glyph. A second question is whether applets should register their commands with PUDL in a standard way, and whether toolbars should use that registry by themselves. An application's proposal for the labels and the folding is taken in here.
 
 ## What happens today
 
-PUDL's toolbar is a row of groups of raised controls. When the row is too narrow, whole groups wrap onto further lines, so an application's Editor, at its usual window size, spends three rows on its view strip, its formatting and its comments, and a narrow window spends more. A button is named only by its tooltip and its accessible name. The specification already lists folding into a menu as a question it must settle.
+PUDL's toolbar is a row of groups of raised controls. When the row is too narrow, whole groups wrap onto further lines, so an editor applet, at its usual window size, spends three rows on its view strip, its formatting and its comments, and a narrow window spends more. A button is named only by its tooltip and its accessible name. The specification already lists folding into a menu as a question it must settle.
 
-Each applet that has a toolbar builds it by hand. an application's Editor keeps one table of its commands, with an id, a label, a shortcut and the menu each belongs to, and its Edit, Insert, Format, Comments and Review menus, its keys and Help's list of keys are all drawn from that table. Its toolbar then builds every button separately in `editor-toolbar.js` and `drawCommentsBar`, looking each one up in the table by id and wiring its click, its disabled state and its pressed state again. PUDL's applet contract has nothing to look the ids up in: `commands()` returns rows with a label and a function, and `menus()` returns titles of the same rows, none of which has an id.
+Each applet that has a toolbar builds it by hand. Such an editor applet keeps one table of its commands, with an id, a label, a shortcut and the menu each belongs to, and its Edit, Insert, Format, Comments and Review menus, its keys and Help's list of keys are all drawn from that table. Its toolbar then builds every button separately in a script of its own, looking each one up in the table by id and wiring its click, its disabled state and its pressed state again. PUDL's applet contract has nothing to look the ids up in: `commands()` returns rows with a label and a function, and `menus()` returns titles of the same rows, none of which has an id.
 
 ## The proposal in short
 
@@ -18,7 +18,7 @@ Each of the three is useful without the others: a page can fold a hand-written t
 
 ## The command table
 
-An applet's instance may offer `commandTable()`, which returns its commands. Each command is an object; any field but `id` may be a function, which PUDL calls each time it draws the command, as an application's own registry does.
+An applet's instance may offer `commandTable()`, which returns its commands. Each command is an object; any field but `id` may be a function, which PUDL calls each time it draws the command, as an application's own command registry often does.
 
 | Field | Meaning |
 |---|---|
@@ -75,7 +75,7 @@ toolbars: function () {
 }
 ```
 
-an application's formatting toolbar would become a list of six groups of ids, and `editor-toolbar.js` would no longer be needed.
+An editor's formatting toolbar would become a list of six groups of ids, and its hand-built toolbar script would no longer be needed.
 
 ## How a toolbar folds
 
@@ -93,7 +93,7 @@ The order is deterministic, so a reader learns where things go. As the row narro
 
 In a folded group's menu, each command is a row with its glyph, its label and its shortcut. A command that switches is a row with a tick, a choice is a set of radio rows under a heading, a command with items is a submenu, and a badge becomes the row's second line. Nothing a group can do is lost by folding.
 
-A toolbar measures itself with a `ResizeObserver` and the widths its groups have at each stage, which it measures once and again only when a group's commands change, so folding never makes the row jump while a reader works. A group may be marked `data-toolbar-end`, which keeps it at the row's end, as Save As and Sync are in the Editor's view strip, and folds it last.
+A toolbar measures itself with a `ResizeObserver` and the widths its groups have at each stage, which it measures once and again only when a group's commands change, so folding never makes the row jump while a reader works. A group may be marked `data-toolbar-end`, which keeps it at the row's end, as Save As and Sync might be in an editor's view strip, and folds it last.
 
 A field in a toolbar, such as a search field, takes input and cannot be a menu row. It stays on the row through the first four stages, and at stage 5 becomes a glyph button that opens it in a popover.
 
@@ -103,9 +103,9 @@ The keyboard is unchanged: the toolbar is one tab stop, and the arrow keys move 
 
 PUDL is meant to be used by agents as well as people (chapter 1 of the specification, "Agents"), and folding works against an agent that reads the screen: a folded group's commands are in a closed menu, which is neither on the screen nor in the accessibility tree until something opens it. The command table is what lets an agent ignore the folding altogether. An agent reaches a command at one of three levels, and the one that applies depends on what the command does.
 
-- **In the page, by id.** `pudlCommands.list(scope)` returns every command in a scope and the scopes around it, with its submenus, as plain data: its id, label, glyph, shortcut and every field of its state, read at that moment, and whether a toolbar is showing it, has folded it or has hidden it. `pudlCommands.run(id, value)` runs a command exactly as pressing it would, and returns a promise that settles once its `run` has, or that rejects with the command's `reason` when it is disabled or hidden. An agent driving a browser, whether in Claude's browser tools, Playwright or a desktop host's headless browser, works from ids and never from pixels, and a toolbar's folding changes nothing it sees. Commands such as Bold or Next Comment belong here and only here, since they mean something only with a document open in front of somebody.
+- **In the page, by id.** `pudlCommands.list(scope)` returns every command in a scope and the scopes around it, with its submenus, as plain data: its id, label, glyph, shortcut and every field of its state, read at that moment, and whether a toolbar is showing it, has folded it or has hidden it. `pudlCommands.run(id, value)` runs a command exactly as pressing it would, and returns a promise that settles once its `run` has, or that rejects with the command's `reason` when it is disabled or hidden. An agent driving a browser, whether through an agent's browser tools, Playwright or a headless browser, works from ids and never from pixels, and a toolbar's folding changes nothing it sees. Commands such as Bold or Next Comment belong here and only here, since they mean something only with a document open in front of somebody.
 - **Without the page, as an action.** (`applet-actions.md` brings actions into PUDL and sets out how commands, actions and requests share one vocabulary.) A command that does work worth doing without a window, such as Request a Change or Resolve a Comment, names the action it runs with `action`, a reference into the actions its applet package publishes, with their input and output schemas. An agent with no page open, such as one using an application's command line, calls the action itself; a person presses the command; both reach the same code.
-- **On the server, by its forms.** A command that changes what the server holds, such as saving or publishing a document, does so by submitting a form the server's representation offers. An agent that speaks to the server, as a desktop host's MCP server lets one do, submits the same form, so the command is the person's way to the form and never the only way.
+- **On the server, by its forms.** A command that changes what the server holds, such as saving or publishing a document, does so by submitting a form the server's representation offers. An agent that speaks to the server, through an MCP server for instance, submits the same form, so the command is the person's way to the form and never the only way.
 
 `list` and `run` are also what a command palette and a test use, so the agent's way in is exercised every day by the people's.
 
@@ -117,23 +117,23 @@ I recommend that a toolbar draw its commands from the table always, and that no 
 
 The toolbar section gains group names and glyphs, the five stages and the order of folding, the More menu, end groups and the rule for fields, and settles its two open questions. Chapter 9 gains the command table, commands named by id in menus and toolbars, the call that says a command's state has changed, and the three ways an agent reaches a command: listing and running it by id in the page, its action, and the server's forms. The menu bar section gains shortcuts taken from the table.
 
-## What an application would do
+## What an editor applet would do
 
-The Editor's key table becomes its command table, with a glyph added where its toolbar shows one. Its menus become lists of ids, its formatting, view and comments toolbars become `toolbars()` data or markup with `data-command`, and `editor-toolbar.js`, the hand-built Comments bar and `.editor-toolbar-name` go.
+The editor's key table becomes its command table, with a glyph added where its toolbar shows one. Its menus become lists of ids, its formatting, view and comments toolbars become `toolbars()` data or markup with `data-command`, and its hand-built toolbar script, its hand-built Comments bar and its own toolbar-name class go.
 
 ## As built
 
-A preview of the command table, `data-command` controls and folding shipped in 0.68.0, with the note editor sample. Two parts of the design above were missing from it, and example.com, moving its Editor and Files over, found both on the first day; 0.68.1 adds them. A menu's rows may be command ids (`pudlCommands.menuRows`, used for `menus()` and `commands()`), and a group whose commands are all hidden leaves the row.
+A preview of the command table, `data-command` controls and folding shipped in 0.68.0, with the note editor sample. Two parts of the design above were missing from it, and a site moving its editor and file browser over found both on the first day; 0.68.1 adds them. A menu's rows may be command ids (`pudlCommands.menuRows`, used for `menus()` and `commands()`), and a group whose commands are all hidden leaves the row.
 
-an application moved its toolbars next and found six gaps (`docs/proposals/pudl-commands-gaps.md` there), which 0.69.0 fills. The command table gains `panel(container)`, for a command that draws its own menu; `tone`, a status colour with no other meaning, which brings its status glyph where the command has none; `detail`, a line saying what the command does; and `bind: false`, for a key shown but bound elsewhere, chosen over an application's separate `key` field so that a command has one field for its key. A control's name carries its badge. A group marked `data-toolbar-keep` never folds, which replaces the rule above that a field becomes a glyph button at stage 5. `list` describes a command by its own scope's controls, and `run` with an element stays in that element's scopes, which is the default rather than the opt-in an application asked for, since an agent naming one window must never reach another's.
+An application moved its toolbars next and found six gaps, which 0.69.0 fills. The command table gains `panel(container)`, for a command that draws its own menu; `tone`, a status colour with no other meaning, which brings its status glyph where the command has none; `detail`, a line saying what the command does; and `bind: false`, for a key shown but bound elsewhere, chosen over a separate `key` field so that a command has one field for its key. A control's name carries its badge. A group marked `data-toolbar-keep` never folds, which replaces the rule above that a field becomes a glyph button at stage 5. `list` describes a command by its own scope's controls, and `run` with an element stays in that element's scopes, which is the default rather than an opt-in, since an agent naming one window must never reach another's.
 
-In 0.70.1, after example.com's Sight Reader put two number fields on its toolbar, a field keeps its own keys and is a Tab stop of its own, so the keyboard described above holds for the toolbar's buttons. Left at a field's start and Right at its end move on, and a field that does not report its caret, a number field among them, is left with Tab.
+In 0.70.1, after an applet put two number fields on its toolbar, a field keeps its own keys and is a Tab stop of its own, so the keyboard described above holds for the toolbar's buttons. Left at a field's start and Right at its end move on, and a field that does not report its caret, a number field among them, is left with Tab.
 
-## Questions for the maintainer
+## Questions
 
-the maintainer decided all four as recommended. On 2026-10-20 he chose that folding stays opt-in with `data-toolbar-fold` until an application has moved, that group names sit beside the controls, and that every control shows its words at stage 1. On 2026-10-21 he agreed that no toolbar appears unless the applet asks for one.
+All four were decided as recommended. On 2026-10-20 it was decided that folding stays opt-in with `data-toolbar-fold` until the first application using it has moved, that group names sit beside the controls, and that every control shows its words at stage 1. On 2026-10-21 it was agreed that no toolbar appears unless the applet asks for one.
 
-1. **Opt in, or the new default?** I recommend that folding start as `data-toolbar-fold` and become the default in the release after an application has moved, since today's toolbars wrap and a project's layout may count on it.
+1. **Opt in, or the new default?** I recommend that folding start as `data-toolbar-fold` and become the default in the release after the first application using it has moved, since today's toolbars wrap and a project's layout may count on it.
 2. **Group names beside the controls, or beneath them as in Office's ribbon?** I recommend beside, at stages 1 and 2, because a name beneath every group adds a line of height to every toolbar, and an application's windows are often short. A ribbon-style variant could follow if a host wants it.
 3. **Words on every control at stage 1?** I recommend yes, since it is what makes the toolbar learnable, and stage 2 is one step away for a reader with less room. A control can opt out with `data-command-words="never"`.
 4. **No toolbar generated from the table on its own.** I recommend this, for the reason above.

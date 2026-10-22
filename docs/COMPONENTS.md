@@ -1,6 +1,6 @@
 # The component list
 
-`dist/pudl-components.json` describes PUDL's components for tools, so that a tool can offer them, insert them and check them without reading the README. It was started on 5 October 2026 for a development tool, the development tool in [desktop-host](https://github.com/example/desktop-host), whose palette, property sheet and checks are built from it. It formalises the component table of the [web contract](CONTRACT.md). The contract stays the promise; the list is the same promise in a form a program reads, and `tests/components.test.js` fails when the two, or the list and the stylesheet, drift apart.
+`dist/pudl-components.json` describes PUDL's components for tools, so that a tool can offer them, insert them and check them without reading the README. A development tool can build its palette, property sheet and checks from it. It formalises the component table of the [web contract](CONTRACT.md). The contract stays the promise; the list is the same promise in a form a program reads, and `tests/components.test.js` fails when the two, or the list and the stylesheet, drift apart.
 
 The list is web-specific today, since its templates are HTML and its parts are CSS selectors. The platform-neutral part, which is each component's name, its kind, the grammar of its parts and its variants and states, moves into the PUDL specification when a second implementation needs it.
 
@@ -44,9 +44,9 @@ The test keeps a list of parts known not to look like their category in an engin
 
 Its first entry was a select in WebKit, which drew the select itself, raised and lit, and clipped its text. Specification 0.8.0 settled that a select's opener is PUDL's, and 0.47.0 draws a select in a `.form-select-wrap` with the browser's drawing turned off and the caret glyph as its opener. The engine tested is Playwright's WebKit on Windows; Safari on a Mac has not been checked.
 
-## What Studio will need that PUDL does not have
+## What a development tool needs that PUDL lacked
 
-Building a palette from the list shows what a development tool needs and PUDL lacks. These are gaps in the language, to be designed in the specification first, not workarounds for Studio:
+Building a palette from the list shows what a development tool needs and PUDL lacks. These are gaps in the language, to be designed in the specification first:
 
 - **Layout**, done in 0.53.0: `.vstack`, `.hstack` and `.auto-grid`, in the list as `stack`, `row` and `column-grid`.
 - **A slider**, for a value in a range.

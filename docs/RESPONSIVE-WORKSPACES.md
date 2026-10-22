@@ -49,7 +49,7 @@ The default target is 24px with a 12px glyph, or 20px with a 10px glyph when doc
 
 ## Splitters and pane presentation
 
-Set `--split-target-size: 18px` on `.split` for the reader application's wider target. The track occupies space between the panes and does not cover their scrollable content. `--split-rule-size` controls the visible line independently and defaults to 2px. Both options work with horizontal and `.stacked` layouts. Keyboard controls, focus indication, and minimum/maximum attributes retain their existing roles.
+Set `--split-target-size: 18px` on `.split` for a wider target. The track occupies space between the panes and does not cover their scrollable content. `--split-rule-size` controls the visible line independently and defaults to 2px. Both options work with horizontal and `.stacked` layouts. Keyboard controls, focus indication, and minimum/maximum attributes retain their existing roles.
 
 PUDL measures the split's content box, excluding its border and padding, and subtracts the track before reserving each pane's minimum. When both minima cannot fit, each minimum becomes half of the remaining pane space. A percentage maximum refers to the split's content box before subtracting the track, but cannot consume the second pane's minimum. Pointer cancellation restores the value from before the drag and emits no completed-change event.
 
@@ -74,7 +74,7 @@ PUDL 0.43.0 adds opt-in independent list/detail requests through the [persistent
 
 ## Menu surfaces and overflow
 
-Each menu group is one slightly raised surface in both themes, following the Example treatment. Its border and shadow establish the elevation. A topbar containing a menu bar uses `--surface` in the light theme. Component tokens can customize the groups; these values reproduce the defaults:
+Each menu group is one slightly raised surface in both themes. Its border and shadow establish the elevation. A topbar containing a menu bar uses `--surface` in the light theme. Component tokens can customize the groups; these values reproduce the defaults:
 
 ```css
 .menubar {
@@ -85,7 +85,7 @@ Each menu group is one slightly raised surface in both themes, following the Exa
 }
 ```
 
-The border width defaults to 1px and supports values from 0px through 2px, compensated by reducing group padding. Background, border, and shadow default to `--raise-grad`, `--raise-border`, and `--raise-shadow`, the surface of a neutral `.btn`, in both themes, so a menu group looks like a button with a menu glyph at its start. A group is pressable, so it is raised like the controls around it. Before 0.54.0 the default was `--recess-bg`, which drew the group darker than its neighbours; from 0.54.0 to 0.62.1 it was `--tb-chip`, which matched a button in the light theme only (Example's proposal, 0.63.0). Menu text uses the current theme's text colors. These component tokens do not change dropdown rows or the global palette.
+The border width defaults to 1px and supports values from 0px through 2px, compensated by reducing group padding. Background, border, and shadow default to `--raise-grad`, `--raise-border`, and `--raise-shadow`, the surface of a neutral `.btn`, in both themes, so a menu group looks like a button with a menu glyph at its start. A group is pressable, so it is raised like the controls around it. Before 0.54.0 the default was `--recess-bg`, which drew the group darker than its neighbours; from 0.54.0 to 0.62.1 it was `--tb-chip`, which matched a button in the light theme only. The current default arrived in 0.63.0. Menu text uses the current theme's text colors. These component tokens do not change dropdown rows or the global palette.
 
 Overflow arrows appear independently above and below a menu and reserve gutters outside its commands. They do not intercept pointers. Menu placement follows `VisualViewport` resize and scroll events, uses safe-area insets, and falls back to the layout viewport when that API is absent. Replaced submenu content starts at its first row. No host scroll-arrow implementation is needed.
 
@@ -93,8 +93,8 @@ A panel with `data-menu-placement="beside"` opens beside the element identified 
 
 ## Site adoption
 
-the reader application should add the narrow policy to reader fragments, remove its competing maximize/restore workarounds, and render pane presentation from each reader's URL state. Its existing 640px breakpoint, 18px splitter target, 40px chrome target, and 20px glyph fit the new contracts. Move sidebar controls beside the generated dock before moving the taskbar to the workspace level.
+A reader application should add the narrow policy to its reader fragments, remove any competing maximize/restore workarounds of its own, and render pane presentation from each reader's URL state. A 640px breakpoint, an 18px splitter target, a 40px chrome target, and a 20px glyph all fit the new contracts. Move sidebar controls beside the generated dock before moving the taskbar to the workspace level.
 
-Example can adopt menu overflow improvements with the updated files and opt individual applets into compact chrome or restricted placement where useful. Keep content-sized tools out of the narrow maximization policy. Both sites should retain the shared [menu-bar conventions](MENU-BARS.md) and [site adoption guidance](MENU-BAR-ADOPTION.md).
+A tools workspace can adopt menu overflow improvements with the updated files and opt individual applets into compact chrome or restricted placement where useful. Keep content-sized tools out of the narrow maximization policy. Every site should retain the shared [menu-bar conventions](MENU-BARS.md) and [site adoption guidance](MENU-BAR-ADOPTION.md).
 
 Browser tests cover the policy, stale commands, breakpoint transitions, dock restoration, mounted pane preservation, splitter geometry, and menu overflow across Chromium, Firefox, and WebKit. Real mobile keyboards, pinch zoom, and device safe areas still need device-level acceptance checks; browser viewport simulation does not reproduce every device behavior.

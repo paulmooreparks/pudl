@@ -380,8 +380,7 @@
 
 
   /* A toolbar group of commands with nothing to show leaves the row, and
-     comes back when one of them shows (0.68.1, from example.com's
-     pudl-proposal-toolbar-empty-groups.md), so the folding counts only
+     comes back when one of them shows (0.68.1), so the folding counts only
      what is there. A group in hand-written markup with no command in it
      is left alone. */
   function emptyGroups(root) {
@@ -523,8 +522,7 @@
     return runCmd(f.cmd, value, opts || { owner: { kind: 'script' } });
   }
 
-  /* Menu rows from a list that may hold command ids (0.68.1, from
-     example.com's pudl-proposal-menu-command-ids.md): an id becomes
+  /* Menu rows from a list that may hold command ids (0.68.1): an id becomes
      the row the menu bar draws, with the command's words, glyph, key,
      tick or radio, danger, and disabled state with its reason, read now; a
      hidden command leaves no row, and a separator left at an end or

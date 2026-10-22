@@ -1,6 +1,6 @@
 /* A menu bar's menu, and the pills beside it, have a plain button's
-   surface in every theme, so the bar's controls look uniform (Parks
-   Computing's proposal, specification 0.24.2). Measured on the reference
+   surface in every theme, so the bar's controls look uniform
+   (specification 0.24.2). Measured on the reference
    page, whose topbar holds a menu bar and pills, against a neutral .btn. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;

@@ -1,6 +1,6 @@
 # Response: what the second applet shook out
 
-Status: accepted with changes, 2026-09-28, released in 0.21.0. Answers `Architecture/pudl-proposal-applet-followups.md` in the example repository.
+Status: accepted with changes, 2026-09-28, released in 0.21.0.
 
 1. **Preset links and reaching an instance** are accepted as one mechanism, as proposed, and instances stay private.
    - `data-applet-preset="name"` on a link is handled by the runtime. It is caught before other scripts see the click, so a preset inside a region is never taken for a region navigation.

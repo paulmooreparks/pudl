@@ -1,5 +1,4 @@
-/* The window menu, from example.com's
-   Architecture/pudl-proposal-window-menu.md. */
+/* The window menu. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
@@ -52,8 +51,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   const tick = await p.evaluate(s => getComputedStyle(document.querySelector(s + ' [aria-pressed="true"]'), '::before').visibility, panel('counter'));
   check('a command that is on shows a tick', tick === 'visible', tick);
   /* The indent that lines words up beside ticks leaves the layout picker's
-     zones alone (from example.com's
-     Architecture/pudl-bug-snap-zone-indent.md). */
+     zones alone. */
   const overlap = await p.evaluate(s => {
     const bad = [];
     document.querySelectorAll(s + ' .win-snap-layout').forEach(g => {
@@ -97,8 +95,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await p.click(panel('notes') + ' .menu-action >> text="Shout"');
   check('and they run', (await p.textContent('#notes-text')) === 'PLAIN CONTENT.');
 
-  /* The Dock list docks at every edge (from example.com's
-     Architecture/pudl-proposal-dock-edges.md). */
+  /* The Dock list docks at every edge. */
   await choose('notes', 'Bottom');
   check('Dock, Bottom docks it at the bottom', await p.evaluate(() => /p\.notes=dock-bottom/.test(location.search)));
   await openMenu('notes');
@@ -135,8 +132,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   await choose('notes', 'Close');
   check('Close closes the window', await p.evaluate(() => pudlWindows.state().open.indexOf('notes') < 0));
 
-  /* Open as a page follows the title bar's link, its target included
-     (from example.com's Architecture/pudl-bug-menu-page-target.md). */
+  /* Open as a page follows the title bar's link, its target included. */
   await p.evaluate(() => { const a = document.querySelector('.win[data-win="counter"] a[data-win-action="page"]'); a.target = '_blank'; a.rel = 'noopener'; });
   const here = p.url();
   const [tab] = await Promise.all([p.context().waitForEvent('page', { timeout: 5000 }).catch(() => null), choose('counter', 'Open as a page')]);

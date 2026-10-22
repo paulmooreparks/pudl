@@ -1,8 +1,8 @@
 # Proposal: applet actions in PUDL, and one vocabulary for actions, commands and requests
 
-Status: accepted 2026-10-20, with the maintainer's decisions at the end, which change the calling surface in section 1. the maintainer asked whether the command table of the toolbar proposal could serve as a registry of applet functions for AI, noted that something like it already exists, and asked whether the two should be harmonized. He set the goal on the same day: PUDL is AI-native, as its applet API is, and every feature considers its agent side where it has one (specification chapter 1, "Agents"). He will pilot this on reader.com and example.com, since an application has become too important to experiment on.
+Status: accepted 2026-10-20, with the decisions at the end, which change the calling surface in section 1. The question behind it is whether the command table of the toolbar proposal could serve as a registry of applet functions for AI, given that something like it already exists, and whether the two should be harmonized. The goal, set the same day, is that PUDL is AI-native, as its applet API is, and that every feature considers its agent side where it has one (specification chapter 1, "Agents"). The design is piloted on two sites before any application that people already depend on moves to it.
 
-This proposal takes in example.com's `Architecture/pudl-proposal-applet-actions.md` of 17 October, which asks PUDL to adopt the site's action broker, and answers its three questions.
+This proposal takes in a site's proposal of 17 October, which asks PUDL to adopt the action broker the site built, and it answers that proposal's three questions.
 
 ## What exists today
 
@@ -10,7 +10,7 @@ Three mechanisms let something other than a person's pointer use an applet, and 
 
 **Requests** are PUDL's. An applet declares in `define()` the verbs it answers, such as `open` for a path, and a caller asks for a verb with `pudlApplets.request(verb, req)` without knowing which applet answers. The answer is always a window, and nothing comes back to the caller.
 
-**Actions** are not PUDL's, although PUDL sites run them. an application designed the contract and has run its agents and flows on it for months: an applet publishes a manifest of actions, each with a reference such as `example.dice/roll@1`, JSON Schema for its input and its output, the capabilities it needs from a closed list, and a replay rule; a broker checks both ends and records every invocation. example.com took the contract into the page as `js/applet-actions.js`, published as `window.pudlActions`, and runs pure actions on its server in a sandboxed JavaScript engine, so its MCP server can offer them to Claude and Codex as `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`. The manifest's format is written down in pudl-applet-packages, and its `hello` example calls `pudlActions.provide`. an application's own broker is in Go and offers the same five tools. So the contract is shared by two hosts and a package format, and PUDL, the thing they share, does not define it.
+**Actions** are not PUDL's, although PUDL sites run them. The contract was designed in one application, which has run its agents and flows on it for months: an applet publishes a manifest of actions, each with a reference such as `example.dice/roll@1`, JSON Schema for its input and its output, the capabilities it needs from a closed list, and a replay rule; a broker checks both ends and records every invocation. A site then took the contract into the page as a script of its own, published as `window.pudlActions`, and runs pure actions on its server in a sandboxed JavaScript engine, so its MCP server can offer them to AI agents as `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`. The manifest's format is written down in pudl-applet-packages, and its `hello` example calls `pudlActions.provide`. The application's own broker is in Go and offers the same five tools. So the contract is shared by two hosts and a package format, and PUDL, the thing they share, does not define it.
 
 **Commands** are PUDL's: today the rows an applet's `commands()` and `menus()` return, without ids, and in the toolbar proposal a command table with ids, words, glyphs, keys and state, which `pudlCommands.list` and `pudlCommands.run` open to agents in the page.
 
@@ -20,7 +20,7 @@ They are three views of one idea, at three layers.
 
 - An **action** is the contract an agent calls. It has a stable versioned reference, a schema for what goes in and comes out, declared effects, and a replay rule, and it needs no window: it can run in the page, on a server, or in a sandbox, and a person can be asked a question in the middle of it.
 - A **command** is how a person reaches something in a live window: words, a glyph, a key, and its state at this moment, such as whether Bold is on where the cursor is. Some commands present an action (Save, Resolve a Comment), and some only mean anything with a window in front of somebody (Bold, Next Comment), so they have no action and need none.
-- A **request** is an action whose work is to bring an applet's window to the reader with something in it. Asteroids' `play` action on example.com is already one: it carries `"handles": "play"` and no handler, and the broker answers it with the window.
+- A **request** is an action whose work is to bring an applet's window to the reader with something in it. The `play` action of a game applet on that site is already one: it carries `"handles": "play"` and no handler, and the broker answers it with the window.
 
 Harmonizing them means one vocabulary across the three, so that nothing is declared twice and an agent can always find the deepest layer that does what it wants.
 
@@ -28,7 +28,7 @@ Harmonizing them means one vocabulary across the three, so that nothing is decla
 
 ### 1. Actions become part of PUDL
 
-Chapter 9 of the specification gains actions, as a contract any host implements: the manifest, references, schemas, capabilities, replay, the result, and invocations. The web implementation gains `dist/pudl-actions.js`, the page broker, taken from example.com's with its `pc` names made PUDL's. It stays a separate file, loaded where a page uses actions, since it is about 600 lines with its dialog and its schema validator; that answers the site's second question.
+Chapter 9 of the specification gains actions, as a contract any host implements: the manifest, references, schemas, capabilities, replay, the result, and invocations. The web implementation gains `dist/pudl-actions.js`, the page broker, taken from the site's with its site-specific names made PUDL's. It stays a separate file, loaded where a page uses actions, since it is about 600 lines with its dialog and its schema validator; that answers the site's second question.
 
 The declaration is the site's, unchanged: `define()` gains `actions`, the address of the manifest, which the runtime stamps with `ver` as it does `src`. That answers the site's first question; the word says what the file is for, and a manifest's role is clear from its contents.
 
@@ -46,23 +46,23 @@ pudlActions.status(id), wait(id), cancel(id), artifact(id), invocations()
 
 **Capabilities.** PUDL owns the mechanism: a manifest naming a capability the project has not listed is refused, an action runs only for a caller whose grant covers its capabilities, and a handler is handed only the services it declared. The list belongs to the project, as `handles` verbs do, and PUDL ships a starting list: `artifact.create`, `attention.request`, `notification.post` and `window.open`. The site's `files.read` and `files.write` stay the site's.
 
-**Validation** uses JSON Schema draft 2020-12, with a `$ref` outside its own schema refused. PUDL vendors `@cfworker/json-schema` (MIT), as both sites do, because it checks without compiling schemas to code, which a strict content security policy forbids.
+**Validation** uses JSON Schema draft 2020-12, with a `$ref` outside its own schema refused. PUDL vendors `@cfworker/json-schema` (MIT), as both existing hosts do, because it checks without compiling schemas to code, which a strict content security policy forbids.
 
 ### 2. Requests become actions
 
 Every verb an applet declares in `handles` is published in the catalog as an action of that applet, `<applet>/<verb>@1`, whose input is the request (`path`, `kind`, and the verb's extra parameters) and whose output says whether a window or a tab was opened. A caller that knows the verb still calls `request`; an agent that only reads the catalog finds the same thing as an action. `handles` in `define()` stays as the short way to write such an action.
 
-An action never navigates the page that called it. On a page without windows, where `request` today goes to the applet's page in the same tab, a request made through an action opens the applet's page in a new tab, as example.com's broker already does, and `request` gains an option, `{ newTab: true }`, for any caller that wants the same. That answers the site's third question.
+An action never navigates the page that called it. On a page without windows, where `request` today goes to the applet's page in the same tab, a request made through an action opens the applet's page in a new tab, as the site's broker already does, and `request` gains an option, `{ newTab: true }`, for any caller that wants the same. That answers the site's third question.
 
 ### 3. Commands present actions
 
 A command may name the action it presents, with `action: 'example.notes/save@1'`. Its `run` may then be left out, and pressing it runs the action with the input its `input` field gives, a value or a function. `pudlCommands.list` reports each command's action, so an agent in the page can choose the command, with its state now, or the action, with its schema, and an agent with no page uses the action alone.
 
-The commands with no action are the ones that mean something only in a live window, and the specification says so plainly, so a project does not invent actions for Bold or Next Comment to look complete. an application's rule that "every UI operation has an exported equivalent" becomes checkable for the commands that do have one, since the link is data rather than a policy.
+The commands with no action are the ones that mean something only in a live window, and the specification says so plainly, so a project does not invent actions for Bold or Next Comment to look complete. A host's rule that "every UI operation has an exported equivalent" becomes checkable for the commands that do have one, since the link is data rather than a policy.
 
 ### 4. One binding for agents outside the page
 
-The five MCP tools an application and example.com both offer, `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`, become the specification's recommended binding of the contract to MCP, in a note rather than a requirement, so that an agent that has used one PUDL host's applets can use another's. a desktop host would offer the same five tools beside its own `open` and `submit`.
+The five MCP tools both existing hosts offer, `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`, become the specification's recommended binding of the contract to MCP, in a note rather than a requirement, so that an agent that has used one PUDL host's applets can use another's. A host may offer tools of its own beside the five.
 
 ### What an agent can do, layer by layer
 
@@ -74,11 +74,11 @@ The five MCP tools an application and example.com both offer, `applet_discover`,
 
 ## The pilots
 
-**example.com first.** The site already runs everything in section 1, so it is the cheapest proof. The steps are to replace `js/applet-actions.js` with `pudl-actions.js`, delete the `define()` wrapper that `js/applets.js` marks as a workaround, keep `files.read` and `files.write` as the site's own capabilities, and change nothing in its manifests, its server runner or its MCP tools. Then link the Terminal's and the chat's commands to their actions, and try the folding toolbar on one applet.
+**The site that built the broker goes first.** It already runs everything in section 1, so it is the cheapest proof. The steps are to replace its own broker script with `pudl-actions.js`, delete the `define()` wrapper it marks as a workaround, keep `files.read` and `files.write` as its own capabilities, and change nothing in its manifests, its server runner or its MCP tools. Then it links its terminal's and its chat's commands to their actions and tries the folding toolbar on one applet.
 
-**reader.com second,** as a site that starts from nothing: publish one action from one of its applets, give that applet a command table and a folding toolbar, and see what a newcomer finds hard. What it finds goes into the specification before 1.0.
+**A second site goes next,** one that starts from nothing. It publishes one action from one of its applets, gives that applet a command table and a folding toolbar, and shows what a newcomer finds hard. What it finds goes into the specification before 1.0.
 
-**an application last,** once both pilots have settled the contract, since its Go broker already implements it and its move is mostly mapping: the Editor's key table to a command table, its document-type actions to the manifest, and its CLI's verbs to the actions they duplicate.
+**The application that designed the contract goes last,** once both pilots have settled the contract, since its Go broker already implements it and its move is mostly mapping: its editor's key table to a command table, its document-type actions to the manifest, and its CLI's verbs to the actions they duplicate.
 
 ## Decisions, 20 October 2026
 
@@ -92,7 +92,7 @@ The five MCP tools an application and example.com both offer, `applet_discover`,
 Released in PUDL 0.68.0 with specification 0.28.0. Building it added four small things to the design above.
 
 - **`live` on an action.** An action the open applet answers is marked `"live": true` and needs no module: the broker hands the call to the newest handlers the running applet attached. The site wrote a module handler that called `attached()` by hand for each such action; that still works.
-- **`pudlApplets.publish(url)`** adds a manifest that belongs to no applet, which the site needs for `js/actions/page.json`.
+- **`pudlApplets.publish(url)`** adds a manifest that belongs to no applet, which a site needs for actions that belong to the page as a whole.
 - **`pudlApplets.capability(name, give)`** is how a project adds a capability and the services it hands a handler, which is how the site keeps `files.read` and `files.write`.
 - **`grant: "all"`** is how a caller acting for the person says it holds everything; a command a person presses passes it.
 

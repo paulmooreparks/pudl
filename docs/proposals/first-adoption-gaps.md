@@ -1,8 +1,8 @@
-# Proposal: what example.com found missing
+# Proposal: what the first adopting site found missing
 
 Status: accepted 2026-09-26. Items 1 to 3 shipped in 0.9.0 and items 4 to 7 in 0.10.0, as recommended below. The sample applet is a colour mixer, in `samples/colour-mixer.html` and in the article reader. The per-window state parameter at the end of item 7 remains open.
 
-Adopting PUDL on example.com turned up gaps that belong in PUDL rather than in the site. The site's architecture document (`Architecture/pudl-adoption.md` in that repository) lists four under "Proposed upstream to PUDL". Reading the site's `desktop.js` and `applets.js` turned up three more, each a workaround for something PUDL should provide. This document takes them in order of size and recommends a disposition for each.
+Adopting PUDL on a site turned up gaps that belong in PUDL rather than in the site. The site's own architecture notes list four as proposed upstream to PUDL. Reading the site's window and applet scripts turned up three more, each a workaround for something PUDL should provide. This document takes them in order of size and recommends a disposition for each.
 
 ## 1. `[hidden]` loses to component display rules
 
@@ -12,7 +12,7 @@ Adopting PUDL on example.com turned up gaps that belong in PUDL rather than in t
 
 ## 2. A latched toggle button
 
-Sudoku's hint-entry mode needs a button that stays pressed in, and PUDL has that look only inside a segmented control. The menu button from 0.8.0 already shows it while its panel is open.
+A sudoku applet's hint-entry mode needs a button that stays pressed in, and PUDL has that look only inside a segmented control. The menu button from 0.8.0 already shows it while its panel is open.
 
 **Recommendation:** style `.btn[aria-pressed="true"]` with the sunken pressed treatment, `--raise-active-bg` and `--raise-active-shadow`. `aria-pressed` is the ARIA toggle-button state, so one attribute carries both the look and what assistive technology announces, and the state shows through elevation, not colour alone. A project flips the attribute; PUDL ships no script for it.
 
@@ -42,11 +42,11 @@ When a link inside a window leads to a sibling article, the site wants the new a
 
 ## 7. Applets
 
-The site's applet rule (its D14) is that interactive content runs in a PUDL window or as a full page from one implementation. An applet is a mount element naming a script, a stylesheet and the applet's own page, plus a registered `init(root, opts)` that scopes every lookup and listener to `root` and returns an instance with `destroy()`. `opts.ownUrl` tells the applet whether it owns the page's URL: stand-alone it keeps its state there, and inside a window it leaves the URL to the windows and links to its own page for sharing. The runtime loads each applet's assets once, boots mounts on page load and when a window opens, and destroys instances when their mount leaves.
+The site's applet rule is that interactive content runs in a PUDL window or as a full page from one implementation. An applet is a mount element naming a script, a stylesheet and the applet's own page, plus a registered `init(root, opts)` that scopes every lookup and listener to `root` and returns an instance with `destroy()`. `opts.ownUrl` tells the applet whether it owns the page's URL: stand-alone it keeps its state there, and inside a window it leaves the URL to the windows and links to its own page for sharing. The runtime loads each applet's assets once, boots mounts on page load and when a window opens, and destroys instances when their mount leaves.
 
 This belongs in PUDL because the need arises from PUDL's own rule that scripts in a fetched window do not run. Every project that puts interactive content in a window has to solve it, and the contract itself says nothing about any one site. It stays small and is not a component framework: PUDL does not render the applet, manage its state or dictate how it is built. It only defines the handshake between content and whichever host it lands in.
 
-**Recommendation:** ship it as an optional `dist/pudl-applets.js`, with the contract in the README and an applet in a sample page. The names become PUDL's own: `data-applet`, `data-applet-src`, `data-applet-css` and `data-applet-page` on the mount, `pudlApplets.register(name, { init })` in place of the site's global object, and in `opts`, `ownsUrl`, `pageUrl`, and `host`, which is `"page"` or `"window"`. The runtime boots applets on `pudl:window-open` and destroys them on `pudl:window-close` by itself, so a page that loads both scripts needs no wiring, and it still offers `boot(scope)` for content a project adds another way. The site moves to the released form by renaming, and sudoku's code changes only in its first and last lines.
+**Recommendation:** ship it as an optional `dist/pudl-applets.js`, with the contract in the README and an applet in a sample page. The names become PUDL's own: `data-applet`, `data-applet-src`, `data-applet-css` and `data-applet-page` on the mount, `pudlApplets.register(name, { init })` in place of the site's global object, and in `opts`, `ownsUrl`, `pageUrl`, and `host`, which is `"page"` or `"window"`. The runtime boots applets on `pudl:window-open` and destroys them on `pudl:window-close` by itself, so a page that loads both scripts needs no wiring, and it still offers `boot(scope)` for content a project adds another way. The site moves to the released form by renaming, and the sudoku applet's code changes only in its first and last lines.
 
 One question for later, not for this release: an applet inside a window cannot keep its state in the URL, because the windows own it. A per-window state parameter, such as `s.<key>`, would let it. That is a change to the URL grammar and deserves its own proposal once a second applet wants it.
 

@@ -44,6 +44,6 @@ A peek never sets `data-md-collapsed` or `--md-sidebar-w`, and it fires no `pudl
 
 An independently controlled window workspace must set `data-win-pane="off"` on its window layer. Otherwise the window manager owns `data-md-pane`, and the host must route requests through that existing policy. Do not give both components independent authority over pane selection.
 
-The [persistent article reader](../samples/persistent-sidebar.html) demonstrates URL pane state, Back/Forward, refusal when detail is unavailable, and pointer buttons. It preserves mounted content. Example can replace its divider and gesture handlers while retaining its commands and window adapter. If restoration depends on a saved window set, represent enough state in the URL to reconstruct it, or preserve canonical window state while changing only pane presentation.
+The [persistent article reader](../samples/persistent-sidebar.html) demonstrates URL pane state, Back/Forward, refusal when detail is unavailable, and pointer buttons. It preserves mounted content. A site with its own divider and gesture handlers can replace them while retaining its commands and window adapter. If restoration depends on a saved window set, represent enough state in the URL to reconstruct it, or preserve canonical window state while changing only pane presentation.
 
 The target can be styled to match a host, but smaller targets need an accessibility assessment. Keep a click/tap alternative for resizing and switching panes. Test real touch and assistive technology in addition to the automated browser checks.

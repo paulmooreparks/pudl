@@ -1,5 +1,4 @@
-/* Document tabs, code blocks, editor surfaces and the syntax colours,
-   from example.com's Architecture/pudl-proposal-tree-crumbs-editor.md.
+/* Document tabs, code blocks, editor surfaces and the syntax colours.
    Their contrast is checked by the axe suite, on the reference page. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;

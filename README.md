@@ -196,9 +196,9 @@ A palette is the block of tokens at the top of `pudl.css` under "The palette": s
 
 The lighting tokens are what keep the raised and sunken surfaces readable on a new palette. `--light` is the colour of the light falling on a raised control and `--shade` the colour of its shadow. `--lit` sets how strongly the highlight shows and `--depth` how strongly the shadow does. A light theme usually wants a strong highlight and a soft shadow, and a dark theme the reverse. What stays constant from one project to the next is the grammar: a user who has learned what raised, sunken and flat mean in one application finds the same meanings in every other.
 
-The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, filter chips, accent badges, the current list row's edge, selected table rows, a switch that is on, the active window and the dots on the window dock, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one and gives it a light topbar. `examples/parchment.css` restores the warm parchment and leather palette with serif headings that PUDL used by default up to 0.2.0, which is also the an earlier project look.
+The smallest useful theme changes only `--accent` and `--accent-hover`. The accent reaches links, primary buttons, focus rings, filter chips, accent badges, the current list row's edge, selected table rows, a switch that is on, the active window and the dots on the window dock, so those two values alone make a project recognisably its own. `examples/brand.css` shows one, with separate values for the dark theme. `examples/slate.css` replaces the whole palette with a cool slate one and gives it a light topbar. `examples/parchment.css` restores the warm parchment and leather palette with serif headings that PUDL used by default up to 0.2.0.
 
-A topbar containing `[data-menubar]` uses `--surface` in the light theme, with matching foreground colors for its menus and toolbar controls. Each menu group forms one slightly raised surface using the Example background fill, border, and shadow. Other topbars retain their separate theme colors and can stay dark on a light page. The brand and plain topbar links hover in `--tb-link-hover`, which a theme may override.
+A topbar containing `[data-menubar]` uses `--surface` in the light theme, with matching foreground colors for its menus and toolbar controls. Each menu group forms one slightly raised surface using the background fill, border, and shadow of a neutral button. Other topbars retain their separate theme colors and can stay dark on a light page. The brand and plain topbar links hover in `--tb-link-hover`, which a theme may override.
 
 The topbar never widens the page. On a screen too narrow for the brand and its chrome on one line, the chrome moves to a second line, at the end, and wraps within itself if it must. A pill may carry a glyph with its words in a `.topbar-pill-label`, and on a phone it then shows only the glyph while its words are still heard, so a topbar with several pills stays compact:
 
@@ -406,7 +406,7 @@ A `.figure` (0.74.0) holds an `img` with its `width` and `height`, which keep it
 
 ```html
 <figure class="figure"><img src="receipt.jpg" alt="The receipt on a café table" width="1600" height="900" loading="lazy"><figcaption>Photographed at check-out.</figcaption></figure>
-<span class="avatar-wrap"><span class="avatar" role="img" aria-label="Ana Reyes">PP</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
+<span class="avatar-wrap"><span class="avatar" role="img" aria-label="Ana Reyes">AR</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
 ```
 
 A `.avatar` is a person's or an agent's initials, or an `img` with empty `alt`, in a neutral circle of 32px, or 24px (`.sm`), 40px (`.lg`) and 64px (`.xl`); a picture that fails gives way to the initials. `.avatar.tint` takes a soft tint from the name. A status mark has a shape as well as a colour: online a filled circle, away a half-filled one, busy a minus, offline a ring.
@@ -806,7 +806,7 @@ A menu button opens a panel of choices. The button is raised and carries a caret
 
 Places are list rows, the same `.md-row` and `.md-item` a master-detail sidebar uses, grouped under `.md-section-label` headings, and a row that opens a window is marked while its window is in front. Actions are `.menu-action` buttons below an `.menu-sep` rule, each with a leading glyph drawn as a `.glyph`. A destructive one adds `danger`, and PUDL draws the warning glyph before it at 12px, in the tick's column when the panel has ticks (0.66.0); a row that holds a picture of its own keeps that instead. This README used to say a destructive action should carry the `stop` glyph itself, and a row that still does keeps it, so drop it to get the warning glyph every other destructive control shows. A `.btn-danger` gets the same glyph, on the same terms. The `.menu` wrapper holds the button and its panel together, and that is how the button knows to look pressed.
 
-The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, above it when there is more room there, and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
+The optional `pudl-menu.js`, loaded with `defer`, opens a panel against its button, below it, and above it only when the panel does not fit below and either fits whole above or has less than 240px below (0.77.1), so a long panel stays below and scrolls; and as a full-width sheet when the window is 640px wide or less. It lets Up and Down move between rows, and Down on the button open the panel and move into it. An `.md-filter` at the top of a panel narrows its rows as the reader types, hides a section whose rows have all gone, and follows the first remaining row on Enter. Without the script a panel opens centred, and a filter is whatever form holds it.
 
 An open menu is not part of the URL. It is momentary, like a hover, and everything it leads to has an address of its own.
 
@@ -842,7 +842,7 @@ A **launcher** is a menu button first in the row that holds a window dock, whose
 
 ## The menu bar
 
-The [menu-bar conventions](docs/MENU-BARS.md) define the site and applet groups, standard menu order, and command ownership. The [shared adoption guide](docs/MENU-BAR-ADOPTION.md) applies them to Example and the reader application. The [0.40.0 migration guide](docs/MENU-BAR-MIGRATION.md) covers stable IDs, scoped contributions, generated window commands, and fallback menu changes.
+The [menu-bar conventions](docs/MENU-BARS.md) define the site and applet groups, standard menu order, and command ownership. The [adoption guide](docs/MENU-BAR-ADOPTION.md) applies them to a tools workspace and to a reader application. The [0.40.0 migration guide](docs/MENU-BAR-MIGRATION.md) covers stable IDs, scoped contributions, generated window commands, and fallback menu changes.
 
 The optional `pudl-menubar.js` gives an application a menu bar in its topbar, as a Mac's is: one bar however many windows are open, showing the menus of what the reader is in. It holds the **host menu**, the site's own, which is always there, and to its right the **front menu**, for whatever is in front: the applet or article in the front window, or, with no window in front, the one on the page. Each menu is one raised surface in the topbar's chip colours with the menu glyph at its start, and its titles are flat words that take their press from it. Load it after `pudl-menu.js`, and after `pudl-windows.js` and `pudl-applets.js` if the page has them.
 
@@ -858,7 +858,7 @@ The host renders its menu as a hidden list inside the bar, beside whatever shoul
     <li>Go
       <ul>
         <li>Articles</li>
-        <li><a href="/?open=coincidences" data-win-open="coincidences">Coincidences</a></li>
+        <li><a href="/?open=welcome" data-win-open="welcome">Welcome</a></li>
       </ul></li>
     <li>View
       <ul><li><button type="button" aria-pressed="false" data-shortcut="Mod+Shift+L">Wide layout</button></li></ul></li>
@@ -973,7 +973,7 @@ The first pane's size is a custom property on the `.split`, `--split-a` unless t
 
 ### Disclosure cards, row editors, zoom and row lists
 
-Four components came from an application's Flow window in 0.60.0 (`docs/proposals/flow-ui-controls.md`), each replacing something an application had drawn for itself in a way the grammar does not allow.
+Four components arrived in 0.60.0 (`docs/proposals/flow-ui-controls.md`), each replacing something an application had drawn for itself in a way the grammar does not allow.
 
 A **disclosure card** is `.card.disclosure` with a `.card-head` holding a `.card-toggle` button, the `.card-title`, any chips and a `.card-summary`, then a `.card-body` and an optional `.card-actions` foot. The toggle is drawn as a tree's toggle, and it is the only part of the head that can be pressed: a flat head that responds to a press is what the card replaces. The server writes `aria-expanded` on the toggle, and `pudl-disclose.js` hides the body and foot while it is false and the summary while it is true, sets `aria-controls`, names an unnamed toggle for the title, and fires `pudl:disclose` on the card with `detail.open`. `pudlDisclose.set(card, open)` opens or closes one from script. Without the script every part shows.
 
@@ -1394,7 +1394,7 @@ A window source must answer the numbered keys. A server renders the applet's win
 
 ### Actions
 
-An applet may publish **actions** (0.68.0): things it does that a script, the page, a server or an agent calls by reference and that answer with a result, with the input and output checked against JSON Schemas, and without the applet's window unless the action is about a window. The contract is an application's, as example.com runs it; `pudl-actions.js` is that site's broker made PUDL's, and the specification's chapter 9 states the contract for any host. Load it after `pudl-applets.js`; it loads `pudl-actions-core.js` and the validator in `vendor/` beside it when first used.
+An applet may publish **actions** (0.68.0): things it does that a script, the page, a server or an agent calls by reference and that answer with a result, with the input and output checked against JSON Schemas, and without the applet's window unless the action is about a window. `pudl-actions.js` is the broker, and the specification's chapter 9 states the contract for any host. Load it after `pudl-applets.js`; it loads `pudl-actions-core.js` and the validator in `vendor/` beside it when first used.
 
 ```js
 pudlApplets.define('dice', { src: '/js/dice.js', ver: '3', actions: '/js/dice-actions.json' });
@@ -1407,14 +1407,14 @@ The manifest lists the provider, such as `example.dice`, and its actions, each w
 - **Grants.** A caller passes `opts.grant`, the capabilities it holds, or `"all"`; with none it holds `artifact.create` alone. A command a person presses holds everything. For an action needing more than its caller holds, a host may set `pudlApplets.confirm`, a function given `{ action, missing, owner }` that resolves true to let it run, so the person decides what an agent may do for them.
 - **Calling.** `pudlApplets.catalog()`, `describe(ref)`, `run(ref, input, opts)`, which gives the output or an error saying why not, `invoke(ref, input, opts)`, which gives the record, and `status(id)`, `wait(id)`, `cancel(id)`, `artifact(id)`, `invocations()` and `problems()`. `pudl:applet-invocation` fires on the document as each record changes.
 - **Requests are actions.** Every `handles` verb with no action of its own is published as `<applet>/<verb>@1`. An action never navigates the page that called it: without windows it opens the applet's page in a new tab.
-- **For agents outside the page,** a host offers the same contract through MCP as `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`, the names an application and example.com share.
-- **The old name.** `window.pudlActions`, which example.com and the applet package format used first, is the same functions, deprecated; it says so once in the console and goes at 1.0.
+- **For agents outside the page,** a host offers the same contract through MCP as `applet_discover`, `applet_invoke`, `applet_status`, `applet_cancel` and `applet_artifact`.
+- **The old name.** `window.pudlActions`, which the applet package format used first, is the same functions, deprecated; it says so once in the console and goes at 1.0.
 
 [The commands sample](https://paulmooreparks.github.io/pudl/samples/commands.html) publishes five actions from its note editor and runs them as an agent would, asking the reader through the confirm hook.
 
 ### Sizing an applet that fills
 
-Three lessons from example.com's Sudoku, for any applet that fills a window without scrollbars:
+Three lessons apply to any applet that fills a window without scrollbars, such as a game board:
 
 - An element with `aspect-ratio` and a definite width does not carry a `max-height` back to its width, so a square board squashes. Measure instead: a wrapper with `container-type: size` takes the leftover space through flex, and the content inside it is sized `min(100cqi, 100cqb)`.
 - A size container's box must come from its layout, such as flex stretch, never from its content, because a size container ignores its content's size and collapses to nothing.
@@ -1514,13 +1514,13 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.77.0, and PUDL is below 1.0, so a minor release may still change what a project sees. The stylesheet was extracted from the an earlier project Design Language v2 reference page, and the floating windows are a rewrite of an earlier project's card windows as a general module. example.com is the first site built on PUDL on its own, and most releases from 0.9.0 on answer what adopting it there turned up.
+This is version 0.77.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
-The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for the reader application and Example.
+The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
 ## Lineage
 
-PUDL supersedes three earlier design languages. The a platform Design Language came first. The an earlier project Design Language and the an earlier project Design Language extended it for their own products, and the second version of the an earlier project Design Language moved the control vocabulary to a grammar modelled on desktop toolkits, GTK in particular. PUDL borrows ideas from GTK and contains none of its code, stylesheets or artwork. PUDL is that second version, separated from an earlier project so that every project can share it.
+PUDL supersedes earlier design languages and keeps the control vocabulary they settled on, a grammar modelled on desktop toolkits, GTK in particular. PUDL borrows ideas from GTK and contains none of its code, stylesheets or artwork.
 
 ## Licence
 

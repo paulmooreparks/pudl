@@ -1,14 +1,14 @@
-/* From the site's issues (a contributor), PUDL 0.58.0:
-   #17 a form marked data-win-submit is sent in place, and pudlWindows.reload
-       and update change a window's content without the page loading again;
-   #16 data-win-place="own", data-win-opens, data-win-undock, and the link in
-       pudl:window-place;
-   #21 data-win-beside, and Ctrl or Cmd on a replacing link where the layer
-       asks for it;
-   #20 the narrow rule leaves a docked window docked;
-   #14 a strip the server drew works without script, and the script adopts
-       it; without a strip, no empty band;
-   #19 a window's attention count keeps 4.5:1 on the taskbar and the tabs. */
+/* Window updates and placement, PUDL 0.58.0:
+   - a form marked data-win-submit is sent in place, and pudlWindows.reload
+     and update change a window's content without the page loading again;
+   - data-win-place="own", data-win-opens, data-win-undock, and the link in
+     pudl:window-place;
+   - data-win-beside, and Ctrl or Cmd on a replacing link where the layer
+     asks for it;
+   - the narrow rule leaves a docked window docked;
+   - a strip the server drew works without script, and the script adopts
+     it; without a strip, no empty band;
+   - a window's attention count keeps 4.5:1 on the taskbar and the tabs. */
 const { launch, ROOT, engine } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
@@ -31,7 +31,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   const place = key => page.evaluate(k => pudlWindows.state().place[k], key);
   const ready = async url => { await page.goto(url); await page.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length > 0); };
 
-  /* #17: a form sent in place. */
+  /* A form sent in place. */
   const posts = [];
   await page.route('**/api/tags', async route => {
     posts.push({ header: route.request().headers()['x-pudl-window'], body: route.request().postData() });
@@ -83,7 +83,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   await Promise.all([page.waitForSelector('#plain-answer'), page.locator('#plain-form button').click()]);
   check('a form without data-win-submit posts the ordinary way', await page.evaluate(() => location.pathname.endsWith('/api/plain')));
 
-  /* #16: where windows open. */
+  /* Where windows open. */
   await ready(PAGE);
   const told = [];
   await page.exposeFunction('sawPlace', d => told.push(d));
@@ -98,7 +98,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   await page.waitForSelector('.win[data-win="editor"]');
   check('data-win-place="own" keeps the window\'s own placement over its opener\'s', (await place('editor')).mode === 'left');
 
-  /* #21: open beside. */
+  /* Open beside. */
   await page.evaluate(() => pudlWindows.raise('drafts'));
   await page.locator('#beside-link').click();
   await page.waitForSelector('.win[data-win="drafts-deleted"]');
@@ -115,7 +115,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   await page.waitForSelector('.win[data-win="drafts-deleted"]');
   check('a plain click on a replacing link still replaces', await win('drafts').count() === 0);
 
-  /* #20 and data-win-undock. */
+  /* The narrow rule and data-win-undock. */
   await page.evaluate(() => pudlWindows.open('site'));
   await page.waitForSelector('.win[data-win="site"]');
   await page.setViewportSize({ width: 500, height: 800 });
@@ -128,7 +128,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   await page.evaluate(() => pudlWindows.dock('site', null));
   check('data-win-undock sends a window to its zone when it leaves its dock', (await place('site')).mode === 'left');
 
-  /* #14: a strip the server drew. */
+  /* A strip the server drew. */
   const STRIP = ROOT + '/tests/fixtures/server-strip.html?open=moderation,pending&top=moderation';
   const noScript = await browser.newContext({ viewport: { width: 1300, height: 800 }, javaScriptEnabled: false });
   const plain = await noScript.newPage();
@@ -158,7 +158,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   const adopted = await page.evaluate(() => ({ menus: document.querySelectorAll('[data-dock-menu="pending"]').length, toggles: document.querySelectorAll('.win-dock-group[data-dock-edge="left"] .win-dock-toggle').length, groups: document.querySelectorAll('.win-dock-group').length }));
   check('an adopted strip gains its menu buttons and toggle', adopted.menus === 1 && adopted.toggles === 1, adopted);
 
-  /* #16: room to ask for. The document asks for 1000px; beside two docks
+  /* Room to ask for. The document asks for 1000px; beside two docks
      of 24% of a 1400px layer it would get 728px, so the widest automatic
      side dock gives way, and one is enough. */
   await page.setViewportSize({ width: 1400, height: 850 });
@@ -187,7 +187,7 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   check('closing the window gives the docks back', JSON.stringify(await rails()) === '[]');
   await page.unroute('**/samples/shared-docks.html*');
 
-  /* #19: the attention count's contrast, on every ground it sits on. */
+  /* The attention count's contrast, on every ground it sits on. */
   for (const theme of ['light', 'dark']) {
     const ratios = await page.evaluate(theme => {
       document.documentElement.dataset.theme = theme;

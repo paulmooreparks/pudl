@@ -217,7 +217,7 @@
       "name": "Avatar",
       "kind": "flat",
       "spec": "08-components/images-and-avatars.md",
-      "template": "<span class=\"avatar-wrap\"><span class=\"avatar\" role=\"img\" aria-label=\"Ana Reyes\">PP</span><span class=\"avatar-status\" data-status=\"online\" aria-label=\"Online\"></span></span>",
+      "template": "<span class=\"avatar-wrap\"><span class=\"avatar\" role=\"img\" aria-label=\"Ana Reyes\">AR</span><span class=\"avatar-status\" data-status=\"online\" aria-label=\"Online\"></span></span>",
       "parts": [
         { "selector": ".avatar", "surface": "flat" }
       ],

@@ -1,7 +1,5 @@
 /* A window fetched over a slow network must not take focus from whatever
-   the reader moved to while it was on its way, such as the "/" palette.
-   Reported from example.com (Architecture/pudl-bug-summon-focus.md
-   in that repository). */
+   the reader moved to while it was on its way, such as the "/" palette. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

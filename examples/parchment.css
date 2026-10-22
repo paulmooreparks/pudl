@@ -1,6 +1,6 @@
 /* An example theme: parchment for the light theme and leather for the dark,
    with a dark leather topbar in both and serif headings. This was PUDL's
-   default palette up to 0.2.0, and it is the an earlier project look. Load it after
+   default palette up to 0.2.0. Load it after
    pudl.css. */
 
 :root {

@@ -6,7 +6,7 @@ This design addresses the article-sharing goal in [GitHub issue 10](https://gith
 
 ## Architectural decision
 
-A host may craft a URL around the state it wants to export. The shared address need not reproduce the sender's current workspace. This follows the maintainer's clarification of [Architectural Principles](<C:/Users/example/OneDrive/Documents/Architectural Principles.md>): all state needed to reconstruct the chosen view must be represented by that URL, with no hidden alternative authority.
+A host may craft a URL around the state it wants to export. The shared address need not reproduce the sender's current workspace. This follows the architectural principle that all state needed to reconstruct the chosen view must be represented by that URL, with no hidden alternative authority.
 
 The issue proposed replacing the visible workspace address with the front article's address while restoring other windows from `history.state`. That mechanism is excluded. Exporting an article-only link is permitted, but the current larger workspace keeps its own full URL. No architectural exception is needed.
 

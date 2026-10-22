@@ -1,6 +1,6 @@
 # Shared Side Docks
 
-an application needs several browser windows to share each side of its workbench. the maintainer approved tabs with attention counts, a required Workspace window first in its dock, and icon rails on narrow screens on 2026-10-08. This control belongs in PUDL. The application supplies window titles, glyphs and status; PUDL owns placement and interaction.
+An application with many windows needs several of them to share each side of its workspace. Tabs with attention counts, a required Workspace window first in its dock, and icon rails on narrow screens were approved on 2026-10-08. This control belongs in PUDL. The application supplies window titles, glyphs and status; PUDL owns placement and interaction.
 
 ## Opt-In Contract
 
@@ -22,4 +22,4 @@ Window elements may provide `data-win-glyph`, identifying a PUDL glyph by its to
 
 ## Verification
 
-Tests must cover independent sides, required-window closure through every public route, selected-tab persistence, responsive rails, pinning, outside dismissal, keyboard focus, cancellation of dirty-window closure, and live status updates. Existing dock behavior must continue to pass in all three supported browser engines. Companion adopts the control only after a tagged PUDL release.
+Tests must cover independent sides, required-window closure through every public route, selected-tab persistence, responsive rails, pinning, outside dismissal, keyboard focus, cancellation of dirty-window closure, and live status updates. Existing dock behavior must continue to pass in all three supported browser engines. Applications adopt the control only after a tagged PUDL release.

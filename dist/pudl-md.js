@@ -385,7 +385,7 @@
     p.handle.addEventListener('lostpointercapture', end);
   });
   /* === Peeking at a collapsed sidebar ==================================
-     From example.com's proposal. On a layout marked data-md-peek, a
+     On a layout marked data-md-peek, a
      collapsed sidebar can be looked into without expanding it: resting a
      pointer on its handle for a moment, or focusing the handle from the
      keyboard, draws the sidebar over the detail pane at its own width,

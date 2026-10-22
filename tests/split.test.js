@@ -1,4 +1,4 @@
-/* Splitters, from example.com's Architecture/pudl-proposal-splitter.md. */
+/* Splitters. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

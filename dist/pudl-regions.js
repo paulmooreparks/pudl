@@ -130,7 +130,7 @@
      the live windows, since that is the page it names; on another path it
      is fetched as named, and if it proves compatible the pushed address
      carries the live windows, because they stay on screen. */
-  /* A reload (from the reader application's PUDL-PROPOSAL.md, A2) fetches the current
+  /* A reload fetches the current
      address afresh, past any cache, and swaps its regions in place with no
      new history entry. Where a link's swap would fall back to loading the
      page, a reload never navigates: it rejects and leaves the regions as
@@ -270,7 +270,7 @@
     if (a.matches('[data-win-open], [data-win-tab], [data-win-back], [data-win-action], [target]:not([target="_self"]), [download]')) return;
     /* A segmented control folded into a menu on a phone repeats each of
        its links as a .seg-choice, which swaps regions as the segment it
-       stands for does (from the reader application's PUDL-PROPOSAL.md, A3). */
+       stands for does. */
     if (a.closest('.menu-panel') && !a.classList.contains('seg-choice')) return;
     var url = new URL(a.href);
     if (url.origin !== location.origin) return;

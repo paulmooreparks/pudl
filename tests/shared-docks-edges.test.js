@@ -1,5 +1,4 @@
-/* Shared docks on every edge, and tabs that move (from an application's
-   proposal, pudl-docks-on-every-edge.md): data-win-dock-tabs="all" shares
+/* Shared docks on every edge, and tabs that move. data-win-dock-tabs="all" shares
    the top and bottom docks under a strip on their inner side, which
    collapses to the strip alone, by mode or by the layer's height; and a
    tab can be dragged, or moved with Alt+Shift and the arrow keys, to a new

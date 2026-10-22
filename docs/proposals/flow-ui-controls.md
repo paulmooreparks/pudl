@@ -1,18 +1,18 @@
 # Controls the Flow Window Built for Itself: PUDL's Answer
 
-This is PUDL's design for an application's proposal `pudl-flow-ui-controls.md` (13 October 2026), which asks for six components and one correction. It records what an application built, where that departs from the design language, what PUDL will provide, and the decisions that shape each component. It is the plan for one release, PUDL 0.60.0 with specification 0.21.0; the work is not done yet.
+This is PUDL's design for a proposal of 13 October 2026 from an application with a flow editor window, which asks for six components and one correction. It records what the application built, where that departs from the design language, what PUDL will provide, and the decisions that shape each component. It is the plan for one release, PUDL 0.60.0 with specification 0.21.0; the work is not done yet.
 
 ## What is not compliant today
 
-The proposal is right about the five departures it names, and reading an application's `app.css`, `app.js`, `flow-values.js` and `flow-chart.js` turns up two more. Each is listed here once so that the fixes below can be judged against them.
+The proposal is right about the five departures it names, and reading the application's stylesheet and the scripts behind its flow window turns up two more. Each is listed here once so that the fixes below can be judged against them.
 
-1. **A flat control that is pressed.** The head of a flow step is a `<button class="flow-step-twisty">` with no border and no fill. Chapter 2 of the specification allows a flat thing to be pressed only as a row in a list of places or choices; everything else that can be pressed is raised. A step's head is neither, so the closed card gives no sign that it opens. The same shape appears twice more in `app.js`: the activity log's tool groups (`.tool-group-head`, with a chevron) and the pins strip's `#pin-expand`. The disclosure card below should replace all three.
-2. **Glyphs the host draws.** The step head's caret is turned by an application's own rule, and Move Up turns `--glyph-chevron` through 180 degrees. A glyph that a host turns is one PUDL is not drawing, and it cannot keep it right in every theme, size and writing direction.
+1. **A flat control that is pressed.** The head of a flow step is a `<button class="flow-step-twisty">` with no border and no fill. Chapter 2 of the specification allows a flat thing to be pressed only as a row in a list of places or choices; everything else that can be pressed is raised. A step's head is neither, so the closed card gives no sign that it opens. The same shape appears twice more in the application: the activity log's tool groups (`.tool-group-head`, with a chevron) and the expand button of a strip of pinned items. The disclosure card below should replace all three.
+2. **Glyphs the host draws.** The step head's caret is turned by the application's own rule, and Move Up turns `--glyph-chevron` through 180 degrees. A glyph that a host turns is one PUDL is not drawing, and it cannot keep it right in every theme, size and writing direction.
 3. **Characters standing in for glyphs.** The zoom buttons hold the characters "−" and "+". The glyph-buttons section says a character from a font must not take a glyph's place, because a character can fall back to another face or render as an emoji, and then it no longer means what it did.
 4. **A command dressed as an input.** "Insert an Answer…" is a `<select>` that holds no value. A select is sunken because it takes input; this one performs a command, which is a raised control's job. Chapter 2's categories do not allow a control to borrow another category's surface.
 5. **Rows that are buttons without addresses.** Each run in the Runs tab is a `<button class="run-item">` that opens the run in place. The row look is right, but PUDL's rows are links to places, because every state a reader can reach must have an address (chapter 7, and the Architectural Principles' URL-is-king rule). A run has no address today, so it cannot be bookmarked, shared or restored with the window.
 6. **Lists that do not fit their window.** The four row editors are grids with fixed column minimums and no narrow layout, so in a narrow window they run wider than the window.
-7. **Window glyphs sized in pixels.** `pudl-windows.css` draws every window button's glyph in a 12px box, 10px docked, whatever the title's size, and the caret's path fills only 9 by 5.5 of its 16 units. The menu button's mark comes out at about 7 by 4 pixels beside 14px text. This one is PUDL's, not an application's.
+7. **Window glyphs sized in pixels.** `pudl-windows.css` draws every window button's glyph in a 12px box, 10px docked, whatever the title's size, and the caret's path fills only 9 by 5.5 of its 16 units. The menu button's mark comes out at about 7 by 4 pixels beside 14px text. This departure is PUDL's own.
 
 ## 1. A disclosure card
 
@@ -33,7 +33,7 @@ The proposal is right about the five departures it names, and reading an applica
 </section>
 ```
 
-The server writes `aria-expanded` on the toggle, as it writes it on a tree's node, and that attribute is the open state: there is no separate `data-open`. The script (`pudl-disclose.js`, new) sets `aria-controls` where the markup left it out, hides the body and the foot while the toggle says closed, hides the summary while it says open, and answers the toggle's press, Enter and Space. Until the script runs, every part shows, so a page without script loses nothing. The toggle's accessible name is its own (`aria-label`, or "Open" and "Close" with the title, which the script maintains from `.card-title` when no label is given). `pudl:disclose` fires on the card with `detail.open`, for a page that stores which steps are open; an application keeps that in its window state and writes `aria-expanded` back when it redraws.
+The server writes `aria-expanded` on the toggle, as it writes it on a tree's node, and that attribute is the open state: there is no separate `data-open`. The script (`pudl-disclose.js`, new) sets `aria-controls` where the markup left it out, hides the body and the foot while the toggle says closed, hides the summary while it says open, and answers the toggle's press, Enter and Space. Until the script runs, every part shows, so a page without script loses nothing. The toggle's accessible name is its own (`aria-label`, or "Open" and "Close" with the title, which the script maintains from `.card-title` when no label is given). `pudl:disclose` fires on the card with `detail.open`, for a page that stores which steps are open; the flow window keeps that in its window state and writes `aria-expanded` back when it redraws.
 
 **Layout.** The head is a wrapping row: the toggle, then the title at the card's title size, then any chips, then the summary, which takes the remaining width on the head's line and ends in an ellipsis, at `text-sm` in `text-muted`. The card's `space-4` padding stays; the head sits inside it. The foot is the settings panel's action row (`space-2` apart, at the card's foot), so it is not a new part. Opening and closing move no content but the card's own, and nothing animates except the caret's turn, which stops under reduced motion.
 
@@ -59,7 +59,7 @@ The server writes `aria-expanded` on the toggle, as it writes it on a tree's nod
 
 The readout is an `<output>`, flat because it shows a value, and the live region. The script (`pudl-zoom.js`, new) scales the viewport's first `svg` or `img` by setting its width and height from its intrinsic size, keeps the point at the viewport's middle where it was, holds the scale between the limits (5% to 800% unless the attributes say otherwise), disables Zoom Out and Zoom In at the limits, and makes Fit the scale at which the picture's width fills the viewport, capped at 100%. While the viewport has focus, Ctrl+Plus, Ctrl+Minus and Ctrl+0 zoom in, out and fit; Ctrl with the wheel zooms about the pointer. Each change fires `pudl:zoom` on the viewport with `detail.scale` and `detail.fit`, and a page restores a scale by setting `data-zoom-scale` or `data-zoom-fit` on the viewport before the script runs, or by calling `pudlZoom.set(viewport, scale)`. The group is tied to its viewport by `data-zoom-for`, or by being the viewport's previous sibling when the attribute is absent.
 
-an application's lightbox (`media-viewer.js`) has a click-to-zoom of its own. It is a different interaction, and this proposal leaves it alone.
+The application's lightbox has a click-to-zoom of its own. It is a different interaction, and this proposal leaves it alone.
 
 ## 3. Arrows that point up and down
 
@@ -88,7 +88,7 @@ an application's lightbox (`media-viewer.js`) has a click-to-zoom of its own. It
 </div>
 ```
 
-The headings are flat, at `text-xs` and weight 600 in `text-muted`, as an application's are now; they are not the data table's raised sortable headers. Each field keeps its own accessible name, since a screen reader moving through a form hears the field, not the column. A full-width second line is a row marked `row-editor-more` whose one cell spans the columns. The remove button is a 28px danger glyph button in the last column, which is as wide as the button and no wider. Columns take the width of their content; a field's cell stretches, so the widths an application chose per list fall away.
+The headings are flat, at `text-xs` and weight 600 in `text-muted`, as the flow window's are now; they are not the data table's raised sortable headers. Each field keeps its own accessible name, since a screen reader moving through a form hears the field, not the column. A full-width second line is a row marked `row-editor-more` whose one cell spans the columns. The remove button is a 28px danger glyph button in the last column, which is as wide as the button and no wider. Columns take the width of their content; a field's cell stretches, so the widths the application chose per list fall away.
 
 Below 480px of the editor's own width, measured by a container query on `.row-editor-wrap`, each row becomes a card of its fields, each under its heading from `data-label`, with the remove button at the card's top end, as the data table stacks. The threshold is the editor's width and not the screen's, because the editor sits in windows of every width.
 
@@ -110,13 +110,13 @@ Below 480px of the editor's own width, measured by a container query on `.row-ed
 </div>
 ```
 
-The row is a flex line, the label at its start and the slot at its end, aligned on the label's baseline; the slot's controls are `btn-sm` or `icon-btn`, and a `menu-btn` there carries the `caret` as every menu button does. When the line is too narrow for both, the slot wraps under the label, start-aligned, rather than squeezing the label. `.form-group:has(:required) > .form-label::after` and the error message keep working, since the label element is unchanged. an application's `withLabelEnd` helper goes, and so does the select: the menu's rows are the answers, and choosing one inserts at the cursor, which stays the page's job.
+The row is a flex line, the label at its start and the slot at its end, aligned on the label's baseline; the slot's controls are `btn-sm` or `icon-btn`, and a `menu-btn` there carries the `caret` as every menu button does. When the line is too narrow for both, the slot wraps under the label, start-aligned, rather than squeezing the label. `.form-group:has(:required) > .form-label::after` and the error message keep working, since the label element is unchanged. The application's label-end helper goes, and so does the select: the menu's rows are the answers, and choosing one inserts at the cursor, which stays the page's job.
 
 ## 6. A list whose rows open something
 
 **Decision: the master-detail row stands on its own, and its rows are links.** `.md-row` and `.md-item` are already drawn without a master-detail layout around them (the menu panel's place rows use them), so what this needs is a name, a rule and the keys. The component is a `.row-list`: a `<ul>` of `.md-row`s, each holding an `a.md-item` to the row's address, with `aria-current="true"` on the row that is open. The script, in `pudl-md.js`, gives every list of `.md-row`s the keys a tree has: Up and Down move among the rows, Home and End to the first and last, and Enter follows the row; the rows are one tab stop, the current row or the first. This applies to the sidebar's list as well, which the specification has left to the browser's Tab key until now, and it is an improvement there too.
 
-For an application's runs, each row links to the run's address, a window-scoped parameter such as `?run.flow=<id>`, which the page's script may take as it takes any link, showing the run in the window and writing the address; the row is then current. The run gains an address, which it needs under chapter 7 whether or not this component exists.
+For the flow window's runs, each row links to the run's address, a window-scoped parameter such as `?run.flow=<id>`, which the page's script may take as it takes any link, showing the run in the window and writing the address; the row is then current. The run gains an address, which it needs under chapter 7 whether or not this component exists.
 
 ## 7. Window buttons sized to the title
 
@@ -124,13 +124,13 @@ For an application's runs, each row links to the run's address, a window-scoped 
 
 The caret is small by design, since it is drawn for a select's opener and a tree's toggle, and it would be wrong to enlarge it everywhere. The window menu's button alone draws it in a box of 1.2em (about 17px), so that its visible triangle is about 9.5 by 6 pixels beside 14px text, the height of the title's lowercase, with the other window glyphs unchanged at 0.85em, which they fill. The glyph-buttons section's table, which gives these sizes in pixels, is rewritten in em with the pixel values at the default size.
 
-## What an application changes on adopting 0.60.0
+## What the application changes on adopting 0.60.0
 
-- `.flow-step-twisty`, `.flow-step-head` and their rules give way to the disclosure card; so do `.tool-group-head` and `#pin-expand`.
-- `flow-chart.js` keeps only the storing of the scale and the drawing of the SVG; the tools and the zoom logic go.
+- `.flow-step-twisty`, `.flow-step-head` and their rules give way to the disclosure card; so do `.tool-group-head` and the pinned strip's expand button.
+- The chart script keeps only the storing of the scale and the drawing of the SVG; the tools and the zoom logic go.
 - `.flow-move-up`'s rotation goes; the two buttons use `arrow-up` and `arrow-down`.
-- The four grids (`.flow-value-row`, `.flow-question`, `.flow-exit`, and the inputs variant) become row editors; `flow-values.js` builds rows, not grids.
-- `withLabelEnd` and the "Insert an Answer…" select go; a menu button stands in the label row's end slot.
+- The four grids (`.flow-value-row`, `.flow-question`, `.flow-exit`, and the inputs variant) become row editors, and the values script builds rows in place of grids.
+- The label-end helper and the "Insert an Answer…" select go; a menu button stands in the label row's end slot.
 - `.run-item` goes; runs are rows of a `.row-list`, each a link to the run's address, which the Flow window gains.
 - Nothing for section 7; the new defaults apply.
 

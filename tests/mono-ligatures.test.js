@@ -1,6 +1,6 @@
 /* Monospace text is read character for character, so PUDL turns ligatures
-   off wherever it sets the monospace face (from a desktop host, where
-   Cascadia Code drew a Markdown table's "|---|" as one joined line). */
+   off wherever it sets the monospace face; with them on, Cascadia Code
+   draws a Markdown table's "|---|" as one joined line. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

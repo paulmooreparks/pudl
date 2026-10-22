@@ -143,7 +143,7 @@
   /* Toasts that arrive in content, rather than in the region: a window's
      body fetched after the page loaded, or regions swapped in, can carry
      .toast elements, usually hidden, as a page carries them in its region
-     (from the reader application's PUDL-PROPOSAL.md, B5). They move into the region, shown,
+     They move into the region, shown,
      and are announced, so the same markup serves a page and a window. */
   function takeIn(scope) {
     if (!scope || !scope.querySelectorAll) return;

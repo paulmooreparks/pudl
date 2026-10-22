@@ -125,7 +125,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.77.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.77.1</a>
     </div>
   </header>
 
@@ -503,10 +503,10 @@
           </table>
         </section>
         <section role="tabpanel" id="panel-receipt" aria-labelledby="tab-receipt">
-          <p class="card-desc" style="margin: 0;">receipt-makati-garden.pdf, 212 KB, attached 19 October.</p>
+          <p class="card-desc" style="margin: 0;">receipt-city-hotel.pdf, 212 KB, attached 19 October.</p>
         </section>
         <section role="tabpanel" id="panel-history" aria-labelledby="tab-history">
-          <p class="card-desc" style="margin: 0;">Submitted 19 October by the maintainer; approved 21 October by accounts.</p>
+          <p class="card-desc" style="margin: 0;">Submitted 19 October by Ana Reyes; approved 21 October by accounts.</p>
         </section>
       </div>
     </div>
@@ -784,7 +784,7 @@
     <p>A menu can also be summoned from the keyboard. A panel carrying <code>data-menu-key="/"</code> opens when <kbd>/</kbd> is pressed anywhere outside a text field, with focus in its filter, so the reader can type part of a name and press Enter to go there. On this page, <kbd>/</kbd> opens the expenses launcher. If nothing matches and the filter sits in a form, Enter submits the form, so a server can take the typed text to a page of its own, which makes the menu a "go to" palette that still ends in an ordinary address. A panel with no button of its own opens near the top of the window, as a palette.</p>
 
     <h3 class="ref-sub" id="menu-bar">Application menu bar</h3>
-    <p>The <a href="docs/MENU-BARS.md">menu-bar conventions</a> define the site bar and applet bar. Standard site menus appear in the order <strong>Site name, Go, Applets, View, Window, Help</strong>, with unused menus omitted. Applets is a direct launcher beside Go. Each group begins with an identity menu; working commands have their own menus. A site may add a pins group between the two, a Pins menu marked by the pin glyph followed by a button for each pinned item, which give way together to an Items menu when they do not fit. The <a href="docs/MENU-BAR-ADOPTION.md">shared site adoption guide</a> applies these rules to Example and the reader application.</p>
+    <p>The <a href="docs/MENU-BARS.md">menu-bar conventions</a> define the site bar and applet bar. Standard site menus appear in the order <strong>Site name, Go, Applets, View, Window, Help</strong>, with unused menus omitted. Applets is a direct launcher beside Go. Each group begins with an identity menu; working commands have their own menus. A site may add a pins group between the two, a Pins menu marked by the pin glyph followed by a button for each pinned item, which give way together to an Items menu when they do not fit. The <a href="docs/MENU-BAR-ADOPTION.md">adoption guide</a> applies these rules to a tools workspace and to a reader application.</p>
     <p>Since 0.61.0 every title and row has a letter, declared with <code>data-mnemonic</code> or assigned from its label, underlined while it can be typed: with focus on a title, a letter opens the title that has it, and in a panel a letter runs the row that has it. Press Alt+M to reach this page's bar and try it. An application with no browser around it marks its bar <code>data-menubar-host="desktop"</code>, which also gives it Alt alone and F10 to reach the bar, Alt with a title's letter (Ctrl+Option on a Mac) from anywhere, and the browser's Ctrl+N, T and W; a page in a browser leaves those to the browser. A markup row may also be dangerous, carry a glyph, show a detail line, or say why it is disabled, and <code>pudlMenubar.shortcuts()</code> lists every key bound.</p>
     <p>The menu bar at the top of this page is a working example. A bar holds at most two menu groups. The <strong>host menu</strong> belongs to the application and stays in place. The <strong>front menu</strong> belongs to the applet or article in front and appears to its right. Each menu is one raised group with a menu glyph at its start. Its titles share that raised surface, and the open title looks pressed. A title opens a panel of commands, which can include links, actions, checked or disabled commands, headings, separators and submenus.</p>
     <p>Try View to change the theme or open the Components submenu. Choose Window, then Open hotel expense to see a front menu appear for the hotel window. Its Receipt title opens the receipt through the same link used inside the window. Bringing another expense forward removes the hotel's menu, while the host menu stays available. Resize the page to see the bar become one menu button when it runs out of room. In that form, choosing a title or submenu replaces the panel's rows and adds a Back row.</p>
@@ -1088,7 +1088,7 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
         </svg>
       </div>
     </div>
-    <p>The <a href="samples/flow-editor.html">flow editor sample</a> puts all of these together as an application's Flow window has them: steps as disclosure cards with row editors inside, a chart in a zoom viewport docked at the side, and the flow's runs as a row list docked at the foot, each run a link to its address.</p>
+    <p>The <a href="samples/flow-editor.html">flow editor sample</a> puts all of these together in a flow editor's window: steps as disclosure cards with row editors inside, a chart in a zoom viewport docked at the side, and the flow's runs as a row list docked at the foot, each run a link to its address.</p>
     <p>A row list is the master-detail list's rows standing on their own, wherever a page lists things to open: the same flat rows, the same current mark, and each row a link to its thing's address, so it can be shared and restored. The rows are one tab stop, and Up, Down, Home and End move among them without going anywhere.</p>
     <div class="demo">
       <ul class="row-list" aria-label="Runs">
@@ -1260,7 +1260,7 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       <figure class="figure"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 90'%3E%3Crect width='160' height='90' fill='%23c9b79c'/%3E%3Crect x='58' y='8' width='44' height='76' rx='2' fill='%23fbfaf6' transform='rotate(-6 80 46)'/%3E%3Ccircle cx='128' cy='24' r='14' fill='%237d5a3c'/%3E%3C/svg%3E" alt="A receipt on a café table" width="160" height="90"><figcaption>The receipt, photographed at check-out.</figcaption></figure>
       <figure class="figure"><img src="data:image/png;base64,AAAA" alt="The second page of the receipt" width="160" height="90"><figcaption>A picture that failed to load.</figcaption></figure>
       <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
-        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Ana Reyes">PP</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
+        <span class="avatar-wrap"><span class="avatar lg" role="img" aria-label="Ana Reyes">AR</span><span class="avatar-status" data-status="online" aria-label="Online"></span></span>
         <span class="avatar-wrap"><span class="avatar" role="img" aria-label="Ana Cruz">AC</span><span class="avatar-status" data-status="away" aria-label="Away"></span></span>
         <span class="avatar-wrap"><span class="avatar" role="img" aria-label="Jun Reyes">JR</span><span class="avatar-status" data-status="busy" aria-label="Busy"></span></span>
         <span class="avatar sm" role="img" aria-label="Mei Tan">MT</span>

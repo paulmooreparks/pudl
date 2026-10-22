@@ -1154,7 +1154,7 @@
     return bare !== null && windowParams(st).join('&') === bare;
   }
 
-  /* Window-scoped parameters (from the reader application's PUDL-PROPOSAL.md, A1): the
+  /* Window-scoped parameters: the
      layer's data-win-params names prefixes, such as "r", and a parameter
      <prefix>.<key> then belongs to window <key>, as the article a reader
      window shows does. "p" is PUDL's own placement prefix and is never a
@@ -1500,7 +1500,7 @@
      Kept apart from the stacking order, which a docked window's strip and a
      child's family change: the open windows, the one most recently in
      front first, which state() reports as recent and the switcher below
-     walks (an application's pudl-window-switching.md). */
+     walks. */
   var recent = [];
   function trackRecent(st) {
     recent = recent.filter(function (k) { return st.open.indexOf(k) >= 0; });
@@ -1823,8 +1823,8 @@
     return t ? t.textContent.trim() : key;
   }
 
-  /* A window's detail, the second part of its title (an application's
-     pudl-window-title-detail.md): data-win-detail on the window, which
+  /* A window's detail, the second part of its title: data-win-detail on
+     the window, which
      retitle's third argument sets. It is drawn after the title, in the
      title bar, the tabs and the menus, after the separator the layer's
      data-win-text-title-sep gives, " · " unless it says otherwise. The
@@ -2984,8 +2984,8 @@
     });
   }
 
-  /* Gives an open window a new key and keeps everything else (from
-     the reader application's PUDL-PROPOSAL.md, A4): its element, placement, place in the
+  /* Gives an open window a new key and keeps everything else: its
+     element, placement, place in the
      stack, focus and running content, where replaceWith opens a new window
      and closes the old. A reader window that turns to another story is
      the case. Every record kept by key moves to the new one, and so do the

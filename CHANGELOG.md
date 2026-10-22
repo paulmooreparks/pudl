@@ -1,26 +1,32 @@
 # Changelog
 
+## 0.77.1
+
+A menu's panel, or a popover, now drops below its button and opens above only when it does not fit below and either fits whole above or has less than 240px below, with more room above. A long panel with plenty of room below used to flip up over the page because there was more room above; now it stays below, shortened, and scrolls, as desktop menus do. Context menus, which open at the pointer, are unchanged.
+
+PUDL's code, comments, documentation, proposals, tests and changelog no longer refer to any application or site that uses PUDL, nor say who asked for a change. Three test files and two proposals have new names that say what they cover: `page-patterns.test.js`, `window-region-runtime.test.js`, `desktop-menubar.test.js`, `first-adoption-gaps.md` and `menu-bar-keys-and-toolbar.md`. Sample markup uses neutral names. Nothing a page uses changes. This release implements specification 0.34.2.
+
 ## 0.77.0
 
-A menu bar's panel now lines up its commands as a context menu does. Wherever any command in a panel has a glyph or a picture, glyphs, pictures, ticks and the warning on a dangerous command share one 16px column, and a command with none leaves the column empty, so every command's words start in one line. A command's glyph is 14px in `text-muted`, as in a context menu, and a picture such as an applet's icon keeps 16px. Until now a command without a glyph started at the panel's edge while those with one were pushed in, as the maintainer saw in the reader application's Story menu beside its tidy context menu. The `.menubar-icon` no longer has a margin of its own, since the row's gap spaces it. This release implements specification 0.34.0.
+A menu bar's panel now lines up its commands as a context menu does. Wherever any command in a panel has a glyph or a picture, glyphs, pictures, ticks and the warning on a dangerous command share one 16px column, and a command with none leaves the column empty, so every command's words start in one line. A command's glyph is 14px in `text-muted`, as in a context menu, and a picture such as an applet's icon keeps 16px. Until now a command without a glyph started at the panel's edge while those with one were pushed in, so a menu bar's panel looked ragged beside a tidy context menu. The `.menubar-icon` no longer has a margin of its own, since the row's gap spaces it. This release implements specification 0.34.0.
 
 ## 0.76.0
 
-A context menu now shows which element it acts on. The `pudl:contextmenu` event's detail gains `mark(element)`, and `pudlMenu.openAt` gains a `for` option; the marked element has `data-menu-for`, set to the menu's id, while the menu is open, and loses it when the menu closes, however it closes. Only one element is marked at a time. The stylesheet gives `:where([data-menu-for])` the background of a row under the pointer, and a data table's row its own hover look, so the row a reader right-clicked stays lit after the pointer moves into the menu; in high-contrast mode it is outlined in the highlight colour. A menu opened by Shift+F10 or the Menu key is marked the same way, since focus has left the row there too. Where the page marks nothing, nothing changes. an application asked for it, after the row of its workspace tree lost its highlight as the pointer moved into the menu; its own `data-context-open` workaround can go. This release implements specification 0.33.0.
+A context menu now shows which element it acts on. The `pudl:contextmenu` event's detail gains `mark(element)`, and `pudlMenu.openAt` gains a `for` option; the marked element has `data-menu-for`, set to the menu's id, while the menu is open, and loses it when the menu closes, however it closes. Only one element is marked at a time. The stylesheet gives `:where([data-menu-for])` the background of a row under the pointer, and a data table's row its own hover look, so the row a reader right-clicked stays lit after the pointer moves into the menu; in high-contrast mode it is outlined in the highlight colour. A menu opened by Shift+F10 or the Menu key is marked the same way, since focus has left the row there too. Where the page marks nothing, nothing changes. Before, a tree row or table row lost its highlight as the pointer moved into the menu, and a page that marked the row itself with an attribute of its own can drop that rule. This release implements specification 0.33.0.
 
 ## 0.75.0
 
-Every field with a key in it is now one sunken field whose border runs round everything, with each key a raised strip inside that border behind a hairline. Until now each key was joined to the field from outside, sharing its border, so the field's border stopped where the key began; the maintainer found that look dated and chose this one from four drawn alternatives. The field's focus ring, danger border and dimming go round the whole control, keys included, and a key shows its keyboard focus as a ring inside its strip. This covers the combo box and searchable select (`.combo-open`), the token field's combo, the number field (`.number-step`), the password field with its Show key or eye (`.password-toggle`), the date and time fields, the year in the calendar's chooser (`.date-step`) and a master-detail toolbar's filter with its apply button (`.md-filter-group`). The markup is unchanged. A page that restyled one of these keys with negative margins or end radii should drop those rules. This release implements specification 0.32.0.
+Every field with a key in it is now one sunken field whose border runs round everything, with each key a raised strip inside that border behind a hairline. Until now each key was joined to the field from outside, sharing its border, so the field's border stopped where the key began, which looked dated. The field's focus ring, danger border and dimming go round the whole control, keys included, and a key shows its keyboard focus as a ring inside its strip. This covers the combo box and searchable select (`.combo-open`), the token field's combo, the number field (`.number-step`), the password field with its Show key or eye (`.password-toggle`), the date and time fields, the year in the calendar's chooser (`.date-step`) and a master-detail toolbar's filter with its apply button (`.md-filter-group`). The markup is unchanged. A page that restyled one of these keys with negative margins or end radii should drop those rules. This release implements specification 0.32.0.
 
 ## 0.74.1
 
-Every small raised key is 28px tall, a glyph button's height: a `.btn-sm`, whatever it holds, which was 25px with words and 26px with a glyph, and a `.seg.sm`'s keys, which were 21px. A small segmented control now stands as tall as the small buttons and glyph buttons beside it in a toolbar, as in the reader application's reader toolbar. This release implements specification 0.31.1. A project that stretched its small segmented control to match its buttons, as the reader application's `.reader-panes` rule does, can drop that rule.
+Every small raised key is 28px tall, a glyph button's height: a `.btn-sm`, whatever it holds, which was 25px with words and 26px with a glyph, and a `.seg.sm`'s keys, which were 21px. A small segmented control now stands as tall as the small buttons and glyph buttons beside it in a toolbar. This release implements specification 0.31.1. A project that stretched its small segmented control to match its buttons can drop that rule.
 
 ## 0.74.0
 
-PUDL's gap to a complete UI library, closed in one release, from the maintainer's question of what it still lacked (`docs/proposals/completeness.md`) and the controls he chose from mockups. Every control is built from the grammar, sunken where it takes input, raised where it is pressed, pressed in where it is chosen, glyph and colour together; follows the page's language and culture; and answers the complaints made most often about it elsewhere. This release implements specification 0.31.0.
+This release closes PUDL's gap to a complete UI library (`docs/proposals/completeness.md`). Every control is built from the grammar, sunken where it takes input, raised where it is pressed, pressed in where it is chosen, glyph and colour together; follows the page's language and culture; and answers the complaints made most often about it elsewhere. This release implements specification 0.31.0.
 
-- **Context menus.** A right-click, Shift+F10 or the Menu key fires `pudl:contextmenu`; rows a page adds with `detail.add` open a menu at the pointer or the focused element, with the menu bar's rows, glyphs in one column with ticks and warnings, keys shown, submenus, letters to jump, and focus returned. Where nothing answers, and always with Shift, the browser's own menu opens. `pudlMenu.openAt` opens one from a script. an application asked for it.
+- **Context menus.** A right-click, Shift+F10 or the Menu key fires `pudl:contextmenu`; rows a page adds with `detail.add` open a menu at the pointer or the focused element, with the menu bar's rows, glyphs in one column with ticks and warnings, keys shown, submenus, letters to jump, and focus returned. Where nothing answers, and always with Shift, the browser's own menu opens. `pudlMenu.openAt` opens one from a script.
 - **Split buttons** (`.split-btn`), a main key joined to a caret key whose menu lines up under the whole button.
 - **Popovers** (`.popover`), a non-modal panel anchored to its control, placed as a menu is, focus taken in and given back, with `.pointer` and a `.popover-head` as variants, head and actions pinned.
 - **Progress bars and meters** on the native elements: 16px flat bars with words; a busy bar that stands still for less motion; meters banded by their own `low`, `high` and `optimum` in either direction, with the band's colour and glyph, or `.meter.marks`.
@@ -46,7 +52,7 @@ The minified copies move to `dist/min/`, under the same names as their sources: 
 
 ## 0.72.0
 
-Combo boxes and searchable selects, from an application, and segmented controls drawn as keys, from the maintainer's review. This release implements specification 0.30.1.
+This release adds combo boxes and searchable selects, and draws segmented controls as keys. It release implements specification 0.30.1.
 
 - **A combo box** is a native input with a `datalist`, in a `.combo`, so it works without a script. The new `pudl-combo.js` draws PUDL's list in place of the browser's: a raised opener joined to the field's end, and a list drawn as a menu, with each suggestion's text on a second line and the field's own value ticked. Typing filters the list; Down, Up, Alt+Down, Alt+Up, Enter, Escape and Tab follow the ARIA pattern for an editable combo box; choosing fires `input` and `change` on the field, once. Inline completion is off unless the field asks for it with `data-combo-complete`.
 - **Keys that are not the value.** An option's `data-combo-keys`, separated by commas, are words it is found by but not shown, so a list of currency signs is searched by code, name and country, and PHP typed exactly becomes ₱ when the reader leaves the field or presses Enter. Only a key that one option alone has looks it up; text several share stays as typed. The sample and the reference page show the code in each option's text as well, so the reader sees why a row was found.
@@ -59,7 +65,7 @@ Combo boxes and searchable selects, from an application, and segmented controls 
 
 ## 0.71.0
 
-Tabs in a dialog or a window keep one size, from an agent that kept building tabbed dialogs that jumped as their tabs were chosen. This release implements specification 0.29.0.
+Tabs in a dialog or a window keep one size, so a tabbed dialog no longer jumps as its tabs are chosen. This release implements specification 0.29.0.
 
 - **Tabs in a dialog** keep the size of their largest panel. Every panel is laid in the same place and the ones not chosen are kept out of sight rather than out of the layout, so choosing a tab never resizes or moves the dialog; a panel out of sight still cannot be seen, focused, found in the page or reached by assistive technology. A `.tabs` straight inside the `dialog`, or inside a `form` that is, reaches the dialog's sides, its bar running from edge to edge under the title, and its panels take the dialog's colour and padding.
 - **Tabs that are a window's whole body** fill it. The body gives up its padding, the bar runs from edge to edge under the title bar, and the chosen panel takes the rest of the window and scrolls on its own, so the bar stays in view. A window that sizes to its content takes the size of its largest panel.
@@ -78,13 +84,13 @@ The window menu's layout picker stands under the heading Snap, as the Dock list 
 
 ## 0.70.1
 
-A field in a toolbar keeps its own keys, from example.com's proposal after its Sight Reader put its first and last bar numbers on its toolbar. The specification is unchanged at 0.28.0; it does not describe a toolbar's keys.
+A field in a toolbar keeps its own keys. The specification is unchanged at 0.28.0; it does not describe a toolbar's keys.
 
 - A field the reader types in, a text area or an input other than a box, a button, a file or a colour, keeps Left, Right, Home and End for itself. Before, Left in a field moved to the button before it instead of moving the caret.
 - Left with the caret at a field's start moves to the control before it, and Right at its end to the control after, so the arrow keys still cross a toolbar with a search field in the middle. A field that does not report its caret, such as a number or a date field, keeps its arrow keys always and is left with Tab. Arriving by an arrow key, the caret starts at the edge the reader came in by.
 - Every field is a Tab stop of its own, so Tab and Shift+Tab move from field to field as in a form, and the toolbar's one stop is on its buttons and links alone. Focusing a field no longer moves that stop.
 - A key a page's own handler has already called `preventDefault()` on is left alone.
-- A site that worked around this, as the Sight Reader does, keeps working and can drop the workaround.
+- A site that worked around this keeps working and can drop the workaround.
 - A new test, `toolbar-fields`.
 
 ## 0.70.0
@@ -102,7 +108,7 @@ Smaller downloads. A typical English page now downloads about 140 KB of PUDL, co
 
 Performance. Applications built on PUDL had been getting slower with each release, most of all at startup and on a hard refresh with windows open. The cause was not one thing but a pattern that grew with every component: scripts that watched the whole page and answered any change in it by searching the whole page, measuring it, or drawing something again whether or not it had changed, which, while an application was still building its content, made the browser lay the page out over and over. The specification is unchanged at 0.28.0.
 
-Measured with example.com's beta site restoring seven windows, cold, against the same site on 0.69.0: layouts fell from 139 to 96 and style passes from 272 to 213, and the layouts PUDL forced while the page was being built fell from about 225 to about 75. On the reference page, streaming 300 paragraphs in now costs PUDL 8 ms of script, against 112 ms in 0.69.1 and 12 ms in 0.59.0, and lighting rows with classes 2 ms against 24.
+Measured with an application restoring seven windows, cold, against the same application on 0.69.0, layouts fell from 139 to 96 and style passes from 272 to 213, and the layouts PUDL forced while the page was being built fell from about 225 to about 75. On the reference page, streaming 300 paragraphs in now costs PUDL 8 ms of script, against 112 ms in 0.69.1 and 12 ms in 0.59.0, and lighting rows with classes 2 ms against 24.
 
 - **Watching the page.** The master-detail script, the menu bar, the toolbar, disclosure cards and zoom act only on changes to what they look after, and do it once a task however many changes it made; before, a class or a style changed anywhere sent some of them over every layout in the page.
 - **Opening windows.** Grids, trees, tabs and splits set up only a window that opens, not the whole page again, and splits are measured in the next frame, together.
@@ -125,14 +131,14 @@ The tests have failed on GitHub since the commands preview, in WebKit on Linux a
 
 ## 0.69.1
 
-From an application's `docs/proposals/pudl-commands-gaps.md`, the gap 0.69.0 left open. The specification is unchanged at 0.28.0.
+This release closes the gap in the commands preview that 0.69.0 left open. The specification is unchanged at 0.28.0.
 
 - **A choice in a menu bar's submenu is drawn as radio rows.** `pudlCommands.menuRows` passed a command given as an object, such as an item of another command, through as it was, so the menu bar never saw its choice and drew a check row. Any object with an `id` is now turned into a row as one named by its id is, with its choice as a radio, its state read when the menu opens, and its `run`. A plain row without an `id` passes through as before.
 - Update `pudl-commands.js`.
 
 ## 0.69.0
 
-Six additions to the commands preview, from an application's `docs/proposals/pudl-commands-gaps.md`, found moving its toolbars to 0.68.1. The specification is unchanged at 0.28.0.
+This release makes six additions to the commands preview. The specification is unchanged at 0.28.0.
 
 - **A command may draw its own menu.** `panel(container)` draws into the menu as it opens, such as a grid of swatches or a searchable list, in the command's own menu and, under its name, in a folded group's menu or More.
 - **A group may stay on the row.** `data-toolbar-keep` on a group, such as one holding a field, keeps it as it is and never folds it; the other groups fold around it.
@@ -146,19 +152,19 @@ Six additions to the commands preview, from an application's `docs/proposals/pud
 
 ## 0.68.1
 
-Two fixes to the commands preview, from example.com's `Architecture/pudl-proposal-menu-command-ids.md` and `pudl-proposal-toolbar-empty-groups.md`. Both were promised by `docs/proposals/toolbar-commands.md` and missing from 0.68.0. The specification is unchanged at 0.28.0.
+This release makes two fixes to the commands preview. Both were promised by `docs/proposals/toolbar-commands.md` and missing from 0.68.0. The specification is unchanged at 0.28.0.
 
-- **Menus name commands by id.** A row in an applet's `menus()` or `commands()` may be a command's id. It becomes the row, with the command's words, glyph, key, tick or radio, danger, and disabled state with its reason, read when the menu opens; a hidden command leaves no row, and a separator left at an end or doubled goes; a command with items is a submenu; an unknown id is reported once in the console and left out. `pudlCommands.menuRows(list, scope)` does the same for any list. The site's `commandRows` can go.
-- **A toolbar group with nothing to show leaves the row.** A group of commands whose controls are all hidden is hidden too, and comes back when one shows, so the folding measures only what is there. A hidden command's menu wrapper and an empty choice go with them. A hand-written group with no commands is left alone. The site's listener on `pudl:commands-change` can go.
+- **Menus name commands by id.** A row in an applet's `menus()` or `commands()` may be a command's id. It becomes the row, with the command's words, glyph, key, tick or radio, danger, and disabled state with its reason, read when the menu opens; a hidden command leaves no row, and a separator left at an end or doubled goes; a command with items is a submenu; an unknown id is reported once in the console and left out. `pudlCommands.menuRows(list, scope)` does the same for any list.
+- **A toolbar group with nothing to show leaves the row.** A group of commands whose controls are all hidden is hidden too, and comes back when one shows, so the folding measures only what is there. A hidden command's menu wrapper and an empty choice go with them. A hand-written group with no commands is left alone. A page that hid empty groups itself from a listener on `pudl:commands-change` can drop it.
 - **The sample.** In Preview, the note editor's Style, Text, Lists and Insert groups leave its toolbar.
 - Update `pudl-commands.js` and `pudl-applets.js`.
 
 ## 0.68.0
 
-This release implements PUDL specification 0.28.0, from the maintainer's decision that PUDL is AI-native and from example.com's proposal that PUDL take in applet actions (`docs/proposals/applet-actions.md`).
+This release implements PUDL specification 0.28.0. PUDL is now AI-native, and it takes in applet actions (`docs/proposals/applet-actions.md`).
 
 - **Applet actions** (`pudl-actions.js`, `pudl-actions-core.js`, `vendor/cfworker-json-schema-4.1.1/`). An applet's `define()` names a manifest of actions with `actions`, and a script, the page, a command or an agent calls them by reference, with input and output checked against JSON Schemas, through `pudlApplets.run`, `invoke`, `catalog` and the rest. Replay is pure, once or human. Capabilities are a closed list a project extends with `pudlApplets.capability`; a caller holds its grant, `artifact.create` alone by default, and `pudlApplets.confirm` lets the reader allow more. Live actions are answered by the open applet through `pudlApplets.attach`. Request verbs are published as actions, and an action never navigates the page that called it. `pudlApplets.definitions()` and the `pudl:applet-define` event let the broker read `define()`.
-- **For example.com.** Replace `js/applet-actions.js` and `js/applet-actions-core.js` with PUDL's and delete the `define()` wrapper in `js/applets.js`. Add `files.read` and `files.write` with `pudlApplets.capability`, publish `js/actions/page.json` with `pudlApplets.publish`, and give the Terminal and the chat their grants, since a caller with none now holds only `artifact.create`, or set `pudlApplets.confirm`. `siteActions` becomes `pudlApplets`; `pudlActions` keeps working, deprecated, until 1.0, and the event is `pudl:applet-invocation`.
+- **Upgrading.** A site with its own applet-actions scripts replaces them with PUDL's and drops any wrapper it put around `define()`. It adds capabilities of its own, such as `files.read` and `files.write`, with `pudlApplets.capability`, publishes its page's actions with `pudlApplets.publish`, and gives each calling applet its grant, since a caller with none now holds only `artifact.create`, or sets `pudlApplets.confirm`. `pudlActions` keeps working, deprecated, until 1.0, and the event is `pudl:applet-invocation`.
 - **Agents in the README's principles.** "Agents are readers too."
 
 The following are previews, which this release carries so that the pilots can try them; they may change before their proposal is settled (`docs/proposals/toolbar-commands.md`).
@@ -169,7 +175,7 @@ The following are previews, which this release carries so that the pilots can tr
 
 ## 0.67.0
 
-This release implements PUDL specification 0.27.0, from the maintainer's request for splitters between windows side by side (`docs/proposals/zone-splitters.md`).
+This release implements PUDL specification 0.27.0, which adds splitters between windows side by side (`docs/proposals/zone-splitters.md`).
 
 - **Splitters between snapped windows.** Where two snapped windows meet, a splitter on their shared grid line moves the whole line, so two halves can be 40% and 60%, a half beside two quarters keeps all three edges together, and thirds move one boundary at a time. Each window keeps its cells of the grid, so its placement and the layout picker are unchanged. Where two splitters cross, as in the four quarters, a handle moves both. The splitter is a focusable separator: arrows move its line 1%, Shift a sixth, Home and End to its limits, and Enter or a double-click returns it to the grid. Lines stop at each window's least size, never cross, give way when the workspace shrinks, and are forgotten once no two snapped windows meet across them.
 - **The address.** Moved lines are kept as `grid=x3:0.4,y3:0.35`, absent while nothing has moved, so every existing address is unchanged. `pudlWindows.grid(axis, line, share)` moves a line from script, and `state().grid` lists them.
@@ -178,44 +184,44 @@ This release implements PUDL specification 0.27.0, from the maintainer's request
 
 ## 0.66.0
 
-This release implements PUDL specification 0.26.0, from an application's proposals `pudl-danger-control-glyph.md` and `pudl-applet-start-when-seen.md`.
+This release implements PUDL specification 0.26.0.
 
 - **Danger controls carry the warning glyph.** `.btn-danger` and `.menu-action.danger` lead with the warning glyph, which PUDL now draws, so their danger never rests on colour; a menu row's is 12px and takes the tick's column, so labels stay in line. A control that holds a picture of its own (a `.glyph`, an image or a decoration hidden from readers) keeps it, so markup that already wrote a ⚠ gets no second one. A danger row that switches on and off keeps its tick. PUDL's own menu bar's Close all windows gets it too. Projects that followed the README's old advice to put the `stop` glyph on destructive menu rows keep it; drop it to get the warning glyph.
 - **An applet may start when its window is seen.** `start` in `define()` or `register()`, or `data-applet-start` on the mount, is `"open"` (the default), `"seen"` or `"idle"`. A restored layout starts only the applets of the windows that can be seen: in front, shown in a dock, or in a zone nothing covers. `"idle"` applets fill in behind, one at a time, each once everything before it is ready. Until its applet starts, a window shows a loading line and is `aria-busy`, which dims the applet; an instance's `ready` promise keeps it busy until it can be used. A window closed unseen never starts its applet. New: `pudl:applet-start` with `detail.reason`, `pudlApplets.started(key)` and `pudlApplets.start(key)`, and in `pudl-windows.js`, `pudlWindows.shown(key)`, `pudlWindows.seen(key)` and `pudl:window-seen`. Window titles are not saved: the markup that creates a window gives its title.
-- Update `pudl.css`, `pudl-windows.js` and `pudl-applets.js`. an application can delete its danger glyph rule from `app.css`, declare `start: "idle"` for the Editor and the chat, and remove its own deferral and "Opening the document…" line.
+- Update `pudl.css`, `pudl-windows.js` and `pudl-applets.js`. A project can delete its own danger glyph rule, declare `start: "idle"` for applets that can wait, and remove any deferral and loading line of its own.
 
 ## 0.65.0
 
-This release implements PUDL specification 0.25.0, from an application's proposals `pudl-dialog-pinned-actions.md` and `pudl-dialog-actions-spacing.md`.
+This release implements PUDL specification 0.25.0.
 
 - **A dialog's title and actions stay in view.** When a dialog's content is taller than the window, the title and `.dialog-actions` stick to the top and bottom of the panel, filled with its colour and reaching its sides, and only the content between them scrolls. No markup changes; the actions may be the dialog's own or in a form that wraps the fields or the whole dialog. A new `.dialog-head` holds the title with a control that goes with it, such as a filter.
 - **A line only when there is more.** A line in `--border` separates the head or the actions from the content only while content is hidden beneath it, so a dialog that fits looks as it did. `pudl-dialog.js` now does this in every browser, not only those lacking the command buttons, and sets the dialog's scroll padding to the bands' heights so Tab never leaves a field hidden behind one. Without the script the bands still stay in view, with no lines.
 - **Space above the actions.** `.dialog-actions` keeps `--space-5` from whatever comes before it, a list or a table as well as `.dialog-body`.
-- Update `pudl.css` and `pudl-dialog.js`. an application can delete its sticky footer and its actions margin from `app.css`, and the Chat applet its `.chat-settings-foot`, if its Settings dialog adopts `.dialog-actions`.
+- Update `pudl.css` and `pudl-dialog.js`. A project can delete its own sticky footer and actions margin from its dialogs, once they use `.dialog-actions`.
 
 ## 0.64.0
 
 This release implements PUDL specification 0.24.3.
 
-- **A menu command may carry its own picture.** A command in a host's or an applet's menu markup that holds an `<img>` or a glyph span before its words shows it as the row's icon, as a pin in the bar already did, so an applet's registered icon appears beside its name in the launch menu (Example's installed applet packages). The words of the command stay what a reader hears; the picture is decoration. Update `pudl-menubar.js`; nothing a project does changes.
+- **A menu command may carry its own picture.** A command in a host's or an applet's menu markup that holds an `<img>` or a glyph span before its words shows it as the row's icon, as a pin in the bar already did, so an applet's registered icon appears beside its name in the launch menu. The words of the command stay what a reader hears; the picture is decoration. Update `pudl-menubar.js`; nothing a project does changes.
 
 ## 0.63.0
 
-This release implements PUDL specification 0.24.2, from Example's proposal (`Architecture/pudl-proposal-menubar-surface.md`). Update `pudl.css`.
+This release implements PUDL specification 0.24.2. Update `pudl.css`.
 
-- **The controls on a bar with a menu bar look uniform in both themes.** `--menubar-group-bg` defaults to `--raise-grad`, so with its `--raise-border` and `--raise-shadow` a menu group at rest looks like a neutral `.btn`, and in the dark theme a topbar holding a menu bar sets `--tb-chip` and `--tb-chip-shadow` to the same surface, as the light theme already did, so its pills and status area match too. The three `--menubar-group-*` hooks still override the menus; Example can delete the rule that set them to these values. A topbar without a menu bar is unchanged.
+- **The controls on a bar with a menu bar look uniform in both themes.** `--menubar-group-bg` defaults to `--raise-grad`, so with its `--raise-border` and `--raise-shadow` a menu group at rest looks like a neutral `.btn`, and in the dark theme a topbar holding a menu bar sets `--tb-chip` and `--tb-chip-shadow` to the same surface, as the light theme already did, so its pills and status area match too. The three `--menubar-group-*` hooks still override the menus, and a project that set them to these values can delete that rule. A topbar without a menu bar is unchanged.
 
 ## 0.62.1
 
-- A persistent sidebar's divider clips its grip. Since 0.54.0 the divider is 12px wide, or 20px for a coarse pointer, while the grip stays drawn at 16px, so it reached 2px past each side; at a phone's width, where the divider stands at the layout's end edge, that widened the page and made it scroll sideways (the reader application's report on 0.62.0, measured at 390px). The divider now shows the grip's middle column and clips the rest, which is what the stylesheet's own comment intended. Update `pudl.css`; the reader application can delete its `overflow: hidden` stopgap.
+- A persistent sidebar's divider clips its grip. Since 0.54.0 the divider is 12px wide, or 20px for a coarse pointer, while the grip stays drawn at 16px, so it reached 2px past each side; at a phone's width, where the divider stands at the layout's end edge, that widened the page and made it scroll sideways, as measured at 390px on 0.62.0. The divider now shows the grip's middle column and clips the rest, which is what the stylesheet's own comment intended. Update `pudl.css`; a project can delete any `overflow: hidden` stopgap of its own.
 
 ## 0.62.0
 
-This release implements PUDL specification 0.23.0 and takes an application's third batch of proposals. Update `pudl.css`, `pudl-windows.js` and `pudl-menubar.js`. Nothing changes for a layer without `data-win-switcher`, beyond `state().recent`.
+This release implements PUDL specification 0.23.0. Update `pudl.css`, `pudl-windows.js` and `pudl-menubar.js`. Nothing changes for a layer without `data-win-switcher`, beyond `state().recent`.
 
-- **A window switcher.** `pudlWindows.state().recent` lists the open windows in the order they were last in front. A layer marked `data-win-switcher` takes Ctrl+Tab and Ctrl+Shift+Tab: a quick press flips between the two windows used last, Ctrl held walks the order with a list of the windows, the arrow keys move the pick, Enter switches, and Escape, lost focus or a press outside the list let go. Docked windows are left out, minimised ones restored when picked, a text field never sees the keys, and a modal dialog keeps them. `pudlWindows.switcherKeys()` gives the two keys, which `pudlMenubar.shortcuts()` lists. Text: `data-win-text-switcher`, `-switch-last` and `-switch-back`. an application's `window-switcher.js` can go.
+- **A window switcher.** `pudlWindows.state().recent` lists the open windows in the order they were last in front. A layer marked `data-win-switcher` takes Ctrl+Tab and Ctrl+Shift+Tab: a quick press flips between the two windows used last, Ctrl held walks the order with a list of the windows, the arrow keys move the pick, Enter switches, and Escape, lost focus or a press outside the list let go. Docked windows are left out, minimised ones restored when picked, a text field never sees the keys, and a modal dialog keeps them. `pudlWindows.switcherKeys()` gives the two keys, which `pudlMenubar.shortcuts()` lists. Text: `data-win-text-switcher`, `-switch-last` and `-switch-back`.
 - **Long text in a notice.** A notice and a toast keep their content inside the card: an unbroken path or identifier breaks at the edge, prose as before, a `pre` scrolls sideways, and a long button in the actions ends in an ellipsis; give such a button its whole label as `title`.
-- **Disabled rows faded.** A disabled menu row, in a panel or the menu bar, is at half opacity as well as muted, as a disabled button is. The proposal's second change, fading placeholders, is not taken: the specification keeps a placeholder at full opacity so that it reaches 4.5:1, and a test guards it.
+- **Disabled rows faded.** A disabled menu row, in a panel or the menu bar, is at half opacity as well as muted, as a disabled button is. Placeholders are not faded, because the specification keeps a placeholder at full opacity so that it reaches 4.5:1, and a test guards it.
 - **Two glyphs**: `--glyph-image` and `--glyph-clip`.
 
 ## 0.61.1
@@ -224,21 +230,21 @@ This release implements PUDL specification 0.23.0 and takes an application's thi
 
 ## 0.61.0
 
-This release implements PUDL specification 0.22.0 and takes an application's second batch of proposals, nine of them, designed in `docs/proposals/menu-bar-keys-and-toolbar.md`. Update `pudl.css`, `pudl-menubar.js`, `pudl-windows.js`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-toolbar.js` where a toolbar is used. One behaviour changes for every menu bar: a letter typed in an open panel now runs the row that has it rather than moving to the next row that starts with it, as desktop menus do.
+This release implements PUDL specification 0.22.0 and makes nine additions. Update `pudl.css`, `pudl-menubar.js`, `pudl-windows.js`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-toolbar.js` where a toolbar is used. One behaviour changes for every menu bar: a letter typed in an open panel now runs the row that has it rather than moving to the next row that starts with it, as desktop menus do.
 
 - **Letters in the menu bar.** Every title and row has a letter, declared with `data-mnemonic` or `mnemonic` or assigned by a rule, underlined while it can be typed and announced with `aria-keyshortcuts`. A letter opens its title from the bar and runs its row in a panel, cycling among rows that share it, on every platform.
-- **A desktop host.** `data-menubar-host="desktop"` lets commands claim `Mod+N`, `Mod+T` and `Mod+W`, and gives the bar Alt alone and F10 to reach it and the platform's access-key modifier with a letter, Alt or Ctrl+Option on a Mac, to open a title from anywhere. the maintainer asked that macOS, Linux and Windows be served alike; only F10 is withheld on a Mac, where the system keeps it.
+- **A desktop host.** `data-menubar-host="desktop"` lets commands claim `Mod+N`, `Mod+T` and `Mod+W`, and gives the bar Alt alone and F10 to reach it and the platform's access-key modifier with a letter, Alt or Ctrl+Option on a Mac, to open a title from anywhere. macOS, Linux and Windows are served alike; only F10 is withheld on a Mac, where the system keeps it.
 - **Function keys from a field.** F1 to F12, alone or with Shift, are dispatched from a text field as chords are, unless the field keeps the key.
 - **More of a markup row.** `data-menu-danger`, `data-menu-glyph`, `data-menu-detail` and `data-menu-reason`, and `data-menu-radio` on a list; applets' items take `glyph`, `detail` and `reason` too.
 - **A listing of keys.** `pudlMenubar.shortcuts()`, and a warning for a key bound to two rows of one source.
 - **Toolbars.** `.toolbar` and `.toolbar-group`, the pressed look for `.icon-btn[aria-pressed="true"]`, and `pudl-toolbar.js` for the tab stop and the arrow keys.
 - **A window's detail.** `data-win-detail` and `retitle(key, title, detail)`, drawn after the title in the title bar, the tabs and the window lists, giving way before the title; `pudlWindows.detailOf(key)` and `pudlWindows.openMenu(key)`.
 - **Sixteen glyphs**: `board`, `ticket`, `pencil-off`, `new-window`, `bold`, `italic`, `underline`, `strike`, `code`, `list`, `list-numbered`, `quote`, `table`, `panel`, `colour` and `paragraph`.
-- **Menu readiness.** The B6 check in the the reader application patterns suite now waits for the bar to name the window in front rather than sleeping, which is what a loaded runner can outrun; six WebKit runs alone found no fault in the script. A close whose toggle event arrives after the panel was reopened by a key no longer undoes the reopening.
+- **Menu readiness.** The menu bar check in the patterns suite now waits for the bar to name the window in front rather than sleeping, which is what a loaded runner can outrun; six WebKit runs alone found no fault in the script. A close whose toggle event arrives after the panel was reopened by a key no longer undoes the reopening.
 
 ## 0.60.0
 
-This release implements PUDL specification 0.21.0, from an application's proposal on the controls its Flow window built for itself (`docs/proposals/flow-ui-controls.md`). Update `pudl.css`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-disclose.js`, `pudl-zoom.js` and `pudl-rows.js` where their components are used. Window buttons change size with no change of markup; a page that set `--win-button-size` or `--win-glyph-size` keeps what it set.
+This release implements PUDL specification 0.21.0 (`docs/proposals/flow-ui-controls.md`). Update `pudl.css`, `pudl-windows.css` and `pudl-md.js`, and add `pudl-disclose.js`, `pudl-zoom.js` and `pudl-rows.js` where their components are used. Window buttons change size with no change of markup; a page that set `--win-button-size` or `--win-glyph-size` keeps what it set.
 
 - **Disclosure cards.** `.card.disclosure` opens and closes by a raised `.card-toggle` at the start of its head, drawn as a tree's toggle, the only pressable part of a flat head; a `.card-summary` shows while closed, the `.card-body` and `.card-actions` while open. `pudl-disclose.js` reads `aria-expanded` and fires `pudl:disclose`.
 - **Zoom.** `.zoom` is Zoom Out, the scale, Zoom In and Fit above a `.zoom-viewport`; `pudl-zoom.js` scales the picture, keeps the middle in place, holds the limits, answers Ctrl with Plus, Minus, 0 and the wheel in the viewport, and fires `pudl:zoom`.
@@ -257,7 +263,7 @@ This release implements PUDL specification 0.20.1. Update `pudl-windows.js`. Not
 
 ## 0.58.0
 
-This release implements PUDL specification 0.19.1 and answers every open issue from the site's front end (#12 to #21). Update `pudl.css`, `pudl-windows.js` and `pudl-windows.css`. Nothing changes for a page that uses none of the new attributes, except that shared dock addresses are shorter; addresses written before read the same.
+This release implements PUDL specification 0.19.1 and answers issues #12 to #21. Update `pudl.css`, `pudl-windows.js` and `pudl-windows.css`. Nothing changes for a page that uses none of the new attributes, except that shared dock addresses are shorter; addresses written before read the same.
 
 - **Sending a form inside its window (#17).** A POST form marked `data-win-submit` in a window is sent with `fetch` and the header `X-PUDL-Window: <key>`. An answer holding the window, at any status, gives it its new body, title and status marks, keeps its place, keeps focus on the same field and announces a notice. A redirect elsewhere is followed; any other answer loads the page again; only a request that could not be sent falls back to an ordinary submission. `pudlWindows.reload(key)` and `pudlWindows.update(key, markup)` change a window from script, and `pudl:window-update` fires after each change.
 - **Where windows open (#16).** `data-win-place="own"` makes a window open where its markup puts it rather than where its opener is. `data-win-opens="<zone>"` sends the windows a window opens to that zone. `data-win-undock="<zone>"` sends a window to that zone when it leaves its dock. `pudl:window-place` now has the followed link in `detail.link`. Temporarily collapsing a dock to give a wide window room (`data-win-room`) is not in this release.
@@ -271,7 +277,7 @@ This release implements PUDL specification 0.19.1 and answers every open issue f
 
 ## 0.57.0
 
-This release implements PUDL specification 0.18.0, from an application's proposal for shared docks on every edge and tabs that move. Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js`. A layer with the bare `data-win-dock-tabs` attribute sees no change in its top and bottom docks; set `data-win-dock-tabs="all"` to share them.
+This release implements PUDL specification 0.18.0, which adds shared docks on every edge and tabs that move. Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js`. A layer with the bare `data-win-dock-tabs` attribute sees no change in its top and bottom docks; set `data-win-dock-tabs="all"` to share them.
 
 - **Shared top and bottom docks.** With `data-win-dock-tabs="all"`, the windows docked at the top or bottom share the edge under one full-width strip on the dock's inner side: above the content of a bottom dock, and below the content of a top dock with its tabs hanging from the strip. Tabs, status marks, menu buttons, required windows and keys are as at the sides, and every window in the dock shares one height. `pudlWindows.dockMode()` takes `top` and `bottom`, and the state and address gain `docks.top` and `docks.bottom`, `d.top=` and `d.bottom=`.
 - **A collapsed strip.** A collapsed top or bottom dock keeps its strip of text tabs alone, and a tab slides its window out over the central area with the rail slideout's rules. `auto` collapses it when the layer is at or below `data-win-dock-collapse-height`, 600 CSS pixels by default.
@@ -315,39 +321,39 @@ This release implements PUDL specification 0.15.0. Update `pudl.css`.
 This release implements PUDL specification 0.14.0, which adds layout. Update `pudl.css`. Nothing changes for a page that does not use the new classes.
 
 - **Layout.** `.vstack` places components one above another; `.hstack` places them side by side and wraps them rather than widening its space, with `.align-center`, `.align-end` or `.align-baseline`, and `.push-end` to push its last component to the end; `.auto-grid` places them in as many equal columns as fit at `--grid-min`, 224px, one column below it, with `.span-all` for a component that spans its line. Each keeps document order, puts `--space-3` between its components unless `.gap-0` to `.gap-6` chooses another step, and adds nothing around them. A `.form-group` inside one drops its own bottom margin, so the gap alone separates fields.
-- The component list has them as `stack`, `row` and `column-grid`, for a development tool's canvas, and the reference page shows them under Cards. A new test checks order, gaps, wrapping and columns, and that nothing widens a 320px page.
+- The component list has them as `stack`, `row` and `column-grid`, and the reference page shows them under Cards. A new test checks order, gaps, wrapping and columns, and that nothing widens a 320px page.
 
 ## 0.52.0
 
-This release implements PUDL specification 0.13.0, from two of example.com's proposals, for it and the reader application. Update `pudl.css` and `pudl-md.js`. Nothing changes for a layout without the new attributes.
+This release implements PUDL specification 0.13.0. Update `pudl.css` and `pudl-md.js`. Nothing changes for a layout without the new attributes.
 
 - **The sidebar's side.** `data-md-side="end"` puts a master-detail sidebar at the end edge of the writing direction, mirrored, with dragging and the arrow keys following it as in a right-to-left page. The document order is unchanged, and changing the attribute moves the sidebar at once with its width and collapsed state.
 - **Peeking at a collapsed sidebar.** On a persistent layout with `data-md-peek`, resting the pointer on the collapsed sidebar's handle for 200ms, or focusing it from the keyboard, draws the sidebar over the detail pane from its edge, at its width, above the windows, with the handle at its side; nothing behind it moves. It closes 300ms after the pointer leaves, when focus leaves, on Escape and when a link in it is chosen, and stays while one of its popovers is open or a drag in it goes on. Down on the handle moves into the list. A peek never changes the collapsed state or the width; pressing the handle, Enter on it or an expand command expands the sidebar for good where the peek stood. `pudl:md-peek` fires with `detail.open`. A peek needs a pointer that can hover and a wide layout.
 
 ## 0.51.0
 
-This release implements PUDL specification 0.12.0. It takes in the patterns the reader application and example.com each built for themselves (the reader application's `PUDL-PROPOSAL.md`, B1, B2, B4, B5 and B6), so both can delete their copies. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js` and `pudl-toast.js`.
+This release implements PUDL specification 0.12.0. It takes in five patterns that sites had been building for themselves, so a site can delete its own copies. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js` and `pudl-toast.js`.
 
-- **A filter menu (B1).** A `label.check.menu-check` is a checkbox row in a menu panel, which the arrow keys reach. With `data-filter-menu` on a panel that has an id, changing a box sends its form, and after the region swap that causes, the panel opens again with focus on the same box.
-- **A settings panel (B2).** `.settings-panel` is a column of `.card`s, 12px apart and at most 720px wide, each with a `.settings-actions` row and an optional `.settings-status` line that takes no room while empty.
-- **A disclosure button (B4).** `.btn.disclosure` with `aria-expanded` carries the new `--glyph-chevron` after its words, pointing down while its content is hidden and up while shown, turning without motion under reduced motion.
-- **Toasts in content loaded later (B5).** A `.toast`, usually `hidden`, in a window's content or in regions swapped in moves into the toast region, shown and announced, so a server renders one the same way for a page and a window.
-- **A window's default identity menu (B6).** A window whose content offers no menu gets an identity menu under its own title, with Open as a page, Copy link to this content and Close window, so a host needs no stub applet for it.
+- **A filter menu.** A `label.check.menu-check` is a checkbox row in a menu panel, which the arrow keys reach. With `data-filter-menu` on a panel that has an id, changing a box sends its form, and after the region swap that causes, the panel opens again with focus on the same box.
+- **A settings panel.** `.settings-panel` is a column of `.card`s, 12px apart and at most 720px wide, each with a `.settings-actions` row and an optional `.settings-status` line that takes no room while empty.
+- **A disclosure button.** `.btn.disclosure` with `aria-expanded` carries the new `--glyph-chevron` after its words, pointing down while its content is hidden and up while shown, turning without motion under reduced motion.
+- **Toasts in content loaded later.** A `.toast`, usually `hidden`, in a window's content or in regions swapped in moves into the toast region, shown and announced, so a server renders one the same way for a page and a window.
+- **A window's default identity menu.** A window whose content offers no menu gets an identity menu under its own title, with Open as a page, Copy link to this content and Close window, so a host needs no stub applet for it.
 
 ## 0.50.0
 
-This release implements PUDL specification 0.11.0. It takes in the four runtime features the reader application patched into its copies of PUDL, and two of its other requests (the reader application's `PUDL-PROPOSAL.md`, A1 to A4, B3 and B7). Update `pudl.css`, `pudl-windows.js` and `pudl-regions.js`; the reader application can replace its patched files with these.
+This release implements PUDL specification 0.11.0. It takes in four runtime features that sites had been patching into their copies of PUDL, and two other additions. Update `pudl.css`, `pudl-windows.js` and `pudl-regions.js`; a site with patched copies can replace them with these.
 
-- **Window-scoped address parameters (A1).** `data-win-params="r"` on the window layer makes `r.<key>` belong to window `<key>`: it travels with the windows through region swaps and Back and Forward, moves with the window when it is re-keyed, and is dropped when the window closes. `p` stays PUDL's.
-- **`pudlRegions.reload()` (A2)** fetches the current address again, past any cache, and swaps its regions in place with no new history entry. It resolves `true`, or `false` when a navigation superseded it, and rejects without navigating when the request fails or the page has other regions.
-- **A collapsed segmented control's choices swap regions (A3)**, as its segments do, instead of loading the whole page and every window with it.
-- **`pudlWindows.rekey(oldKey, key, push)` (A4)** gives an open window a new key and keeps its element, placement, place in the stack, focus and running content, moving every record PUDL keeps by key, the window's own panels and its window-scoped parameters with it. `pudl:window-rekey` fires with both keys. the reader application's version left the stacking order, the reset placement and the window menu's panels under the old key; the maximise button's layout picker also read a key it had captured, and now reads the current one.
-- **The status area matches the menu bar's groups (B7).** Beside a menu bar, the status area now has the groups' surface, border, shadow and 30px height, and its items the titles' colours and states; on a topbar with no menu bar it keeps the topbar's own colours. Items are 26px tall either way. 0.48.0 drew it lighter, 2px taller and greyer than the groups beside it.
-- **The account glyph (B3).** `--glyph-account` is the head-and-shoulders placeholder for an account with no picture, drawn at a picture's 24px in a status item as `.glyph.status-picture`.
+- **Window-scoped address parameters.** `data-win-params="r"` on the window layer makes `r.<key>` belong to window `<key>`: it travels with the windows through region swaps and Back and Forward, moves with the window when it is re-keyed, and is dropped when the window closes. `p` stays PUDL's.
+- **`pudlRegions.reload()`** fetches the current address again, past any cache, and swaps its regions in place with no new history entry. It resolves `true`, or `false` when a navigation superseded it, and rejects without navigating when the request fails or the page has other regions.
+- **A collapsed segmented control's choices swap regions**, as its segments do, instead of loading the whole page and every window with it.
+- **`pudlWindows.rekey(oldKey, key, push)`** gives an open window a new key and keeps its element, placement, place in the stack, focus and running content, moving every record PUDL keeps by key, the window's own panels and its window-scoped parameters with it. `pudl:window-rekey` fires with both keys. The stacking order, the reset placement and the window menu's panels move to the new key too, and the maximise button's layout picker reads the current key rather than one it had captured.
+- **The status area matches the menu bar's groups.** Beside a menu bar, the status area now has the groups' surface, border, shadow and 30px height, and its items the titles' colours and states; on a topbar with no menu bar it keeps the topbar's own colours. Items are 26px tall either way. 0.48.0 drew it lighter, 2px taller and greyer than the groups beside it.
+- **The account glyph.** `--glyph-account` is the head-and-shoulders placeholder for an account with no picture, drawn at a picture's 24px in a status item as `.glyph.status-picture`.
 
 ## 0.49.0
 
-This release implements PUDL specification 0.10.0, from example.com's proposal. Update `pudl-menubar.js`. An article in front loses its File menu; a host that wants Print offered marks its page menu, once its printed article is worth having.
+This release implements PUDL specification 0.10.0. Update `pudl-menubar.js`. An article in front loses its File menu; a host that wants Print offered marks its page menu, once its printed article is worth having.
 
 - **An article has no File menu of PUDL's.** Its only command was Print, and in a page of windows `window.print()` prints the whole desktop, so the command did not do what it said. An article's own menu offers Open as a page, Copy link to this content and, in a window, Close window, as before.
 - **Print is the host's to offer.** A `nav[data-page-menu]` with `data-page-print` puts Print in the article's own menu, after Copy link and before Close window. A host that wants a File menu for an article adds one to its page menu list, which the menu bar already reads.
@@ -355,14 +361,14 @@ This release implements PUDL specification 0.10.0, from example.com's proposal. 
 
 ## 0.48.0
 
-This release implements PUDL specification 0.9.0, from two of example.com's proposals. Update `pudl.css` and `pudl-windows.js`.
+This release implements PUDL specification 0.9.0. Update `pudl.css` and `pudl-windows.js`.
 
 - **A status area in the topbar.** `nav.status-area`, last in `.topbar-chrome`, is one raised group in the topbar's own colours, holding `.status-item` links or buttons that are flat, highlight under the pointer and press in, as a menu bar's titles do. An item holds a glyph or a 24px picture, which may be round since the group is what is raised, and optionally a `.badge`. A badge that is empty or `hidden` is not shown, and a badge on the topbar mixes its status colour with the topbar's text colour, so its count reads on a dark bar and on one a menu bar has lightened. No script is needed: the host sets the badge and the item's `aria-label`, and the stylesheet follows.
 - **A new glyph, `--glyph-comments`**, for comments and messages.
 - **The window menu docks at every edge.** Dock at the bottom becomes a Dock list of Top, Bottom, Left and Right, ticking the edge the window is docked at, and on a docked window ending with Undock. In a window's own menu it stands under a Dock heading, as the layout picker stands in it; in a menu bar's Window menu it is a submenu. The title bar's dock button still docks at the bottom. New words are `data-win-text-dock-menu` and `-dock-top`, `-dock-bottom`, `-dock-left` and `-dock-right`.
-- **A change for a script that reads `pudlWindows.menuCommands()`:** `dock` is now a submenu with `dock:top`, `dock:bottom`, `dock:left` and `dock:right` children, and `undock` is its last child on a docked window, where before both were leaves. Neither example.com nor the reader application reads them. The migration guide lists the IDs.
+- **A change for a script that reads `pudlWindows.menuCommands()`:** `dock` is now a submenu with `dock:top`, `dock:bottom`, `dock:left` and `dock:right` children, and `undock` is its last child on a docked window, where before both were leaves. The migration guide lists the IDs.
 
-The proposal for docking asked whether a window sized by its content should dock too, taking its natural height or width as its strip. It is left out of this release, which follows the specification's rule that such a window cannot be docked.
+A window sized by its content still does not dock with its natural height or width as its strip. This release follows the specification's rule that such a window cannot be docked.
 
 ## 0.47.0
 
@@ -375,7 +381,7 @@ This release implements PUDL specification 0.8.0, which settles that a select's 
 
 This release implements PUDL specification 0.7.0. Nothing changes for a page; the new file is for tools.
 
-- `dist/pudl-components.json` describes every component in the web contract for tools, starting with a development tool: each one's template, the grammar category of each of its parts, its variants, its states, the attributes a tool should offer and where other components may be placed in it. `docs/COMPONENTS.md` explains its fields. A component's category comes from the specification's grammar chapter, which has more than the three elevations: lists of places, handles, links, tabs and layout as well.
+- `dist/pudl-components.json` describes every component in the web contract for tools: each one's template, the grammar category of each of its parts, its variants, its states, the attributes a tool should offer and where other components may be placed in it. `docs/COMPONENTS.md` explains its fields. A component's category comes from the specification's grammar chapter, which has more than the three elevations: lists of places, handles, links, tabs and layout as well.
 - A new test renders every template in both themes and three engines and measures each part against its category: a gradient and a shadow for raised, an inner shadow alone for sunken, neither for the flat categories. It also checks that every component in the contract's table is in the list, that every variant's class is in `pudl.css` and that every file a component needs is in `dist/`.
 - The measurement found that WebKit draws a select itself, with a gradient and without the inner shadow, so a select reads as raised there and its text is clipped. The documented fix needs a decision about how PUDL draws a select's caret, so this release records it as a known gap in `docs/COMPONENTS.md` instead of changing selects.
 - `docs/COMPONENTS.md` also lists what a development tool needs that PUDL lacks: layout for forms and panes, a slider, a progress bar, a combo box, a list box and an image.
@@ -384,11 +390,11 @@ This release implements PUDL specification 0.7.0. Nothing changes for a page; th
 
 This release implements PUDL specification 0.7.0, which adds the pins group and the `pin` glyph. Update `pudl.css` and `pudl-menubar.js`. Nothing changes for a site that does not add a pins list.
 
-- The menu bar can have a pins group, proposed by example.com. A host adds a hidden `ul[data-menubar-pins]` beside its menu's source list. The group stands between the site group and the applet group, so it stays put as the front applet changes. Its first control is the Pins menu, marked by the new `--glyph-pin`, holding the host's pinning commands; `pudl:pins-menu` is sent as it opens so the host can set them for what is in front. After it comes a button for each pin, a link with the pin's icon and title. A plain press presses the host's link, so the host can open the item its own way; a modified press opens a new tab.
+- The menu bar can have a pins group. A host adds a hidden `ul[data-menubar-pins]` beside its menu's source list. The group stands between the site group and the applet group, so it stays put as the front applet changes. Its first control is the Pins menu, marked by the new `--glyph-pin`, holding the host's pinning commands; `pudl:pins-menu` is sent as it opens so the host can set them for what is in front. After it comes a button for each pin, a link with the pin's icon and title. A plain press presses the host's link, so the host can open the item its own way; a modified press opens a new tab.
 - When the pins' buttons do not fit, they give way together to one Items menu before the bar itself collapses, and the collapsed bar's menu has a Pins section with the commands and then the pins. The arrow keys reach the pins between the menus, and Space or Enter opens one. With nothing pinned, the Pins menu stands alone. The bar redraws when the host changes its list.
 - The README, the web contract and the menu-bar conventions describe the group, and a new test covers its order, presses, keyboard, both narrowing steps, a host's changes and the empty group.
 
-The proposal suggested `data-pins-commands`, `data-pin-icon` and `data-pin-glyph`. The group reads the same nested-list markup as the site menu instead: the Pins menu is a title with its list, and a pin's icon is the content of its link, as a site identity's logo is.
+The group reads the same nested-list markup as the site menu, with no attributes of its own for commands, icons or glyphs. The Pins menu is a title with its list, and a pin's icon is the content of its link, as a site identity's logo is.
 
 ## 0.44.2
 
@@ -397,17 +403,13 @@ This release implements PUDL specification 0.6.0. Update `pudl.css`.
 - Code blocks, code surfaces and monospace paths now turn the monospace face's ligatures off. On Windows `--mono` resolves to Cascadia Code, which joins characters by default, so a Markdown table's `|---|` was drawn as one line and `!=` as a single sign. Text that is read character for character now shows each character as written, and an editor inside a code surface inherits the setting.
 - The reference page says so under Document tabs and code, and a new test checks the setting on each of the three, and on text inside a code surface.
 
-Found while building a desktop host.
-
 ## 0.44.1
 
-This release implements PUDL specification 0.6.0. Update `pudl.css`. A project that carries its own stopgap rule for disabled buttons, as the reader application does, can delete it.
+This release implements PUDL specification 0.6.0. Update `pudl.css`. A project that carries its own stopgap rule for disabled buttons can delete it.
 
 - A disabled button of any kind now looks like a disabled plain button. The disabled rules set no text colour or border, so a disabled `.btn-primary` kept its accent text on the neutral face, white on light grey in the light theme and dark on dark in the dark theme, faded to almost nothing; a disabled `.btn-danger` kept its danger text and border. They now set the ordinary text colour and border, and come after the button kinds, so no kind's own rules, hovered, pressed or latched, show through.
 - A button disabled by its `<fieldset disabled>` now looks disabled. The rules matched only the `disabled` attribute, so such a button was drawn enabled and did nothing when pressed; they now match `:disabled`.
 - The reference page says, under Buttons, that a disabled button of any kind looks like a disabled plain button. A new test compares disabled primary, danger, latched, fieldset-disabled, `.is-disabled` and `aria-disabled` link buttons with a disabled plain button in both themes.
-
-Reported by the reader application on 0.43.0.
 
 ## 0.44.0
 
@@ -430,11 +432,11 @@ This release implements PUDL specification 0.6.0. Update `pudl.css` and `pudl-md
 
 This release implements PUDL specification 0.6.0. Update `pudl.css` to adopt the menu styling. Existing site overrides continue to take precedence.
 
-- Each menu group now forms one subtly raised surface, using the Example fill, raised border, and shadow in both themes. Menu-bar topbars use the surface background in the light theme, with readable menu and toolbar text. Existing menu-group tokens remain available for customization.
+- Each menu group now forms one subtly raised surface, using a raised fill, raised border, and shadow in both themes. Menu-bar topbars use the surface background in the light theme, with readable menu and toolbar text. Existing menu-group tokens remain available for customization.
 
 ## 0.41.0
 
-This release implements PUDL specification 0.6.0. The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) documents the new contracts and adoption steps for the reader application and Example. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js`, `pudl-windows.css`, `pudl-windows.js`, and `pudl-split.js` together.
+This release implements PUDL specification 0.6.0. The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) documents the new contracts and adoption steps. Update `pudl.css`, `pudl-menu.js`, `pudl-menubar.js`, `pudl-windows.css`, `pudl-windows.js`, and `pudl-split.js` together.
 
 - Windows can opt into maximized-only narrow presentation while retaining their requested URL placement. Restrictions cover menus, keyboard controls, gestures, script calls, and stale callbacks. Widening restores saved floating or docked placement without remounting content.
 - Menus use the available visible viewport height, follow visual viewport changes, and show independent overflow arrows in reserved gutters. Replaced submenu content starts at its first row.
@@ -469,7 +471,7 @@ This release implements PUDL specification 0.6.0.
 
 ## 0.38.0
 
-The menu bar, from example.com's `Architecture/pudl-proposal-menu-bar.md`. This release implements PUDL specification 0.6.0.
+This release adds the menu bar. It implements PUDL specification 0.6.0.
 
 - The new optional `pudl-menubar.js` builds an application's menu bar in its topbar from a `nav[data-menubar]`. The host menu is the site's own, rendered as a hidden nested list in the bar, whose links and buttons are its commands, so it shows content before any script and a command does what a reader's click on its link or button would. The front menu, to its right, belongs to what is in front: the applet in the front window, through `menus()` or `commands()`, or its article, through a hidden `nav[data-page-menu]` of links; with no window in front, the page's own.
 - Each menu is one raised surface in the topbar's chip colours with the new menu glyph, `--glyph-menu`, and flat titles; the open title is pressed in. Panels hold commands, separators, headings, submenus, ticks and shortcuts.
@@ -478,11 +480,11 @@ The menu bar, from example.com's `Architecture/pudl-proposal-menu-bar.md`. This 
 - The bar is one tab stop and follows the WAI-ARIA menu bar pattern, with `accesskey="m"` on its first title. When it does not fit it becomes one menu button opening one level at a time.
 - With a menu bar on the page, an applet's commands live in its front menu: the window menu keeps the window's own commands, and the Commands row above an applet on its page does not appear.
 - `pudlApplets.menuSourceIn()` and `pudlMenu.place()` are new, for the menu bar.
-- Changes from the proposal, as agreed: the bar is a script of its own; the host menu comes from markup rather than a script's object; shortcuts use `Mod` for the platform's command key; and a bar that does not fit collapses straight to one button, without a middle step.
+- The bar is a script of its own, the host menu comes from markup rather than a script's object, shortcuts use `Mod` for the platform's command key, and a bar that does not fit collapses straight to one button, without a middle step.
 
 ## 0.37.3
 
-- In the dark theme a menu row under the pointer, or with focus, shows again. The panel is `--dialog-bg`, which the dark theme sets to `--surface-alt`, and a hovered row was filled with `--surface-alt` too. The row now takes a shade of the panel's own colour, `--menu-row-hover`, in both themes (from example.com's menu bar notes).
+- In the dark theme a menu row under the pointer, or with focus, shows again. The panel is `--dialog-bg`, which the dark theme sets to `--surface-alt`, and a hovered row was filled with `--surface-alt` too. The row now takes a shade of the panel's own colour, `--menu-row-hover`, in both themes.
 
 ## 0.37.2
 
@@ -492,20 +494,20 @@ The menu bar, from example.com's `Architecture/pudl-proposal-menu-bar.md`. This 
 
 This release implements PUDL specification 0.5.1.
 
-- Pressing a window's title bar now gives it the keyboard (from example.com's `Architecture/pudl-bug-raise-focus.md`). The press is cancelled so that a drag selects no text, which also stopped the browser moving focus, so keys still went to the window behind. A window the reader brings forward, by its title bar, frame, dock tab, a list row or its window menu, now gets focus back on whatever last had it inside, or the first time on an element marked `autofocus` in its body, or else on its title bar. A window that already holds focus keeps it, and a fetched window still takes focus only if the reader has not moved on.
+- Pressing a window's title bar now gives it the keyboard. The press is cancelled so that a drag selects no text, which also stopped the browser moving focus, so keys still went to the window behind. A window the reader brings forward, by its title bar, frame, dock tab, a list row or its window menu, now gets focus back on whatever last had it inside, or the first time on an element marked `autofocus` in its body, or else on its title bar. A window that already holds focus keeps it, and a fetched window still takes focus only if the reader has not moved on.
 
 ## 0.37.0
 
 This release implements PUDL specification 0.5.0.
 
-- **Tabs in the topbar.** A `nav.topbar-tabs` of links between the brand and the chrome holds a site's main sections as tabs, as a browser puts its tabs in its title bar, for example.com's All, Articles, Applications and the rest. The row stands on the topbar's bottom edge; the tabs are raised in the topbar's chip colours, and the one marked `aria-current` stands flat and taller, covers the topbar's bottom border and takes the colour below it, `--bg` unless `--section-current-bg` on the row says otherwise, so it opens into the page. On a phone the tabs take the topbar's last row and scroll sideways.
+- **Tabs in the topbar.** A `nav.topbar-tabs` of links between the brand and the chrome holds a site's main sections as tabs, as a browser puts its tabs in its title bar. The row stands on the topbar's bottom edge; the tabs are raised in the topbar's chip colours, and the one marked `aria-current` stands flat and taller, covers the topbar's bottom border and takes the colour below it, `--bg` unless `--section-current-bg` on the row says otherwise, so it opens into the page. On a phone the tabs take the topbar's last row and scroll sideways.
 - The topbar's vertical padding is now `--tb-pad-y`, which the tabs read to reach its edge.
 
 ## 0.36.0
 
 This release implements PUDL specification 0.4.0.
 
-- A segmented control marked `data-seg-menu` becomes a pop-up button on a phone, for switchers that take too much of a topbar, such as example.com's Window/Classic. `pudl-menu.js` builds a menu button beside the segments, labelled with the current choice and named with the control's `aria-label` and that choice, whose menu lists every choice with a tick on the current one. At 640px or narrower the segments hide and the button shows; wider, nothing changes, and without script the segments stay. A link choice stays a link to the same address, and a button choice presses its segment, so the page's handlers run as before. `pudlMenu.refresh()` takes in controls added by script.
+- A segmented control marked `data-seg-menu` becomes a pop-up button on a phone, for switchers that take too much of a topbar. `pudl-menu.js` builds a menu button beside the segments, labelled with the current choice and named with the control's `aria-label` and that choice, whose menu lists every choice with a tick on the current one. At 640px or narrower the segments hide and the button shows; wider, nothing changes, and without script the segments stay. A link choice stays a link to the same address, and a button choice presses its segment, so the page's handlers run as before. `pudlMenu.refresh()` takes in controls added by script.
 
 ## 0.35.1
 
@@ -516,24 +518,24 @@ This release implements PUDL specification 0.3.2.
 
 ## 0.35.0
 
-Windows sized by their content, from example.com's `Architecture/pudl-proposal-window-sizing.md`. This release implements PUDL specification 0.3.0.
+This release adds windows sized by their content. It implements PUDL specification 0.3.0.
 
 - A window marked `data-win-size="content"` takes its content's width and height and follows them as they change, larger and smaller, from a fixed top-left corner, so an applet whose settings add fields resizes its window by doing so, with nothing to call. It stops at the right and bottom of the workspace, where its body scrolls. It cannot be resized, maximised, snapped or docked: its resize edges and its maximise and dock buttons go, its window menu offers Reset position, and an address or script asking otherwise leaves it floating. Its address keeps an ordinary floating placement, whose size it ignores.
 - An applet in such a window is told `fit: "flow"`.
 - A window the reader sizes may carry `data-win-min="w,h"` and `data-win-max="w,h"` in pixels, which dragging, the keyboard and an address all respect.
-- The layout picker's zones no longer spill out of their thumbnails in a window menu that holds a command with a tick. The indent that lines up the words of the other commands reached the zones too, which are commands with no words (from example.com's `Architecture/pudl-bug-snap-zone-indent.md`).
-- Two changes from the proposal. The mode is declared on the window's markup only, not also in `pudlApplets.define()`: PUDL never builds a window for an applet, and the runtime would learn the mode only after the window was placed. And a window sized by its content does not dock, since it has no size to give a dock's strip.
+- The layout picker's zones no longer spill out of their thumbnails in a window menu that holds a command with a tick. The indent that lines up the words of the other commands reached the zones too, which are commands with no words.
+- The mode is declared on the window's markup only, not also in `pudlApplets.define()`: PUDL never builds a window for an applet, and the runtime would learn the mode only after the window was placed. And a window sized by its content does not dock, since it has no size to give a dock's strip.
 
 ## 0.34.1
 
 This release implements PUDL specification 0.2.1.
 
 - **Segmented controls are drawn as they were before 0.34.0.** The chosen segment is raised in the trough and the others lie flat, because with two choices a pressed-in segment beside a raised one was hard to read. The specification now defines a segmented control as a switch with more than two positions, whose chosen segment is the thumb, as macOS and iOS draw it. The segment corners of `--radius-xs` and the dimming of a disabled segment from 0.34.0 stay.
-- A segmented control of links on the topbar keeps its own text colour. The topbar's rule for plain links outweighed it, so since 0.34.0 an unchosen segment's words came out in the bar's pale colour on a light segment (from example.com's `Architecture/pudl-bug-topbar-seg-link.md`). The rule now carries no weight from the bar, so any component on the bar keeps its own colours.
+- A segmented control of links on the topbar keeps its own text colour. The topbar's rule for plain links outweighed it, so since 0.34.0 an unchosen segment's words came out in the bar's pale colour on a light segment. The rule now carries no weight from the bar, so any component on the bar keeps its own colours.
 
 ## 0.34.0
 
-This release implements PUDL specification 0.2.0. Writing the specification's component sections found places where this implementation broke the grammar; the maintainer settled the grammar on 2026-10-01, and this release brings the web into line. Several changes are visible.
+This release implements PUDL specification 0.2.0. Writing the specification's component sections found places where this implementation broke the grammar; the grammar was settled on 2026-10-01, and this release brings the web into line. Several changes are visible.
 
 - **Segmented controls.** The chosen segment is now pressed in and the others stand raised, ready to be pressed. Before, the chosen one was raised and the rest flat, the reverse of what elevation means.
 - **Fields.** A field's border is the new `--input-border`, which reaches 3:1 against every surface it sits on in both themes, as WCAG asks of a control's bounds; it was about 1.4:1. Placeholder text is `--text-muted` at full strength, about 5.5:1; it was faded to about 2:1. A disabled select keeps its sunken look and is dimmed, as every disabled field is; before, it was drawn flat. A select that is only for display should be rendered as text.
@@ -548,9 +550,9 @@ This release implements PUDL specification 0.2.0. Writing the specification's co
 
 ## 0.33.1
 
-- The window menu's "Open as a page" follows the title bar's page link itself, so a link with `target="_blank"` opens the page in a new tab from the menu as it does from the button, instead of navigating away from the windows (from example.com's `Architecture/pudl-bug-menu-page-target.md`).
+- The window menu's "Open as a page" follows the title bar's page link itself, so a link with `target="_blank"` opens the page in a new tab from the menu as it does from the button, instead of navigating away from the windows.
 
-This release implements PUDL specification 0.1.0. The language now has a specification of its own, in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), and this repository is its web implementation, as `docs/proposals/spec-and-implementations.md` proposed and the maintainer decided on 2026-09-30. Nothing a project sees has changed.
+This release implements PUDL specification 0.1.0. The language now has a specification of its own, in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), and this repository is its web implementation, as `docs/proposals/spec-and-implementations.md` proposed and as was decided on 2026-09-30. Nothing a project sees has changed.
 
 - The token block of `dist/pudl.css`, the palette, the scales, the glyphs and the derived tokens, is generated by `build/tokens.js` from the specification's token files, vendored in `vendor/pudl-spec/` at specification 0.1.0. Every token computes exactly as before in both themes; the only differences in the text are comments, the order of the glyphs, and quotes around named font families.
 - A new test fails if the token block and the vendored tokens disagree.
@@ -558,18 +560,18 @@ This release implements PUDL specification 0.1.0. The language now has a specifi
 
 ## 0.33.0
 
-Snap zones, from example.com's `Architecture/pudl-proposal-snap-zones.md`.
+This release adds snap zones.
 
 - A window can be snapped to a zone, a rectangle of the area the docks leave on a grid of sixths: the halves, quarters, thirds, and two thirds beside one third. It is the new mode `zone`, drawn flush like a half.
 - A drag that ends at a corner snaps to that quarter. The sides, the top and the foot behave as before, except that the bottom corners are quarters rather than the dock.
-- The window menu holds a layout picker, a thumbnail of each layout whose zones are buttons, each named in words, so the keyboard reaches every zone through the menu. On a window with the window menu, a mouse resting on the maximise button opens the same picker. Shift with the arrow keys still resizes, as the decision on the proposal kept it, and right-click does nothing new.
+- The window menu holds a layout picker, a thumbnail of each layout whose zones are buttons, each named in words, so the keyboard reaches every zone through the menu. On a window with the window menu, a mouse resting on the maximise button opens the same picker. Shift with the arrow keys still resizes, and right-click does nothing new.
 - `pudlWindows.snap(key, zone)` takes a zone's name or a rectangle, moved to the nearest sixths, and null floats the window again.
-- In the address a zone adds its rectangle after the floating geometry, `p.term=zone:0.06,0.05,0.55,0.75,0,0,0.5,0.5`. The proposal put the rectangle in place of the four numbers, but those are always where the window returns when restored, so it follows them as a dock's size does. A zone that is a half or the whole is written and read as `left`, `right` or `maximized`, so existing addresses are unchanged.
+- In the address a zone adds its rectangle after the floating geometry, `p.term=zone:0.06,0.05,0.55,0.75,0,0,0.5,0.5`. The four floating numbers stay, because they are always where the window returns when restored, and the rectangle follows them as a dock's size does. A zone that is a half or the whole is written and read as `left`, `right` or `maximized`, so existing addresses are unchanged.
 - `pudl-menu.js` places a panel against the element its `data-menu-anchor` names, for a panel a script opens from a link.
 
 ## 0.32.0
 
-The window menu, from example.com's `Architecture/pudl-proposal-window-menu.md`.
+This release adds the window menu.
 
 - A layer carrying `data-win-menu` gives every window a menu button at the left of its title bar, and a window can carry the button itself, `data-win-action="menu"`, without the layer's attribute. The menu holds the window's own commands first (Open as a page, Minimize or Collapse, Maximize or Restore, Dock at the bottom or Undock, and Reset size and position), then the commands of what the window holds, then Close, last and after a separator.
 - An applet offers commands with an optional `commands()` on its instance, returning `[{ label, run, checked, disabled }]`, asked afresh each time the menu opens. Other content adds commands when `pudl:window-menu` fires on the window, through `detail.add(label, run, { checked, disabled })`. A command with `checked` carries `aria-pressed` and shows a tick while it is on. Content cannot take over the window's own commands; `pudl:window-closing` remains the way to stop a close.
@@ -581,31 +583,31 @@ The window menu, from example.com's `Architecture/pudl-proposal-window-menu.md`.
 
 ## 0.31.0
 
-Splitters, from example.com's `Architecture/pudl-proposal-splitter.md`.
+This release adds splitters.
 
-- A `.split` holds two `.split-pane`s and a `.split-handle` between them, which resizes the first. The first pane's size is a custom property on the split, `--split-a` by default, so a server renders a stored size and the stylesheet does the layout. `.stacked` puts the panes one above the other, which the proposal did not ask for, so that an editor above a terminal needs no second component.
-- The new optional `dist/pudl-split.js` makes the handle a focusable separator in the ARIA window-splitter pattern, moved by pointer, by the arrow keys along its axis, Shift for a larger step, Home and End to its limits, and returned to the stylesheet's size by Enter or a double-click. Its limits, `data-split-min` in pixels and `data-split-max` in pixels or a percentage, follow the split's own size as a window resizes it. PUDL keeps no state: `pudl:split` fires with `detail.size`, or null after a reset, for the project to store. The proposal's event carried the width; it is `size` because a stacked split's is a height.
+- A `.split` holds two `.split-pane`s and a `.split-handle` between them, which resizes the first. The first pane's size is a custom property on the split, `--split-a` by default, so a server renders a stored size and the stylesheet does the layout. `.stacked` puts the panes one above the other, so that an editor above a terminal needs no second component.
+- The new optional `dist/pudl-split.js` makes the handle a focusable separator in the ARIA window-splitter pattern, moved by pointer, by the arrow keys along its axis, Shift for a larger step, Home and End to its limits, and returned to the stylesheet's size by Enter or a double-click. Its limits, `data-split-min` in pixels and `data-split-max` in pixels or a percentage, follow the split's own size as a window resizes it. PUDL keeps no state: `pudl:split` fires with `detail.size`, or null after a reset, for the project to store. The field is `size` rather than a width because a stacked split's is a height.
 - The handle is drawn as the master-detail divider is. The divider keeps its own script, so each stands alone.
 - The reference page gains a section for splitters.
 
 ## 0.30.1
 
-- A menu panel whose rows fit no longer shows a scrollbar (from example.com's `Architecture/pudl-bug-menu-scrollbar.md`). `pudl-menu.js` measured the panel's natural height with `scrollHeight`, which leaves out the border and rounds down, so a panel came out two pixels, or a fraction of one, short of its content. It now measures the panel's whole rectangle and rounds up. A new suite checks the reference page's menus at display scales of 1, 1.25 and 1.92.
+- A menu panel whose rows fit no longer shows a scrollbar. `pudl-menu.js` measured the panel's natural height with `scrollHeight`, which leaves out the border and rounds down, so a panel came out two pixels, or a fraction of one, short of its content. It now measures the panel's whole rectangle and rounds up. A new suite checks the reference page's menus at display scales of 1, 1.25 and 1.92.
 
 ## 0.30.0
 
-Docked windows, from example.org's Site window, specified in `docs/proposals/docked-windows.md`.
+This release adds docked windows, specified in `docs/proposals/docked-windows.md`.
 
 - A window's mode may be `dock-top`, `dock-bottom`, `dock-left` or `dock-right`. A docked window holds that edge of the workspace and takes the strip from every other window, which lays itself out in what remains, so nothing covers it: a maximised window ends where the dock begins, and a floating one cannot be dragged into it.
 - A docked window is flush, with a hairline facing the workspace and a thin title bar. Its minimise button collapses it to that bar and expands it again. It resizes along its free edge, by pointer or with Shift and the arrow keys. Dragging a window to the foot of the workspace docks it there; dragging a docked one away, Enter or a double-click on its title bar undocks it; a `data-win-action="dock"` button does either; `pudlWindows.dock(key, edge)` docks at any edge from script.
-- An edge shows one docked window at a time, the others waiting behind it and coming forward from the dock of open windows. The proposal specifies a tabbed dock for an edge with several, not yet built. A side dock shows at the bottom of a layer 640px wide or less.
+- An edge shows one docked window at a time, the others waiting behind it and coming forward from the dock of open windows. A tabbed dock for an edge with several is specified but not yet built. A side dock shows at the bottom of a layer 640px wide or less.
 - In the address a docked placement adds its strip's size, `p.site=dock-bottom:0.06,0.05,0.55,0.75,0.22`. Every window's fractions are now of the inner area the docks leave, which is the whole layer when nothing is docked, so existing addresses are unchanged.
 - Loading an address no longer rewrites a window's size to fit the room at that moment. It keeps the size the address gives, and only brings a window back inside the layer if it hangs off an edge.
 - Two glyphs, `--glyph-dock` and `--glyph-undock`.
 
 ## 0.29.2
 
-What a review of example.org, the second site built on PUDL, found PUDL lacking, from the workarounds in its own stylesheet.
+This release fills gaps that sites built on PUDL had been working around in their own stylesheets.
 
 - A narrow master-detail layout no longer forces its detail pane to `display: block`. PUDL hides only the pane it is not showing, so a detail pane a project lays out as a flex column stays one.
 - A topbar pill for the page the reader is on, marked `aria-current`, is pressed in, as the current tab of a dock or a segmented control is, with the system's highlight in forced colours.
@@ -615,15 +617,15 @@ What a review of example.org, the second site built on PUDL, found PUDL lacking,
 
 ## 0.29.1
 
-- The topbar no longer widens the page on a phone (#9, reported by a contributor). It and its chrome wrap, the chrome moving to a line of its own at the end when the brand and it do not fit on one, with less padding on a phone. A pill may carry a glyph and a `.topbar-pill-label`, and on a phone it then shows only the glyph, its words still heard.
+- The topbar no longer widens the page on a phone (#9). It and its chrome wrap, the chrome moving to a line of its own at the end when the brand and it do not fit on one, with less padding on a phone. A pill may carry a glyph and a `.topbar-pill-label`, and on a phone it then shows only the glyph, its words still heard.
 - A new suite loads every sample and the reference page at 320 and 390 pixels wide and fails if any scrolls sideways, so a page that outgrows a phone is caught.
 
 ## 0.29.0
 
-Copy and download on code blocks, from example.com's `Architecture/pudl-proposal-code-actions.md`.
+This release adds Copy and Download to code blocks.
 
 - The new optional `dist/pudl-code.js` gives a `pre` marked `data-code-actions` a strip above the code that names its language and holds raised Copy and Download buttons. Copy takes the code's text without its highlighting, confirms with a check and a live region, and where the clipboard is unavailable or refused selects the code and says how to copy it. Download names the file from `data-code-filename`, else by the language's extension, else `code.txt`. `pudlCode.names`, `.extensions` and `.words` are a project's to extend, `pudlCode.enhance()` takes in blocks added later or a bare `pre` from Markdown, and `pudl:code-copy` and `pudl:code-download` fire after each action.
-- As proposed, with the header strip, opt-in marking and about thirty languages. The fallback message names both Ctrl+C and Command+C rather than guessing the platform from `navigator.platform`, which browsers are withdrawing, and a second copy restarts the confirmation rather than stacking timers.
+- The header strip is opt-in and knows about thirty languages. The fallback message names both Ctrl+C and Command+C rather than guessing the platform from `navigator.platform`, which browsers are withdrawing, and a second copy restarts the confirmation rather than stacking timers.
 - Two glyphs, `--glyph-copy` and `--glyph-download`, and `.visually-hidden`, for words meant for assistive technology alone. The document tab's unsaved mark keeps its own way of hiding its words, because the dot and the words are one element.
 - The reference page's code block and the Files sample's Markdown preview carry the actions.
 
@@ -631,8 +633,7 @@ Copy and download on code blocks, from example.com's `Architecture/pudl-proposal
 
 A third sample, and what building it asked of PUDL.
 
-- **Files**, `samples/files.html`: a file browser and editor with a folder tree, a path bar, the folder's contents as a grid, files dropped on it to add them, and an editor with document tabs and a Markdown preview in windows. The editor and the preview are applets that answer requests, so the browser opens a file without naming either. It borrows its behaviour and wording from example.com's Files and Editor, rebuilt on PUDL's classes.
-- The article reader's listings are highlighted code blocks, its toolbar has minimise-all and restore-all, and its rows carry descriptions that wrap. The expense tracker takes a receipt dropped on its attach form.
+- **Files**, `samples/files.html`: a file browser and editor with a folder tree, a path bar, the folder's contents as a grid, files dropped on it to add them, and an editor with document tabs and a Markdown preview in windows. The editor and the preview are applets that answer requests, so the browser opens a file without naming either.- The article reader's listings are highlighted code blocks, its toolbar has minimise-all and restore-all, and its rows carry descriptions that wrap. The expense tracker takes a receipt dropped on its attach form.
 - `pudl:window-closing` fires before a close by button, Escape or script, on the window and each child closing with it, and can be cancelled, so an editor with unsaved changes can keep its window while it asks. A close by the address cannot be refused.
 - `pudlWindows.retitle(key, title)` changes a window's title, and the title bar's spoken name, the dock tab and the list row follow.
 - `data-win-pane="off"` on a window layer leaves a master-detail layout's `data-md-pane` to the server, for a layout whose detail pane holds a record of its own with windows over it. Before, the script set it to `list` whenever no window showed, so on a phone that record could not be reached.
@@ -642,30 +643,30 @@ A third sample, and what building it asked of PUDL.
 
 ## 0.27.0
 
-Requests between applets, from example.com's `Architecture/pudl-proposal-applet-handlers.md`.
+This release adds requests between applets.
 
 - An applet declares in `define()` the requests it serves, `handles: { verb: { param, kinds, extra, reuse } }`, and how many windows of it may be open, `instances`, up to nine. A caller asks with `pudlApplets.request(verb, { path, kind, … }, from)` and never names an applet, and `pudlApplets.can(verb, kind)` says whether anything would answer. The verbs and kinds are the project's own words.
 - On a page with windows, a request goes to the applet's newest open instance through its `setState()`, bringing its window forward, or opens a new instance, `name`, `name-2` and so on, which starts with the request's state ahead of the host's; with `reuse: false` it opens a new one each time until the limit, when the newest takes it. On a page without windows it goes to the applet's page, in a new tab when that is the caller's page.
-- As proposed, with three changes. `fresh: true` is `reuse: false`. An applet's instances are found by the mounts in the open windows, not by a pattern of keys, so an unrelated window keyed like `terminal-2` is passed over rather than taken for a terminal. And routing depends on whether the page has windows, not on whether the caller sits in one, so a request from a desktop's toolbar no longer leaves the desktop.
+- A request for a fresh instance is written `reuse: false`. An applet's instances are found by the mounts in the open windows, not by a pattern of keys, so an unrelated window keyed like `terminal-2` is passed over rather than taken for a terminal. And routing depends on whether the page has windows, not on whether the caller sits in one, so a request from a desktop's toolbar no longer leaves the desktop.
 - `opts.instance` and `pudl:applet-state`'s `detail.instance` carry the key an instance goes by, so a host can keep each instance's state apart.
 - A window whose markup comes from a template, keyed `name-2` to `name-9` with no template of its own, takes `name`'s template with the number added to its title.
 - The windows script keeps the page's own query parameters exactly as written when it writes the address. It used to re-encode them, turning a readable `?path=/notes` into `?path=%2Fnotes`.
 
 ## 0.26.0
 
-The editor half of example.com's `Architecture/pudl-proposal-tree-crumbs-editor.md`.
+This release adds the editor's components: document tabs, syntax colours and code surfaces.
 
-- Document tabs. A `.tablist.doc-tabs` holds tabs that come and go, one per open document, and looks like every other tab rather than the flat strip the proposal sketched. A `.doc-tab-dirty` mark is a drawn dot whose words are heard and not seen, rather than a typed "●"; a `.doc-tab-close` is a small raised button inside the tab, hidden from assistive technology because a tab list may hold only tabs. `pudl-tabs.js` makes the list one stop in the Tab order, moves focus with the arrow keys, Home and End, and turns the close button and the Delete key into `pudl:tab-close`, for the host to decide.
+- Document tabs. A `.tablist.doc-tabs` holds tabs that come and go, one per open document, and looks like every other tab. A `.doc-tab-dirty` mark is a drawn dot whose words are heard and not seen, rather than a typed "●"; a `.doc-tab-close` is a small raised button inside the tab, hidden from assistive technology because a tab list may hold only tabs. `pudl-tabs.js` makes the list one stop in the Tab order, moves focus with the arrow keys, Home and End, and turns the close button and the Delete key into `pudl:tab-close`, for the host to decide.
 - Syntax colours. Ten `--syntax-` tokens, set for both themes and for print, each reaching 4.5:1 on every surface code sits on, so highlighters take their colours from the theme. The new optional `dist/pudl-hljs.css` maps highlight.js onto them, and the README has the CodeMirror 6 recipe. The dark theme's error colour is its own, because `--danger` falls short of 4.5:1 on an editor's surface.
-- Code surfaces. `pre.code` is a flat panel for code to read, and `.code-surface` a sunken one for an editor, since sunken means input; the proposal's single sunken surface would have made a code block look editable.
+- Code surfaces. `pre.code` is a flat panel for code to read, and `.code-surface` a sunken one for an editor, since sunken means input, and a single sunken surface would have made a code block look editable.
 - The reference page gains a section for document tabs and code, which the axe suite checks for contrast in both themes.
 
 ## 0.25.0
 
-The general half of example.com's `Architecture/pudl-proposal-tree-crumbs-editor.md`; document tabs and syntax colours follow in 0.26.0.
+This release adds trees, path bars, grids, file glyphs and drop targets; document tabs and syntax colours follow in 0.26.0.
 
-- Trees. A `ul.tree` of nested lists of links is a hierarchy of places, an indented list without script. The new optional `dist/pudl-tree.js` makes it the ARIA tree pattern, after the WAI-ARIA navigation tree: one tab stop, arrow keys that move, open and close, mirrored right to left, Home and End, type-ahead, and a small raised toggle on each node with children. `pudl:tree-toggle` says when a node opens or closes. The proposal's sample put the tree item on the list item and moved focus to the link inside it, and found its toggle by the pointer's position; here the link is the tree item and the toggle an element of its own.
-- Path bars. `nav.path` shows where the reader is inside a hierarchy they are browsing, with drawn separators that assistive technology does not hear. It is never a site's breadcrumb trail, which PUDL still does not have; the README and the Architectural Principles say so.
+- Trees. A `ul.tree` of nested lists of links is a hierarchy of places, an indented list without script. The new optional `dist/pudl-tree.js` makes it the ARIA tree pattern, after the WAI-ARIA navigation tree: one tab stop, arrow keys that move, open and close, mirrored right to left, Home and End, type-ahead, and a small raised toggle on each node with children. `pudl:tree-toggle` says when a node opens or closes. The link is the tree item, and the toggle is an element of its own.
+- Path bars. `nav.path` shows where the reader is inside a hierarchy they are browsing, with drawn separators that assistive technology does not hear. It is never a site's breadcrumb trail, which PUDL still does not have; the README says so.
 - Grids. A `.data-table` with `role="grid"` is a table whose rows are choices, each row's first link its address. The new optional `dist/pudl-grid.js` makes it one tab stop, moves the selection with the arrow keys, Home, End, Page Up and Page Down, and opens a row with Enter or a double-click by following its link, or with `pudl:row-open` when it has none; `pudl:row-select` says when the selection moves. ARIA allows `aria-selected` on a row only in a grid, which the README now says.
 - Glyphs for files and documents, `--glyph-folder`, `--glyph-file`, `--glyph-document`, `--glyph-app`, `--glyph-script`, `--glyph-link` and `--glyph-home`, and `.glyph`, which draws any glyph token as an element at the size of the text around it. The glyphs carry no colours of their own, since the shape says the kind.
 - Drop targets. A host sets `data-drop-over` on a `.drop-zone`, or `data-drop-target` on an item, while something is dragged over it, and PUDL rings it in the accent and shows the zone's `.drop-hint`.
@@ -673,7 +674,7 @@ The general half of example.com's `Architecture/pudl-proposal-tree-crumbs-editor
 
 ## 0.24.0
 
-From example.com's `Architecture/pudl-proposal-meta-wrap-restore-all.md`.
+This release wraps list metadata and adds restore-all.
 
 - List metadata wraps. A row's `.md-meta` lines now wrap instead of running off the sidebar's edge uncut, while the title keeps to one line with its ellipsis. An item may hold several `.md-meta` lines, a date and then a description, and the README shows the markup.
 - Restore-all. A link with `data-win-restore` restores every minimised window in one step, the reverse of `data-win-back`, and `pudlWindows.minimizeAll()` and `pudlWindows.restoreAll()` do both from script. The script keeps both links' `href`s current and marks each `aria-disabled="true"` while it would change nothing. A `.btn` marked `aria-disabled="true"` looks disabled and takes no clicks.
@@ -681,7 +682,7 @@ From example.com's `Architecture/pudl-proposal-meta-wrap-restore-all.md`.
 
 ## 0.23.1
 
-Two findings from example.com.
+This release makes two fixes.
 
 - A primary button latched on is readable. With `aria-pressed="true"` it took the pressed background of an ordinary button and kept its own text colour, so its label nearly vanished. It now keeps its accent fill and its text and is pressed in, flat and shaded from the top, rather than darkened, since the dark theme's accent carries dark text. The reference page has one, which the axe suite checks in both themes.
 - A GET form in a region leaves its empty fields out of the address, so clearing a filter no longer leaves `?q=` behind.
@@ -689,7 +690,7 @@ Two findings from example.com.
 
 ## 0.23.0
 
-Issues #7 and #8, reported by a contributor, and two changes from the 0.22 review. A project upgrading should read the last two items.
+This release answers issues #7 and #8 and makes two changes from the 0.22 review. A project upgrading should read the last two items.
 
 - Default windows (#8). The layer names windows that are part of a page's furniture, `data-win-default="site"`, and an address that names no windows opens them where their markup puts them, keeping the page's plain address plain while they stay that way. An address with `open`, even an empty `open=`, means exactly what it says, so closing the last window on such a page writes `open=`. The layer names the defaults, not the windows' own markup as the issue proposed, because a default window the address has closed is not in the page for the script to find.
 - `pudl:window-close` says why a window closed, in `detail.reason`: `button`, `key`, `script`, `parent`, `replace` or `address`. A project can remember a reader's close of a default window from it (#8).
@@ -700,7 +701,7 @@ Issues #7 and #8, reported by a contributor, and two changes from the 0.22 revie
 
 ## 0.22.1
 
-Accessibility fixes from issues #5 and #6, reported by a contributor.
+This release makes accessibility fixes from issues #5 and #6.
 
 - The default theme meets WCAG 2.2 AA text contrast everywhere axe checks it, in both themes. A status badge's text is now its status colour drawn toward the text colour (62% of the status colour), since a mid-tone colour cannot reach 4.5:1 on a tint of itself; the status tokens are unchanged, so notices, glyphs and a theme's own colours are unaffected. A filter chip's kind label is no longer faded with opacity. A segmented control's choices not taken are in the full text colour, the chosen one still marked by being raised, and they hover with a light tint.
 - A window's body is a tab stop, given by `pudl-windows.js`, so a window whose content has no link or field can still be scrolled from the keyboard. Its focus ring is drawn inside it. A master-detail detail pane takes `tabindex="0"` in its markup for the same reason, and has the same ring.
@@ -734,7 +735,7 @@ A review of the whole implementation for performance, clarity and security.
 
 ## 0.21.0
 
-Follow-ups from example.com's second applet, `Architecture/pudl-proposal-applet-followups.md`; `docs/proposals/applet-followups.md` records the response.
+This release follows up on applets and their hosts; `docs/proposals/applet-followups.md` records the design.
 
 - Preset links. A link with `data-applet-preset="name"` hands its state to a running instance of that applet in the same window as the link, or like the link in none, instead of navigating: the value of the mount's `data-applet-param` if the link carries it, otherwise the link's whole query. A mount that keeps its state in the address gets it there as a new history entry, so Back undoes the preset. With no instance to take it, the link is an ordinary link.
 - A host hands an applet its state. Just before `init`, `pudl:applet-state` fires on the mount, and whatever a listener puts in `detail.state` arrives as `opts.state`. With `pudl:applet-change`, that is all a window needs to keep an applet's continuity, and PUDL still keeps no state and never hands out an instance.
@@ -743,7 +744,7 @@ Follow-ups from example.com's second applet, `Architecture/pudl-proposal-applet-
 
 ## 0.20.0
 
-Applets and their hosts, from example.com's `Architecture/pudl-proposal-applet-hosts.md`; `docs/proposals/applet-hosts.md` records the response.
+This release covers applets and their hosts; `docs/proposals/applet-hosts.md` records the design.
 
 - A registry. `pudlApplets.define(name, { src, css, page, ver })` names an applet's files once, and a mount then needs only `data-applet="name"`. `ver` is added to the script and stylesheet as `?v=`, so a new version is one edit. A mount's own `data-applet-src`, `-css` and `-page` still work, and each wins over the registry separately. `define()` may run before or after `pudl-applets.js` has started the page's mounts.
 - `opts.fit`, `"fill"` or `"flow"`, tells the applet how to size itself: fill the definite box a window or a bare page gives it, or flow with an article's column and let the page scroll. A window fills and anything else flows, unless the mount's `data-applet-fit` says otherwise, and the mount's `data-applet-fit` reads the answer for the applet's stylesheet.
@@ -773,7 +774,7 @@ Fixes found by making the expense tracker a working application. Nothing a proje
 
 - The contract. `docs/CONTRACT.md` lists everything a project may rely on: the files, the tokens a theme may set or read, the classes, data attributes, events, functions and address grammar, and what is internal. From 1.0 it changes only in a major release, and anything removed from it is deprecated first.
 - The tests are in the repository. `npm test` runs fourteen suites against the samples and the reference page in Chromium, `npm run test:all` runs them in Firefox and WebKit too, and GitHub Actions runs all three engines on every push and pull request.
-- A window that arrives after the reader has moved on no longer takes focus. Opening a window and pressing <kbd>/</kbd> before its content arrived left focus on the window rather than the launcher's filter, so what the reader typed went nowhere. A window now takes focus only if focus has not moved since it was asked for. Reported from example.com.
+- A window that arrives after the reader has moved on no longer takes focus. Opening a window and pressing <kbd>/</kbd> before its content arrived left focus on the window rather than the launcher's filter, so what the reader typed went nowhere. A window now takes focus only if focus has not moved since it was asked for.
 - A menu's filter is cleared every time its panel opens. When a browser merged the toggle events of a quick close and reopen, the old filter text stayed.
 ## 0.18.0
 
@@ -789,7 +790,7 @@ Fixes found by making the expense tracker a working application. Nothing a proje
 
 - Data tables. `.data-table` in a `.data-table-wrap` lists many records: a sticky header, sortable columns whose raised headers carry `aria-sort` and a direction glyph and link to the other order, `.num` columns aligned to the end, row selection by checkbox or `aria-selected` with a tint and an edge, a `.data-table-empty` row, and with `.stack`, rows as labelled cards when the table is narrow.
 - Notices and toasts. A `.notice` stays until dealt with; a `.toast` confirms and leaves. Both come in information, `.positive`, `.warn` and `.danger`, each with its own drawn glyph and a coloured edge. The new optional `dist/pudl-toast.js` provides `pudlToast()`, timing that pauses while the reader is on a toast, dismiss buttons, and the re-insertion that makes a server's toast heard by screen readers.
-- Menus summoned by a key. A `.menu-panel` with `data-menu-key` opens on that key outside editable fields, with focus in its filter; a panel with no button opens as a palette near the top of the window; and Enter with no match left submits the filter's form. This is PUDL's answer to example.com's go palette, recorded in `docs/proposals/go-palette.md`.
+- Menus summoned by a key. A `.menu-panel` with `data-menu-key` opens on that key outside editable fields, with focus in its filter; a panel with no button opens as a palette near the top of the window; and Enter with no match left submits the filter's form. This is PUDL's go palette, recorded in `docs/proposals/go-palette.md`.
 - New glyphs for sorting and for the kinds of notice.
 - The reference page gains sections for data tables and for notices and toasts, and its launcher opens with <kbd>/</kbd>, as do the article reader's.
 
@@ -824,7 +825,6 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 - The stylesheet holds the sidebar between `--md-sidebar-min` (180px) and half the layout, whether the width came from a drag, a stored preference or a theme.
 - Fixed: windows could rise over what surrounded their host, such as the half of a master-detail divider that overlaps the detail pane, which a maximised window then covered. `.win-host` now keeps its windows' stacking to itself.
 - The reference page's master-detail demo and the article reader sample have working dividers, and the sample remembers the reader's width.
-- From example.com (`Architecture/pudl-proposal-sidebar-resize.md` in that repository).
 
 ## 0.13.2
 
@@ -840,7 +840,6 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 - An empty window dock is no longer removed from the layout. It still draws nothing, but a toolbar that uses it as its elastic middle keeps its shape when the last window closes.
 - An empty chips row is hidden by the absence of chips rather than by `:empty`, which a template's whitespace defeated, leaving a thin empty bar.
 - The README says that a region that is sometimes empty must still be rendered, since a swap needs a counterpart for every region.
-- From example.com (`Architecture/pudl-proposal-empty-structure.md` in that repository).
 
 ## 0.12.0
 
@@ -849,7 +848,7 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 - `pudl:windows-change` now bubbles, so a listener on the document hears it.
 - The section bar no longer shrinks in a full-height layout, and scrolls sideways when its tabs outrun a narrow screen.
 - The article reader sample gains category tabs, with a page per category, and its windows now come from `samples/windows/`, fetched as a server would answer them. It therefore needs a web server to run.
-- From example.com; `docs/proposals/window-workspace.md` records the design.
+- `docs/proposals/window-workspace.md` records the design.
 
 ## 0.11.0
 
@@ -858,7 +857,7 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 - The filter's apply button: a `form.md-filter-group` joins the `.md-filter` input to an `.icon-btn.md-filter-go` submit button, whose magnifying glass is drawn by the stylesheet. The reference page's master-detail demos use it.
 - `--tb-link-hover`, a hover colour for links on the topbar, derived from the accent and the topbar's foreground. The brand used the page's link hover, which on a light theme was a dark colour on the dark bar; it now uses this token, and plain links on the topbar take the topbar's colours.
 - The reference page's receipt child now opens floating, because the expense it is opened from floats.
-- These came from example.com; `docs/proposals/window-workspace.md` records them.
+- `docs/proposals/window-workspace.md` records the design.
 
 ## 0.10.0
 
@@ -867,7 +866,6 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 - A link inside a window marked `data-win-replace` opens its target in place of that window, keeping its dock position and placement, as one history entry that Back undoes.
 - `window.pudlWindows` gives scripts `open`, `replace`, `raise`, `minimize`, `close` and `state`, each doing what the matching link or button does.
 - The article reader sample gains an article hosting an applet and "Next" links between articles, and `samples/colour-mixer.html` runs the same applet in a page of its own.
-- All four came from adopting PUDL on example.com; `docs/proposals/first-adoption-gaps.md` records them.
 
 ## 0.9.0
 
@@ -875,7 +873,6 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 - A `.btn` with `aria-pressed="true"` stays pressed in, for toggle buttons that latch.
 - The active window's title bar comes from four new tokens, `--win-active-bg`, `--win-active-fg`, `--win-active-border` and `--win-active-shadow`, so a theme can tune it without overriding the component. The dark theme's default is now quieter: the raised gradient tinted toward the accent, normal text, and an accent rule along the foot, since a dark theme's bright accent made a glaring filled bar. The light theme keeps the filled bar.
 - The active title bar's keyboard focus ring now shows. The accent bar's own styles had hidden it.
-- These three came from adopting PUDL on example.com, and `docs/proposals/first-adoption-gaps.md` records them.
 
 ## 0.8.0
 
@@ -920,7 +917,7 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 ## 0.4.0
 
 - Floating windows, in the optional `pudl-windows.css` and `pudl-windows.js`. Windows drag by the title bar, resize from any edge or corner, snap to the left or right half or maximise when dragged against an edge, minimise to a dock, and move and resize from the keyboard. The URL holds the whole arrangement, the server renders the windows it names, and every window button is a real link to the state it produces. The README sets out the URL format and the markup.
-- The windows are a rewrite of an earlier project's card windows as a general module. Unlike an earlier project's, they fetch a window's markup alone rather than cutting it out of a full page, work without script, take focus when they open and return it when they close, and include only the snapping that works.
+- The windows fetch a window's markup alone rather than cutting it out of a full page, work without script, take focus when they open and return it when they close, and include only the snapping that works.
 - The reference page demonstrates the windows live, in place of a static drawing of one. Its section headings no longer style headings inside the demos.
 - The README and the reference page now say PUDL is modelled on desktop toolkits such as GTK, rather than taken from GTK, and the README says PUDL contains no GTK code, stylesheets or artwork.
 
@@ -948,9 +945,9 @@ The consistency pass from `docs/proposals/road-to-1.0.md`. Every old name keeps 
 
 ## 0.1.0
 
-The first release, extracted from the an earlier project Design Language v2 reference page (an earlier project repository, `mockups/adl-v2-reference.html`, commit 097a9c7).
+This is the first release.
 
 - The tokens and component classes moved into `pudl.css`, without the styling that exists only to lay out the reference page.
-- The focus rings and the primary button's shadow now derive from `--accent` and `--danger`. In an earlier design language they were fixed to the navy accent, so a project that overrode `--accent` kept navy focus rings, which contradicted an earlier design language's own rule that recolouring the accent reaches the focus rings.
+- The focus rings and the primary button's shadow now derive from `--accent` and `--danger`. Before, they were fixed to a navy accent, so a project that overrode `--accent` kept navy focus rings, which contradicted the rule that recolouring the accent reaches the focus rings.
 - Theme handling moved into `pudl-theme.js`, and the saved theme lives under the key `pudl-theme`.
-- The reference page's sample content no longer comes from an earlier project's own cards.
+- The reference page has sample content of its own.

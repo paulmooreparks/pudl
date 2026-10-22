@@ -1,5 +1,4 @@
-/* Snap zones, from example.com's
-   Architecture/pudl-proposal-snap-zones.md. */
+/* Snap zones. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

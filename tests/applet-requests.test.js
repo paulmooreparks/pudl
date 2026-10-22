@@ -1,5 +1,4 @@
-/* Applets that declare the requests they serve, from example.com's
-   Architecture/pudl-proposal-applet-handlers.md. */
+/* Applets that declare the requests they serve. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

@@ -1,5 +1,4 @@
-/* The status area (specification 0.9.0, from example.com's
-   proposal): one raised group last in the topbar's chrome, of flat items
+/* The status area (specification 0.9.0): one raised group last in the topbar's chrome, of flat items
    that highlight and press in, each a glyph or a picture with a badge that
    is not shown when it has nothing to say, readable on the topbar whether
    the bar is dark or, with a menu bar, light. */
@@ -84,8 +83,8 @@ function check(name, ok, extra) {
       check(where + 'the area is 30px tall, as a menu bar\'s group is', got.areaHeight === 30, String(got.areaHeight));
       check(where + 'the account glyph stands in for a picture at 24px', got.placeholder === '24x24', got.placeholder);
       if (menubar) {
-        /* Beside a menu bar, exactly a menu bar group and its titles
-           (from the reader application's PUDL-PROPOSAL.md, B7). */
+        /* Beside a menu bar, the area looks the same as a menu bar group
+           and its titles. */
         const same = ['bg', 'border', 'shadow', 'height'].filter(k => got.group[k] !== got.areaLook[k]);
         check(where + 'the area looks exactly like a menu bar group', !same.length, same.map(k => k + ': ' + got.group[k] + ' / ' + got.areaLook[k]).join('; '));
         check(where + 'an item is in a menu bar title\'s colour', got.titleColor === got.itemColor, got.titleColor + ' / ' + got.itemColor);

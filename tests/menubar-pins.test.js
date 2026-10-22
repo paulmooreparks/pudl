@@ -1,5 +1,4 @@
-/* The menu bar's pins group (from example.com's proposal of
-   2026-10-05): between the site's group and the applet's, the Pins menu
+/* The menu bar's pins group: between the site's group and the applet's, the Pins menu
    and a button for each pinned item, giving way all together to an Items
    menu when they do not fit. */
 const { launch, ROOT } = require('./lib');

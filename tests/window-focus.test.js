@@ -1,5 +1,4 @@
-/* Raising a window gives it the keyboard, from example.com's
-   Architecture/pudl-bug-raise-focus.md. */
+/* Raising a window gives it the keyboard. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

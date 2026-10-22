@@ -167,10 +167,10 @@ function check(name, ok, detail) {
 
   /* Options from the server. */
   await p.click('#page');
-  await p.keyboard.type('gap');
+  await p.keyboard.type('plan');
   await p.waitForFunction(id => document.querySelectorAll('#' + id + ' [role=option]').length > 0, await listOf('page'));
   check('options come from the server after a pause, filtered by what is typed',
-    JSON.stringify(await rows('page')) === JSON.stringify(['Plan 09 - Data Export v1.0', 'Plan 09 - Data Export v1.1', 'Plan 08 - Payment Options PaymentsPayments via App Enablement']), JSON.stringify(await rows('page')));
+    JSON.stringify(await rows('page')) === JSON.stringify(['Plan 09 - Data Export v1.0', 'Plan 09 - Data Export v1.1', 'Plan 08 - Mobile PaymentsPayments in the App']), JSON.stringify(await rows('page')));
   const safe = await p.evaluate(() => ({ injected: !!window.comboInjected, html: Array.from(document.getElementById('pages').options).some(o => o.children.length) }));
   check('only an option\'s value and text are taken from the answer', !safe.injected && !safe.html, JSON.stringify(safe));
   await p.keyboard.press('Escape');

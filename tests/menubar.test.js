@@ -1,5 +1,4 @@
-/* The menu bar, from example.com's
-   Architecture/pudl-proposal-menu-bar.md. */
+/* The menu bar. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
@@ -46,7 +45,7 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   await raise('notes');
   let bt = await bar();
   check('the host menu, and the front window\'s applet\'s titles, without a title the host has',
-        bt === 'Example: P Example|View|Window|Help / Notes: Notes|File', bt);
+        bt === 'Example: E Example|View|Window|Help / Notes: Notes|File', bt);
   await raise('counter');
   bt = await bar();
   check('an applet with only commands() gets identity and Actions titles', bt.endsWith('/ Counter: Counter|Actions'), bt);
@@ -138,8 +137,7 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   await waitOpen();
   check('its first title offers what every article offers, and no Print unless the host marks it', (await rows()).join(',') === 'Open as a page,Copy link to this content,|,Close window', (await rows()).join(','));
   await p.keyboard.press('Escape');
-  /* A host whose printed article is worth having marks its page menu
-     (from example.com's Architecture/pudl-proposal-article-file-menu.md). */
+  /* A host whose printed article is worth having marks its page menu. */
   await p.evaluate(() => { document.querySelector('.win[data-win="article"] nav[data-page-menu]').setAttribute('data-page-print', ''); pudlMenubar.refresh(); });
   await p.click('.menubar-front .menubar-title >> text=Coincidences');
   await waitOpen();

@@ -8,7 +8,7 @@ The **site bar** belongs to the site or application shell. Its commands and orde
 
 Each group begins with an identity menu bearing its owner's visible name, optionally with a logo. The hamburger glyph toggles that group's first menu. The name and glyph must not navigate to different destinations or expose different commands.
 
-Each group forms one slightly raised surface around its glyph, identity, and menu titles. Its shared border and shadow establish that elevation in both themes. This follows the Example appearance confirmed on 3 October 2026. Individual titles gain hover, open, and focus treatments within that surface.
+Each group forms one slightly raised surface around its glyph, identity, and menu titles. Its shared border and shadow establish that elevation in both themes. Individual titles gain hover, open, and focus treatments within that surface.
 
 Menus describe the scope of their commands. Opening a menu does not change the active content or selection on which those commands operate. Settings labels distinguish this instance's settings from defaults for future instances where both exist.
 
@@ -33,7 +33,7 @@ Applets launches tools; Window selects and manages existing windows. Sites with 
 
 ## Pins group
 
-A site may add a pins group between the site bar and the applet bar, for the applets and articles its readers go to most, one press away in both the window and classic views. It was proposed by example.com on 5 October 2026. The group stands after the site bar so that it stays put as the active applet changes.
+A site may add a pins group between the site bar and the applet bar, for the applets and articles its readers go to most, one press away in both the window and classic views. The group stands after the site bar so that it stays put as the active applet changes.
 
 Its first control is the Pins menu, marked by the pin glyph as an identity is marked by the menu glyph. The menu holds the site's pinning commands, such as Pin "About" and Unpin "About" for whatever is in front, disabled when nothing pinnable is. After it come buttons, not menus, one for each pinned item, showing the icon and title the item shows elsewhere, such as in the taskbar. Each is a link to the item's page, so a modified click opens a new tab, and the site may handle a plain press itself, as a window view does by opening or raising the item's window.
 

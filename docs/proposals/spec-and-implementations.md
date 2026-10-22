@@ -1,6 +1,6 @@
 # Proposal: separating the language from its web implementation
 
-Status: accepted, 2026-09-30. the maintainer took all three recommendations, recorded at the end.
+Status: accepted, 2026-09-30. All three recommendations were taken, as recorded at the end.
 
 PUDL is meant to be a design language, and this repository was meant to be one implementation of it. In practice the two have grown into one thing. The README states a rule of the language and then, in the same paragraph, names the CSS class that carries it out. `docs/CONTRACT.md` calls itself the list of everything a project may rely on, but everything in it is a class, a data attribute, a script function or a query parameter, so it is really the web implementation's interface. One version number covers both, which means a new button style and a new rule about what a button is look like the same kind of change.
 
@@ -38,7 +38,7 @@ A few things sit on the line, and writing the spec will force a decision on each
 
 The reasons:
 
-- Adopters load PUDL from `cdn.jsdelivr.net/gh/paulmooreparks/pudl@vX/dist/…`. Keeping this repository's name and layout keeps every one of those addresses working, for example.com and example.org and anyone after them.
+- Adopters load PUDL from `cdn.jsdelivr.net/gh/paulmooreparks/pudl@vX/dist/…`. Keeping this repository's name and layout keeps every one of those addresses working, for today's adopters and anyone after them.
 - Every other implementation will be a repository and a package of its own anyway: a NuGet package for Avalonia, a Go module for a terminal library, a Swift package. The spec being one more repository beside them is the natural shape, and it keeps the spec from being quietly owned by the web.
 - A separate repository makes the separation structural rather than a matter of discipline. A change to the language is a change to `pudl-spec`, reviewed as such, and the web implementation follows it in a release of its own.
 
@@ -66,8 +66,8 @@ The spec and each implementation are versioned separately. The spec's version ch
 
 In the order I would do them, and why:
 
-1. **Avalonia, in C#.** One XAML implementation runs on Windows, macOS and Linux. It is .NET, where you have twenty-six years, and its styling system handles elevation, state and theming directly. It is the most platforms for the least work, and it is the implementation most likely to find the spec's gaps, because desktop conventions differ from the web's in exactly the places the spec is vaguest.
-2. **A terminal implementation in Go**, on Bubble Tea and Lip Gloss, for a platform's command-line tools. It is the hardest test of the language: without shadows, elevation has to be carried by box-drawing, shading and inverse video, and if the grammar survives a terminal it will survive anything. Ratatui (Rust) or Terminal.Gui (.NET) are alternatives if a platform is not the first user.
+1. **Avalonia, in C#.** One XAML implementation runs on Windows, macOS and Linux. It is .NET, which has deep experience behind it, and its styling system handles elevation, state and theming directly. It is the most platforms for the least work, and it is the implementation most likely to find the spec's gaps, because desktop conventions differ from the web's in exactly the places the spec is vaguest.
+2. **A terminal implementation in Go**, on Bubble Tea and Lip Gloss, for command-line tools. It is the hardest test of the language: without shadows, elevation has to be carried by box-drawing, shading and inverse video, and if the grammar survives a terminal it will survive anything. Ratatui (Rust) or Terminal.Gui (.NET) are alternatives if the first user is not written in Go.
 3. **Server helpers for the web**, in Go and ASP.NET, that parse the window address grammar and render the markup, as the road to 1.0 already proposes. These belong to the web implementation rather than being a new platform, but they are the next most useful work for the sites that exist.
 4. **Mobile, when an application needs it.** Flutter (Dart) gives one implementation for iOS and Android and draws its own controls, which suits PUDL's raised and sunken surfaces. SwiftUI and Jetpack Compose (Kotlin) are the native pair: twice the work, but closer to each platform's own feel.
 5. **Others worth knowing about.** WinUI 3, for Windows-only native applications. Qt with QML (C++), for embedded devices. GTK, which is part of PUDL's lineage. A Figma library generated from the token file, so that designers work in the same language the implementations do.
@@ -95,7 +95,7 @@ In the order I would do them, and why:
 
 ## Decisions
 
-the maintainer decided all three on 2026-09-30, each as recommended.
+All three were decided on 2026-09-30, each as recommended.
 
 1. The spec lives in a separate repository, `pudl-spec`, created now. This repository keeps its name and becomes the web implementation.
 2. The first platform after the web is Avalonia.

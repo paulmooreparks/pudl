@@ -1,5 +1,4 @@
-/* Windows sized by their content, and limits on windows the reader sizes,
-   from example.com's Architecture/pudl-proposal-window-sizing.md. */
+/* Windows sized by their content, and limits on windows the reader sizes. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

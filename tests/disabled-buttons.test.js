@@ -1,7 +1,7 @@
 /* A disabled button of any kind, however it was disabled, looks like a
-   disabled plain button (from the reader application's report on 0.43.0: a disabled
-   primary button kept its accent text on the neutral face, and a button
-   disabled by its fieldset looked enabled). */
+   disabled plain button. Before 0.43.0 a disabled primary button kept its
+   accent text on the neutral face, and a button disabled by its fieldset
+   looked enabled. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

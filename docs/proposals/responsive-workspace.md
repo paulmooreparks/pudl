@@ -1,6 +1,6 @@
 # Responsive workspace proposal review
 
-This is the PUDL review of the reader application's `PUDL-PROPOSAL.md`, dated 3 October 2026, against PUDL 0.40.0 at `b998b33`. the maintainer approved implementation of the following contracts for 0.41.0.
+This is the PUDL review of a site's responsive workspace proposal, dated 3 October 2026, against PUDL 0.40.0 at `b998b33`. Implementation of the following contracts was approved for 0.41.0.
 
 ## Implementation contracts
 
@@ -22,7 +22,7 @@ This is the PUDL review of the reader application's `PUDL-PROPOSAL.md`, dated 3 
 | Splitter targets and single-pane presentation | Add a configurable target that occupies layout space; define and test a mounted single-pane presentation contract. |
 | Compact chrome | Add an explicit option and separate target/glyph sizing controls; preserve title, focus, active state, and command access. |
 | Workspace-level taskbar | Document and test the existing arrangement. Keep independent master-detail pane navigation as a separate design item. |
-| Menu-bar elevation | Add component-level theme hooks with existing defaults. Keep the reader application's particular palette choices local. |
+| Menu-bar elevation | Add component-level theme hooks with existing defaults. Keep the proposing site's particular palette choices local. |
 
 ## URL placement and narrow presentation
 
@@ -58,7 +58,7 @@ Compact chrome should hide secondary buttons only when every applicable command 
 
 A separate pane-navigation API needs an explicit URL representation and precedence relative to the window module's automatic `data-md-pane` updates. Do not introduce that API as an incidental extension of this batch or describe minimizing windows as the universal meaning of showing a list.
 
-Menu-bar groups currently consume `--tb-chip` and `--tb-chip-shadow`. Add component-specific surface, border, and shadow hooks if needed, preserving current defaults so other sites do not change unexpectedly. Document the reader application's raised/recessed composition as an optional theme recipe. Changing the light topbar to `--surface` is a host palette decision, and dropdown/menu-item redesign remains outside this work.
+Menu-bar groups currently consume `--tb-chip` and `--tb-chip-shadow`. Add component-specific surface, border, and shadow hooks if needed, preserving current defaults so other sites do not change unexpectedly. Document the proposing site's raised/recessed composition as an optional theme recipe. Changing the light topbar to `--surface` is a host palette decision, and dropdown/menu-item redesign remains outside this work.
 
 ## Verification and delivery
 

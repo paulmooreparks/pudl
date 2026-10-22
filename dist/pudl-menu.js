@@ -20,6 +20,7 @@
   var GAP = 4;          // px between the button and the panel
   var EDGE = 8;         // px the panel keeps from the edges of the window
   var NARROW = 640;     // at or below this window width the panel is a sheet
+  var MIN_BELOW = 240;  // px below a button that keeps a long panel there, scrolling
   var ITEMS = 'a.md-item, .menu-action, .md-filter, .menu-check input';
 
   /* An explicit anchor selects the placement when several controls target
@@ -121,7 +122,12 @@
       cues(panel);
       return;
     }
-    var down = below >= natural || below >= above;
+    /* A panel drops below its button, as a desktop's menus do. It opens
+       above only when it does not fit below and either fits whole above or
+       has less than MIN_BELOW below; otherwise it stays below, shortened,
+       and scrolls, rather than flipping up over the page when only its
+       length is the trouble (0.77.1). */
+    var down = below >= natural || below >= above || (above < natural && below >= MIN_BELOW);
     fitHeight(panel, down ? below : above, natural);
 
     if (!narrow) {
@@ -809,7 +815,7 @@
     if (panel && isOpen(panel)) panel.hidePopover();
   });
 
-  /* A filter menu (from the reader application's PUDL-PROPOSAL.md, B1): a panel marked
+  /* A filter menu: a panel marked
      data-filter-menu holds checkbox rows, each box belonging to the
      filter's form, by its form attribute or by sitting in it. Ticking a box
      sends the form at once. Where pudl-regions.js turns that into a swap of

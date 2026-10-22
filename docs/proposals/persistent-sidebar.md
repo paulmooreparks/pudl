@@ -1,12 +1,12 @@
 # Persistent sidebar review
 
-This review, dated 3 October 2026, recommends an opt-in persistent sidebar handle for PUDL. It evaluates the [Example proposal](https://github.com/paulmooreparks/example/blob/main/Architecture/pudl-proposal-persistent-sidebar.md) against PUDL 0.42.0. These are proposed implementation requirements; this document does not add a supported API or authorize a release.
+This review, dated 3 October 2026, recommends an opt-in persistent sidebar handle for PUDL. It evaluates a site's proposal for a persistent sidebar against PUDL 0.42.0. These are proposed implementation requirements; this document does not add a supported API or authorize a release.
 
-The canonical [Architectural Principles](<C:/Users/example/OneDrive/Documents/Architectural Principles.md>) apply. The existing [responsive workspace contract](../RESPONSIVE-WORKSPACES.md) remains in force until an implementation updates it.
+PUDL's architectural principles apply. The existing [responsive workspace contract](../RESPONSIVE-WORKSPACES.md) remains in force until an implementation updates it.
 
 ## Implementation status
 
-the maintainer approved implementation, testing, and release on 3 October 2026. PUDL 0.43.0 implements the opt-in master-detail integration. The [component contract](../PERSISTENT-SIDEBAR.md) records the final attributes, commands, and request timing. The review below remains the rationale; its open API questions are resolved by that contract.
+Implementation, testing, and release were approved on 3 October 2026. PUDL 0.43.0 implements the opt-in master-detail integration. The [component contract](../PERSISTENT-SIDEBAR.md) records the final attributes, commands, and request timing. The review below remains the rationale; its open API questions are resolved by that contract.
 
 ## Recommended scope
 
@@ -45,7 +45,7 @@ The contract needs separate values for the requested expanded desktop width, des
 
 The host owns persistence. The component must not write local storage or maintain a second authoritative navigation state. PUDL already permits browser-local width preferences, but that precedent does not automatically authorize storing pane navigation or window visibility only in memory. The host must render addressable pane selection from its URL and reconcile Back, Forward, reload, and direct links. A breakpoint transition changes presentation without creating history entries.
 
-Example's saved window set needs particular care. If that set is required to reconstruct the workspace after returning from the list, keeping it only in memory leaves restoration dependent on hidden state. The adoption guide should require either a URL representation sufficient to reconstruct it or a presentation-only pane switch that preserves canonical window state. This review does not endorse the current saved-set technique as a general PUDL recipe.
+The proposing site's saved window set needs particular care. If that set is required to reconstruct the workspace after returning from the list, keeping it only in memory leaves restoration dependent on hidden state. The adoption guide should require either a URL representation sufficient to reconstruct it or a presentation-only pane switch that preserves canonical window state. This review does not endorse the current saved-set technique as a general PUDL recipe.
 
 ## Request and commit contract
 
@@ -57,7 +57,7 @@ Pointer cancellation, lost capture, removal, and a breakpoint transition during 
 
 ## Interaction and focus
 
-In opt-in desktop mode, Enter should collapse or restore, arrows should resize in physical directions with RTL accounted for, and Home and End should reach the documented bounds. Double-click can retain desktop reset. Collapse threshold and expanded minimum need separate definitions: crossing the threshold collapses, while other widths clamp to the expanded minimum. Hosts can choose a smaller expanded minimum to reproduce Example's behavior.
+In opt-in desktop mode, Enter should collapse or restore, arrows should resize in physical directions with RTL accounted for, and Home and End should reach the documented bounds. Double-click can retain desktop reset. Collapse threshold and expanded minimum need separate definitions: crossing the threshold collapses, while other widths clamp to the expanded minimum. Hosts can choose a smaller expanded minimum to reproduce the proposing site's behavior.
 
 At narrow widths, a completed directional drag requests the other pane. Short gestures and cancellation do nothing. Enter requests a toggle. Arrow and Home/End behavior must be specified and tested as an additional navigation convention rather than described as desktop pixel resizing. Instructions and value text must change with the interaction mode.
 
@@ -67,7 +67,7 @@ The [WAI-ARIA window splitter guidance](https://www.w3.org/WAI/ARIA/apg/patterns
 
 ## Defaults and acceptance
 
-Retain the existing 640-pixel layout breakpoint, 260-pixel desktop default, 180-pixel expanded minimum, and 16/64-pixel keyboard steps unless the host configures them. Example's 300-pixel default, 40-pixel collapse threshold, and 24-pixel gesture distance can remain host settings. Final threshold defaults require an interaction check; they should not become universal merely because one site uses them.
+Retain the existing 640-pixel layout breakpoint, 260-pixel desktop default, 180-pixel expanded minimum, and 16/64-pixel keyboard steps unless the host configures them. The proposing site's 300-pixel default, 40-pixel collapse threshold, and 24-pixel gesture distance can remain host settings. Final threshold defaults require an interaction check; they should not become universal merely because one site uses them.
 
 Use a target at least 24 CSS pixels wide for the new persistent mode, independently of the visible rule. An 18-pixel host override needs a target-size assessment. [WCAG's target-size guidance](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) permits specific exceptions, including an equivalent control, but a toggle does not necessarily provide equivalent continuous resizing. The initial design must also supply a pointer-operated alternative to dragging for users who cannot drag; keyboard support alone does not meet the [dragging-movement requirement](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html).
 

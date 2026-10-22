@@ -1,6 +1,5 @@
 /* Minimise-all and restore-all, with the window in front kept in the
-   address, and list metadata that wraps. From example.com's
-   Architecture/pudl-proposal-meta-wrap-restore-all.md. */
+   address, and list metadata that wraps. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

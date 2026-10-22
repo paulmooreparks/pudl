@@ -165,7 +165,7 @@ const { launch, ROOT, out } = require('./lib');
   await p.screenshot({ path: out('persistent-sidebar-narrow.png') });
   /* At a phone's width the handle stands at the layout's end edge, and its
      grip, drawn wider than the handle, must be clipped rather than widen
-     the page (the reader application, 0.62.0). */
+     the page (0.62.0). */
   await p.setViewportSize({ width: 390, height: 700 });
   await p.waitForFunction(() => document.querySelector('.md-layout').hasAttribute('data-md-narrow'));
   assert.equal(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'the page must not scroll sideways at 390px');

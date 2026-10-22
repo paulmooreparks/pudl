@@ -2,7 +2,7 @@
 
 Status: accepted and built, 2026-09-27. Proposals 1, 3 and 4 shipped in 0.11.0 and proposal 2 in 0.12.0.
 
-One change from the design below: a soft navigation may go to another path, not only the same one, when the page it fetches has the same regions and the same window layer. That lets a site with a page per category, such as the article reader sample, keep its windows between categories, and the compatibility check is what makes it safe. The windows travel into the pushed address because they stay on screen. Answers `Architecture/pudl-proposal-window-workspace.md` in the example repository.
+One change from the design below: a soft navigation may go to another path, not only the same one, when the page it fetches has the same regions and the same window layer. That lets a site with a page per category, such as the article reader sample, keep its windows between categories, and the compatibility check is what makes it safe. The windows travel into the pushed address because they stay on screen.
 
 I agree with all four proposals and with the principle behind them: once windows hold scroll positions, arrangements and running applets, nothing should repaint them unless the reader asked for it. Two of the four need a change of shape on the way into PUDL, and the second is large enough that its design is set out here before any code.
 
@@ -30,7 +30,7 @@ Agreed on the problem, and it is the most important of the four: a category tab 
 
 **What happens.** The script builds the target URL with the window parameters (`open`, `top`, `min` and every `p.`) taken from the live URL rather than from the link, fetches it, and parses the page it gets back. If every region on the current page has a counterpart of the same name in the response, it replaces each region's contents, pushes the URL and leaves everything else alone. If any region is missing, it performs a full navigation instead, because the server has answered with a page of a different shape.
 
-**The same URL, the same page.** The fetch asks for the page exactly as a browser would, with no special header and no fragment endpoint. an earlier project's windows once varied their answer on a request header and inherited a caching bug from it; the swap reads what it needs from the whole page and needs nothing from the server that a bookmark would not also get. The cost is that the server renders the windows it names, which the swap then ignores. That is acceptable, and a project that minds can cache.
+**The same URL, the same page.** The fetch asks for the page exactly as a browser would, with no special header and no fragment endpoint. A server that varies its answer on a request header invites a caching bug; the swap reads what it needs from the whole page and needs nothing from the server that a bookmark would not also get. The cost is that the server renders the windows it names, which the swap then ignores. That is acceptable, and a project that minds can cache.
 
 **Back and Forward.** The windows module already reconciles the windows on `popstate`. The regions module compares the URL's non-window parameters before and after; if they changed, it fetches and swaps the regions for the new URL. If only window parameters changed, it does nothing.
 
@@ -38,7 +38,7 @@ Agreed on the problem, and it is the most important of the four: a category tab 
 
 **Focus.** If focus was inside a swapped region, it moves to the element in the new region with the same `id`, or failing that the same `href`, or failing that to the region itself. Scroll positions of the swapped regions reset, since the content under them is new; everything outside them, windows included, keeps its scroll.
 
-**Name and size.** `dist/pudl-regions.js`, with no dependency on the windows module beyond reading and writing the window parameters it documents, so a page without windows can use it too. I expect it to be about the size of `pudl-menu.js`. The site's `softNavigate`, `swapListChrome` and `syncNavState` are the working reference, and the site deletes them once it adopts the module.
+**Name and size.** `dist/pudl-regions.js`, with no dependency on the windows module beyond reading and writing the window parameters it documents, so a page without windows can use it too. I expect it to be about the size of `pudl-menu.js`. The site's own soft-navigation functions are the working reference, and the site deletes them once it adopts the module.
 
 **A limit to state plainly.** A region is replaced whole, so state inside it that the server does not render, such as text half-typed into a filter box that was not the one submitted, is lost on a soft navigation, as it would be on a full one. The filter that triggered the navigation is rendered by the server with its submitted value, so it is not affected.
 
@@ -56,4 +56,4 @@ Agreed, and it is partly a bug: `.brand` has no hover rule of its own, so the pa
 
 **0.12.0**: `pudl-regions.js` as designed above, with the reference page's master-detail demo and the article reader sample using it. The sample gains a category tab bar and a filter so that the swap has something to do, with a floating article and the colour mixer open to show that neither is disturbed. Tests cover the swap, the fallbacks, Back and Forward across list and window changes together, the live window parameters in links and forms, and focus.
 
-Once 0.12.0 ships, example.com deletes its opener tracking and its three navigation functions, leaving `desktop.js` with what is specific to the site.
+Once 0.12.0 ships, the proposing site deletes its opener tracking and its three navigation functions, leaving its window script with what is specific to the site.

@@ -1,5 +1,5 @@
-/* Tabs in the topbar, the current one opening into the page, for
-   example.com's sections. */
+/* Tabs in the topbar for a site's sections, the current one opening into
+   the page. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {

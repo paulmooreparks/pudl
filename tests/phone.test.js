@@ -57,7 +57,7 @@ const PAGES = ['/reference.html', '/samples/article-reader.html', '/samples/arti
   });
   check('on a wide screen a pill shows its words', shown === 'none', shown);
 
-  /* What example.org's workarounds asked of PUDL. */
+  /* What a site on a phone needs from PUDL without workarounds. */
   const ctx3 = await b.newContext({ viewport: { width: 390, height: 800 }, isMobile: true, hasTouch: true });
   const n = await ctx3.newPage();
   n.on('pageerror', e => errors.push(e.message));

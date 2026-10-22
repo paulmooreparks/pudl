@@ -1,10 +1,10 @@
 # Proposal: the road to 1.0
 
-Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0. The consistency pass shipped in 0.16.0, all ten items except the Architectural Principles document, which is left for 1.0, and it added notebook section tabs, since the flat tab bar broke the elevation rule too. The missing components shipped in 0.17.0 and 0.18.0, with the expense tracker sample. 0.19.0 shipped the contract (`docs/CONTRACT.md`), the tests in the repository with CI across Chromium, Firefox and WebKit, and the Architectural Principles brought into line. Work since then came from outside this plan: applet hosts and presets from example.com in 0.20.0 and 0.21.0, a review of the whole implementation for performance and security in 0.22.0, and in 0.22.1 and 0.23.0 the fixes and features a contributor's issues #5 to #8 asked for, with applet files named only by `define()`. What remains is 1.0 itself: a release candidate adopted by example.com and one application, then the tag.
+Status: accepted 2026-09-28. An assessment of PUDL at 0.14.0 and what 1.0 should require. The accessibility section shipped in 0.15.0. The consistency pass shipped in 0.16.0, all ten items except the Architectural Principles document, which is left for 1.0, and it added notebook section tabs, since the flat tab bar broke the elevation rule too. The missing components shipped in 0.17.0 and 0.18.0, with the expense tracker sample. 0.19.0 shipped the contract (`docs/CONTRACT.md`), the tests in the repository with CI across Chromium, Firefox and WebKit, and the Architectural Principles brought into line. Work since then came from outside this plan: applet hosts and presets in 0.20.0 and 0.21.0, a review of the whole implementation for performance and security in 0.22.0, and in 0.22.1 and 0.23.0 the fixes and features from issues #5 to #8, with applet files given only by `define()`. What remains is 1.0 itself: a release candidate adopted by a site and one application, then the tag.
 
 ## What 1.0 means
 
-A 1.0 release is a promise: from then on, a class name, token, attribute, event, script function or URL parameter that a project relies on changes only in a 2.0. PUDL has been changing freely below 1.0, and rightly, because example.com kept finding real gaps. Before making the promise, three things have to be true: the public surface is written down, it is consistent enough to live with for years, and there is a way to tell whether a change breaks it. Most of what follows serves one of those three.
+A 1.0 release is a promise: from then on, a class name, token, attribute, event, script function or URL parameter that a project relies on changes only in a 2.0. PUDL has been changing freely below 1.0, and rightly, because its first adopters kept finding real gaps. Before making the promise, three things have to be true: the public surface is written down, it is consistent enough to live with for years, and there is a way to tell whether a change breaks it. Most of what follows serves one of those three.
 
 ## Blocking: the promise itself
 
@@ -66,7 +66,7 @@ These are the gaps an application built on PUDL will hit first, roughly in order
 
 ## Further ideas
 
-- **Server helpers.** The windows, regions and master-detail panes all ask the server to render state from the URL. A small Go package and an ASP.NET Core package that parse the window parameters, render the dock, the rows and the placements, and build the button links would save every project writing that twice. a platform is Go and your other work is C#, so both are useful.
+- **Server helpers.** The windows, regions and master-detail panes all ask the server to render state from the URL. A small Go package and an ASP.NET Core package that parse the window parameters, render the dock, the rows and the placements, and build the button links would save every project writing that twice. Go and C# are both common server languages, so both packages are useful.
 - **A theme builder.** A page that takes the nineteen palette tokens, shows every component live in both themes, checks every pair the README's contrast rules name against WCAG AA, and exports the theme file.
 - **A lint.** A development script that checks a page against PUDL's rules: a raised surface that is not a control, a badge without its glyph, two primary buttons in one context, a link that is not underlined, a region missing on some pages.
 - **A second sample.** The article reader shows reading. An application sample, a small expense tracker, would show forms, the data table, dialogs, notices and validation, which is where most projects live.
@@ -77,11 +77,11 @@ These are the gaps an application built on PUDL will hit first, roughly in order
 
 1. **0.15**: the accessibility fixes (forced colours, reduced motion, print, glyphs, localisable words), since they are bugs today.
 2. **0.16**: the consistency pass (state attributes, pills, switch, names, type and spacing tokens, native dialog), with aliases for everything renamed.
-3. **0.17**: the data table, notices and toasts, and menus summoned by a key, which is how PUDL answers example.com's go palette (`docs/proposals/go-palette.md`).
+3. **0.17**: the data table, notices and toasts, and menus summoned by a key, which is how PUDL answers the go palette proposal (`docs/proposals/go-palette.md`).
    **0.18**: form states, tabs within a page, empty and loading states, tooltips and pagination, and the application sample that shows them all.
 4. **0.19**: the contract document, the tests in the repository with CI across three engines, and the Architectural Principles brought into line.
-5. **1.0**: a release candidate adopted by example.com and one application, then the tag.
+5. **1.0**: a release candidate adopted by a site and one application, then the tag.
 
-**For 1.0, at the maintainer's suggestion (2026-09-28):** the expense-tracking sample that 0.18 introduces as static pages grows into a fully fledged demo application, with a real server rendering what each URL names, so that it shows the whole contract working end to end: windows and regions against a live server, validation from the server, sorting and paging as addresses, dialogs and toasts after real posts. It is also the natural first user of the server helpers suggested above.
+**For 1.0 (decided 2026-09-28):** the expense-tracking sample that 0.18 introduces as static pages grows into a fully fledged demo application, with a real server rendering what each URL names, so that it shows the whole contract working end to end: windows and regions against a live server, validation from the server, sorting and paging as addresses, dialogs and toasts after real posts. It is also the natural first user of the server helpers suggested above.
 
 The server helpers and the theme builder can come alongside or after; they add to PUDL without changing its surface.

@@ -1,6 +1,6 @@
 # Proposal: a combo box
 
-Status: decided 2026-10-21, built in 0.72.0. For an application, which needs a field where the reader may either type a value or choose one from a list, as a Windows combo box allows.
+Status: decided 2026-10-21, built in 0.72.0. Applications need a field where the reader may either type a value or choose one from a list, as a Windows combo box allows.
 
 ## What it is
 
@@ -24,7 +24,7 @@ The combo box is a native text input with a native `datalist`, wrapped so that P
 </span>
 ```
 
-Without the script this is already a working combo box, because the browser draws its own suggestion list for an input with a `list`. The form sends whatever the field holds, and the server needs no special handling. an application's currency field in the tableau applet is this markup already, less the wrapper. With `pudl-combo.js` the browser's list, which no stylesheet can reach and which each browser draws differently, gives way to PUDL's own.
+Without the script this is already a working combo box, because the browser draws its own suggestion list for an input with a `list`. The form sends whatever the field holds, and the server needs no special handling. With `pudl-combo.js` the browser's list, which no stylesheet can reach and which each browser draws differently, gives way to PUDL's own.
 
 An option's `value` is what goes into the field, and its text, where it has any, is a second line of description, as "Philippine peso" under "PHP". An option with no text shows its value alone.
 
@@ -62,7 +62,7 @@ Focus never leaves the field while the list is open. The row the keyboard is on 
 
 ## Keys that are not the value
 
-the maintainer asked for a list of currency signs, where the field holds the sign but the reader may only be able to type the code. An option's `data-combo-keys`, separated by commas, are words it is found by that are not shown:
+A list of currency signs is a case where the field holds the sign but the reader may only be able to type the code. An option's `data-combo-keys`, separated by commas, are words it is found by that are not shown:
 
 ```html
 <option value="₱" data-combo-keys="PHP, Philippines">PHP · Philippine peso</option>
@@ -112,9 +112,9 @@ Without the script it is an ordinary select, which works. With it, the select is
 
 ## Decisions
 
-the maintainer decided on 2026-10-21:
+These were decided on 2026-10-21.
 
 1. **Typing filters the list.**
 2. **Inline completion is off by default**, and a field may ask for it with `data-combo-complete`, for a list where completing a match is what the reader wants.
-3. **Options from the server are in the first release.** an application's first use is a list of every currency in the world from a local file, and remote lists will follow.
+3. **Options from the server are in the first release.** The first use in view is a list of every currency in the world from a local file, and remote lists will follow.
 4. **The searchable select is in the first release too**, as above, rather than left for later.

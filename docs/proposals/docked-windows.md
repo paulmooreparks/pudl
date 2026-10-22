@@ -1,6 +1,6 @@
 # Proposal: docked windows
 
-Status: accepted 2026-09-30, docking released in 0.30.0 for example.org to try; the tabbed dock is specified here and not yet built. It came from example.org's Site window, a floating window at the foot of the workspace that other windows cover.
+Status: accepted 2026-09-30, docking released in 0.30.0; the tabbed dock is specified here and not yet built. The need showed in a site whose standing window, a floating window at the foot of the workspace, was covered by other windows.
 
 ## The idea
 

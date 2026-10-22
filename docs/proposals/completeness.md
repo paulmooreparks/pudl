@@ -1,10 +1,10 @@
 # Proposal: closing the gap to a complete UI library
 
-Status: proposed 2026-10-21, at PUDL 0.73.0, from the maintainer's question of what PUDL still lacks to be a complete UI library.
+Status: proposed 2026-10-21, at PUDL 0.73.0. It answers the question of what PUDL still lacks to be a complete UI library.
 
 ## How this was measured
 
-PUDL's 46 components and 8 structures (`dist/pudl-components.json`) were set against the controls that the desktop toolkits and the large web libraries all offer: WinUI 3, GTK 4, Material 3, IBM Carbon and the ARIA Authoring Practices' patterns. A control counts as missing when an ordinary business application, such as an application or the expense tracker, would otherwise build it for itself, as an application built its flow controls and example.com its go palette before PUDL had them. The lists below leave out what PUDL already covers under another name, and say so.
+PUDL's 46 components and 8 structures (`dist/pudl-components.json`) were set against the controls that the desktop toolkits and the large web libraries all offer: WinUI 3, GTK 4, Material 3, IBM Carbon and the ARIA Authoring Practices' patterns. A control counts as missing when an ordinary business application, such as the expense tracker sample, would otherwise build it for itself, as adopters built flow controls and a go palette for themselves before PUDL had them. The lists below leave out what PUDL already covers under another name, and say so.
 
 ## Already covered under another name
 
@@ -16,7 +16,7 @@ These are controls an application reaches for every week. Each has a native elem
 
 | Control | What it is | Builds on |
 |---|---|---|
-| Context menu | A menu opened at the pointer or the caret by a right-click, Shift+F10 or the Menu key, with the rows the menu bar takes. an application asked for it (`pudl-context-menu.md`) and is waiting. | The menu panel and its placement |
+| Context menu | A menu opened at the pointer or the caret by a right-click, Shift+F10 or the Menu key, with the rows the menu bar takes. | The menu panel and its placement |
 | Progress bar | A determinate bar with its value in words, and an indeterminate one, for an upload, an export or a long agent turn. The specification mentions progress and defines none. | `<progress>` |
 | Meter | A level within a known range, such as quota used or context consumed, with optional low, high and optimum bands drawn with a glyph as well as a colour. | `<meter>` |
 | Slider | A value in a range, by pointer and arrow keys, with its value shown. The reference page already uses an unstyled one. | `<input type="range">` |
@@ -43,15 +43,15 @@ These are real, and an application can do without them for now. Each should wait
 
 ## Out of scope
 
-Some controls belong to the host's content rather than to the design language, and a host brings its own: a rich text editor (an application uses CodeMirror, which the README already themes), charts, a media player, maps and a web view. A carousel is left out on purpose, since it hides content behind a timer and serves the page more than the reader. Pull to refresh and swipe actions belong to phones, which PUDL serves as narrow windows rather than as a touch platform.
+Some controls belong to the host's content rather than to the design language, and a host brings its own: a rich text editor (such as CodeMirror, which the README already themes), charts, a media player, maps and a web view. A carousel is left out on purpose, since it hides content behind a timer and serves the page more than the reader. Pull to refresh and swipe actions belong to phones, which PUDL serves as narrow windows rather than as a touch platform.
 
 ## How to close it
 
-Each control is designed in the specification first, then built with its test, its entry in the component list and a place on the reference page, as the combo box was. the maintainer asked on 2026-10-22 for all of them in one release, PUDL 0.74.0 with specification 0.31.0, rather than four, to keep the number of deliveries down. After that, the "worth having" list is decided item by item, and the component list's section on what Studio lacks can be closed.
+Each control is designed in the specification first, then built with its test, its entry in the component list and a place on the reference page, as the combo box was. All of them go in one release, PUDL 0.74.0 with specification 0.31.0, rather than four, to keep the number of deliveries down. After that, the "worth having" list is decided item by item, and the component list's section on what Studio lacks can be closed.
 
 ## What every new control must be
 
-the maintainer set these on 2026-10-22, for the date and time fields first and for every control in this release:
+These requirements were set on 2026-10-22, for the date and time fields first and for every control in this release.
 
 - **Best in class**, designed against the loudest complaints people make about the control elsewhere, which are named in each control's section of the specification together with how PUDL answers them.
 - **Every format, ISO where none is given.** A control that shows or takes a date, a time or a number follows the page's language and the reader's culture, and shows ISO 8601 where the page says nothing.
@@ -62,9 +62,9 @@ the maintainer set these on 2026-10-22, for the date and time fields first and f
 
 ## Decisions
 
-- **One release** for the whole "needed" list (the maintainer, 2026-10-22).
-- **The "needed" list as drawn above**, with a date and time picker, and **a calendar drawn by PUDL** (the maintainer, 2026-10-22).
-- **The looks**, from the mockups in `samples/controls-mockup.html` (the maintainer, 2026-10-22):
+- **One release** for the whole "needed" list (2026-10-22).
+- **The "needed" list as drawn above**, with a date and time picker, and **a calendar drawn by PUDL** (2026-10-22).
+- **The looks**, from the mockups in `samples/controls-mockup.html` (2026-10-22):
   - Context menu: B, with a glyph before a row's words where the command has one.
   - Split button: A, joined.
   - Popover: A by default, with B (a pointer) and C (a title and a close key) as variants.
@@ -79,6 +79,6 @@ the maintainer set these on 2026-10-22, for the date and time fields first and f
   - Image and figure: A by default, with B and C as variants.
   - Avatar: A, round and neutral, with C, tinted by name, as an option.
   - Stepper: A, across and numbered, by default, with B, down the side, as a variant.
-- **Ticks and check boxes mean different things** (the maintainer, 2026-10-22). A tick shows a state; a check box invites a press that sets one. A control that sets state shows a check box, and a list or a menu that reports state shows a tick. The same holds for any pair like it.
+- **Ticks and check boxes mean different things** (2026-10-22). A tick shows a state; a check box invites a press that sets one. A control that sets state shows a check box, and a list or a menu that reports state shows a tick. The same holds for any pair like it.
 - **The mouse wheel** steps a field by its smallest increment only while the field has focus and the pointer is over it, so a page scrolling past never changes a value.
 - **The segmented control** is 30 pixels tall, the height of a menu bar's groups.

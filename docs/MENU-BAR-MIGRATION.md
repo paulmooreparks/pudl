@@ -84,4 +84,4 @@ Additional `data-menubar-text-*` suffixes are `actions`, `file` (unused since 0.
 - Check generated Window commands for floating, minimized, docked, and content-sized windows, including cancellation of bulk close.
 - Check title and glyph toggling, hover switching, keyboard navigation, and mobile taps.
 
-The [shared adoption guide](MENU-BAR-ADOPTION.md) supplies site-specific changes for Example and the reader application.
+The [adoption guide](MENU-BAR-ADOPTION.md) applies these changes to a tools workspace and to a reader application.
