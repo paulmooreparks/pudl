@@ -12,6 +12,7 @@ The list is web-specific today, since its templates are HTML and its parts are C
 | `kind` | The component's category in the grammar, which a palette groups it by: one of the keys of `grammar` at the top of the file |
 | `spec` | The section of the PUDL specification that defines it |
 | `requires` | The files in `dist/` it needs besides `pudl.css` |
+| `preview` | `true` for a preview, which a page opts into and whose markup may still change (0.79.0) |
 | `template` | The smallest markup that shows the component working, ready to insert |
 | `parts` | Its surfaces: each a `selector` within the template, an optional `pseudo`-element, and the `surface` the part has in the grammar |
 | `variants` | Classes that change it, each with its `name` and `class`, the part it goes `on` when not the root, and a `group` when only one of a group applies |

@@ -229,12 +229,14 @@
   top: var(--dock-top, 0px); left: auto; right: 0; width: var(--dock-right, 25%);
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)); border-left-width: 1px;
 }
-.win[data-win-edge] .win-head {
-  min-height: 0; height: max(var(--win-head-docked), calc(var(--win-button-size, calc(var(--win-text) * 1.7)) + 2px)); gap: 8px;
+/* A maximized window draws its title bar as a docked one does, short, so
+   the page keeps the room (0.79.0). */
+.win:is([data-win-edge], [data-win-mode="maximized"]) .win-head {
+  min-height: 0; height: max(var(--win-head-docked), calc(var(--win-button-size, calc(var(--win-text) * 2)) + 2px)); gap: 8px;
   padding: 0 4px 0 10px; --win-text: var(--text-sm);
   border-width: 0 0 1px; border-radius: 0;
 }
-.win[data-win-edge] .win-title { font-size: var(--text-sm); }
+.win:is([data-win-edge], [data-win-mode="maximized"]) .win-title { font-size: var(--text-sm); }
 .win[data-win-edge] .win-body { border: 0; border-radius: 0; }
 .win[data-win-edge] [data-win-action="maximize"] { display: none; }
 .win-collapsed .win-body { display: none; }
@@ -386,7 +388,7 @@
 .win-head {
   flex: none;
   display: flex; align-items: center; gap: 10px;
-  min-height: 38px; padding: 5px 7px 5px 12px;
+  min-height: 38px; padding: 4px 4px 4px 4px;
   --win-text: var(--text-md);   /* the title's size, which the buttons and their glyphs are sized from */
   background: var(--raise-grad);
   border: 1px solid var(--raise-border);
@@ -429,15 +431,16 @@
 .win-item-title:has(+ .win-item-detail:not([hidden])) { flex: 2 1 auto; min-width: 0; }
 .win-chrome { flex: none; display: inline-flex; gap: 5px; align-items: center; }
 
-/* Window buttons are small raised circles, so they stay legible on the
-   accent title bar. They are sized from the title's text, --win-text,
-   1.7 times it, so that they grow with it: 24px on a floating window,
-   22px docked. A page that sets --win-button-size or --win-glyph-size
-   keeps what it set. */
+/* Window buttons are PUDL's glyph buttons (0.79.0): raised squares with
+   corners of radius-sm and the glyph centred. They are sized from the
+   title's text, --win-text, so that they grow with it: twice it, the
+   standalone glyph button's 28px on a floating window and the dense
+   strip's 26px docked, and the glyph as large as the text, 14px. A page
+   that sets --win-button-size or --win-glyph-size keeps what it set. */
 .win-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  width: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 1.7)); height: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 1.7)); padding: 0; flex-shrink: 0;
-  border-radius: 50%;
+  width: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 2)); height: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 2)); padding: 0; flex-shrink: 0;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--raise-border);
   background: var(--raise-grad);
   box-shadow: var(--raise-shadow);
@@ -455,7 +458,7 @@
    server renders each button empty with an aria-label, and the maximise
    button's glyph follows the window's mode. */
 .win-btn[data-win-action]::before {
-  content: ""; width: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 0.85)); height: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 0.85));
+  content: ""; width: var(--win-glyph-size, var(--win-text, var(--text-md))); height: var(--win-glyph-size, var(--win-text, var(--text-md)));
   background: currentColor;
   -webkit-mask: var(--glyph) center / contain no-repeat;
   mask: var(--glyph) center / contain no-repeat;
@@ -464,8 +467,17 @@
    for a select's opener, so the menu button draws it in a larger box, 1.2
    times the title's text, and its triangle then stands as tall as the
    title's letters. */
-.win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-caret); width: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 1.2)); height: var(--win-glyph-size, calc(var(--win-text, var(--text-md)) * 1.2)); }
-.win-btn[data-win-action="menu"] { margin-inline-end: var(--space-1); }
+/* The window menu is a glyph menu button (0.79.0): the window glyph, then
+   the caret every menu button carries, so it reads as opening the
+   window's menu. */
+.win-btn[data-win-action="menu"] { width: auto; gap: 4px; padding-inline: 8px 6px; margin-inline-end: var(--space-1); }
+.win-btn[data-win-action="menu"]::before { --glyph: var(--glyph-window); }
+.win-btn[data-win-action="menu"]::after {
+  content: ""; flex: none; width: calc(var(--win-text, var(--text-md)) * 0.75); height: calc(var(--win-text, var(--text-md)) * 0.75);
+  background: currentColor; opacity: .75;
+  -webkit-mask: var(--glyph-caret) center / contain no-repeat;
+  mask: var(--glyph-caret) center / contain no-repeat;
+}
 .win[data-win-chrome="compact"]:has([data-win-action="menu"]) .win-head [data-win-action]:not([data-win-action="menu"]) { display: none; }
 .win[data-win-restricted] > .win-rh { display: none; }
 .win[data-win-restricted] .win-head { cursor: default; }
@@ -657,11 +669,72 @@
 .win-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 .win-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
 .win-tab[aria-current="true"] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
+/* A taskbar button whose window menu is open from a right-click keeps the
+   hover look and an accent ring, pressed or not, until the menu closes. */
+.win-tab[data-menu-for] {
+  background: var(--raise-grad-hover); border-color: var(--accent);
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+.win-tab[aria-current="true"][data-menu-for] { background: var(--raise-active-bg); }
 .win-tab.minimized { color: var(--text-muted); }
 .win-tab.minimized::before {
   background: var(--text-muted);
   -webkit-mask-image: var(--glyph-ring);
   mask-image: var(--glyph-ring);
+}
+
+/* === The taskbar (preview) ===============================================
+   A .win-bar runs along the foot of the window area, or along its head
+   with data-win-bar-edge="top": the dock of open windows, which takes the
+   room left and scrolls when its buttons need more, with the page's own
+   controls on either side of it in the order the markup gives. PUDL's
+   own controls are links it keeps current: data-win-back minimizes every
+   window, data-win-restore restores them and data-win-close-all closes
+   every window the reader may close. As .icon-btn links with no picture
+   of their own they take PUDL's glyphs; a glyph, image or svg inside one
+   is drawn instead, at 16px. Minimize all and restore all share one
+   place, showing whichever would change something. A .status-area in the
+   bar is its tray, drawn as the bar's surface asks. A press in the bar's
+   padding, or between its controls, goes to the nearest control, so the
+   bar's edge is part of every button on it. */
+.win-bar {
+  display: flex; align-items: center; gap: 6px; flex: none; min-width: 0;
+  padding: 6px 12px max(6px, env(safe-area-inset-bottom));
+  background: var(--surface-alt); border-top: 1px solid var(--border);
+}
+/* A taskbar above the window area, data-win-bar-edge="top", has its rule
+   along its foot instead. Its menus open below it, as they open above a
+   bar at the foot. */
+.win-bar[data-win-bar-edge="top"] { border-top: 0; border-bottom: 1px solid var(--border); padding-block: 6px; }
+.win-bar > * { flex: none; }
+/* The dock scrolls, which would clip the ring a button wears while its
+   menu is open, so it keeps 4px of room around its buttons. */
+.win-bar > .win-dock { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding: 4px; margin: -4px; }
+.win-bar > .win-dock > .win-tab { flex: 0 0 auto; max-width: 250px; }
+.win-bar [hidden] { display: none; }
+.win-bar .icon-btn > .glyph { --glyph-size: 16px; }
+.win-bar .icon-btn > :is(svg, img) { width: 16px; height: 16px; flex: none; object-fit: contain; }
+.win-bar [data-win-back] { --win-bar-glyph: var(--glyph-minimize-all); }
+.win-bar [data-win-restore] { --win-bar-glyph: var(--glyph-restore-all); }
+.win-bar [data-win-close-all] { --win-bar-glyph: var(--glyph-close-all); }
+.win-bar .icon-btn:is([data-win-back], [data-win-restore], [data-win-close-all]):not(:has(> :is(.glyph, svg, img)))::before {
+  content: ""; width: 16px; height: 16px; flex: none; background: currentColor;
+  -webkit-mask: var(--win-bar-glyph) center / contain no-repeat;
+  mask: var(--win-bar-glyph) center / contain no-repeat;
+}
+.win-bar [data-win-restore][aria-disabled="true"],
+.win-bar:has([data-win-back]:not([aria-disabled="true"])) [data-win-restore] { display: none; }
+.win-bar:has([data-win-back][aria-disabled="true"]):has([data-win-restore]:not([aria-disabled="true"])) [data-win-back] { display: none; }
+.win-bar > .status-area {
+  order: 0;
+  --tb-chip: var(--raise-grad); --tb-chip-shadow: var(--raise-shadow); --tb-border: var(--raise-border);
+  --tb-fg: var(--text); --tb-bg: var(--surface-alt);
+  --tb-chrome-fg: color-mix(in srgb, var(--text) 80%, var(--surface-alt)); --tb-chrome-hover-fg: var(--text);
+}
+@media (max-width: 560px) {
+  .win-bar { padding-inline: 6px; gap: 4px; }
+  .win-bar > .win-dock > .win-tab { max-width: 175px; min-height: 40px; }
+  .win-bar > .icon-btn { width: 36px; height: 40px; }
 }
 
 /* === Forced colours ======================================================

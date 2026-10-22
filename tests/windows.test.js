@@ -112,10 +112,10 @@ function check(name, ok, extra) {
   check('drag out of snap restores floating size', /p\.exp-13=floating:/.test(s) && Math.abs(un.width - before.width) < 3, s);
 
   // Double-click title to maximise, again to restore.
-  await head.dblclick({ position: { x: 40, y: 10 } });
+  await head.locator('.win-title').dblclick();
   s = await q();
   check('double-click maximises', /p\.exp-13=maximized:/.test(s), s);
-  await head.dblclick({ position: { x: 40, y: 10 } });
+  await head.locator('.win-title').dblclick();
   check('double-click restores', /p\.exp-13=floating:/.test(await q()));
 
   // Minimise exp-12 with its button.

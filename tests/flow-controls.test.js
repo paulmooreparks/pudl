@@ -158,11 +158,11 @@ function check(name, ok, detail) {
       }
       return { floating: m('editor'), docked: m('site') };
     });
-    check(T + 'a floating window\'s buttons are 1.7 times the title\'s text and its caret 1.2', Math.abs(win.floating.btn - win.floating.fs * 1.7) < 1 && Math.abs(win.floating.glyph - win.floating.fs * 0.85) < 1 && Math.abs(win.floating.caret - win.floating.fs * 1.2) < 1, win.floating);
-    check(T + 'a docked window\'s follow its smaller title', win.docked.fs < win.floating.fs && Math.abs(win.docked.btn - win.docked.fs * 1.7) < 1 && Math.abs(win.docked.caret - win.docked.fs * 1.2) < 1, win.docked);
+    check(T + 'a floating window\'s buttons are glyph buttons twice the title\'s text, their glyphs and the window menu\'s the text\'s size', Math.abs(win.floating.btn - win.floating.fs * 2) < 1 && Math.abs(win.floating.glyph - win.floating.fs) < 1 && Math.abs(win.floating.caret - win.floating.fs) < 1, win.floating);
+    check(T + 'a docked window\'s follow its smaller title', win.docked.fs < win.floating.fs && Math.abs(win.docked.btn - win.docked.fs * 2) < 1 && Math.abs(win.docked.caret - win.docked.fs) < 1, win.docked);
     await p.evaluate(() => { document.documentElement.style.setProperty('--text-md', '20px'); document.documentElement.style.setProperty('--text-sm', '18px'); });
     const grown = await p.evaluate(() => { const close = document.querySelector('.win[data-win="editor"] [data-win-action="close"]'); return close.getBoundingClientRect().width; });
-    check(T + 'the buttons grow with the page\'s text', Math.abs(grown - 34) < 1.5, grown);
+    check(T + 'the buttons grow with the page\'s text', Math.abs(grown - 40) < 1.5, grown);
     await p.evaluate(() => { document.documentElement.style.removeProperty('--text-md'); document.documentElement.style.removeProperty('--text-sm'); });
 
     await p.screenshot({ path: out('flow-controls-' + theme + '.png'), fullPage: true });

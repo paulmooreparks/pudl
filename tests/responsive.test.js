@@ -129,7 +129,8 @@ const assert = require('node:assert/strict');
   // Compact chrome retains the menu and separates its glyph size from its target.
   assert(await p.evaluate(() => {
     const w = document.querySelector('[data-win="reader"]'), b = w.querySelector('[data-win-action="menu"]');
-    return b.getBoundingClientRect().width === 40 && getComputedStyle(b, '::before').width === '20px' && getComputedStyle(w.querySelector('[data-win-action="maximize"]')).display === 'none';
+    /* The window menu is as tall as the target and wider, for its caret. */
+    return b.getBoundingClientRect().height === 40 && b.getBoundingClientRect().width >= 40 && getComputedStyle(b, '::before').width === '20px' && getComputedStyle(w.querySelector('[data-win-action="maximize"]')).display === 'none';
   }));
   console.log('PASS compact chrome retains an accessible menu with independent target and glyph sizing');
 

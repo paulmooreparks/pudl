@@ -826,6 +826,7 @@
     { "id": "topbar", "name": "Application bar", "spec": "08-components/application-bar.md", "markup": "header.topbar" },
     { "id": "menu-bar", "name": "Menu bar", "spec": "08-components/menu-bar.md", "markup": "nav[data-menubar]", "requires": ["pudl-menu.js", "pudl-menubar.js"] },
     { "id": "windows", "name": "Windows", "spec": "08-components/windows.md", "markup": ".win-layer[data-win-layer]", "requires": ["pudl-windows.js"] },
+    { "id": "taskbar", "name": "Taskbar", "preview": true, "spec": "08-components/windows.md", "markup": ".win-bar:has([data-win-dock])", "requires": ["pudl-windows.js"] },
     { "id": "applet", "name": "Applet mount", "spec": "09-applets.md", "markup": "[data-applet]", "requires": ["pudl-applets.js"] },
     { "id": "region", "name": "Region", "markup": "[data-region]", "requires": ["pudl-regions.js"] },
     { "id": "toast", "name": "Toast", "spec": "08-components/notices-and-toasts.md", "markup": ".toast-region", "requires": ["pudl-toast.js"] },

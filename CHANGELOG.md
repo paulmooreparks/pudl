@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.79.0
+
+Window buttons become glyph buttons, a maximised window keeps its room, and a taskbar button has a right-click menu. Several larger pieces arrive as previews, which a page opts into and whose markup may still change: the taskbar, a menu bar that unfolds into a ribbon, title glyphs and topbar fold order, and resident applets. This release implements specification 0.36.0.
+
+What changes for every page with windows:
+
+- **Window buttons are glyph buttons.** Each `.win-btn` is a raised square with corners of `radius-sm`, twice the title's text across (28px floating, 26px docked), with its glyph as large as the text. The window menu button shows the new `window` glyph followed by a small caret, and is wider than the others. The title bar is padded 4px all round. A page that set `--win-button-size` or `--win-glyph-size` keeps what it set. A page that replaced the menu button's `::before` glyph should also hide its `::after` caret, and should not give it a fixed width.
+- **A maximised window has a docked window's title bar**, 30px tall with its title at `text-sm`, so the content keeps the room. It keeps its colours, its buttons and every gesture.
+- **A taskbar button has a right-click menu**, its window's menu: the window's commands, Snap and Dock, what its content adds, then Close. The menu opens against the button and the button wears an accent ring while it is open. `data-win-tab-menu="off"` on the layer or the dock turns it off, and a page that adds rows for the tab through `pudl:contextmenu` replaces it.
+- **Context menus.** The `pudl:contextmenu` event is now cancelable, and its detail gains `count()`, the rows added so far, so a handler further out can give way to one nearer the target, and `anchor(element)`, which opens the menu against that element rather than at the pointer.
+- **Every menu group shows the menu glyph**, the pins group included, whose Pins title now carries the `pin` glyph instead.
+- **A title with a picture folds to it first.** When a menu bar runs short of room, a title with both a picture and words shows the picture alone before the pins give way, its words kept as its accessible name and its tooltip. Words written as text beside a brand's picture are now wrapped in a `span.menubar-words`.
+- **Folding toolbars** stop at a single group's menu button instead of folding it into More, fold again once the page's fonts have loaded, and report `--toolbar-most` and `--toolbar-least`, the widths they need unfolded and folded as far as they go.
+- **Tooltips** shown on keyboard focus no longer fail when focus arrives while a menu is opening.
+- **Glyphs.** `window`, `minimize-all`, `restore-all` and `close-all`.
+
+Previews:
+
+- **The taskbar.** A `.win-bar` holding a `[data-win-dock]` is a taskbar along the foot of the window area, or its head with `data-win-bar-edge="top"`. The dock takes the room left and scrolls; the page's own buttons stand on either side of it in markup order; a `.status-area` in it is its tray. `a.icon-btn[data-win-back]` and `[data-win-restore]` share one place, and the new `[data-win-close-all]` closes every window the reader may close, each as its own Close would, so one that refuses through `pudl:window-closing` stays; `pudlWindows.closeAll()` does the same. An icon button with no picture takes the `minimize-all`, `restore-all` or `close-all` glyph, and one with a `.glyph`, `svg` or `img` keeps it, at 16px. A press in the bar's padding or between its controls goes to the nearest control. A right-click away from a tab opens the bar's menu of Minimize all, Restore all and Close all windows; `data-win-bar-menu="off"` turns it off.
+- **A menu bar that unfolds into a ribbon.** `data-menubar-ribbon` on the menu bar adds Show as ribbon at the topbar's end, or in `[data-menubar-ribbon-slot]`. Unfolded, every title but Pins becomes a tab and one row of tools under the topbar holds the chosen tab's commands, built from its rows: headings and separators start groups, switches are toggles, radio rows a segmented control, submenus menu buttons, `glyphOnly` commands their glyph alone, and `danger` commands danger buttons. A group holding a choice shows its heading as a caption. Each applet keeps the tab chosen in it. `data-menubar-ribbon-captions` sets the row's captions, `data-menubar-ribbon-words` keeps the toggle's words, and `pudlMenubar.ribbon(on)` sets or reads the choice, which is kept for the site.
+- **Title glyphs.** `data-menu-glyph` on a title's `<li>` in the menu source, or `glyph` on an applet's title in `menus()`, puts a glyph before the title's words, and such titles fold to their glyphs first.
+- **Topbar fold order.** When the topbar holds a folding toolbar or Show as ribbon beside the menu bar, they share its room in order, each folding as far as it goes before the next starts: Show as ribbon first (100), then folding toolbars (200), then the menu bar (300). `data-fold-order` on a topbar child sets its place, lower first, or `none` so it never folds; Show as ribbon takes its order from `data-menubar-ribbon-fold-order` on the bar.
+- **Resident applets.** An applet whose root has `data-applet-resident` has its menus in the bar all the time, after the site's menus and whatever is in front, and its shortcuts work anywhere. `pudlApplets.residentSources()` lists them. A command bar of pins at the topbar's right, with a resident applet for the Pins menu, is the shape the demo shows.
+- **Captioned groups.** `data-toolbar-captioned` on a toolbar group shows its caption when the toolbar has `data-toolbar-captions="none"`.
+
+The new sample `samples/menu-ribbon.html` puts all of these together.
+
 ## 0.78.0
 
 Folding toolbars are released, with two shapes built on them, the command bar and the single-line ribbon, as `docs/proposals/command-bar-and-ribbon.md` sets out. This release implements specification 0.35.0.

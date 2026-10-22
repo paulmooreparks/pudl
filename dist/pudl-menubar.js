@@ -140,6 +140,7 @@
         if (cmd.hasAttribute('data-menu-detail')) item.detail = cmd.getAttribute('data-menu-detail');
         if (cmd.hasAttribute('data-menu-reason')) item.reason = cmd.getAttribute('data-menu-reason');
         if (cmd.hasAttribute('data-mnemonic')) item.mnemonic = cmd.getAttribute('data-mnemonic');
+        if (cmd.hasAttribute('data-menu-glyph-only')) item.glyphOnly = true;
         out.push(item);
       } else if (said === '-') out.push('-');
       else if (said) out.push({ heading: said });
@@ -159,6 +160,7 @@
         id: i === 0 ? 'site' : menuId(words(content), li.getAttribute('data-menubar-id')),
         generatedWindows: li.hasAttribute('data-menubar-windows'),
         mnemonic: li.getAttribute('data-mnemonic') || undefined,
+        glyph: i === 0 ? null : li.getAttribute('data-menu-glyph') || null,
         label: words(content),
         content: i === 0 ? content : null,
         items: nested ? readList(nested) : []
@@ -185,7 +187,9 @@
       if (!a) { warn('a pin is a link; an item of the pins list that is not one is left out'); return; }
       pins.push({ label: words([a]), href: a.getAttribute('href'), el: a, content: Array.prototype.slice.call(a.childNodes) });
     });
-    return { kind: 'pins', name: name, titles: [{ id: 'pins', label: name, items: commands }], pins: pins };
+    /* The group's glyph is the menu glyph, as every group's is, so the pins
+       are known for a menu; the pin is the Pins title's own glyph. */
+    return { kind: 'pins', name: name, titles: [{ id: 'pins', label: name, glyph: 'pin', items: commands }], pins: pins };
   }
 
   /* What is in front, and the scope a front menu is found in. */
@@ -233,7 +237,7 @@
     if (src.kind === 'applet') {
       var m = src.applet.menus ? src.applet.menus() : null;
       if (m && Array.isArray(m.titles) && m.titles.length) {
-        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || []), mnemonic: t.mnemonic ? String(t.mnemonic) : undefined }; });
+        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || []), mnemonic: t.mnemonic ? String(t.mnemonic) : undefined, glyph: t.glyph ? String(t.glyph) : null }; });
         if (m.into) Object.keys(m.into).forEach(function (k) { into[k] = normal(m.into[k] || []); });
         name = titles[0].label;
       } else {
@@ -259,6 +263,20 @@
     return { kind: 'front', name: name, titles: titles, into: into, src: src };
   }
 
+  /* The resident applets' menus (preview), each a group of its own after
+     the site's, whatever is in front. What they add to the site's titles
+     is not taken. */
+  function residentMenus() {
+    var list = window.pudlApplets && window.pudlApplets.residentSources ? window.pudlApplets.residentSources() : [];
+    return list.map(function (a) {
+      var m = frontMenu({ kind: 'applet', scope: { scope: a.root, key: null }, applet: a, resident: true });
+      if (!m) return null;
+      m.kind = 'resident';
+      m.into = {};
+      return m;
+    }).filter(Boolean);
+  }
+
   function normal(list) {
     return list.map(function (c) {
       if (c === '-') return '-';
@@ -274,6 +292,9 @@
       if (c.glyph) item.glyph = String(c.glyph);
       if (c.detail) item.detail = String(c.detail);
       if (c.reason) item.reason = String(c.reason);
+      /* How the command shows in the bar unfolded into a ribbon (preview):
+         its glyph alone, or not at all. */
+      if (c.glyphOnly) item.glyphOnly = true;
       if (c.items) item.items = normal(c.items);
       if (!item.run && !item.items) return null;
       return item;
@@ -370,7 +391,7 @@
         if (add.length) target.items = target.items.concat(target.items.length ? ['-', { heading: front.name }] : [{ heading: front.name }], add);
       });
     }
-    var all = [host, pinsMenu(), front].filter(Boolean);
+    var all = [host].concat(residentMenus(), [pinsMenu(), front]).filter(Boolean);
     all.forEach(function (m) {
       m.titles = m.titles.filter(function (t, i) { return (i === 0 && m.kind !== 'front') || t.items.some(function (c) { return c && c.label; }); });
     });
@@ -542,7 +563,8 @@
     for (var i = 0; i < items.length; i++) {
       var c = items[i];
       if (!c || c === '-' || c.heading) continue;
-      if (c.owner) {
+      /* A resident applet's shortcuts, like the site's, work anywhere. */
+      if (c.owner && !c.owner.resident) {
         var root = c.owner.applet ? c.owner.applet.root : c.owner.scope.scope;
         if (!sameSource(c.owner, findFront()) || (root !== document && !root.contains(document.activeElement))) continue;
       }
@@ -593,8 +615,24 @@
   function titleButton(t, m) {
     var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
     if (t.id) b.setAttribute('data-menu-id', t.id);
-    if (t.content) t.content.forEach(function (n) { b.appendChild(n.cloneNode(true)); });
+    if (t.content) t.content.forEach(function (n) {
+      var c = n.cloneNode(true);
+      /* Words of its own are wrapped, so they can give way to its glyph. */
+      if (c.nodeType === 3) {
+        if (!c.textContent.trim()) return;
+        var s = el('span', 'menubar-words');
+        s.textContent = c.textContent;
+        c = s;
+      }
+      b.appendChild(c);
+    });
     else {
+      /* A title may have a glyph before its words (preview). */
+      if (t.glyph && /^[a-z][a-z0-9-]*$/.test(t.glyph)) {
+        var tg = el('span', 'glyph', { 'aria-hidden': 'true' });
+        tg.style.setProperty('--glyph', 'var(--glyph-' + t.glyph + ')');
+        b.appendChild(tg);
+      }
       /* The words stay one child of the button, which lays its children
          out as a row with a gap, so the letter's span splits nothing. */
       var w = el('span', 'menubar-words');
@@ -602,6 +640,12 @@
       b.appendChild(w);
     }
     if (t.content) b.classList.add('menubar-brand');
+    /* A title with a glyph and words gives way to its glyph alone before
+       the bar folds further, keeping its words as its name. */
+    if (b.querySelector(':scope > :is(.glyph, img, svg)') && b.querySelector(':scope > .menubar-words')) {
+      b.classList.add('menubar-glyphed');
+      b.setAttribute('aria-label', t.label);
+    }
     if (t.letter) {
       b.setAttribute('data-letter', t.letter);
       if (desktop()) b.setAttribute('aria-keyshortcuts', ariaKeys(titleChord(t.letter)));
@@ -674,10 +718,10 @@
        window to the front often leaves the bar as it was, and building
        and measuring it again each time cost startup the most. */
     var sig = menus.map(function (m) {
-      return [m.kind, m.name, m.titles.map(function (t) { return (t.id || '') + ':' + t.label + ':' + (t.letter || '') + ':' + (t.content ? t.content.length : ''); }).join(','),
+      return [m.kind, m.name, m.titles.map(function (t) { return (t.id || '') + ':' + t.label + ':' + (t.letter || '') + ':' + (t.content ? t.content.length : '') + ':' + (t.glyph || ''); }).join(','),
         (m.pins || []).map(function (p) { return p.label + '@' + p.href; }).join(',')].join('|');
     }).join(';');
-    if (sig === lastSig && built.firstChild) { rebind(); return; }
+    if (sig === lastSig && built.firstChild) { rebind(); syncRibbon(); return; }
     lastSig = sig;
     var focusedIndex = -1;
     if (built && built.contains(document.activeElement)) focusedIndex = titles().indexOf(document.activeElement);
@@ -685,9 +729,8 @@
 
     /* The full bar: each menu a raised group, its glyph first. */
     menus.forEach(function (m) {
-      var g = el('div', 'menubar-menu' + (m.kind === 'front' ? ' menubar-front' : m.kind === 'pins' ? ' menubar-pins' : ''), { role: 'group', 'aria-label': m.name });
-      var glyph = el('button', 'menubar-glyph', { type: 'button', tabindex: '-1', role: 'menuitem', 'aria-label': m.name, 'aria-haspopup': 'menu', 'aria-expanded': 'false' });
-      /* Open after the pointer gesture, so popover light dismiss cannot
+      var g = el('div', 'menubar-menu' + (m.kind === 'front' ? ' menubar-front' : m.kind === 'pins' ? ' menubar-pins' : m.kind === 'resident' ? ' menubar-resident' : ''), { role: 'group', 'aria-label': m.name });
+      var glyph = el('button', 'menubar-glyph', { type: 'button', tabindex: '-1', role: 'menuitem', 'aria-label': m.name, 'aria-haspopup': 'menu', 'aria-expanded': 'false' });      /* Open after the pointer gesture, so popover light dismiss cannot
          close a panel that was opened during the same pointer-down. */
       glyph.addEventListener('click', function (e) {
         e.preventDefault();
@@ -722,6 +765,7 @@
     var key = bar.getAttribute('data-menubar-key');
     if (key !== '' && list[0]) list[0].setAttribute('accesskey', key || 'm');
     if (focusedIndex >= 0 && keep) keep.focus();
+    syncRibbon();
   }
 
   /* Whether the full bar fits, measured with it showing, in one pass, so
@@ -736,23 +780,135 @@
   function fit() {
     if (!fitStale) return;
     fitStale = false;
-    built.classList.remove('menubar-collapsed', 'menubar-pins-collapsed');
-    var room = bar.getBoundingClientRect().width;
-    var pinsCollapsed = false;
+    built.classList.remove('menubar-collapsed', 'menubar-pins-collapsed', 'menubar-title-glyphs');
+    /* The bar is measured in the shape it is in, folded or unfolded. Then,
+       in order, Show as ribbon gives way to its glyph alone, unless the bar
+       keeps its words with data-menubar-ribbon-words; the titles with
+       glyphs give way to their glyphs alone (preview); the pins' buttons
+       give way to Items; and last the bar collapses. A bar sized to its
+       content gives way as the content grows, so its room is read again
+       after each change. The toggle is measured shown, as the collapsed
+       bar hides it. */
+    var unfolded = ribbonOn && !!ribbonRow;
+    built.classList.toggle('menubar-ribbon-on', unfolded);
+    if (ribbonToggle) { ribbonToggle.hidden = false; ribbonToggle.classList.remove('menubar-ribbon-toggle-glyph'); }
+    var pinsCollapsed = false, room;
     needed = width();
+    var top = bar.parentNode && bar.parentNode.classList && bar.parentNode.classList.contains('topbar') ? bar.parentNode : null;
+    if (top && sharesRoom(top)) {
+      /* In a topbar shared with other things that fold, the topbar
+         decides how much room the bar has. */
+      built.classList.add('menubar-collapsed');
+      var low = built.getBoundingClientRect().width;
+      built.classList.remove('menubar-collapsed');
+      room = arrange(top, needed, low);
+    } else {
+      bar.style.flex = '';
+      room = bar.getBoundingClientRect().width;
+      if (needed > room + 0.5 && ribbonToggle && !bar.hasAttribute('data-menubar-ribbon-words')) {
+        ribbonToggle.classList.add('menubar-ribbon-toggle-glyph');
+        room = bar.getBoundingClientRect().width;
+      }
+    }
+    var shared = !!top && sharesRoom(top), glyphsOnly = false;
+    if (needed > room + 0.5 && built.querySelector('.menubar-glyphed')) {
+      built.classList.add('menubar-title-glyphs');
+      glyphsOnly = true;
+      needed = width();
+      if (!shared) room = bar.getBoundingClientRect().width;
+    }
     if (needed > room + 0.5 && built.querySelector('.menubar-pin')) {
       built.classList.add('menubar-pins-collapsed');
       pinsCollapsed = true;
       needed = width();
+      if (!shared) room = bar.getBoundingClientRect().width;
     }
     collapsed = needed > room + 0.5;
-    level = collapsed ? 2 : pinsCollapsed ? 1 : 0;
+    if (collapsed) built.classList.remove('menubar-ribbon-on', 'menubar-title-glyphs');
+    built.querySelectorAll('.menubar-glyphed').forEach(function (t) {
+      if (glyphsOnly && !collapsed) t.setAttribute('data-tooltip', t.getAttribute('aria-label'));
+      else t.removeAttribute('data-tooltip');
+    });
+    level = collapsed ? 3 : pinsCollapsed ? 2 : glyphsOnly ? 1 : 0;
     built.classList.toggle('menubar-pins-collapsed', pinsCollapsed && !collapsed);
     built.classList.toggle('menubar-collapsed', collapsed);
+    if (ribbonToggle) ribbonToggle.hidden = collapsed;
+  }
+
+  /* === Folding the topbar (preview) =======================================
+     A topbar holding other things that fold beside the bar, a folding
+     toolbar such as a command bar, or Show as ribbon, shares its room
+     among them in an order: each gives way as far as it goes before the
+     next starts. A page sets the order with data-fold-order on the
+     topbar's children, lower first, or none for one that never folds; by
+     default Show as ribbon gives way first (100), down to its glyph, then
+     each folding toolbar (200), down to its More menu, then the bar
+     (300), down to its pins' Items and then one menu button. Show as
+     ribbon takes its order from data-menubar-ribbon-fold-order on the bar,
+     and data-menubar-ribbon-words is the same as none. Everything else in
+     the topbar keeps its width. */
+  function sharesRoom(top) {
+    return Array.prototype.some.call(top.children, function (k) {
+      return k !== bar && (k === ribbonToggle || k.hasAttribute('data-fold-order') || k.matches('.toolbar[data-toolbar-fold]'));
+    });
+  }
+
+  function orderOf(v, dflt) {
+    if (v === 'none') return null;
+    var n = parseFloat(v);
+    return isNaN(n) ? dflt : n;
+  }
+
+  /* Shares the topbar's room, sizes each thing that folds, and says how
+     much the bar has. */
+  function arrange(top, full, low) {
+    var kids = Array.prototype.filter.call(top.children, function (k) { return !k.hidden && k.getClientRects().length; });
+    var parts = [];
+    kids.forEach(function (k, i) {
+      var p = null;
+      if (k === bar) p = { full: full, low: low, order: orderOf(k.getAttribute('data-fold-order'), 300) };
+      else if (k === ribbonToggle) {
+        var words = bar.hasAttribute('data-menubar-ribbon-words') ? 'none' : bar.getAttribute('data-menubar-ribbon-fold-order');
+        k.classList.add('menubar-ribbon-toggle-glyph');
+        var g = k.getBoundingClientRect().width;
+        k.classList.remove('menubar-ribbon-toggle-glyph');
+        p = { full: k.getBoundingClientRect().width, low: g, order: orderOf(words, 100), all: true };
+      } else if (k.matches('.toolbar[data-toolbar-fold]')) {
+        var most = parseFloat(getComputedStyle(k).getPropertyValue('--toolbar-most'));
+        var least = parseFloat(getComputedStyle(k).getPropertyValue('--toolbar-least'));
+        if (!isNaN(most) && !isNaN(least)) p = { full: most, low: Math.min(least, most), order: orderOf(k.getAttribute('data-fold-order'), 200) };
+      }
+      if (p && p.order != null) { p.el = k; p.i = i; parts.push(p); }
+    });
+    /* How far the topbar's contents run past its end with everything at
+       full size, where any auto margin has nothing left to take. */
+    parts.forEach(function (p) {
+      if (p.el === ribbonToggle) p.el.classList.remove('menubar-ribbon-toggle-glyph');
+      else p.el.style.flex = '0 0 ' + Math.ceil(p.full) + 'px';
+    });
+    var cs = getComputedStyle(top);
+    var end = top.getBoundingClientRect().right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight);
+    var reach = -Infinity;
+    kids.forEach(function (k) { reach = Math.max(reach, k.getBoundingClientRect().right + (parseFloat(getComputedStyle(k).marginRight) || 0)); });
+    var deficit = reach - end;
+    parts.slice().sort(function (a, b) { return (a.order - b.order) || (a.i - b.i); }).forEach(function (p) {
+      var give = deficit > 0.5 ? (p.all ? p.full - p.low : Math.min(deficit, p.full - p.low)) : 0;
+      p.size = p.full - give;
+      deficit -= give;
+    });
+    var room = full;
+    parts.forEach(function (p) {
+      if (p.el === ribbonToggle) { p.el.classList.toggle('menubar-ribbon-toggle-glyph', p.size < p.full); return; }
+      var size = p.size < p.full ? Math.floor(p.size) : Math.ceil(p.full);
+      p.el.style.flex = '0 0 ' + size + 'px';
+      if (p.el === bar) room = size;
+    });
+    return room;
   }
 
   function width() {
-    var groups = built.querySelectorAll('.menubar-menu:not(.menubar-one)');
+    /* Only the groups showing, as an unfolded bar hides its pins. */
+    var groups = Array.prototype.filter.call(built.querySelectorAll('.menubar-menu:not(.menubar-one)'), function (g) { return g.getClientRects().length > 0; });
     var gap = parseFloat(getComputedStyle(built).columnGap) || 0;
     return Array.prototype.reduce.call(groups, function (s, g) { return s + g.getBoundingClientRect().width; }, 0) + gap * Math.max(0, groups.length - 1);
   }
@@ -883,6 +1039,9 @@
 
   function open(title, focusWhere) {
     if (!currentTarget()) { render(); return; }
+    /* Unfolded into a ribbon, a title is a tab: it chooses its row of
+       tools rather than opening a menu, whatever way it was reached. */
+    if (ribbonActive() && !title._menu.all && hasTools(title)) { chooseTab(title, focusWhere); return; }
     ensurePanel();
     closeSub();
     if (openTitle && openTitle !== title) {
@@ -1001,7 +1160,7 @@
      the focused thing finds it. */
   function act(c, fromMenu) {
     if (c.disabled || c.items) return;
-    if ((fromMenu && !currentTarget()) || (c.owner && !sameSource(c.owner, findFront()))) { render(); return; }
+    if ((fromMenu && !currentTarget()) || (c.owner && !c.owner.resident && !sameSource(c.owner, findFront()))) { render(); return; }
     var scopeEl = c.owner ? c.owner.scope.scope : document;
     if (fromMenu) {
       closeAll(false);
@@ -1227,6 +1386,284 @@
     }
   }
 
+  /* === Unfolding into a ribbon (preview) ==================================
+     Show as ribbon, a toggle at the far right of the topbar, unfolds every
+     menu in the bar at once into a ribbon, and folds them back. Unfolded,
+     each title stays where it stands and is a tab: pressing it, or
+     reaching it by its letter or the keys, chooses it, drawn pressed in,
+     and one row of tools under the topbar holds its menu's commands. The
+     row is a folding toolbar built from the same rows a menu holds: a
+     heading or a separator starts a group, named by the heading; a command
+     is a button with its glyph and words, or its glyph alone where it says
+     glyphOnly; a command that switches is a toggle; rows of one radio
+     group are a segmented control; and a submenu is a menu button. It is a
+     ribbon all the way across: every title is a tab and every command a
+     tool. Every command runs as it does from its menu. Switching windows changes the applet's tabs and
+     keeps the bar unfolded. Whether it is unfolded is the reader's choice,
+     kept for the site. Where the bar has collapsed to one menu button,
+     on a narrow window, it stays folded and the toggle is hidden. Anything
+     else in the topbar, beside the bar, keeps its place either way. */
+  /* The pins are not a tab: they stand in the bar unfolded as they do
+     folded, and the Pins menu stays a menu. Each side keeps the tab chosen
+     on it, so going back to a site's tab, or to an applet's, finds the one
+     left there. */
+  var ribbonOn = false, ribbonRow = null, ribbonToggle = null, ribbonUid = 0;
+  var chosen = { host: null, front: {}, last: 'front' };
+  function frontName(t) { return t._menu.menu.name || ''; }
+  function ribbonKey() { return 'pudl-menubar-ribbon:' + (bar.getAttribute('aria-label') || location.pathname); }
+  function ribbonActive() { return ribbonOn && !collapsed && !!ribbonRow; }
+
+  function setupRibbon() {
+    /* A preview, so a bar asks for it: data-menubar-ribbon. */
+    if (!bar.hasAttribute('data-menubar-ribbon')) return;
+    var top = bar.closest('.topbar');
+    ribbonToggle = el('button', 'btn btn-sm menubar-ribbon-toggle', { type: 'button', 'aria-pressed': 'false', 'aria-label': text('ribbon', 'Show as ribbon'), 'data-tooltip': text('ribbon', 'Show as ribbon') });
+    var g = el('span', 'glyph', { 'aria-hidden': 'true' });
+    g.style.setProperty('--glyph', 'var(--glyph-ribbon)');
+    var w = el('span', 'toolbar-words');
+    w.textContent = text('ribbon', 'Show as ribbon');
+    ribbonToggle.append(g, w);
+    ribbonToggle.addEventListener('click', function () { setRibbon(!ribbonOn, true); });
+    var slot = document.querySelector('[data-menubar-ribbon-slot]');
+    (slot || top || bar.parentNode).appendChild(ribbonToggle);
+    ribbonRow = el('div', 'menubar-ribbon', { hidden: '' });
+    (top || bar).insertAdjacentElement('afterend', ribbonRow);
+    ribbonRow.addEventListener('click', onRibbonClick);
+    /* A press on a command keeps focus where the reader was working, so a
+       command that acts on the focused thing finds it. */
+    ribbonRow.addEventListener('mousedown', function (e) {
+      if (e.target.closest('button, a') && !e.target.closest('.menu-panel') && !e.target.closest('.menu-btn')) e.preventDefault();
+    });
+    var kept = null;
+    try { kept = localStorage.getItem(ribbonKey()); } catch (err) { /* not kept */ }
+    ribbonOn = kept === 'ribbon';
+    ribbonToggle.setAttribute('aria-pressed', ribbonOn ? 'true' : 'false');
+  }
+
+  function setRibbon(on, remember) {
+    ribbonOn = on;
+    if (ribbonToggle) ribbonToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (remember) { try { localStorage.setItem(ribbonKey(), on ? 'ribbon' : 'menus'); } catch (err) { /* not kept */ } }
+    closeAll(false);
+    render(true);
+    bar.dispatchEvent(new CustomEvent('pudl:menubar-ribbon', { bubbles: true, detail: { ribbon: on } }));
+  }
+
+  function barTitles() {
+    return Array.prototype.slice.call(built.querySelectorAll('.menubar-menu:not(.menubar-one) > .menubar-title:not(.menubar-pins-more)'));
+  }
+
+  function sideOf(t) { return t._menu.menu.kind === 'front' ? 'front' : 'host'; }
+
+  function chooseTab(t, focusWhere) {
+    var side = sideOf(t);
+    if (side === 'front') chosen.front[frontName(t)] = t._menu.title.label;
+    else chosen.host = t._menu.title.label;
+    chosen.last = side;
+    syncRibbon();
+    titles().forEach(function (x) { x.tabIndex = x === t ? 0 : -1; });
+    if (focusWhere) {
+      var tb = document.getElementById(t.getAttribute('aria-controls'));
+      var first = tb && tb.querySelector('[tabindex="0"]:not(:disabled), button:not(:disabled), a[href], select');
+      if (first) first.focus(); else t.focus();
+    }
+  }
+
+  /* Unfolded, the bar is a ribbon all the way across: every title is a
+     tab and every command a tool, except the Pins menu, which stays a
+     menu at the start of the pins. */
+  function hasTools(t) {
+    var info = t && t._menu;
+    return !!(info && !info.all && info.menu.kind !== 'pins');
+  }
+
+  /* A side's chosen tab: the site's chosen before if it is still in the
+     bar; for the applet in front, the one last chosen in it, so each
+     applet keeps its own; else the side's first. */
+  function chosenTitle(list, side) {
+    list = list.filter(function (t) { return hasTools(t) && sideOf(t) === side; });
+    var was = side === 'front' ? list[0] && chosen.front[frontName(list[0])] : chosen.host;
+    var hit = was && list.filter(function (t) { return t._menu.title.label === was; })[0];
+    return hit || list[0];
+  }
+
+  function syncRibbon() {
+    if (!ribbonRow) return;
+    if (ribbonToggle) ribbonToggle.hidden = collapsed;
+    var on = ribbonActive();
+    built.classList.toggle('menubar-ribbon-on', on);
+    var top = bar.closest('.topbar');
+    if (top) {
+      top.classList.toggle('menubar-ribbon-host', on);
+      ribbonRow.style.setProperty('--menubar-ribbon-pad', getComputedStyle(top).paddingInlineStart);
+    }
+    ribbonRow.hidden = !on;
+    var list = barTitles();
+    var groups = built.querySelectorAll(':scope > .menubar-menu:not(.menubar-one)');
+    function asMenu(x) {
+      x.setAttribute('role', 'menuitem');
+      x.setAttribute('aria-haspopup', 'menu');
+      x.removeAttribute('aria-selected');
+      x.removeAttribute('aria-controls');
+      if (x.getAttribute('aria-expanded') == null) x.setAttribute('aria-expanded', 'false');
+    }
+    if (!on) {
+      built.setAttribute('role', 'menubar');
+      groups.forEach(function (g) { g.setAttribute('role', 'group'); });
+      list.forEach(asMenu);
+      return;
+    }
+    /* The site's and the applet's titles together are one tab list; the
+       pins stay a group. */
+    built.setAttribute('role', 'tablist');
+    groups.forEach(function (g) { g.setAttribute('role', g.classList.contains('menubar-pins') ? 'group' : 'presentation'); });
+    var picks = { host: chosenTitle(list, 'host'), front: chosenTitle(list, 'front') };
+    if (picks.host) chosen.host = picks.host._menu.title.label;
+    if (picks.front) chosen.front[frontName(picks.front)] = picks.front._menu.title.label;
+    var t = picks[chosen.last] || picks.front || picks.host;
+    var rowId = 'menubar-ribbon-row';
+    list.forEach(function (x) {
+      if (!hasTools(x)) { asMenu(x); return; }
+      x.setAttribute('role', 'tab');
+      x.removeAttribute('aria-haspopup');
+      x.removeAttribute('aria-expanded');
+      x.setAttribute('aria-selected', x === t ? 'true' : 'false');
+      if (x === t) x.setAttribute('aria-controls', rowId); else x.removeAttribute('aria-controls');
+    });
+    if (!t) return;
+    /* The row is built afresh each time, as its menu would be, so its
+       states are read now; a new toolbar is folded by pudl-toolbar.js as
+       it arrives. Focus inside it stays on the same control. */
+    var old = ribbonRow.querySelector(':scope > .toolbar');
+    var focusIndex = -1;
+    if (old && old.contains(document.activeElement)) focusIndex = Array.prototype.indexOf.call(old.querySelectorAll('button, a[href], select'), document.activeElement);
+    menus = assemble();
+    var label = t._menu.title.label;
+    var fresh = findTitle(t._menu.menu.kind, label);
+    var tb = el('div', 'toolbar', { role: 'toolbar', id: rowId, 'aria-label': label, 'data-toolbar-fold': '', 'data-toolbar-captions': bar.getAttribute('data-menubar-ribbon-captions') || 'none' });
+    ribbonGroups(fresh ? fresh.items : t._menu.title.items, label).forEach(function (g) { tb.appendChild(g); });
+    if (old) old.replaceWith(tb); else ribbonRow.appendChild(tb);
+    if (focusIndex >= 0) {
+      var again = tb.querySelectorAll('button, a[href], select')[focusIndex];
+      if (again) again.focus();
+    }
+  }
+
+  /* A menu's rows as the groups of a folding toolbar. */
+  function ribbonGroups(items, title) {
+    var groups = [], g = null, radio = null;
+    function start(name) { g = { name: name, parts: [] }; groups.push(g); radio = null; }
+    items.forEach(function (c) {
+      if (c === '-') { g = null; radio = null; return; }
+      if (!c) return;
+      if (c.heading) { start(c.heading); return; }
+      if (typeof c.label !== 'string') return;
+      if (!g) start('');
+      if (c.radio && c.checked != null) {
+        if (!radio || radio.key !== c.radio) { radio = { key: c.radio, rows: [] }; g.parts.push({ seg: radio.rows }); }
+        radio.rows.push(c);
+        return;
+      }
+      radio = null;
+      g.parts.push(c);
+    });
+    return groups.filter(function (x) { return x.parts.length; }).map(function (x, i) {
+      var group = el('div', 'toolbar-group', { role: 'group', 'aria-label': x.name || title, 'data-toolbar-group': x.name || title });
+      var glyph = null;
+      x.parts.forEach(function (p) {
+        if (p.seg) { group.appendChild(ribbonSeg(p.seg, x.name || title)); return; }
+        if (!glyph && p.glyph) glyph = p.glyph;
+        group.appendChild(ribbonControl(p));
+      });
+      if (glyph) group.setAttribute('data-toolbar-glyph', glyph);
+      /* A choice under a heading shows the heading, with captions off or
+         on, since its positions are answers to that heading's question. */
+      if (x.name && x.parts.some(function (p) { return p.seg; })) group.setAttribute('data-toolbar-captioned', '');
+      group.setAttribute('data-toolbar-priority', String(100 - i));
+      return group;
+    });
+  }
+
+  function ribbonLook(node, c) {
+    if (c.icon && c.icon.length) {
+      var icon = el('span', 'toolbar-icon', { 'aria-hidden': 'true' });
+      c.icon.forEach(function (n) { icon.appendChild(n.cloneNode(true)); });
+      node.appendChild(icon);
+    } else if (c.glyph && /^[a-z][a-z0-9-]*$/.test(c.glyph)) {
+      var g = el('span', 'glyph', { 'aria-hidden': 'true' });
+      g.style.setProperty('--glyph', 'var(--glyph-' + c.glyph + ')');
+      node.appendChild(g);
+    }
+    var w = el('span', 'toolbar-words');
+    w.textContent = c.label;
+    node.appendChild(w);
+    if (c.glyphOnly && (c.glyph || (c.icon && c.icon.length))) {
+      node.setAttribute('data-toolbar-glyph-only', '');
+      node.setAttribute('aria-label', c.label);
+    }
+    var tip = c.label + (c.shortcut ? ' (' + shown(c.shortcut) + ')' : '') + (c.disabled && c.reason ? ': ' + c.reason : '');
+    if (tip !== c.label || c.glyphOnly) node.setAttribute('data-tooltip', tip);
+    if (c.shortcut) node.setAttribute('aria-keyshortcuts', ariaKeys(c.shortcut));
+    /* A command that destroys something is a danger button, which leads
+       with the warning glyph, so its danger never rests on colour. */
+    if (c.danger) node.classList.add('btn-danger');
+  }
+
+  function ribbonControl(c) {
+    if (c.items) {
+      var wrap = el('div', 'menu');
+      var id = 'menubar-ribbon-menu-' + (++ribbonUid);
+      var b = el('button', 'btn btn-sm menu-btn', { type: 'button', popovertarget: id });
+      ribbonLook(b, c);
+      var p = el('div', 'menu-panel', { popover: '', id: id, role: 'menu', 'aria-label': c.label });
+      /* A submenu's own submenus stand in it under their names. */
+      var flat = [];
+      c.items.forEach(function (x) {
+        if (x && x.items) { flat.push({ heading: x.label }); x.items.forEach(function (y) { if (!y || !y.items) flat.push(y); }); }
+        else flat.push(x);
+      });
+      fill(p, flat);
+      wrap.append(b, p);
+      return wrap;
+    }
+    var n;
+    if (c.href != null) n = el('a', 'btn btn-sm', { href: c.href });
+    else n = el('button', 'btn btn-sm', { type: 'button' });
+    ribbonLook(n, c);
+    if (c.checked != null) n.setAttribute('aria-pressed', c.checked ? 'true' : 'false');
+    if (c.disabled) { if (n.tagName === 'BUTTON') n.disabled = true; else n.setAttribute('aria-disabled', 'true'); }
+    n._item = c;
+    return n;
+  }
+
+  function ribbonSeg(rows, name) {
+    var seg = el('div', 'seg sm', { role: 'group', 'aria-label': name });
+    rows.forEach(function (c) {
+      var b = el('button', '', { type: 'button', 'aria-pressed': c.checked ? 'true' : 'false' });
+      b.textContent = c.label;
+      if (c.disabled) b.disabled = true;
+      b._item = c;
+      seg.appendChild(b);
+    });
+    return seg;
+  }
+
+  function onRibbonClick(e) {
+    var n = e.target;
+    while (n && n !== ribbonRow && !n._item) n = n.parentNode;
+    if (!n || n === ribbonRow) return;
+    var c = n._item;
+    if (!c || c.items) return;
+    if (n.tagName === 'A' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var p = n.closest('.menu-panel');
+    if (p && p.matches(':popover-open')) p.hidePopover();
+    act(c, false);
+    /* What the command changed, such as a switch's state, shows next. */
+    setTimeout(function () { if (ribbonActive()) syncRibbon(); }, 0);
+  }
+
   /* === Starting ========================================================== */
 
   var pending = 0, pinsChanged = false;
@@ -1256,6 +1693,7 @@
     bar.appendChild(built);
     bar.classList.add('menubar-ready');
     ensurePanel();
+    setupRibbon();
     /* Where focus was before the bar, which a command gives it back to. A
        press on a title is noted before it moves focus, and the keyboard's
        arrival by what focus left. */
@@ -1279,6 +1717,10 @@
     render();
 
     document.addEventListener('pudl:windows-change', soon);
+    /* A resident applet's menus join the bar as it starts. */
+    document.addEventListener('pudl:applet-start', function (e) {
+      if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-applet-resident')) render(true);
+    });
     document.addEventListener('pudl:windows-policy', function () { closeAll(false); render(true); });
     document.addEventListener('pudl:regions-swap', function () { render(true); });
     /* Only what can change the menus counts (0.69.3): an applet, a window
@@ -1301,7 +1743,7 @@
     /* Measured on the next frame, not in the observer, since measuring
        shows the full bar for a moment and that changes what is observed. */
     var measuring = 0;
-    if (window.ResizeObserver) new ResizeObserver(function () {
+    var refit = function () {
       if (measuring) return;
       measuring = requestAnimationFrame(function () {
         measuring = 0;
@@ -1311,7 +1753,24 @@
         fit();
         if (was !== level) render(true);
       });
-    }).observe(bar);
+    };
+    var ro = window.ResizeObserver ? new ResizeObserver(refit) : null;
+    if (ro) ro.observe(bar);
+    /* A topbar that shares its room is shared again as it changes width,
+       and as a toolbar in it comes to need more room or less. */
+    var top = bar.parentNode && bar.parentNode.classList && bar.parentNode.classList.contains('topbar') ? bar.parentNode : null;
+    if (top) {
+      if (ro) ro.observe(top);
+      top.addEventListener('pudl:toolbar-fit', function (e) {
+        var k = e.target;
+        if (k.parentNode !== top) return;
+        var cs = getComputedStyle(k);
+        var sig = cs.getPropertyValue('--toolbar-most') + '/' + cs.getPropertyValue('--toolbar-least');
+        if (sig === k.__foldSig) return;
+        k.__foldSig = sig;
+        refit();
+      });
+    }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {
       if (panel && panel.matches(':popover-open')) return;
       var was = level;
@@ -1326,6 +1785,8 @@
        again only when its menus, titles or pins read differently (0.69.3);
        an applet may call it whenever its commands change. */
     refresh: function () { if (bar) render(); },
+    /* Unfold the bar into a ribbon, or fold it back (preview). */
+    ribbon: function (on) { if (bar && ribbonRow) { if (on == null) return ribbonOn; setRibbon(!!on, true); } return ribbonOn; },
     /* Every key bound in the bar now: its key in PUDL's spelling and as
        shown, the row's label and title, its source and whether disabled. */
     shortcuts: function () {

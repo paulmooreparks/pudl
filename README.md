@@ -16,6 +16,7 @@ The web implementation is a stylesheet, a small theme script and a font, with op
 - **[The expense tracker](https://paulmooreparks.github.io/pudl/samples/expenses.html)** is a small working application: expenses, trips and reports. Its list sorts, filters, pages and acts on several expenses at once; an expense moves from draft to paid through dialogs and menus, takes a receipt, and keeps its history; its forms refuse what is wrong field by field; and reports total everything and download as CSV. GitHub Pages has no server, so a script stands in for one in the browser, keeping the data in localStorage, and every view is still an address.
 - **[Commands and folding toolbars](https://paulmooreparks.github.io/pudl/samples/commands.html)** is a preview of [a proposal not yet settled](docs/proposals/toolbar-commands.md): a note editor applet declares each command once, with its words, glyph, key and state, and PUDL draws its toolbar from them, folds the groups into menus as the room runs out, answers the keys, and lets an agent list and run the same commands by id. Its command table, `pudl-commands.js`, may change before it is released; the folding is released in 0.78.0.
 - **[Files](https://paulmooreparks.github.io/pudl/samples/files.html)** is a file browser and editor: a folder tree, a path bar, the folder's contents as a grid of rows to choose from, files dropped on it to add them, and an editor with document tabs and a Markdown preview that open in windows. The editor and the preview are applets that answer requests, so the browser asks to open a file without naming either. Like the expense tracker, it keeps its files in localStorage.
+- **[Menus that unfold into a ribbon](https://paulmooreparks.github.io/pudl/samples/menu-ribbon.html)** shows the 0.79.0 previews together: a menu bar whose menus unfold into a ribbon with Show as ribbon, titles that fold to their glyphs, a resident Pins applet whose pins are a command bar at the topbar's right, and a taskbar with a tray and its own menu at the foot of three applet windows. Narrow the page to watch each part give way in turn.
 
 The article reader fetches its windows from the server, so to run it from a copy of this repository, serve the folder, for example with `python -m http.server`, rather than opening the file directly. The reference works either way.
 
@@ -913,6 +914,12 @@ The bar is one tab stop and follows the WAI-ARIA menu bar pattern: Left and Righ
 
 **More of a row.** A markup row's button or link may hold a picture of its own before its words, an `<img alt="">` or a `.glyph` span, which the row shows as its 16px icon, as a pin shows its item's (0.64.0); the words alone are its name. It may also carry `data-menu-danger`, `data-menu-glyph="<name>"`, `data-menu-detail="…"` for a second line in muted text, and `data-menu-reason="…"` for why it is disabled, shown as its second line and tooltip and exposed as its description; an applet's item says the same with `danger`, `glyph`, `detail` and `reason`. A markup list marked `data-menu-radio` makes its `aria-checked` rows radio rows, as an applet's `radio` does. A function key, F1 to F12 alone or with Shift, is dispatched from a field like a chord, unless the field prevents its default. `pudlMenubar.shortcuts()` lists every key bound in the bar, each with `key`, `shown`, `label`, `title`, `source` (`host`, `pins` or `front`) and `disabled`; a key bound to two rows of one source is reported in the console as the bar is built. When the bar does not fit, it becomes one menu button whose panel lists each menu's titles, opening one level at a time with a Back row. `pudlMenubar.refresh()` rebuilds the bar after a change the script did not see.
 
+**Folding in steps.** When the bar runs short of room it gives way one step at a time: Show as ribbon, where the bar has it, drops to its glyph; titles with a glyph show the glyph alone; the pins give way to Items; and last the bar becomes one menu button. A title's glyph comes from `data-menu-glyph="<name>"` on its list item, or `glyph` on an applet's title (preview, 0.79.0). When the topbar holds other things that fold beside the bar, a folding toolbar such as a command bar of pins, they share its room in order, each folding as far as it goes before the next starts: Show as ribbon first, then the toolbars, then the bar. `data-fold-order` on a topbar child changes its place, lower first, or keeps it from folding with `none` (preview, 0.79.0).
+
+**Unfolding into a ribbon** (preview, 0.79.0). `data-menubar-ribbon` on the bar adds Show as ribbon at the topbar's end, or inside an element marked `data-menubar-ribbon-slot`. Unfolded, every title but Pins becomes a tab where it stands, and one row of tools under the topbar holds the chosen tab's commands, built from the rows you already give the bar: a heading or a separator starts a group, a switching row is a toggle, the rows of one radio group are a segmented control under the heading's caption, a submenu is a menu button, a row marked `glyphOnly` shows its glyph alone, and a `danger` row is a danger button. Each applet keeps the tab chosen in it. `data-menubar-ribbon-captions` sets the row's captions, `none` unless set; `pudlMenubar.ribbon(on)` unfolds or folds the bar from a script, and `pudl:menubar-ribbon` says when it changes. The reader's choice is kept for the site.
+
+**Resident applets** (preview, 0.79.0). An applet whose mount carries `data-applet-resident` has its menus in the bar all the time, after the site's menus, whatever is in front, and its shortcuts work anywhere. A resident applet suits something that runs for as long as the application does, such as the reader's pins: `samples/menu-ribbon.html` keeps its pins in a command bar at the topbar's right, which is the Pins applet's mount, and the Pins menu comes from that applet.
+
 ## Filtering a list
 
 A master-detail toolbar's filter that applies on submission pairs its input with a raised apply button, since an action that can be pressed must look pressable. The group is drawn as one sunken field with the button as a raised strip inside its border, as every field with a key is, and the button's magnifying glass comes from the stylesheet:
@@ -1238,6 +1245,26 @@ document.addEventListener('pudl:window-menu', function (e) {
 ```
 
 A command given `checked` carries `aria-pressed` and shows a tick while it is on. A disabled command stays in the menu, dimmed, so the reader learns it exists. Content cannot take over the window's own commands; one that must stop a close cancels `pudl:window-closing`, as below. The labels come from the `data-win-text-*` attributes listed under Accessibility, languages and print, with `data-win-text-menu` for the button, and `data-win-text-page`, `-minimize`, `-reset` and `-close` for the commands the other buttons do not already name.
+
+A right-click on a window's button in the dock opens the same menu, against the button, which wears an accent ring while it is open (0.79.0). `data-win-tab-menu="off"` on the layer or the dock turns it off, and rows a page adds for the tab through `pudl:contextmenu` replace it.
+
+### The taskbar
+
+A `.win-bar` holding the dock is a taskbar (preview, 0.79.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one scrolling line and puts the page's own buttons on either side of it in the order you write them.
+
+```html
+<footer class="win-bar">
+  <button class="icon-btn" type="button" aria-label="Show the sidebar" aria-pressed="true">
+    <span class="glyph" style="--glyph: var(--glyph-panel)" aria-hidden="true"></span></button>
+  <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+  <nav class="status-area" aria-label="Status">…</nav>
+  <a class="icon-btn" data-win-back href="?" aria-label="Minimize all windows"></a>
+  <a class="icon-btn" data-win-restore href="?" aria-label="Restore all windows"></a>
+  <a class="icon-btn" data-win-close-all href="?" aria-label="Close all windows"></a>
+</footer>
+```
+
+PUDL keeps the three links pointed at the state they produce and marks them `aria-disabled` while they would change nothing. Minimize all and Restore all share one place, showing whichever is useful. Close all closes every window the reader may close, each as its own Close would, so a window that refuses through `pudl:window-closing` stays; `pudlWindows.closeAll()` does the same. An icon link left empty takes the `minimize-all`, `restore-all` or `close-all` glyph, and one holding a `.glyph`, `svg` or `img` keeps its own, at 16px. A `.status-area` in the bar is its tray. A press in the bar's padding or between its controls goes to the nearest one, so the screen's edge is part of every button on the bar, and a right-click away from a window's button opens the bar's menu of Minimize all, Restore all and Close all windows, which `data-win-bar-menu="off"` turns off.
 
 ### Child windows
 

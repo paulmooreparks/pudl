@@ -110,9 +110,14 @@
     scheduleHide();
   });
 
+  /* Focus can arrive while another popover is opening, such as a menu
+     moving focus as it shows, when the browser refuses to show a second;
+     then the tooltip shows a moment later, if focus is still there. */
   document.addEventListener('focusin', function (e) {
     var s = subjectOf(e.target);
-    if (s && s.matches(':focus-visible')) show(s);
+    if (!s || !s.matches(':focus-visible')) return;
+    try { show(s); }
+    catch (err) { setTimeout(function () { if (document.activeElement === s && s.matches(':focus-visible')) show(s); }, 0); }
   });
   document.addEventListener('focusout', function (e) {
     if (subjectOf(e.target)) hide();

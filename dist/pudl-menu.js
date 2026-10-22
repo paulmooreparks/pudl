@@ -738,15 +738,35 @@
     var detail = {
       x: x, y: y, keyboard: keyboard, target: target,
       add: function (r) { asked.rows = asked.rows.concat(Array.isArray(r) ? r : [r]); },
-      mark: function (el) { asked.mark = el && el.nodeType === 1 ? el : null; }
+      mark: function (el) { asked.mark = el && el.nodeType === 1 ? el : null; },
+      /* How many rows have been given so far, so a handler further out,
+         such as PUDL's own for a dock tab, gives way to one nearer the
+         target (0.79.0). */
+      count: function () { return asked.rows.length; },
+      /* Opens the menu against an element's edge, as a menu button's
+         would, rather than at the pointer, where it would cover a small
+         target such as a taskbar button (0.79.0). */
+      anchor: function (el) { asked.anchor = el && el.nodeType === 1 ? el : null; }
     };
-    target.dispatchEvent(new CustomEvent('pudl:contextmenu', { bubbles: true, detail: detail }));
+    /* Cancelable, so a page can say that nothing further out should
+       answer, as it would for an event of its own (0.79.0). */
+    target.dispatchEvent(new CustomEvent('pudl:contextmenu', { bubbles: true, cancelable: true, detail: detail }));
     return asked;
   }
 
   /* Where a menu summoned from the keyboard opens: under the focused
      element's start, or at the caret's line in a text field, kept on
      screen. */
+  /* Where a menu anchored to an element opens: at its start, against its
+     top edge when it sits in the lower half of the viewport, so the menu
+     opens above it, and against its bottom edge otherwise. */
+  function anchorPoint(el) {
+    var r = el.getBoundingClientRect();
+    var rtl = getComputedStyle(el).direction === 'rtl';
+    var low = (r.top + r.bottom) / 2 > viewport().bottom / 2;
+    return { x: Math.round(rtl ? r.right : r.left), y: Math.round(low ? r.top - 4 : r.bottom + 4) };
+  }
+
   function keyboardPoint(el) {
     var r = el.getBoundingClientRect();
     var rtl = getComputedStyle(el).direction === 'rtl';
@@ -770,7 +790,8 @@
     var asked = ask(e.target, e.clientX, e.clientY, false);
     if (!asked.rows.length) return;
     e.preventDefault();
-    openAt(e.clientX, e.clientY, asked.rows, { owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
+    var at = asked.anchor ? anchorPoint(asked.anchor) : { x: e.clientX, y: e.clientY };
+    openAt(at.x, at.y, asked.rows, { owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
   });
 
   document.addEventListener('keydown', function (e) {
@@ -784,6 +805,7 @@
     ctx.quiet = true;
     if (!asked.rows.length) return;
     e.preventDefault();
+    if (asked.anchor) at = anchorPoint(asked.anchor);
     openAt(at.x, at.y, asked.rows, { owner: target, 'for': asked.mark });
   });
 

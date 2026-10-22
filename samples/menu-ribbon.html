@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menus that unfold into a ribbon</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="menu-ribbon.js" defer></script>
+  <script src="../dist/pudl-menubar.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script>
+  <script src="../dist/pudl-tooltip.js" defer></script>
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; display: flex; flex-direction: column; }
+    /* The work area: a sidebar the taskbar's first button shows and hides,
+       then the windows. */
+    .demo-work { flex: 1; min-height: 0; display: flex; }
+    .demo-sidebar { flex: none; width: 220px; box-sizing: border-box; padding: var(--space-3); border-inline-end: 1px solid var(--border); background: var(--surface); font-size: var(--text-sm); }
+    .demo-sidebar h2 { margin: 0 0 var(--space-2); font-size: var(--text-sm); }
+    .demo-sidebar ul { margin: 0; padding: 0; list-style: none; }
+    .demo-sidebar li { padding: 4px 0; }
+    .win-host { flex: 1; min-width: 0; min-height: 0; position: relative; }
+    .topbar .seg { flex: none; }
+    /* A real site's topbar settings: 6px above and below, items from the
+       start, the menu bar only as wide as its menus. */
+    .topbar { justify-content: flex-start; padding: 6px 12px; --tb-pad-y: 6px; }
+    .topbar #pins-bar { margin-inline-start: auto; }
+    .topbar .topbar-chrome { margin-inline-start: 0; }
+    .topbar [data-menubar] { flex: 0 1 auto; }
+    .applet-pad { display: flex; flex-direction: column; gap: var(--space-2); height: 100%; box-sizing: border-box; padding: var(--space-3); }
+    .applet-pad textarea { flex: 1; min-height: 6rem; resize: none; }
+    .applet-status { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
+    .applet-status b { color: var(--text); }
+    .story-list { margin: 0; padding: 0; list-style: none; }
+    .story-list li { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: var(--text-sm); }
+    .story-list li.pinned::before { content: "\1F4CC "; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="menubar" data-menubar aria-label="Workspace" data-menubar-ribbon>
+      <ul data-menubar-source hidden>
+        <li><span class="glyph" style="--glyph: var(--glyph-app)" aria-hidden="true"></span> Workspace
+          <ul>
+            <li><button type="button" data-menu-glyph="info">About this workspace</button></li>
+            <li><button type="button" data-menu-glyph="gear">Settings…</button></li>
+          </ul></li>
+        <li data-menu-glyph="home">Go
+          <ul>
+            <li>Places</li>
+            <li><a href="#home" data-menu-glyph="home">Home</a></li>
+            <li><a href="#recent" data-menu-glyph="folder">Recent documents</a></li>
+            <li><a href="#saved" data-menu-glyph="pin">Saved stories</a></li>
+            <li>Windows</li>
+            <li><a href="?open=editor" data-win-open="editor" data-menu-glyph="pencil">Editor</a></li>
+            <li><a href="?open=reader" data-win-open="reader" data-menu-glyph="list">Reader</a></li>
+            <li><a href="?open=notes" data-win-open="notes" data-menu-glyph="document">Notes</a></li>
+          </ul></li>
+        <li data-menu-glyph="eye">View
+          <ul data-menu-radio>
+            <li>Theme</li>
+            <li><button type="button" id="theme-light" aria-checked="false">Light</button></li>
+            <li><button type="button" id="theme-dark" aria-checked="false">Dark</button></li>
+            <li><button type="button" id="theme-system" aria-checked="true">System</button></li>
+            <li>Taskbar</li>
+            <li><button type="button" id="bar-bottom" aria-checked="true">At the bottom</button></li>
+            <li><button type="button" id="bar-top" aria-checked="false">At the top</button></li>
+          </ul></li>
+        <li data-menubar-if="windows" data-menubar-windows data-menu-glyph="window">Window<ul></ul></li>
+        <li data-menu-glyph="info">Help
+          <ul>
+            <li><button type="button" data-menu-glyph="info">Keyboard shortcuts</button></li>
+            <li><a href="../README.md" data-menu-glyph="document">About PUDL</a></li>
+          </ul></li>
+      </ul>
+      <a class="brand" href="#">Workspace</a>
+    </nav>
+    <!-- The pins: a command bar at the topbar's right, which keeps its place
+         whatever is in front, folded or unfolded, drawn by the server. It is
+         the root of the Pins applet, a resident one, whose Pins menu stays
+         in the menu bar after the site's. -->
+    <div class="toolbar" role="toolbar" aria-label="Pins" id="pins-bar" data-toolbar-fold data-toolbar-captions="none" data-applet="pins" data-applet-resident>
+      <div class="toolbar-group" data-toolbar-group="Pinned" data-toolbar-glyph="pin">
+        <a class="btn btn-sm" href="?open=editor" data-win-open="editor"><span class="glyph" style="--glyph: var(--glyph-pencil)" aria-hidden="true"></span><span class="toolbar-words">Editor</span></a>
+        <a class="btn btn-sm" href="?open=reader" data-win-open="reader"><span class="glyph" style="--glyph: var(--glyph-list)" aria-hidden="true"></span><span class="toolbar-words">Reader</span></a>
+      </div>
+    </div>
+    <div class="seg sm" role="group" aria-label="Sidebar shows" id="sidebar-seg">
+      <button type="button" aria-pressed="true">Feeds</button>
+      <button type="button" aria-pressed="false">Saved</button>
+      <button type="button" aria-pressed="false">Notes</button>
+    </div>
+    <div class="topbar-chrome"></div>
+  </header>
+  <div class="demo-work">
+  <aside class="demo-sidebar" id="demo-sidebar" aria-label="Feeds">
+    <h2>Feeds</h2>
+    <ul><li>Front page</li><li>Newest</li><li>Ask</li><li>Show</li></ul>
+  </aside>
+  <main class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="notes,reader,editor" data-win-menu>
+      <section class="win" data-win="notes" style="--win-x: 0.05; --win-y: 0.52; --win-w: 0.34; --win-h: 0.42">
+        <header class="win-head"><h2 class="win-title">Notes</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="page" href="?" aria-label="Open as a page"></a><a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a><a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div data-applet="notes"></div></div>
+      </section>
+      <section class="win" data-win="reader" style="--win-x: 0.5; --win-y: 0.08; --win-w: 0.46; --win-h: 0.62">
+        <header class="win-head"><h2 class="win-title">Reader</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="page" href="?" aria-label="Open as a page"></a><a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a><a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div data-applet="reader"></div></div>
+      </section>
+      <section class="win active" data-win="editor" style="--win-x: 0.02; --win-y: 0.04; --win-w: 0.52; --win-h: 0.6">
+        <header class="win-head"><h2 class="win-title">Editor</h2>
+          <nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="page" href="?" aria-label="Open as a page"></a><a class="win-btn" data-win-action="minimize" href="?" aria-label="Minimize"></a><a class="win-btn" data-win-action="maximize" href="?" aria-label="Maximize"></a><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div data-applet="editor"></div></div>
+      </section>
+    </div>
+  </main>
+  </div>
+  <!-- The taskbar: the page's sidebar button, the dock of open windows, the
+       tray, then PUDL's minimize all, restore all and close all, which take
+       PUDL's glyphs since they have none of their own. -->
+  <footer class="win-bar">
+    <button class="icon-btn" type="button" id="sidebar-toggle" aria-controls="demo-sidebar" aria-pressed="true" aria-label="Show the sidebar" data-tooltip="Show the sidebar"><span class="glyph" style="--glyph: var(--glyph-panel)" aria-hidden="true"></span></button>
+    <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+    <nav class="status-area" aria-label="Status">
+      <button class="status-item" type="button" aria-label="Notifications, 2 new" data-tooltip="Notifications"><span class="glyph" style="--glyph: var(--glyph-inbox)" aria-hidden="true"></span><span class="badge warn" aria-hidden="true">2</span></button>
+    </nav>
+    <a class="icon-btn" data-win-back href="?" aria-label="Minimize all windows" data-tooltip="Minimize all windows"></a>
+    <a class="icon-btn" data-win-restore href="?" aria-label="Restore all windows" data-tooltip="Restore all windows"></a>
+    <a class="icon-btn" data-win-close-all href="?" aria-label="Close all windows" data-tooltip="Close all windows"></a>
+  </footer>
+  <script>
+    /* Each window's markup is the template it is opened from again after
+       it is closed, by the Go menu or a pin. */
+    document.querySelectorAll('.win[data-win]').forEach(function (win) {
+      var template = document.createElement('template');
+      template.id = 'tpl-' + win.dataset.win;
+      template.content.appendChild(win.cloneNode(true));
+      document.body.appendChild(template);
+    });
+    /* The site's View menu puts the taskbar above the window area or below
+       it. */
+    ['bottom', 'top'].forEach(function (edge) {
+      document.getElementById('bar-' + edge).addEventListener('click', function () {
+        var bar = document.querySelector('.win-bar'), work = document.querySelector('.demo-work');
+        ['bottom', 'top'].forEach(function (x) { document.getElementById('bar-' + x).setAttribute('aria-checked', x === edge ? 'true' : 'false'); });
+        if (edge === 'top') { bar.setAttribute('data-win-bar-edge', 'top'); work.before(bar); }
+        else { bar.removeAttribute('data-win-bar-edge'); work.after(bar); }
+      });
+    });
+    /* The taskbar's sidebar button, the page's own. */
+    document.getElementById('sidebar-toggle').addEventListener('click', function () {
+      var on = this.getAttribute('aria-pressed') !== 'true';
+      this.setAttribute('aria-pressed', on ? 'true' : 'false');
+      document.getElementById('demo-sidebar').hidden = !on;
+    });
+    /* The segmented control beside the menu bar: the page's own, and it
+       keeps its place whether the menus are folded or unfolded. */
+    document.getElementById('sidebar-seg').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (b) this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+    /* The site's View menu sets the theme. */
+    ['light', 'dark', 'system'].forEach(function (t) {
+      document.getElementById('theme-' + t).addEventListener('click', function () {
+        ['light', 'dark', 'system'].forEach(function (x) { document.getElementById('theme-' + x).setAttribute('aria-checked', x === t ? 'true' : 'false'); });
+        if (t === 'system') document.documentElement.removeAttribute('data-theme');
+        else document.documentElement.setAttribute('data-theme', t);
+      });
+    });
+  </script>
+</body>
+</html>

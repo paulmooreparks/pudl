@@ -1709,6 +1709,16 @@
     return st.open.some(function (k) { return !parentOf(st, k) && st.min[k]; });
   }
 
+  /* Closes every top-level window the reader may close, with its children;
+     a required window stays (preview). */
+  function closable(st) {
+    return st.open.filter(function (k) { return !parentOf(st, k) && !requiredWindow(k); });
+  }
+  function allClosed(st) {
+    closable(st).forEach(function (k) { st = closed(st, k); });
+    return st;
+  }
+
   function maximizeToggled(st, key) {
     if (restricted(key) || dockOnly(key)) return copy(st);
     st = raised(st, key);
@@ -2103,9 +2113,10 @@
      so it does not turn the pane over by itself.
 
      A link marked data-win-back minimises every window, which also
-     returns to the list, and one marked data-win-restore brings them all
-     back. Each is a real link to the state it produces, and is marked
-     aria-disabled while it would change nothing. */
+     returns to the list, one marked data-win-restore brings them all
+     back, and one marked data-win-close-all closes every window the reader
+     may close (preview). Each is a real link to the state it produces, and
+     is marked aria-disabled while it would change nothing. */
   function syncPane() {
     /* A layout whose detail pane holds a record of its own, with windows
        floating over it, leaves the pane to the server: its layer carries
@@ -2117,6 +2128,7 @@
     }
     linkAll('a[data-win-back]', urlFor(allMinimized(state)), anyShowing(state));
     linkAll('a[data-win-restore]', urlFor(allRestored(state)), anyMinimized(state));
+    linkAll('a[data-win-close-all]', urlFor(allClosed(state)), closable(state).length > 0);
   }
 
   function linkAll(selector, href, useful) {
@@ -3407,6 +3419,35 @@
     return e.button === 0 && !e.defaultPrevented && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
   }
 
+  /* The taskbar's edges (preview): a press in a .win-bar's padding, or in
+     a gap between its controls, goes to the control nearest it along the
+     bar, so a pointer thrown against the screen's edge still lands on a
+     button. A right-click goes there only when that control is a window's
+     button, whose menu it opens; elsewhere it opens the bar's own menu. */
+  function barControl(bar, x) {
+    var best = null, dist = Infinity;
+    bar.querySelectorAll('a[href], button').forEach(function (c) {
+      if (!c.getClientRects().length || c.closest('[popover]')) return;
+      var r = c.getBoundingClientRect();
+      var d = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+      if (d < dist) { dist = d; best = c; }
+    });
+    return dist <= 16 ? best : null;
+  }
+
+  function onBarEdge(e) {
+    var bar = e.target.closest && e.target.closest('.win-bar');
+    if (!bar || e.target.closest('a[href], button, input, select, textarea, [popover]')) return;
+    var c = barControl(bar, e.clientX);
+    if (!c || (e.type === 'contextmenu' && !c.hasAttribute('data-win-tab'))) return;
+    e.preventDefault();
+    /* Immediate, so a second layer's copy of this listener does not press
+       the control again. */
+    e.stopImmediatePropagation();
+    if (e.type === 'click') { c.click(); return; }
+    c.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, button: 2, buttons: 2 }));
+  }
+
   function onClick(e) {
     /* On a layer marked data-win-beside-modifier, Ctrl or Cmd with a click
        on a link that would replace its window opens beside it instead. A
@@ -3452,6 +3493,15 @@
     if (restore) {
       e.preventDefault();
       if (restore.getAttribute('aria-disabled') !== 'true') restoreAll();
+      return;
+    }
+
+    /* Each window is closed as its own Close would close it, so one that
+       refuses, an editor with unsaved changes say, stays open. */
+    var closeAll = e.target.closest('a[data-win-close-all]');
+    if (closeAll) {
+      e.preventDefault();
+      if (closeAll.getAttribute('aria-disabled') !== 'true') closable(state).forEach(function (k) { if (state.open.indexOf(k) >= 0) close(k); });
       return;
     }
 
@@ -3579,11 +3629,62 @@
       if (head && layer.contains(head)) onHeadKey(e, head.closest('.win').getAttribute('data-win'));
     });
     document.addEventListener('keydown', onEscape);
+    document.addEventListener('click', onBarEdge, true);
+    document.addEventListener('contextmenu', onBarEdge, true);
     window.addEventListener('keydown', onSwitchKeyDown, true);
     window.addEventListener('keyup', onSwitchKeyUp, true);
     window.addEventListener('blur', function () { switchEnd(); });
     window.addEventListener('pointerdown', function (e) { if (picking && !(switchPanel && switchPanel.contains(e.target))) switchEnd(); }, true);
     window.addEventListener('popstate', function () { sync(false); });
+
+    /* A dock tab's right-click menu (0.79.0) is its window's menu: the
+       window's own commands, then Snap and Dock, then what its content
+       adds, then Close, the tab marked while it is open. An application
+       answers for the tab itself by adding rows nearer the tab, or by
+       calling preventDefault() on pudl:contextmenu; data-win-tab-menu="off"
+       on the layer or the dock turns it off. */
+    document.addEventListener('pudl:contextmenu', function (e) {
+      if (e.defaultPrevented || !e.detail || (e.detail.count && e.detail.count())) return;
+      var tab = e.target && e.target.closest && e.target.closest('[data-win-tab]');
+      if (!tab || tab.closest('[data-win-tab-menu="off"]') || layer.getAttribute('data-win-tab-menu') === 'off') return;
+      var key = tab.getAttribute('data-win-tab');
+      if (!wins[key]) return;
+      var all = menuCommands(key);
+      var own = all.filter(function (c) { return !c.items && c.id !== 'close'; });
+      var lists = all.filter(function (c) { return c.items; });
+      var close = all.filter(function (c) { return c.id === 'close'; });
+      var content = contentCommands(wins[key], key);
+      var rows = [];
+      [own, lists, content, close].forEach(function (part) {
+        if (!part.length) return;
+        if (rows.length) rows.push('-');
+        rows = rows.concat(part);
+      });
+      if (!rows.length) return;
+      e.detail.add(rows);
+      if (e.detail.mark) e.detail.mark(tab);
+      if (e.detail.anchor) e.detail.anchor(tab);
+    });
+
+    /* The taskbar's own right-click menu (preview), anywhere in a .win-bar
+       but its dock's tabs: minimize all, restore all and close all, each
+       disabled while it would change nothing. An application answers for
+       its own controls by adding rows nearer them, or turns the menu off
+       with data-win-bar-menu="off" on the bar. */
+    document.addEventListener('pudl:contextmenu', function (e) {
+      if (e.defaultPrevented || !e.detail || (e.detail.count && e.detail.count())) return;
+      var bar = e.target && e.target.closest && e.target.closest('.win-bar');
+      if (!bar || bar.getAttribute('data-win-bar-menu') === 'off' || e.target.closest('[data-win-tab]')) return;
+      if (!bar.querySelector('[data-win-dock]')) return;
+      e.detail.add([
+        { label: text('minimize-all', 'Minimize all'), glyph: 'minimize-all', disabled: !anyShowing(state), run: function () { commit(allMinimized(state), false); } },
+        { label: text('restore-all', 'Restore all'), glyph: 'restore-all', disabled: !anyMinimized(state), run: restoreAll },
+        '-',
+        { label: text('close-all', 'Close all windows'), danger: true, disabled: !closable(state).length, run: function () {
+          closable(state).forEach(function (k) { if (state.open.indexOf(k) >= 0) close(k); });
+        } }
+      ]);
+    });
 
     /* The window menu is built as it opens. beforetoggle does not bubble,
        so it is caught on the way down. */
@@ -3682,6 +3783,9 @@
       },
       minimizeAll: function () { commit(allMinimized(state), false); },
       restoreAll: restoreAll,
+      /* Closes every window the reader may close, each as a script's close
+         would, so one that refuses stays (preview). */
+      closeAll: function () { closable(state).forEach(function (k) { if (state.open.indexOf(k) >= 0) close(k, 'script'); }); },
       close: function (key) { if (wins[key]) close(key, 'script'); },
       menuCommands: menuCommands,
       shareURL: shareURL,

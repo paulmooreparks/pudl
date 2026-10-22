@@ -353,7 +353,7 @@
       var g = ctl.querySelector && ctl.querySelector(':scope > .glyph, :scope > .menubar-icon');
       if (g) r.appendChild(g.cloneNode(true));
     }
-    if (ctl.classList && ctl.classList.contains('danger')) r.classList.add('danger');
+    if (ctl.classList && (ctl.classList.contains('danger') || ctl.classList.contains('btn-danger') || ctl.getAttribute('data-tone') === 'danger')) r.classList.add('danger');
     var w = el('span', 'menu-words');
     var words = ctl.querySelector && ctl.querySelector('.menubar-words, .toolbar-words');
     w.textContent = ctl.getAttribute('aria-label') || (ctl.labels && ctl.labels[0] && ctl.labels[0].textContent.trim()) || (words ? words.textContent : ctl.textContent).trim();
@@ -631,11 +631,58 @@
     if (!bar.__fold || !bar.isConnected) return;
     var w = bar.clientWidth;
     if (!force && !bar.__dirty && w === bar.__fitWidth) return;
+    var changed = bar.__dirty || force;
     bar.__dirty = false;
     bar.__fitWidth = w;
+    if (changed) least(bar);
     foldTo(bar);
     stop(bar, null, true);
     bar.dispatchEvent(new CustomEvent('pudl:toolbar-fit', { bubbles: true }));
+  }
+
+  /* The widths the toolbar needs unfolded and folded as far as it goes,
+     as --toolbar-most and --toolbar-least on it, so a host laying out
+     several things that fold, such as a topbar, can share its room among
+     them (preview). They are measured when what the toolbar holds
+     changes, not as its width does. */
+  function foldable(f) {
+    return foldOrder(f.groups.filter(function (g) { return !g.hidden && g.getClientRects().length && !g.hasAttribute('data-toolbar-keep'); }));
+  }
+
+  function span(bar) {
+    var lo = Infinity, hi = -Infinity;
+    Array.prototype.forEach.call(bar.children, function (c) {
+      var r = c.getBoundingClientRect();
+      if (!r.width) return;
+      lo = Math.min(lo, r.left); hi = Math.max(hi, r.right);
+    });
+    var cs = getComputedStyle(bar);
+    var w = hi > lo ? hi - lo : 0;
+    return Math.ceil(w + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth));
+  }
+
+  function least(bar) {
+    var f = bar.__fold;
+    if (!f || !bar.isConnected) return;
+    if (bar.querySelector('.menu-panel:popover-open')) return;
+    var was = f.groups.map(function (g) { return g.getAttribute('data-toolbar-stage'); });
+    var more = bar.hasAttribute('data-toolbar-more');
+    var groups = foldable(f);
+    groups.forEach(function (g) { g.setAttribute('data-toolbar-stage', '1'); });
+    bar.removeAttribute('data-toolbar-more');
+    bar.style.setProperty('--toolbar-most', span(bar) + 'px');
+    /* Folded furthest is the narrower of every group as its menu button
+       and every group in More, which may be the wider. */
+    groups.forEach(function (g) { g.setAttribute('data-toolbar-stage', g.getAttribute('data-toolbar-glyph') ? '4' : '3'); });
+    var low = span(bar);
+    if (groups.length > 1) {
+      groups.forEach(function (g) { g.setAttribute('data-toolbar-stage', '5'); });
+      bar.setAttribute('data-toolbar-more', '');
+      low = Math.min(low, span(bar));
+    }
+    bar.style.setProperty('--toolbar-least', low + 'px');
+    f.groups.forEach(function (g, i) { if (was[i] == null) g.removeAttribute('data-toolbar-stage'); else g.setAttribute('data-toolbar-stage', was[i]); });
+    if (more) bar.setAttribute('data-toolbar-more', ''); else bar.removeAttribute('data-toolbar-more');
   }
 
   function foldTo(bar) {
@@ -648,8 +695,11 @@
     /* A group marked data-toolbar-keep, such as one holding a field, stays
        on the row as it is and never folds (0.69.0); the others fold
        around it. */
-    var order = foldOrder(f.groups.filter(function (g) { return !g.hidden && g.getClientRects().length && !g.hasAttribute('data-toolbar-keep'); }));
-    for (var stage = 2; stage <= 5; stage++) {
+    var order = foldable(f);
+    /* A toolbar of one group stops at that group's menu button, since
+       More would only hold the same commands under a vaguer name. */
+    var last = order.length > 1 ? 5 : 4;
+    for (var stage = 2; stage <= last; stage++) {
       for (var i = 0; i < order.length; i++) {
         var g = order[i];
         if (stage === 4 && !g.getAttribute('data-toolbar-glyph')) continue;
@@ -659,6 +709,15 @@
       }
     }
   }
+
+  /* Widths measured before the page's fonts arrived are measured again. */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {
+    document.querySelectorAll('.toolbar[data-toolbar-fold]').forEach(function (bar) {
+      if (!bar.__fold) return;
+      bar.__dirty = true;
+      fit(bar);
+    });
+  });
 
   function enhanceFolds(root) {
     (root || document).querySelectorAll('.toolbar[data-toolbar-fold]').forEach(setupFold);

@@ -39,8 +39,12 @@ function check(name, ok, detail) {
   const shown = await pins.evaluateAll(as => as.map(a => ({ text: a.textContent.trim(), href: a.getAttribute('href'), role: a.getAttribute('role'), icon: !!a.querySelector('img, .glyph') })));
   check('each pin is a link in the bar, with its icon and title', shown.length === 2 && shown[0].text === 'About' && shown[0].href === '#about-page' && shown[1].text === 'Terminal' &&
     shown.every(s => s.role === 'menuitem' && s.icon), JSON.stringify(shown));
-  const glyph = await p.$eval('.menubar-pins > .menubar-glyph', g => getComputedStyle(g, '::before').maskImage || getComputedStyle(g, '::before').webkitMaskImage);
-  check('the group is marked by the pin glyph', /svg/.test(glyph) && glyph.includes('13.5'), glyph.slice(0, 60));
+  const marks = await p.evaluate(() => {
+    const mask = el => { const s = getComputedStyle(el, '::before'); return s.maskImage || s.webkitMaskImage; };
+    const t = document.querySelector('.menubar-pins > .menubar-title .glyph');
+    return { group: mask(document.querySelector('.menubar-pins > .menubar-glyph')), site: mask(document.querySelector('.menubar-row > .menubar-menu > .menubar-glyph')), title: t ? t.style.getPropertyValue('--glyph') : '' };
+  });
+  check('the group has the menu glyph, as every group does, and its Pins title the pin glyph', marks.group === marks.site && marks.title === 'var(--glyph-pin)', JSON.stringify(marks).slice(0, 120));
   check('Items stays hidden while the pins fit', await p.locator('.menubar-pins-more').isHidden());
 
   await pins.first().click();

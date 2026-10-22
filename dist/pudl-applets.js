@@ -600,19 +600,41 @@
       if (!entry.root.isConnected || !inst) continue;
       if (scope && scope !== document && scope !== entry.root && !scope.contains(entry.root)) continue;
       if (outside && entry.root.closest('.win')) continue;
-      var hasMenus = typeof inst.menus === 'function', hasCommands = typeof inst.commands === 'function';
-      if (!hasMenus && !hasCommands) continue;
-      return {
-        name: entry.name, root: entry.root, _instance: inst,
-        menus: hasMenus ? function (inst, name, root) {
-          return function () {
-            try { return resolveMenus(inst.menus(), root); } catch (err) { if (window.console) console.warn('pudl-applets: ' + name + '.menus():', err); return null; }
-          };
-        }(inst, entry.name, entry.root) : null,
-        commands: hasCommands ? function (e) { return function () { return commandsOf(e); }; }(entry) : null
-      };
+      if (entry.root.hasAttribute('data-applet-resident')) continue;
+      var src = menuSource(entry);
+      if (src) return src;
     }
     return null;
+  }
+
+  function menuSource(entry) {
+    var inst = entry.instance;
+    var hasMenus = typeof inst.menus === 'function', hasCommands = typeof inst.commands === 'function';
+    if (!hasMenus && !hasCommands) return null;
+    return {
+      name: entry.name, root: entry.root, _instance: inst,
+      menus: hasMenus ? function (inst, name, root) {
+        return function () {
+          try { return resolveMenus(inst.menus(), root); } catch (err) { if (window.console) console.warn('pudl-applets: ' + name + '.menus():', err); return null; }
+        };
+      }(inst, entry.name, entry.root) : null,
+      commands: hasCommands ? function (e) { return function () { return commandsOf(e); }; }(entry) : null
+    };
+  }
+
+  /* Resident applets (preview): those whose root has data-applet-resident,
+     such as one for the reader's pins, are never the menu bar's front
+     applet; their menus stay in the bar whatever is in front, in document
+     order. */
+  function residentSources() {
+    var out = [];
+    running.forEach(function (entry) {
+      if (!entry.root.isConnected || !entry.instance || !entry.root.hasAttribute('data-applet-resident')) return;
+      var src = menuSource(entry);
+      if (src) out.push(src);
+    });
+    out.sort(function (a, b) { return a.root.compareDocumentPosition(b.root) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1; });
+    return out;
   }
 
   var rows = 0;
@@ -805,7 +827,7 @@
 
   /* Merged into what is there, so pudl-actions.js may load either side. */
   window.pudlApplets = Object.assign(window.pudlApplets || {}, { define: define, register: register, boot: boot, destroy: destroy, request: request, can: can,
-                         commandsIn: commandsIn, menuSourceIn: menuSourceIn, started: started, start: startWindow,
+                         commandsIn: commandsIn, menuSourceIn: menuSourceIn, residentSources: residentSources,started: started, start: startWindow,
                          /* What each define() said, for pudl-actions.js: { name: { actions, handles, page, ver } }. */
                          definitions: function () {
                            var out = {};
