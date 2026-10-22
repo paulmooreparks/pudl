@@ -85,7 +85,7 @@ With the menu script as well:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-menu.js" defer
-        integrity="sha384-AHdTDvyd75uElBYdTl3VL+NbIx9Us/Dmiu7M5As2rR0bm2JGHh1fYXlyqSJvur4X"
+        integrity="sha384-jW5MCyXy5yaFlAunZNBMY6TbPYJPVDtuNUQdWAeqAt4QQF7R8BZeFqPtFy9ocNky"
         crossorigin="anonymous"></script>
 ```
 
@@ -96,7 +96,7 @@ With floating windows as well:
       integrity="sha384-b79zQizPP+csq6zXExgr4/2QRCYvcReWcH7ik2MWWLzYu8AoZacP+VZl1l3mne8j"
       crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-windows.js" defer
-        integrity="sha384-5G7AsOBuwEsWi4px4HFuJ2bd+BMjPM4kCD1JD0UqoV0qK8Lwk1fQQyBPRkFynq5c"
+        integrity="sha384-RUSaNMuQVHzIdk3TbjvjpbByC9WrH2i0foo8rwgIWW0Vq1XuP9d5a1KVWHmHp6/q"
         crossorigin="anonymous"></script>
 ```
 
@@ -112,7 +112,7 @@ With regions as well:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-regions.js" defer
-        integrity="sha384-YwDgzFsofJocJJcSPqBcy81BvcSyYocqwPfUZZzt6xi/Cnlt1sCqydsZA2xxFiKB"
+        integrity="sha384-QdbB0+JE+YVviyx01Vuc/WH+VgEZjQAng+5kJFArhsow6I+xU910/TjBPhthZAPX"
         crossorigin="anonymous"></script>
 ```
 
@@ -120,7 +120,7 @@ With the sidebar divider as well:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-md.js" defer
-        integrity="sha384-ov4rdCwpkCzY1UtgK8B9SxkH/tzD4L2S8NJ+ynOVrddOmebCaVGxKZaOWGv1UwpR"
+        integrity="sha384-+K820KmqZIaxOZxArpH+XAzpaJfDrbDqoz5EjqQaLxouxwcz+K1YzkX7CT7NzOXR"
         crossorigin="anonymous"></script>
 ```
 
@@ -136,7 +136,7 @@ With toasts as well:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-toast.js" defer
-        integrity="sha384-3YskroWjRjmljR/vDioCmbhVskimaKYPtt7xodSL5Jj9N/pF0z7pwoCGGsaLTcNj"
+        integrity="sha384-gnpXtHDYsAjtovbjyHQ5ValIDlRlt3tG05tg2LitfmDWUmigh9e3/H4F+gsxFRlD"
         crossorigin="anonymous"></script>
 ```
 
@@ -167,7 +167,7 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
         integrity="sha384-apx4JcddiGfbbtBSUh64m5AJRxayFbqoA/G95EAkIJ2mVkQ86qW09KktpezmUCnL"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-menubar.js" defer
-        integrity="sha384-ztKfHV9aJ8aTAo9lh8G2uXfrooerton2oK27zfj8abUSL57X6RyLUqUFejx+GDTU"
+        integrity="sha384-ERVTORT8oc5a4io+7dkeEf2RSujtO/U8e6+FyQb2HfBgktV5F70wOeiROKZmwJL1"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.77.1/dist/pudl-disclose.js" defer
         integrity="sha384-DcuzeBBcA6OXHwa9frM4JcMAMdSnx93wnJvYxQG7obBLhTnJp2JggyPAojTQDcA5"
