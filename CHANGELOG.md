@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.1
+
+The front window's button fits a narrow taskbar. Once every other button had gone into "N more", the front window's button, which always stays, could still be wider than what was left of the dock, at a phone's width say, and was cut off at its edge. It now shrinks below its floor to fit, its title cut further with an ellipsis, and carries `data-win-tab-squeeze` while it does. This release implements specification 0.39.1.
+
 ## 0.82.0
 
 What acts on a master-detail list alone can stand at the head of the list's column. A `.md-sidebar-head`, first in `.md-sidebar`, holds the list's filter across its width, a `.md-sidebar-tools` row of filter menus and Clear all that wraps, and the `.md-chips`, which wrap and take no space when there are none. It stays at the top of the sidebar while the list scrolls under it, and goes wherever the sidebar goes: collapsed, resized, peeking, at either side and as a phone's list pane. Its parts are separate elements, so each may be a region of its own and a list swap leaves it alone. A page whose `.md-toolbar` and `.md-chips` rows above the layout held only the list's filter can move them there and drop the rows. This release implements specification 0.39.0.

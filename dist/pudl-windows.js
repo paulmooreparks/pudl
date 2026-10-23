@@ -3510,7 +3510,7 @@
     if (!dock || !bar.getClientRects().length) return;
     var more = bar.querySelector(':scope > .win-bar-more');
     var tabs = Array.prototype.slice.call(dock.querySelectorAll(':scope > [data-win-tab]'));
-    tabs.forEach(function (t) { t.removeAttribute('data-win-tab-over'); });
+    tabs.forEach(function (t) { t.removeAttribute('data-win-tab-over'); t.removeAttribute('data-win-tab-squeeze'); });
     bar.removeAttribute('data-win-bar-compact');
     /* Each button shrinks to 120px, or its own width where that is less,
        so a short title is never padded out. */
@@ -3538,6 +3538,10 @@
     var gone = [];
     var order = tabs.slice().reverse().filter(function (t) { return t.getAttribute('aria-current') !== 'true'; });
     for (var i = 0; i < order.length && over(); i++) { order[i].setAttribute('data-win-tab-over', ''); gone.unshift(order[i]); }
+    /* The front window's button, alone, may still be too wide for what is
+       left; it then shrinks below its floor, its title cut further
+       (0.82.1). */
+    if (over()) tabs.forEach(function (t) { if (!t.hasAttribute('data-win-tab-over')) t.setAttribute('data-win-tab-squeeze', ''); });
     more.__over = gone;
     var words = text('more-windows', '{n} more').replace('{n}', gone.length);
     more.textContent = words;

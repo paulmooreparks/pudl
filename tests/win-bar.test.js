@@ -74,6 +74,14 @@ function check(name, ok, extra) {
   const listed = await p.evaluate(() => [...document.querySelectorAll('.context-menu:popover-open .menu-action')].length);
   check('More lists the windows that left the dock', listed === tighter.over.length, String(listed));
   await p.keyboard.press('Escape');
+  /* At a phone's width the front window's button, alone in the dock, still
+     shrinks to fit it rather than being cut off (0.82.1). */
+  await p.setViewportSize({ width: 390, height: 800 }); await settle();
+  const phone = await p.evaluate(() => {
+    const dock = document.querySelector('.win-bar .win-dock'), shown = [...dock.children].filter(t => !t.hasAttribute('data-win-tab-over'));
+    return { scroll: dock.scrollWidth > dock.clientWidth + 1, shown: shown.length, current: shown.length === 1 && shown[0].getAttribute('aria-current') === 'true' };
+  });
+  check('at a phone\'s width the front window\'s button alone shrinks to fit the dock', !phone.scroll && phone.current, JSON.stringify(phone));
   await p.setViewportSize({ width: 1400, height: 800 }); await settle();
   const wide = await fit();
   check('widening brings everything back', !wide.compact && !wide.over.length && wide.more === null, JSON.stringify(wide));

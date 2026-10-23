@@ -719,6 +719,7 @@
 .win-bar > .win-dock[data-win-dock-measure] > .win-tab { flex: none; min-width: 0; }
 .win-bar > .win-dock > .win-tab > .win-item-title { min-width: 0; }
 .win-bar > .win-dock > [data-win-tab-over] { display: none; }
+.win-bar > .win-dock > .win-tab[data-win-tab-squeeze] { min-width: 0; }
 .win-bar > .win-bar-more { flex: none; }
 .win-bar > .win-bar-more::before { width: 14px; height: 14px; -webkit-mask-image: var(--glyph-more); mask-image: var(--glyph-more); background: currentColor; }
 .win-bar[data-win-bar-compact] > .status-area .status-item > :not(.glyph, .badge, img, svg, .status-picture) { display: none; }
