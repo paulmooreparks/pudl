@@ -166,7 +166,7 @@ function check(name, ok, detail) {
     pudlCommands.register(a, [{ id: 'refresh', label: 'Refresh', run: () => ran.push('a') }]);
     pudlCommands.register(b, [{ id: 'refresh', label: 'Refresh', run: () => ran.push('b') },
                              { id: 'only-b', label: 'Only B', run: () => ran.push('only-b') },
-                             { id: 'shown-key', label: 'Shown Key', shortcut: 'Mod+Alt+J', bind: false, run: () => ran.push('bound!') }]);
+                             { id: 'shown-key', label: 'Shown Key', glyph: 'pin', glyphOnly: true, shortcut: 'Mod+Alt+J', bind: false, run: () => ran.push('bound!') }]);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const shownA = pudlCommands.list(a).find(c => c.id === 'refresh').shown;
     const shownB = pudlCommands.list(b).find(c => c.id === 'refresh').shown;
@@ -180,7 +180,7 @@ function check(name, ok, detail) {
     const sub = pudlCommands.menuRows(['provider'], b)[0].items.map(r => r.label + ':' + r.radio + ':' + r.checked + ':' + (typeof r.run));
     window.__sub = sub;
     b.querySelector('input').focus();
-    return { shownA, shownB, ran, strict, row: { shortcut: row.shortcut, bind: row.bind } };
+    return { shownA, shownB, ran, strict, row: { shortcut: row.shortcut, bind: row.bind, glyphOnly: row.glyphOnly } };
   });
   await p.keyboard.press('Control+Alt+j');
   await p.waitForTimeout(50);
@@ -190,6 +190,7 @@ function check(name, ok, detail) {
   const sub = await p.evaluate(() => window.__sub);
   check('a submenu\'s choice given as command objects becomes radio rows with their state', JSON.stringify(sub) === '["A:provider:false:function","B:provider:true:function"]', JSON.stringify(sub));
   check('bind: false shows the key in a menu row and does not bind it', scoped.row.shortcut === 'Mod+Alt+J' && scoped.row.bind === false && !ranAfterKey.includes('bound!'), JSON.stringify([scoped.row, ranAfterKey]));
+  check('a command marked glyphOnly keeps the mark in its menu row, for the ribbon', scoped.row.glyphOnly === true, JSON.stringify(scoped.row));
 
   /* The reference page's hand-written folding toolbar. */
   await p.goto(ROOT + '/reference.html#toolbar-fold');
@@ -203,6 +204,19 @@ function check(name, ok, detail) {
   });
   check('the reference page\'s toolbar folds to fit', ref.fits && ref.stages.some(s => +s >= 3), JSON.stringify(ref));
   check('a kept group stays on the row, unfolded', ref.find === '1' && ref.field, JSON.stringify(ref));
+
+  /* A page that draws a group's contents again, as a list of pins is drawn
+     again, takes folding's own parts with it; they come back, and the
+     toolbar's least width is still its folded width, not its padding. */
+  const redrawn = await p.evaluate(async () => {
+    const bar = document.querySelector('#ref-fold-box .toolbar'), g = bar.querySelector(':scope > .toolbar-group:not([data-toolbar-keep])');
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-sm';
+    b.innerHTML = '<span class="glyph" style="--glyph: var(--glyph-pin)" aria-hidden="true"></span><span class="toolbar-words">Pinned</span>';
+    await new Promise(r => { bar.addEventListener('pudl:toolbar-fit', r, { once: true }); g.replaceChildren(b); setTimeout(r, 10000); });
+    return { fold: g.lastElementChild.classList.contains('toolbar-fold'), label: g.firstElementChild.classList.contains('toolbar-label'),
+      least: parseFloat(getComputedStyle(bar).getPropertyValue('--toolbar-least')), pad: parseFloat(getComputedStyle(bar).paddingLeft) + parseFloat(getComputedStyle(bar).paddingRight) };
+  });
+  check('a group drawn again gets its caption and fold menu back, and the toolbar its folded width', redrawn.fold && redrawn.label && redrawn.least > redrawn.pad + 20, JSON.stringify(redrawn));
   check('no page errors', errors.length === 0, errors.join(' | '));
 
   await browser.close();

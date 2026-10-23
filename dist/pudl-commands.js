@@ -560,6 +560,8 @@
       if (val(c, 'bind') === false) row.bind = false;
       var glyph = val(c, 'glyph'), key = val(c, 'shortcut'), checked = val(c, 'checked'), choice = val(c, 'choice');
       if (glyph) row.glyph = glyph;
+      /* How the row shows on a ribbon, its glyph alone (0.79.1). */
+      if (val(c, 'glyphOnly')) row.glyphOnly = true;
       if (key) row.shortcut = key;
       if (checked != null) row.checked = !!checked;
       if (choice) row.radio = choice;

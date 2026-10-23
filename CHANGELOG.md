@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.79.1
+
+Two fixes. The specification is unchanged at 0.36.0.
+
+- **A folding toolbar keeps its parts when a page draws a group again.** A page that redraws a group's contents with `replaceChildren` or `innerHTML`, as a list of pins is redrawn, also removed the parts folding adds to the group: its caption and its fold menu. The group then had nothing to fold into, its smallest width came out as the toolbar's padding, and beside a menu bar in the topbar it was squeezed out of sight, More button and all. Folding now puts its parts back, and takes in any group added later, whenever what the toolbar holds changes.
+- **`glyphOnly` reaches the ribbon from a command table.** A command marked `glyphOnly` in an applet's command table kept the mark when the applet's own `menus()` listed it, but lost it when `menus()` listed the command by id, so the ribbon showed its words. `pudlCommands.menuRows` now carries the mark.
+
 ## 0.79.0
 
 Window buttons become glyph buttons, a maximised window keeps its room, and a taskbar button has a right-click menu. Several larger pieces arrive as previews, which a page opts into and whose markup may still change: the taskbar, a menu bar that unfolds into a ribbon, title glyphs and topbar fold order, and resident applets. This release implements specification 0.36.0.
