@@ -707,10 +707,21 @@
    bar at the foot. */
 .win-bar[data-win-bar-edge="top"] { border-top: 0; border-bottom: 1px solid var(--border); padding-block: 6px; }
 .win-bar > * { flex: none; }
-/* The dock scrolls, which would clip the ring a button wears while its
-   menu is open, so it keeps 4px of room around its buttons. */
-.win-bar > .win-dock { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding: 4px; margin: -4px; }
-.win-bar > .win-dock > .win-tab { flex: 0 0 auto; max-width: 250px; }
+/* Short of room the bar gives way in steps, with no scrollbar (0.81.2):
+   the window buttons shrink to 120px, their titles cut short; then the
+   tray shows its items' glyphs and badges alone; then the windows that
+   still do not fit leave the dock for a More button after it, whose menu
+   lists them. The dock keeps 4px of room around its buttons, so the ring
+   a button wears while its menu is open is not clipped. */
+.win-bar > .win-dock { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; overflow: hidden; padding: 4px; margin: -4px; }
+.win-bar > .win-dock > .win-tab { flex: 0 1 auto; min-width: min(120px, var(--win-tab-natural, 120px)); max-width: 250px; }
+/* While the script measures each button's own width, no button shrinks. */
+.win-bar > .win-dock[data-win-dock-measure] > .win-tab { flex: none; min-width: 0; }
+.win-bar > .win-dock > .win-tab > .win-item-title { min-width: 0; }
+.win-bar > .win-dock > [data-win-tab-over] { display: none; }
+.win-bar > .win-bar-more { flex: none; }
+.win-bar > .win-bar-more::before { width: 14px; height: 14px; -webkit-mask-image: var(--glyph-more); mask-image: var(--glyph-more); background: currentColor; }
+.win-bar[data-win-bar-compact] > .status-area .status-item > :not(.glyph, .badge, img, svg, .status-picture) { display: none; }
 .win-bar [hidden] { display: none; }
 .win-bar .icon-btn > .glyph { --glyph-size: 16px; }
 .win-bar .icon-btn > :is(svg, img) { width: 16px; height: 16px; flex: none; object-fit: contain; }
@@ -733,7 +744,7 @@
 }
 @media (max-width: 560px) {
   .win-bar { padding-inline: 6px; gap: 4px; }
-  .win-bar > .win-dock > .win-tab { max-width: 175px; min-height: 40px; }
+  .win-bar > .win-dock > .win-tab { max-width: 175px; min-width: 96px; min-height: 40px; }
   .win-bar > .icon-btn { width: 36px; height: 40px; }
 }
 

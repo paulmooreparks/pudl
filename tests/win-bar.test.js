@@ -44,6 +44,42 @@ function check(name, ok, extra) {
   check('with the taskbar at the top, toasts keep to the foot', atTop.clear === '0px' && atTop.regionBottom > atTop.h - 40, JSON.stringify(atTop));
   await p.evaluate(() => { document.getElementById('bar-bottom').click(); document.querySelector('.toast-region').remove(); });
 
+  /* Short of room, the bar gives way in steps and never scrolls (0.81.2):
+     long titles shrink to 120px first, then the tray shows glyphs alone,
+     then windows go into a More button, the one in front always staying. */
+  const fit = () => p.evaluate(() => {
+    const bar = document.querySelector('.win-bar'), dock = bar.querySelector('.win-dock');
+    const tabs = [...dock.children];
+    return { scroll: dock.scrollWidth > dock.clientWidth + 1, compact: bar.hasAttribute('data-win-bar-compact'),
+      over: tabs.filter(t => t.hasAttribute('data-win-tab-over')).map(t => t.getAttribute('data-win-tab')),
+      widths: tabs.filter(t => !t.hasAttribute('data-win-tab-over')).map(t => Math.round(t.getBoundingClientRect().width)),
+      current: (dock.querySelector('[aria-current="true"]') || {}).getAttribute ? dock.querySelector('[aria-current="true"]').getAttribute('data-win-tab') : null,
+      more: (bar.querySelector('.win-bar-more:not([hidden])') || {}).textContent || null };
+  });
+  const settle = () => p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await p.evaluate(() => { ['notes', 'reader', 'editor'].forEach(k => pudlWindows.retitle(k, 'A rather long window title for ' + k)); });
+  await p.setViewportSize({ width: 1400, height: 800 }); await settle();
+  const roomy = await fit();
+  check('with room, nothing gives way', !roomy.scroll && !roomy.compact && !roomy.over.length && roomy.more === null, JSON.stringify(roomy));
+  await p.setViewportSize({ width: 760, height: 800 }); await settle();
+  const tight = await fit();
+  check('first the window buttons shrink, to no less than 120px, without scrolling', !tight.scroll && tight.widths.every(w => w >= 119) && tight.widths.some(w => w < 250) && !tight.over.length, JSON.stringify(tight));
+  await p.evaluate(() => { for (let i = 2; i <= 6; i++) pudlWindows.open('notes-' + i); });
+  await p.waitForFunction(() => document.querySelectorAll('.win-dock [data-win-tab]').length === 8);
+  await p.setViewportSize({ width: 700, height: 800 }); await settle();
+  const tighter = await fit();
+  check('then the tray shows glyphs alone, and windows go into More, the one in front staying', !tighter.scroll && tighter.compact && tighter.over.length > 0 && !tighter.over.includes(tighter.current) && tighter.more === tighter.over.length + ' more', JSON.stringify(tighter));
+  await p.click('.win-bar-more');
+  await p.waitForSelector('.context-menu:popover-open');
+  const listed = await p.evaluate(() => [...document.querySelectorAll('.context-menu:popover-open .menu-action')].length);
+  check('More lists the windows that left the dock', listed === tighter.over.length, String(listed));
+  await p.keyboard.press('Escape');
+  await p.setViewportSize({ width: 1400, height: 800 }); await settle();
+  const wide = await fit();
+  check('widening brings everything back', !wide.compact && !wide.over.length && wide.more === null, JSON.stringify(wide));
+  await p.evaluate(() => { for (let i = 2; i <= 6; i++) pudlWindows.close('notes-' + i); ['notes', 'reader', 'editor'].forEach(k => pudlWindows.retitle(k, k.charAt(0).toUpperCase() + k.slice(1))); });
+  await p.waitForFunction(() => document.querySelectorAll('.win-dock [data-win-tab]').length === 3);
+
   /* The bar's edges: a press in its bottom padding under a dock button
      brings that window forward; a right-click there opens its menu. The
      press is 2px from the edge, since Firefox's driver drops one on the

@@ -1281,7 +1281,7 @@ A right-click on a window's button in the dock opens the same menu, against the 
 
 ### The taskbar
 
-A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one scrolling line and puts the page's own buttons on either side of it in the order you write them.
+A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one line and puts the page's own buttons on either side of it in the order you write them. Short of room it never scrolls (0.81.2): the window buttons shrink to 120px, then the tray shows its glyphs alone, then the last buttons but the front window's go into a "N more" button whose menu lists them.
 
 ```html
 <footer class="win-bar">

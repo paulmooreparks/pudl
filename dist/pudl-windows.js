@@ -1977,6 +1977,7 @@
     state = st;
     updateLinks();
     renderDocks();
+    fitBarsSoon();
     renderDockGroups();
     renderRows();
     syncPane();
@@ -2282,6 +2283,7 @@
     drawDetail(key);
     labelHead(key);
     renderDocks();
+    fitBarsSoon();
     renderDockGroups();
     renderRows();
   }
@@ -3498,14 +3500,72 @@
     if (root.style.getPropertyValue('--win-bar-clear') !== v) root.style.setProperty('--win-bar-clear', v);
   }
 
+  /* A taskbar short of room (0.81.2): its window buttons shrink by the
+     stylesheet; then its tray shows glyphs and badges alone; then the
+     windows that still do not fit, from the last, leave the dock for a
+     More button after it, whose menu lists them. The button of the window
+     in front always stays. Nothing scrolls. */
+  function fitBar(bar) {
+    var dock = bar.querySelector(':scope > [data-win-dock]');
+    if (!dock || !bar.getClientRects().length) return;
+    var more = bar.querySelector(':scope > .win-bar-more');
+    var tabs = Array.prototype.slice.call(dock.querySelectorAll(':scope > [data-win-tab]'));
+    tabs.forEach(function (t) { t.removeAttribute('data-win-tab-over'); });
+    bar.removeAttribute('data-win-bar-compact');
+    /* Each button shrinks to 120px, or its own width where that is less,
+       so a short title is never padded out. */
+    dock.setAttribute('data-win-dock-measure', '');
+    tabs.forEach(function (t) { t.style.setProperty('--win-tab-natural', Math.ceil(t.getBoundingClientRect().width) + 'px'); });
+    dock.removeAttribute('data-win-dock-measure');
+    if (more) more.hidden = true;
+    var over = function () { return dock.scrollWidth > dock.clientWidth + 1; };
+    if (!over()) return;
+    bar.setAttribute('data-win-bar-compact', '');
+    /* A tray item showing its glyph alone keeps its words as its name. */
+    bar.querySelectorAll(':scope > .status-area .status-item').forEach(function (it) {
+      if (!it.hasAttribute('aria-label') && !it.hasAttribute('title')) it.setAttribute('aria-label', it.textContent.trim());
+    });
+    if (!over()) return;
+    if (!more) {
+      more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'win-tab win-bar-more';
+      more.setAttribute('aria-haspopup', 'menu');
+      more.addEventListener('click', function () { openMore(more); });
+      dock.insertAdjacentElement('afterend', more);
+    }
+    more.hidden = false;
+    var gone = [];
+    var order = tabs.slice().reverse().filter(function (t) { return t.getAttribute('aria-current') !== 'true'; });
+    for (var i = 0; i < order.length && over(); i++) { order[i].setAttribute('data-win-tab-over', ''); gone.unshift(order[i]); }
+    more.__over = gone;
+    var words = text('more-windows', '{n} more').replace('{n}', gone.length);
+    more.textContent = words;
+    more.setAttribute('aria-label', text('more-windows-name', '{n} more windows').replace('{n}', gone.length));
+  }
+
+  function openMore(more) {
+    if (!window.pudlMenu || !window.pudlMenu.openAt) return;
+    var rows = (more.__over || []).map(function (t) {
+      return { label: (t.getAttribute('aria-label') || t.textContent).trim(), run: function () { t.click(); } };
+    });
+    var r = more.getBoundingClientRect();
+    var low = (r.top + r.bottom) / 2 > window.innerHeight / 2;
+    window.pudlMenu.openAt(Math.round(r.left), Math.round(low ? r.top - 4 : r.bottom + 4), rows,
+      { owner: more, 'for': more, edges: { top: Math.round(r.top - 4), bottom: Math.round(r.bottom + 4) } });
+  }
+
+  var barsSoon = null;
+  function fitBarsSoon() { if (barsSoon) barsSoon(); }
   function watchBars() {
     var pending = 0;
-    var soon = function () { if (!pending) pending = requestAnimationFrame(function () { pending = 0; measureBars(); }); };
+    var soon = function () { if (!pending) pending = requestAnimationFrame(function () { pending = 0; measureBars(); document.querySelectorAll('.win-bar').forEach(fitBar); }); };
+    barsSoon = soon;
     var ro = window.ResizeObserver ? new ResizeObserver(soon) : null;
     var mo = new MutationObserver(soon);
     var watch = function () {
       document.querySelectorAll('.win-bar').forEach(function (b) {
-        if (ro) ro.observe(b);
+        if (ro) { ro.observe(b); b.querySelectorAll(':scope > .status-area').forEach(function (s) { ro.observe(s); }); }
         mo.observe(b, { attributes: true, attributeFilter: ['data-win-bar-edge', 'hidden', 'class', 'style'] });
       });
       soon();

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.81.2
+
+A taskbar short of room no longer scrolls. The dock used to scroll sideways, with a scrollbar along the bar's foot, and its window buttons kept their full width while the tray kept its words. The bar now gives way in steps, and runs them back as it widens. First the window buttons shrink, each to 120px or its own width where that is less, their titles cut short. Then the tray's items show their glyphs and badges alone, keeping their words as their names. Then the buttons that still do not fit leave the dock, from the last, for a "N more" button after it, whose menu lists them; the button of the window in front never leaves. The bar carries `data-win-bar-compact` while its tray is short, and a button that has left carries `data-win-tab-over`. The More button's words come from `data-win-text-more-windows` and its name from `data-win-text-more-windows-name` on the layer. This release implements specification 0.38.1.
+
 ## 0.81.1
 
 Two fixes to menus opened against an element. The specification is unchanged at 0.38.0.
