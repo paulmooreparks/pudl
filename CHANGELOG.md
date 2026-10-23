@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.80.1
+
+An applet's toolbars can give way to the ribbon. A toolbar described by `toolbars()` with `ribbon: 'hide'` is drawn with `data-toolbar-ribbon="hide"`, so it hides while the menu bar shows as a ribbon, as a toolbar a page writes itself already could in 0.80.0. A page that hid its applets' toolbars with a rule of its own can drop it. The specification is unchanged at 0.37.0.
+
 ## 0.80.0
 
 The 0.79.0 previews are stable: the taskbar, a menu bar that unfolds into a ribbon, title glyphs, the topbar's fold order and captioned groups. Their markup and calls are unchanged, so a page that adopted them changes nothing; from here on a change to them comes with a migration note. Resident applets stay a preview. This release implements specification 0.37.0.

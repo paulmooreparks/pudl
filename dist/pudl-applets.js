@@ -301,7 +301,7 @@
      registers with the mount as their scope, so its menus, toolbars, keys
      and agents all reach them by id. Its toolbars() describe toolbars of
      those ids:
-       [{ label, groups: [{ label, glyph, priority, end, items: ['bold',
+       [{ label, ribbon, groups: [{ label, glyph, priority, end, items: ['bold',
           { choice: 'view' }, …] }] }]
      drawn into the mount's [data-toolbar-slot] if it has one, or else
      before the mount, folding as room runs out. */
@@ -326,6 +326,9 @@
       bar.setAttribute('role', 'toolbar');
       bar.setAttribute('aria-label', t.label || '');
       bar.setAttribute('data-toolbar-fold', '');
+      /* ribbon: 'hide' gives the toolbar way to the menu bar's ribbon, for
+         one that repeats the ribbon's commands (0.80.1). */
+      if (t.ribbon === 'hide') bar.setAttribute('data-toolbar-ribbon', 'hide');
       (t.groups || []).forEach(function (g) {
         var group = document.createElement('div');
         group.className = 'toolbar-group';

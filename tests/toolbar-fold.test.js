@@ -245,6 +245,29 @@ function check(name, ok, detail) {
   const bareNow = naming.folded.filter(c => c.stage === '2');
   check('a control folded to its glyph alone is named and tipped by its words, keeping a name of its own',
     bareNow.length > 0 && bareNow.every(c => c.tip === c.words && c.name === (c.words === 'Link it' ? 'Own name' : c.words)), JSON.stringify(naming.folded));
+  /* An applet's toolbars() may give a toolbar way to the ribbon (0.80.1). */
+  await p.goto(ROOT + '/samples/commands.html');
+  await p.waitForSelector('.applet-toolbars .toolbar');
+  const ribbonKey = await p.evaluate(async () => {
+    pudlApplets.define('ribbon-key-test', {});
+    pudlApplets.register('ribbon-key-test', { init: function () {
+      return { commandTable: () => [{ id: 'rk-bold', label: 'Bold', glyph: 'bold', run: () => {} }],
+        toolbars: () => [{ label: 'Gives way', ribbon: 'hide', groups: [{ label: 'Text', items: ['rk-bold'] }] }, { label: 'Stays', groups: [{ label: 'Text', items: ['rk-bold'] }] }],
+        destroy: () => {} };
+    } });
+    const m = document.createElement('div');
+    m.setAttribute('data-applet', 'ribbon-key-test');
+    document.body.appendChild(m);
+    pudlApplets.boot(document.body);
+    await new Promise(r => setTimeout(r, 300));
+    const bars = [...document.querySelectorAll('.applet-toolbars .toolbar')].filter(b => /Gives way|Stays/.test(b.getAttribute('aria-label')));
+    document.documentElement.setAttribute('data-menubar-ribbon-on', '');
+    const shown = bars.map(b => b.getAttribute('aria-label') + ':' + (b.getClientRects().length > 0));
+    document.documentElement.removeAttribute('data-menubar-ribbon-on');
+    return shown;
+  });
+  check('a toolbar an applet marks ribbon: \'hide\' gives way while the ribbon shows, and one it does not mark stays', JSON.stringify(ribbonKey) === '["Gives way:false","Stays:true"]', JSON.stringify(ribbonKey));
+
   check('opening out takes back only what folding gave',
     naming.open.every(c => c.stage === '1' && !c.tip && c.name === (c.words === 'Link it' ? 'Own name' : null)), JSON.stringify(naming.open));
   check('no page errors', errors.length === 0, errors.join(' | '));
