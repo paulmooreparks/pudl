@@ -292,7 +292,7 @@
       if (c.glyph) item.glyph = String(c.glyph);
       if (c.detail) item.detail = String(c.detail);
       if (c.reason) item.reason = String(c.reason);
-      /* How the command shows in the bar unfolded into a ribbon (preview):
+      /* How the command shows in the bar unfolded into a ribbon (0.79.0):
          its glyph alone, or not at all. */
       if (c.glyphOnly) item.glyphOnly = true;
       if (c.items) item.items = normal(c.items);
@@ -627,7 +627,7 @@
       b.appendChild(c);
     });
     else {
-      /* A title may have a glyph before its words (preview). */
+      /* A title may have a glyph before its words (0.79.0). */
       if (t.glyph && /^[a-z][a-z0-9-]*$/.test(t.glyph)) {
         var tg = el('span', 'glyph', { 'aria-hidden': 'true' });
         tg.style.setProperty('--glyph', 'var(--glyph-' + t.glyph + ')');
@@ -784,7 +784,7 @@
     /* The bar is measured in the shape it is in, folded or unfolded. Then,
        in order, Show as ribbon gives way to its glyph alone, unless the bar
        keeps its words with data-menubar-ribbon-words; the titles with
-       glyphs give way to their glyphs alone (preview); the pins' buttons
+       glyphs give way to their glyphs alone (0.79.0); the pins' buttons
        give way to Items; and last the bar collapses. A bar sized to its
        content gives way as the content grows, so its room is read again
        after each change. The toggle is measured shown, as the collapsed
@@ -829,13 +829,21 @@
       if (glyphsOnly && !collapsed) t.setAttribute('data-tooltip', t.getAttribute('aria-label'));
       else t.removeAttribute('data-tooltip');
     });
+    /* A front title cut short by its ellipsis shows its whole words as its
+       tooltip (0.80.0). */
+    built.querySelectorAll('.menubar-front > .menubar-title').forEach(function (t) {
+      var w = t.querySelector(':scope > .menubar-words');
+      var cut = !!w && !collapsed && w.getClientRects().length > 0 && w.scrollWidth > w.clientWidth + 1;
+      if (cut && !t.hasAttribute('data-tooltip')) { t.setAttribute('data-tooltip', w.textContent.trim()); t.__pudlCutTip = true; }
+      else if (!cut && t.__pudlCutTip) { t.removeAttribute('data-tooltip'); t.__pudlCutTip = false; }
+    });
     level = collapsed ? 3 : pinsCollapsed ? 2 : glyphsOnly ? 1 : 0;
     built.classList.toggle('menubar-pins-collapsed', pinsCollapsed && !collapsed);
     built.classList.toggle('menubar-collapsed', collapsed);
     if (ribbonToggle) ribbonToggle.hidden = collapsed;
   }
 
-  /* === Folding the topbar (preview) =======================================
+  /* === Folding the topbar (0.79.0) ========================================
      A topbar holding other things that fold beside the bar, a folding
      toolbar such as a command bar, or Show as ribbon, shares its room
      among them in an order: each gives way as far as it goes before the
@@ -1386,7 +1394,7 @@
     }
   }
 
-  /* === Unfolding into a ribbon (preview) ==================================
+  /* === Unfolding into a ribbon (0.79.0) ===================================
      Show as ribbon, a toggle at the far right of the topbar, unfolds every
      menu in the bar at once into a ribbon, and folds them back. Unfolded,
      each title stays where it stands and is a tab: pressing it, or
@@ -1492,6 +1500,10 @@
     if (ribbonToggle) ribbonToggle.hidden = collapsed;
     var on = ribbonActive();
     built.classList.toggle('menubar-ribbon-on', on);
+    /* The page's root says so while the ribbon shows, so a page can style
+       for it, and a toolbar marked data-toolbar-ribbon="hide", such as a
+       window's own that repeats the ribbon's commands, gives way (0.80.0). */
+    if (document.documentElement.hasAttribute('data-menubar-ribbon-on') !== on) document.documentElement.toggleAttribute('data-menubar-ribbon-on', on);
     var top = bar.closest('.topbar');
     if (top) {
       top.classList.toggle('menubar-ribbon-host', on);
@@ -1785,7 +1797,7 @@
        again only when its menus, titles or pins read differently (0.69.3);
        an applet may call it whenever its commands change. */
     refresh: function () { if (bar) render(); },
-    /* Unfold the bar into a ribbon, or fold it back (preview). */
+    /* Unfold the bar into a ribbon, or fold it back (0.79.0). */
     ribbon: function (on) { if (bar && ribbonRow) { if (on == null) return ribbonOn; setRibbon(!!on, true); } return ribbonOn; },
     /* Every key bound in the bar now: its key in PUDL's spelling and as
        shown, the row's label and title, its source and whether disabled. */

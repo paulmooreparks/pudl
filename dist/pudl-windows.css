@@ -683,7 +683,7 @@
   mask-image: var(--glyph-ring);
 }
 
-/* === The taskbar (preview) ===============================================
+/* === The taskbar (0.79.0) ================================================
    A .win-bar runs along the foot of the window area, or along its head
    with data-win-bar-edge="top": the dock of open windows, which takes the
    room left and scrolls when its buttons need more, with the page's own

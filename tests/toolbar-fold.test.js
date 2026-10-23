@@ -46,6 +46,7 @@ function check(name, ok, detail) {
   const back = await width(1200);
   check('widening unfolds them again', JSON.stringify(back.stages) === JSON.stringify(wide.stages), JSON.stringify([back.stages, wide.stages]));
 
+
   /* Every command is in the More menu at the narrowest width. */
   await width(280);
   await p.click('.applet-toolbars .toolbar-more .menu-btn');
@@ -217,6 +218,35 @@ function check(name, ok, detail) {
       least: parseFloat(getComputedStyle(bar).getPropertyValue('--toolbar-least')), pad: parseFloat(getComputedStyle(bar).paddingLeft) + parseFloat(getComputedStyle(bar).paddingRight) };
   });
   check('a group drawn again gets its caption and fold menu back, and the toolbar its folded width', redrawn.fold && redrawn.label && redrawn.least > redrawn.pad + 20, JSON.stringify(redrawn));
+
+  /* A control folded to its glyph alone takes its words as its name and
+     tooltip, keeps a name of its own, and gives back only what folding
+     gave when its group opens out (0.80.0). */
+  const naming = await p.evaluate(async () => {
+    const box = document.createElement('div');
+    box.style.width = '900px';
+    const btn = (g, w, own) => '<button type="button" class="btn btn-sm"' + (own ? ' aria-label="' + own + '"' : '') + '><span class="glyph" style="--glyph: var(--glyph-' + g + ')" aria-hidden="true"></span><span class="toolbar-words">' + w + '</span></button>';
+    box.innerHTML = '<div class="toolbar" role="toolbar" aria-label="Test" data-toolbar-fold>' +
+      '<div class="toolbar-group" data-toolbar-group="One" data-toolbar-glyph="copy">' + btn('copy', 'Copy everything') + btn('link', 'Link it', 'Own name') + '</div>' +
+      '<div class="toolbar-group" data-toolbar-group="Two" data-toolbar-glyph="list">' + btn('list', 'Bulleted list') + btn('table', 'Insert a table') + '</div></div>';
+    document.body.appendChild(box);
+    const bar = box.firstChild;
+    const fitTo = w => new Promise(r => { bar.addEventListener('pudl:toolbar-fit', r, { once: true }); box.style.width = w + 'px'; setTimeout(r, 3000); });
+    const read = () => [...bar.querySelectorAll(':scope > .toolbar-group > button')].map(c => ({ stage: c.parentNode.getAttribute('data-toolbar-stage'), words: c.querySelector('.toolbar-words').textContent, name: c.getAttribute('aria-label'), tip: c.getAttribute('data-tooltip') }));
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const wide = read();
+    let w = 900, folded = read();
+    while (w > 120 && !folded.some(c => c.stage === '2')) { w -= 20; await fitTo(w); folded = read(); }
+    await fitTo(900);
+    const open = read();
+    box.remove();
+    return { wide, folded, open };
+  });
+  const bareNow = naming.folded.filter(c => c.stage === '2');
+  check('a control folded to its glyph alone is named and tipped by its words, keeping a name of its own',
+    bareNow.length > 0 && bareNow.every(c => c.tip === c.words && c.name === (c.words === 'Link it' ? 'Own name' : c.words)), JSON.stringify(naming.folded));
+  check('opening out takes back only what folding gave',
+    naming.open.every(c => c.stage === '1' && !c.tip && c.name === (c.words === 'Link it' ? 'Own name' : null)), JSON.stringify(naming.open));
   check('no page errors', errors.length === 0, errors.join(' | '));
 
   await browser.close();

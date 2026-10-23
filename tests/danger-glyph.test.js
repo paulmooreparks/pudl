@@ -65,6 +65,18 @@ function check(name, ok, detail) {
     await p.emulateMedia({ forcedColors: 'active' });
     const fc = await g('row');
     check('in forced colours the glyph is drawn in the button text colour', fc.content !== 'none' && fc.color !== 'rgba(0, 0, 0, 0)', JSON.stringify(fc));
+    /* A disclosure button's chevron, a mask over its own background, is
+       drawn in the button text colour there too (0.80.0). */
+    const chev = await p.evaluate(() => {
+      const b = document.createElement('button');
+      b.className = 'btn disclosure'; b.type = 'button'; b.setAttribute('aria-expanded', 'false'); b.textContent = 'Note';
+      document.body.appendChild(b);
+      const s = getComputedStyle(b, '::after');
+      const out = { content: s.content, bg: s.backgroundColor, text: getComputedStyle(b).color, adjust: s.forcedColorAdjust };
+      b.remove();
+      return out;
+    });
+    check('in forced colours a disclosure button\'s chevron is drawn in the button text colour', chev.adjust === 'none' && chev.bg === chev.text && chev.bg !== 'rgba(0, 0, 0, 0)', JSON.stringify(chev));
   }
 
   await browser.close();

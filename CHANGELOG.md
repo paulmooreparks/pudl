@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.80.0
+
+The 0.79.0 previews are stable: the taskbar, a menu bar that unfolds into a ribbon, title glyphs, the topbar's fold order and captioned groups. Their markup and calls are unchanged, so a page that adopted them changes nothing; from here on a change to them comes with a migration note. Resident applets stay a preview. This release implements specification 0.37.0.
+
+Fixes:
+
+- **A folded command keeps its name.** A command a folding toolbar shows as its glyph alone, at a group's second stage, had its words hidden and nothing in their place, so a screen reader met an unnamed button and a pointer no tooltip. Its words are now its `aria-label` and its `data-tooltip` while they are hidden. A name the control has of its own, such as a choice's state, is kept, and only what folding gave is taken back when the group opens out. This covers every folding toolbar, the ribbon's row included.
+- **Toasts stand above the taskbar.** Toasts sat 16px from the window's foot, over a taskbar's tray and buttons, where one could swallow a press. `pudl-windows.js` now keeps the room a taskbar along the foot takes as `--win-bar-clear` on the root, and the toast region stands that much higher. A page that raised its toasts itself can drop its rule.
+- **Restoring windows no longer throws when a change races it.** A window the address named was taken out again by a change made meanwhile from the arrangement before, such as one a `pudl:window-open` listener makes, and the restore then threw from `setPlacement`. The restore now puts back the windows it loaded, and a window the arrangement names without an element is fetched again and placed when it arrives.
+- **A press outside the windows lands while a docked window peeks** (issue #25). Pressing a menu bar title while a window peeked from a shared dock's rail hid the peek on the press, and the menu bar, drawn again for the new front window, lost the press before its click. A press outside the window layer now finishes before the peek hides.
+- **A link to a place in the page keeps its address** (issue #24). `pudl-regions.js` rewrote every same-page link under `data-region-link` into a full address, a `#heading` link included, so a page menu's row stopped moving within its window and changed the address. A link whose `href` starts with `#` is now left as written.
+- **A disclosure button's chevron shows in high contrast.** The chevron is a mask over its own background, which forced colours replaced; it now takes `ButtonText`.
+
+New:
+
+- **A token field's values for a script.** `pudlCombo.tokens(input)` gives `values()`, `set(list)`, `add(value)` and `remove(value)`. Each change is checked as a reader's is and redraws the chips, but fires no change event, as setting a native input's value fires none, so two fields kept in step do not echo each other. `pudl:token-check` fires before every value is added, however it comes, with `refuse(message)` and `replace(value)`: a refused value the reader gave stays in the field, marked invalid, with the message under it as a form error until the text changes, and a replaced one is added in its place, repeats found after the replacement. `pudl:token-refused` reports what was refused and whether the reader or a script gave it.
+- **A toolbar can give way to the ribbon.** While the menu bar shows as a ribbon the root carries `data-menubar-ribbon-on`, and a toolbar marked `data-toolbar-ribbon="hide"`, such as a window's own that repeats the ribbon's commands, is hidden.
+- **Long front titles are cut short.** A front menu's title past 12em, or `--menubar-title-max`, ends in an ellipsis rather than widening the bar, with its whole words as its tooltip. A page that capped them itself can drop its rule.
+
 ## 0.79.1
 
 Two fixes. The specification is unchanged at 0.36.0.

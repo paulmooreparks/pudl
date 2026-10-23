@@ -44,7 +44,7 @@ const KNOWN = {};
     'Drop target': 'drop-zone', 'Numbers and time': null,
     'Popover': 'popover', 'Split button': 'split-button', 'Stepper': 'stepper', 'Date and time fields': 'date-field', 'List box': 'list-box', 'Token field': 'token-field',
     'Progress bar': 'progress-bar', 'Meter': 'meter', 'Slider': 'slider', 'Number field': 'number-field', 'Password field': 'password-field', 'Figure': 'figure', 'Avatar': 'avatar',
-    'Toolbar': 'toolbar', 'Folding toolbar': 'toolbar', 'Command bar': 'toolbar', 'Ribbon': 'ribbon', 'Taskbar (preview)': 'taskbar'
+    'Toolbar': 'toolbar', 'Folding toolbar': 'toolbar', 'Command bar': 'toolbar', 'Ribbon': 'ribbon', 'Taskbar': 'taskbar'
   };
   const unlisted = rows.filter(r => !(r in covered) || (covered[r] && !ids.includes(covered[r])));
   check('every component in the contract is in the list', !unlisted.length, unlisted.join(', '));

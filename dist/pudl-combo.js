@@ -542,20 +542,61 @@
         if (hadFocus && field.disabled && values.length) focusChip(values.length - 1);
         else if (onChip >= 0) { if (values.length) focusChip(Math.min(onChip, values.length - 1)); else if (!field.disabled) field.focus(); }
       }
-      function write() {
+      /* A script's change is the page's own, so it fires no change event,
+         as a script setting a native input's value fires none (0.80.0). */
+      function write(quiet) {
         keeper.value = values.join(joiner);
-        fire(keeper);
+        if (!quiet) fire(keeper);
       }
 
+      /* Before a value is added, however it comes, pudl:token-check on the
+         input may refuse it with a message, or replace it with another,
+         such as a link cleaned down to its domain (0.80.0). */
+      function check(v) {
+        var out = { value: v, refused: false, message: '' };
+        keeper.dispatchEvent(new CustomEvent('pudl:token-check', { bubbles: true, detail: {
+          value: v,
+          refuse: function (message) { out.refused = true; out.message = String(message || ''); },
+          replace: function (w) { if (w != null && String(w).trim()) out.value = String(w).trim(); }
+        } }));
+        return out;
+      }
+
+      /* The message of a refused value, under the field as a form error
+         tied to it, until the reader changes what is typed. */
+      var error = null;
+      function showError(message) {
+        if (!error) {
+          error = document.createElement('p');
+          error.className = 'form-error';
+          error.id = id + '-error';
+          error.hidden = true;
+          /* After the chips and the note, so the chips still follow the
+             field directly. */
+          status.parentNode.insertBefore(error, status.nextSibling);
+        }
+        error.textContent = message;
+        error.hidden = !message;
+        field.toggleAttribute('aria-invalid', !!message);
+        var ids = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(function (x) { return x && x !== error.id; });
+        if (message) ids.unshift(error.id);
+        if (ids.length) field.setAttribute('aria-describedby', ids.join(' ')); else field.removeAttribute('aria-describedby');
+      }
+      field.addEventListener('input', function () { if (error && !error.hidden) showError(''); });
+
       /* Adds each text as a value, looked up by its keys unless it is
-         already a value, and fires once for them all. */
-      function commit(texts, resolved) {
-        var added = [], again = null;
+         already a value, checked, and fires once for them all. A script's
+         additions are quiet: no change event and nothing said. It answers
+         what was added and what was refused. */
+      function commit(texts, resolved, quiet) {
+        var added = [], again = null, refused = [];
         texts.forEach(function (t) {
           t = String(t).trim();
           if (!t) return;
           var found = resolved ? null : byKey(t);
-          var v = found ? found.value : t;
+          var c = check(found ? found.value : t);
+          if (c.refused) { refused.push({ value: t, message: c.message }); return; }
+          var v = c.value;
           if (has(v)) { again = v; return; }
           if (full()) return;
           if (pulledAt >= 0 && pulledAt <= values.length) values.splice(pulledAt++, 0, v);
@@ -564,14 +605,20 @@
         });
         pulled = null;
         pulledAt = -1;
-        field.value = '';
-        lastQ = '';
+        if (!quiet) {
+          /* What was refused stays in the field to be mended, with why. */
+          field.value = refused.map(function (r) { return r.value; }).join(joiner);
+          lastQ = '';
+          showError(refused.length ? refused[0].message : '');
+        }
         if (added.length) {
           render();
-          write();
-          say('added', '{v} added', added.join(joiner));
+          write(quiet);
+          if (!quiet) say('added', '{v} added', added.join(joiner));
         }
-        if (again) flash(again);
+        if (again && !quiet) flash(again);
+        if (refused.length) keeper.dispatchEvent(new CustomEvent('pudl:token-refused', { bubbles: true, detail: { refused: refused, source: quiet ? 'script' : 'reader' } }));
+        return { added: added, refused: refused };
       }
       function flash(v) {
         var at = -1;
@@ -668,6 +715,32 @@
       values = parse(keeper.value);
       render();
 
+      /* The field's values for a script (0.80.0): each change is checked
+         as a reader's is, redraws the chips and keeps the input's joined
+         value, and fires no change event. */
+      keeper.__pudlTokens = {
+        values: function () { return values.slice(); },
+        set: function (list) {
+          values = [];
+          pulled = null; pulledAt = -1;
+          var r = commit((Array.isArray(list) ? list : []).map(String), false, true);
+          render();
+          write(true);
+          /* Whether nothing was refused; repeats are dropped, not refused. */
+          return r.refused.length === 0;
+        },
+        add: function (v) { return commit([String(v)], false, true).added.length > 0; },
+        remove: function (v) {
+          var at = -1;
+          values.forEach(function (w, i) { if (w.toLowerCase() === String(v).trim().toLowerCase()) at = i; });
+          if (at < 0) return false;
+          values.splice(at, 1);
+          render();
+          write(true);
+          return true;
+        }
+      };
+
       return {
         has: has,
         commit: commit,
@@ -687,8 +760,9 @@
           if (field.value.indexOf(cut) < 0) return;
           var pieces = field.value.split(cut);
           var rest = pieces.pop().replace(/^\s+/, '');
-          commit(pieces);
-          if (!field.disabled) field.value = rest;
+          var r = commit(pieces);
+          /* A refused value stays before what follows it, to be mended. */
+          if (!field.disabled) field.value = r.refused.length ? field.value + joiner + rest : rest;
         }
       };
     }
@@ -798,7 +872,10 @@
 
   window.pudlCombo = {
     enhance: enhance,
-    refresh: function (el) { if (el && el.__pudlComboSync) el.__pudlComboSync(); }
+    refresh: function (el) { if (el && el.__pudlComboSync) el.__pudlComboSync(); },
+    /* A token field's values, given its input (0.80.0): values(), set(list),
+       add(value) and remove(value). Null for anything else. */
+    tokens: function (el) { return (el && el.__pudlTokens) || null; }
   };
   document.addEventListener('pudl:window-open', function (e) { enhance(e.target); });
   document.addEventListener('pudl:regions-swap', function () { enhance(); });

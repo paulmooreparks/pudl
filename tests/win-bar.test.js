@@ -28,6 +28,22 @@ function check(name, ok, extra) {
     /svg/.test(shape.back) && /svg/.test(shape.close) && shape.back !== shape.close);
   check('restore all stays hidden while minimize all is the useful one', !shape.restoreShown);
 
+  /* Toasts stand above a taskbar along the foot, and drop back when it
+     moves to the top (0.80.0). */
+  const toasts = async () => p.evaluate(async () => {
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    let region = document.querySelector('.toast-region');
+    if (!region) { region = document.createElement('div'); region.className = 'toast-region'; region.innerHTML = '<div class="toast">Saved</div>'; document.body.appendChild(region); }
+    const bar = document.querySelector('.win-bar').getBoundingClientRect();
+    return { regionBottom: Math.round(region.getBoundingClientRect().bottom), barTop: Math.round(bar.top), clear: getComputedStyle(document.documentElement).getPropertyValue('--win-bar-clear'), h: innerHeight };
+  });
+  const atFoot = await toasts();
+  check('toasts stand above a taskbar along the foot', atFoot.regionBottom <= atFoot.barTop && parseFloat(atFoot.clear) > 0, JSON.stringify(atFoot));
+  await p.evaluate(() => document.getElementById('bar-top').click());
+  const atTop = await toasts();
+  check('with the taskbar at the top, toasts keep to the foot', atTop.clear === '0px' && atTop.regionBottom > atTop.h - 40, JSON.stringify(atTop));
+  await p.evaluate(() => { document.getElementById('bar-bottom').click(); document.querySelector('.toast-region').remove(); });
+
   /* The bar's edges: a press in its bottom padding under a dock button
      brings that window forward; a right-click there opens its menu. The
      press is 2px from the edge, since Firefox's driver drops one on the

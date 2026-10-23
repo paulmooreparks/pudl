@@ -82,6 +82,21 @@ function check(name, ok, extra) {
   }));
   check('a data-region-link in a window swaps the regions and keeps the window', kept.same && /open=elevation/.test(kept.search), JSON.stringify(kept));
 
+  /* A link to a place in the page keeps its address as written, so a page
+     menu's row moves within the window without changing the address
+     (issue #24, 0.80.0). */
+  const frag = await w.evaluate(async () => {
+    const body = document.querySelector('.win[data-win="elevation"] .win-body');
+    body.setAttribute('data-region-link', '');
+    const a = document.createElement('a');
+    a.href = '#somewhere'; a.textContent = 'Somewhere';
+    body.appendChild(a);
+    pudlWindows.minimize('elevation'); pudlWindows.raise('elevation');
+    await new Promise(r => setTimeout(r, 300));
+    return a.getAttribute('href');
+  });
+  check('a link to a place in the page is not rewritten into a full address', frag === '#somewhere', frag);
+
   check('no errors', errors.length === 0, errors.join(' | '));
   await b.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');

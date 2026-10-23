@@ -233,8 +233,13 @@
     var now = live();
     document.querySelectorAll(LINKS).forEach(function (a) {
       if (a.hasAttribute('data-win-open')) return;
+      /* A link to a place in this page, such as a heading in an article or
+         a row of its page menu, only moves within the page and keeps its
+         address as written (0.80.0). */
+      var raw = a.getAttribute('href') || '';
+      if (raw.charAt(0) === '#') return;
       var url;
-      try { url = new URL(a.getAttribute('href'), location.href); } catch (e) { return; }
+      try { url = new URL(raw, location.href); } catch (e) { return; }
       if (url.origin !== location.origin || url.pathname !== here) return;
       var href = withLiveWindows(url, now);
       if (a.getAttribute('href') !== href) a.setAttribute('href', href);

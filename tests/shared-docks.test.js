@@ -125,6 +125,22 @@ function check(name, ok, detail) {
   check('the flyout button remains depressed', await tab('workspace').evaluate(el => el.hasAttribute('data-dock-peek') && getComputedStyle(el).boxShadow.includes('inset')));
   await page.locator('#workspace-search').fill('Still mounted');
   await page.screenshot({ path: out('shared-docks-rail.png') });
+  /* A press outside the windows, such as on a menu bar's title, finishes
+     before the slideout retracts, so its click lands where it was pressed
+     (0.80.0). */
+  await page.evaluate(() => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = 'Outside'; b.id = 'outside-press';
+    b.style.cssText = 'position: fixed; right: 8px; top: 8px; z-index: 99999';
+    document.body.appendChild(b);
+  });
+  const press = page.evaluate(() => new Promise(resolve => document.getElementById('outside-press').addEventListener('click', () => resolve(!!document.querySelector('.win[data-win="workspace"][data-win-dock-peek]')), { once: true })));
+  await page.click('#outside-press');
+  const peekAtClick = await press;
+  await page.waitForFunction(() => !document.querySelector('.win[data-win="workspace"][data-win-dock-peek]'));
+  check('a press outside the windows lands before the slideout retracts, which it then does', peekAtClick === true);
+  await page.evaluate(() => document.getElementById('outside-press').remove());
+  await tab('workspace').click();
   await page.keyboard.press('Escape');
   check('Escape retracts the slideout and restores its tab focus', !(await win('workspace').isVisible()) && await tab('workspace').evaluate(el => el === document.activeElement));
   check('retracting releases the rail button', !await tab('workspace').evaluate(el => el.hasAttribute('data-dock-peek')));

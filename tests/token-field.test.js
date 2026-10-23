@@ -195,6 +195,51 @@ function check(name, ok, detail) {
   await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
   await p.screenshot({ path: out('token-field-dark.png') });
 
+  /* A script's view of the field, and a check that refuses or rewrites a
+     value (0.80.0). The People field takes domains here. */
+  await p.evaluate(() => {
+    document.getElementById('people').addEventListener('pudl:token-check', e => {
+      const v = e.detail.value.toLowerCase().replace(/^[a-z]+:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
+      if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(v)) e.detail.refuse('Enter a domain, such as example.com');
+      else e.detail.replace(v);
+    });
+    window.refusedHeard = [];
+    document.getElementById('people').addEventListener('pudl:token-refused', e => window.refusedHeard.push(e.detail.source + ':' + e.detail.refused.map(r => r.value).join('/')));
+  });
+  await heard();
+  const api = await p.evaluate(() => {
+    const t = pudlCombo.tokens(document.getElementById('people'));
+    const all = t.set(['https://www.Medium.com/some/post', 'example.org', 'not a domain', 'www.example.org']);
+    const after = t.values();
+    const addBad = t.add('nope');
+    const addGood = t.add('news.ycombinator.com');
+    const removed = t.remove('EXAMPLE.ORG');
+    return { all, after, addBad, addGood, removed, values: t.values(), joined: document.getElementById('people').value, none: pudlCombo.tokens(document.getElementById('form')) };
+  });
+  check('set() checks, rewrites and drops repeats after the rewrite, and says not all were taken', api.all === false && JSON.stringify(api.after) === '["medium.com","example.org"]', JSON.stringify(api));
+  check('add() and remove() answer whether they changed anything, and remove() ignores case', api.addBad === false && api.addGood === true && api.removed === true, JSON.stringify(api));
+  check('the input keeps the joined values', api.joined === 'medium.com; news.ycombinator.com' && JSON.stringify(api.values) === '["medium.com","news.ycombinator.com"]', api.joined);
+  check('anything but a token field has no token calls', api.none === null);
+  check('a script\'s changes fire no change event', (await heard()) === '', 'heard something');
+  check('a script\'s refusals are reported as the script\'s', JSON.stringify(await p.evaluate(() => window.refusedHeard)) === '["script:not a domain","script:nope"]', JSON.stringify(await p.evaluate(() => window.refusedHeard)));
+  check('the chips follow a script\'s changes', (await chips('people')) === 'medium.com|news.ycombinator.com', await chips('people'));
+
+  /* A reader's refused value stays in the field with its message. */
+  await p.click('#people-combo');
+  await p.keyboard.type('not a domain');
+  await p.keyboard.press('Enter');
+  const err = await p.evaluate(() => {
+    const f = document.getElementById('people-combo'), e = document.getElementById(f.getAttribute('aria-describedby').split(' ')[0]);
+    return { typed: f.value, invalid: f.getAttribute('aria-invalid'), msg: e && e.classList.contains('form-error') && !e.hidden ? e.textContent : null };
+  });
+  check('a refused value stays in the field, marked invalid, with its message under it', err.typed === 'not a domain' && err.invalid !== null && err.msg === 'Enter a domain, such as example.com', JSON.stringify(err));
+  await p.keyboard.press('Control+a');
+  await p.keyboard.type('https://www.github.com/x');
+  const cleared = await p.evaluate(() => document.getElementById('people-combo').hasAttribute('aria-invalid'));
+  await p.keyboard.press('Enter');
+  check('typing clears the message, and a rewritten value becomes its chip', !cleared && (await chips('people')) === 'medium.com|news.ycombinator.com|github.com', await chips('people'));
+  check('a reader\'s change still fires change', /change:people/.test(await heard()));
+
   await browser.close();
   console.log(failures ? failures + ' check(s) failed' : 'all checks passed');
   process.exit(failures ? 1 : 0);
