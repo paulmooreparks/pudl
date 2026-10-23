@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.82.0
+
+What acts on a master-detail list alone can stand at the head of the list's column. A `.md-sidebar-head`, first in `.md-sidebar`, holds the list's filter across its width, a `.md-sidebar-tools` row of filter menus and Clear all that wraps, and the `.md-chips`, which wrap and take no space when there are none. It stays at the top of the sidebar while the list scrolls under it, and goes wherever the sidebar goes: collapsed, resized, peeking, at either side and as a phone's list pane. Its parts are separate elements, so each may be a region of its own and a list swap leaves it alone. A page whose `.md-toolbar` and `.md-chips` rows above the layout held only the list's filter can move them there and drop the rows. This release implements specification 0.39.0.
+
 ## 0.81.2
 
 A taskbar short of room no longer scrolls. The dock used to scroll sideways, with a scrollbar along the bar's foot, and its window buttons kept their full width while the tray kept its words. The bar now gives way in steps, and runs them back as it widens. First the window buttons shrink, each to 120px or its own width where that is less, their titles cut short. Then the tray's items show their glyphs and badges alone, keeping their words as their names. Then the buttons that still do not fit leave the dock, from the last, for a "N more" button after it, whose menu lists them; the button of the window in front never leaves. The bar carries `data-win-bar-compact` while its tray is short, and a button that has left carries `data-win-tab-over`. The More button's words come from `data-win-text-more-windows` and its name from `data-win-text-more-windows-name` on the layer. This release implements specification 0.38.1.

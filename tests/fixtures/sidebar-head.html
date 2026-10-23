@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sidebar head</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-md.js" defer></script>
+  <style>.md-layout { height: 100dvh; } .md-list { list-style: none; margin: 0; padding: 0; }</style>
+</head>
+<body>
+  <!-- A test fixture for the sidebar's head (0.82.0): the list's filter,
+       its menus and Clear all, and its chips at the head of a nav sidebar,
+       each part a region of its own, over a list long enough to scroll. -->
+  <main class="md-layout" data-md-persistent data-md-pane="list">
+    <div class="md-body">
+      <nav class="md-sidebar" aria-label="Articles">
+        <div class="md-sidebar-head">
+          <form class="md-filter-group" role="search" data-region="filter" action="#">
+            <input class="md-filter" type="search" name="q" aria-label="Filter the articles" placeholder="Filter">
+            <button class="icon-btn md-filter-go" type="submit" aria-label="Filter"></button>
+          </form>
+          <div class="md-sidebar-tools" data-region="tools">
+            <div class="menu"><button class="btn btn-sm menu-btn" type="button" popovertarget="cat-menu">Categories</button><div class="menu-panel" id="cat-menu" popover><button class="menu-action" type="button">Design</button></div></div>
+            <div class="menu"><button class="btn btn-sm menu-btn" type="button" popovertarget="tag-menu">Tags</button><div class="menu-panel" id="tag-menu" popover><button class="menu-action" type="button">windows</button></div></div>
+            <a class="md-chips-clear" href="#">Clear all</a>
+          </div>
+          <div class="md-chips" data-region="chips"></div>
+        </div>
+        <ul class="md-list" data-region="list"></ul>
+      </nav>
+      <div class="md-resize" aria-label="Articles"></div>
+      <article class="md-detail" tabindex="0" aria-label="Article"><h1>An article</h1></article>
+    </div>
+  </main>
+  <script>
+    var list = document.querySelector('.md-list');
+    for (var i = 1; i <= 60; i++) list.insertAdjacentHTML('beforeend', '<li class="md-row"><a class="md-item" href="#a' + i + '">Article number ' + i + '</a></li>');
+  </script>
+</body>
+</html>

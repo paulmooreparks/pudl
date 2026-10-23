@@ -964,6 +964,21 @@ A master-detail toolbar's filter that applies on submission pairs its input with
 
 Enter applies the filter as well. On a narrow layout the pair takes a row of the toolbar to itself. A filter that narrows as the reader types, such as the one at the top of a launcher, needs no button, because there is nothing to apply.
 
+**At the head of the sidebar** (0.82.0). Where the filter, its menus and its chips act on the list alone, they can stand at the top of the list's own column instead of in rows across the layout, so they take no width over the detail and go wherever the sidebar goes: collapsed, resized, peeking, at either side and as a phone's list pane. The head stays put while the list scrolls under it. Each part may be a region of its own, so a chip swap never replaces the field the reader is typing in, and a list swap leaves the head alone:
+
+```html
+<nav class="md-sidebar" aria-label="Articles">
+  <div class="md-sidebar-head">
+    <form class="md-filter-group" role="search" data-region="filter">…</form>
+    <div class="md-sidebar-tools">…filter menus… <a class="md-chips-clear" href="?">Clear all</a></div>
+    <div class="md-chips" data-region="chips">…</div>
+  </div>
+  <ul class="md-list" data-region="list">…</ul>
+</nav>
+```
+
+The field runs across the head, the tools row and the chips wrap, and the chips take no space when there are none.
+
 ## Resizing the master-detail sidebar
 
 An opt-in [persistent sidebar](docs/PERSISTENT-SIDEBAR.md) keeps its handle available after collapse and at narrow widths. It adds collapse/restore, host-handled pane requests, and click/tap commands while preserving mounted content. See the [article-reader example](samples/persistent-sidebar.html). With `data-md-peek`, resting the pointer on a collapsed sidebar's handle, or focusing it from the keyboard, opens a peek that draws the list over the detail pane without moving it, and closes again when the pointer or focus leaves. With `data-md-side="end"` on any master-detail layout, the sidebar stands at the end edge, mirrored.
