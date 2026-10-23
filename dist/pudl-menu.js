@@ -813,10 +813,138 @@
     ctx.quiet = false;
     if (!ctx.panels.length) return;
     if (e.target.closest && e.target.closest('.context-menu')) return;
+    /* What opened the menu that this press closes, so a press on the
+       control that opened it closes it rather than opening it again. */
+    ctx.closedBy = ctx.owner;
     closeContext(0);
   }, true);
   window.addEventListener('blur', function () { if (ctx.panels.length) closeContext(0); });
   window.addEventListener('resize', function () { if (ctx.panels.length) closeContext(0); });
+
+  /* === A row's actions button (0.81.0) ====================================
+     A button marked data-row-actions, the last thing in a row of a list,
+     a tree or a table, opens the row's context menu: pressing it fires
+     pudl:contextmenu on the row, so the page gives the same rows it gives
+     a right-click, and the menu opens against the button with the row
+     marked. It shows only on the row under the pointer, the selected or
+     current row, a row with focus in it and a row whose menu is open;
+     elsewhere it keeps its place empty, so nothing shifts. The keyboard
+     reaches the same menu with Shift+F10 or the Menu key on the row, so
+     the button is for the pointer: it is no stop in the Tab order and is
+     hidden from assistive technology. Left empty it shows the more
+     glyph. A row is the nearest element holding the button as a child, or
+     a table row holding it in a cell. */
+  function rowOf(el) {
+    for (var n = el; n && n !== document.body; n = n.parentElement) {
+      if (n.querySelector(':scope > [data-row-actions]')) return n;
+      if (n.tagName === 'TR' && n.querySelector(':scope > td > [data-row-actions]')) return n;
+    }
+    return null;
+  }
+
+  function readyButtons(root) {
+    (root || document).querySelectorAll('[data-row-actions]').forEach(function (b) {
+      if (b.__pudlRowActions) return;
+      b.__pudlRowActions = true;
+      b.setAttribute('tabindex', '-1');
+      b.setAttribute('aria-hidden', 'true');
+      if (b.tagName === 'BUTTON' && !b.hasAttribute('type')) b.type = 'button';
+    });
+  }
+  new MutationObserver(function (records) {
+    for (var i = 0; i < records.length; i++) {
+      var added = records[i].addedNodes;
+      for (var k = 0; k < added.length; k++) {
+        var n = added[k];
+        if (n.nodeType === 1 && (n.hasAttribute('data-row-actions') || (n.firstElementChild && n.querySelector('[data-row-actions]')))) { readyButtons(n.parentNode || n); return; }
+      }
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { readyButtons(); });
+  else readyButtons();
+
+  /* The row under a mouse or pen, and the row with focus in it, each
+     marked on the row itself, since a nested row's parent also holds the
+     pointer and the focus. A finger has no hover. */
+  var hot = null, focusRow = null;
+  function setRow(which, row) {
+    var was = which === 'hot' ? hot : focusRow;
+    if (was === row) return;
+    if (was) was.removeAttribute(which === 'hot' ? 'data-row-hot' : 'data-row-focus');
+    if (row) row.setAttribute(which === 'hot' ? 'data-row-hot' : 'data-row-focus', '');
+    if (which === 'hot') hot = row; else focusRow = row;
+  }
+  document.addEventListener('pointerover', function (e) {
+    if (e.pointerType === 'touch') return;
+    setRow('hot', e.target.closest ? rowOf(e.target) : null);
+  });
+  document.documentElement.addEventListener('pointerleave', function () { setRow('hot', null); });
+  document.addEventListener('focusin', function (e) {
+    if (e.target.closest && e.target.closest('.context-menu')) return;
+    setRow('focus', e.target.closest ? rowOf(e.target) : null);
+  });
+
+  function openRowMenu(row, btn) {
+    var asked = ask(row, 0, 0, false);
+    if (!asked.rows.length) return;
+    var at = anchorPoint(btn);
+    openAt(at.x, at.y, asked.rows, { owner: btn, 'for': asked.mark || row });
+  }
+  /* A press on the button opens the menu; a press while its menu is open
+     closes it, as a menu button does: the press's pointerdown has already
+     closed the menu, and says which control had opened it. */
+  document.addEventListener('pointerdown', function (e) {
+    if (!(e.target.closest && e.target.closest('[data-row-actions]'))) ctx.closedBy = null;
+  });
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-row-actions]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (ctx.closedBy === btn) { ctx.closedBy = null; return; }
+    ctx.closedBy = null;
+    var row = rowOf(btn);
+    if (row) openRowMenu(row, btn);
+  });
+
+  /* === A long press (0.81.0) ==============================================
+     Holding a finger still on anything with a context menu for half a
+     second opens it, as a right-click does, since some browsers give a
+     long press no context menu event. Where the browser does give one,
+     the press is answered once. A finger that moves, lifts or scrolls
+     first is not a long press. */
+  var press = null;
+  function endPress() { if (press) { clearTimeout(press.timer); press = null; } }
+  document.addEventListener('pointerdown', function (e) {
+    endPress();
+    if (e.pointerType !== 'touch' || !e.isPrimary || !e.target.closest || e.target.closest('.context-menu, input, textarea, select, [contenteditable="true"]')) return;
+    var target = e.target, x = e.clientX, y = e.clientY;
+    press = { x: x, y: y, timer: setTimeout(function () {
+      press = null;
+      /* The browser's own long-press menu came first and opened it. */
+      if (ctx.panels.length) return;
+      var asked = ask(target, x, y, false);
+      if (!asked.rows.length) return;
+      var at = asked.anchor ? anchorPoint(asked.anchor) : { x: x, y: y };
+      openAt(at.x, at.y, asked.rows, { owner: target, 'for': asked.mark || rowOf(target) });
+      /* The browser's own long-press menu and the click that follows the
+         finger lifting are this press's, and are let go. */
+      ctx.longPress = Date.now();
+    }, 500) };
+  }, true);
+  document.addEventListener('pointermove', function (e) {
+    if (press && (Math.abs(e.clientX - press.x) > 10 || Math.abs(e.clientY - press.y) > 10)) endPress();
+  }, true);
+  ['pointerup', 'pointercancel', 'scroll'].forEach(function (t) { document.addEventListener(t, endPress, true); });
+  document.addEventListener('contextmenu', function (e) {
+    if (ctx.longPress && Date.now() - ctx.longPress < 1500) { e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  document.addEventListener('click', function (e) {
+    if (ctx.longPress && Date.now() - ctx.longPress < 1500 && !(e.target.closest && e.target.closest('.context-menu'))) {
+      ctx.longPress = 0;
+      e.preventDefault(); e.stopImmediatePropagation();
+    }
+  }, true);
 
   window.pudlMenu = {
     refresh: segMenus,

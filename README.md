@@ -807,6 +807,17 @@ tree.addEventListener('pudl:contextmenu', e => {
 });
 ```
 
+**A row's actions button** (0.81.0). A `button` marked `data-row-actions`, the last thing in a row, opens the row's context menu, so a reader with a pointer can see the row has one. Left empty it shows the `more` glyph. Pressing it fires `pudl:contextmenu` on the row, so the menu is the one your handler already gives a right-click; it opens against the button with the row marked, and a second press closes it. It shows only on the row under the pointer, the selected or current row, a row with focus in it and a row whose menu is open, and keeps its place empty on the rest, so a long list is not a column of identical buttons. The keyboard reaches the same menu with Shift+F10 or the Menu key, so PUDL takes the button out of the Tab order and hides it from assistive technology. A row is the nearest element holding the button as a child, or a table row holding it in a cell; in a tree it goes after the node's branch, and stands at the end of the node's own line:
+
+```html
+<li class="md-row"><a class="md-item" href="/files/report">Report</a><button data-row-actions></button></li>
+
+<li><a href="/folders/site" aria-expanded="true">site</a>
+  <ul>…</ul><button data-row-actions></button></li>
+```
+
+**A long press** (0.81.0). On a touch screen, holding a finger still for half a second opens the context menu wherever a right-click would, once, since some browsers give a long press no context menu event.
+
 ## Menus
 
 A menu button opens a panel of choices. The button is raised and carries a caret, so it reads as opening something rather than doing something, and it looks pressed while its panel is open. The panel is lifted like a dialog without a backdrop, because it is not modal. The panel is an HTML popover, so opening, closing on Escape or an outside click, and sitting above every other surface all work without script:

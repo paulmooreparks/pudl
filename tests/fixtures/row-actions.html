@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Row actions</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-tree.js" defer></script>
+  <style>body { margin: 24px; } .list, .tree { width: 320px; margin-bottom: 24px; }</style>
+</head>
+<body>
+  <!-- A test fixture for a row's actions button (0.81.0): a row list and a
+       tree whose rows answer pudl:contextmenu, each with an actions button
+       at its end, and a row with no menu. -->
+  <ul class="list" aria-label="Pinned" style="list-style: none; padding: 0">
+    <li class="md-row" data-name="Alpha"><a class="md-item" href="#alpha">Alpha</a><button data-row-actions></button></li>
+    <li class="md-row" data-name="Beta"><a class="md-item" href="#beta" aria-current="page">Beta</a><button data-row-actions></button></li>
+    <li class="md-row" data-name="Gamma"><a class="md-item" href="#gamma">Gamma</a><button data-row-actions></button></li>
+  </ul>
+  <ul class="tree" aria-label="Folders">
+    <li data-name="site"><a href="#site" aria-expanded="true">site</a>
+      <ul>
+        <li data-name="articles"><a href="#articles">articles</a><button data-row-actions></button></li>
+      </ul><button data-row-actions></button></li>
+  </ul>
+  <p id="log"></p>
+  <script>
+    window.__ran = [];
+    document.addEventListener('pudl:contextmenu', function (e) {
+      var row = e.target.closest && e.target.closest('[data-name]');
+      if (!row) return;
+      var name = row.getAttribute('data-name');
+      e.detail.add([
+        { label: 'Open ' + name, run: function () { window.__ran.push('open ' + name); } },
+        '-',
+        { label: 'Remove ' + name, danger: true, run: function () { window.__ran.push('remove ' + name); } }
+      ]);
+    });
+  </script>
+</body>
+</html>

@@ -180,6 +180,8 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |
 | `data-menu-placement` | a menu panel | `pudl-menu.js` | `beside` places a submenu beside its anchor, using the same visible viewport bounds and overflow cues |
 | `data-menu-for` | the element a context menu acts on | the stylesheet | Set by `pudl-menu.js` to the open menu's id where the page marks the element, and removed when the menu closes; the element keeps its pointed-at look (0.76.0) |
+| `data-row-actions` | a button, the last thing in a row of a list, a tree or a table | `pudl-menu.js`, `pudl.css` | The row's actions button: opens the row's context menu against itself, shows only where the reader is, and is set out of the Tab order and hidden from assistive technology; empty, it shows the `more` glyph (0.81.0) |
+| `data-row-hot`, `data-row-focus` | a row holding a `data-row-actions` button | `pudl.css` | Set by `pudl-menu.js` on the row under a mouse or pen, and on the row with focus in it (0.81.0) |
 | `data-md-pane` | `.md-layout` | the stylesheet, `pudl-windows.js` | Which pane a narrow layout shows |
 | `data-md-side` | `.md-layout` | the stylesheet, `pudl-md.js` | `end` puts the sidebar at the end edge of the writing direction, mirrored; `start`, the default, at the start |
 | `data-md-peek` | a persistent `.md-layout` | `pudl-md.js`, the stylesheet | Let the reader peek at the collapsed sidebar by resting the pointer on, or keyboard-focusing, its handle; PUDL marks an open peek with `data-md-peek-open` and `--md-peek-shift`, which are its own |

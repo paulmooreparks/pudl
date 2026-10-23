@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.81.0
+
+A row can show that it has a menu without a column of buttons down the list, and a long press opens a context menu on every touch screen. This release implements specification 0.38.0.
+
+- **A row's actions button.** A `button` marked `data-row-actions`, the last thing in a row of a list, a tree or a table, opens the row's context menu: it fires `pudl:contextmenu` on the row, so the rows are the ones a right-click gets, and the menu opens against the button with the row marked. A second press closes it. It shows only on the row under the pointer, the selected or current row, a row with focus in it and a row whose menu is open, drawn pressed in while that menu is open, and keeps its place empty elsewhere, so nothing moves. Left empty it shows the new `more` glyph. The keyboard reaches the same menu with Shift+F10 or the Menu key, so PUDL sets the button out of the Tab order and hides it from assistive technology. In a tree it goes after the node's branch, as the node's last child, and stands at the end of the node's own line. A page with a "…" button of its own on every row can move to it and drop its rule.
+- **A long press opens a context menu.** On a touch screen, holding a finger still for half a second opens the context menu wherever a right-click would. Android already gave a context menu event for a long press and iOS Safari did not; now both open one menu, and lifting the finger afterwards follows nothing.
+- **Glyphs.** `more`.
+
 ## 0.80.1
 
 An applet's toolbars can give way to the ribbon. A toolbar described by `toolbars()` with `ribbon: 'hide'` is drawn with `data-toolbar-ribbon="hide"`, so it hides while the menu bar shows as a ribbon, as a toolbar a page writes itself already could in 0.80.0. A page that hid its applets' toolbars with a rule of its own can drop it. The specification is unchanged at 0.37.0.
