@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.81.1
+
+Two fixes to menus opened against an element. The specification is unchanged at 0.38.0.
+
+- **A row's actions button works in a table.** The button in a table row's cell never showed, because the stylesheet only looked for it directly in the row, and the cell holding it was taken for the row, so its menu was asked of the cell and the cell was marked. The row is now the `tr`, the button shows as the pointer moves over any of the row's cells, and the row is marked while its menu is open.
+- **A menu opened against a low element no longer covers it.** A menu opened against an element in the lower half of the window, such as a row's actions button or anything a `pudl:contextmenu` handler passed to `detail.anchor()`, was placed from the element's top edge but could then open downward from there, over the element, when there was room below; a second press on a row's actions button then landed on the menu. The menu now knows both of the element's edges and opens below it or above it, whichever has the room.
+
 ## 0.81.0
 
 A row can show that it has a menu without a column of buttons down the list, and a long press opens a context menu on every touch screen. This release implements specification 0.38.0.

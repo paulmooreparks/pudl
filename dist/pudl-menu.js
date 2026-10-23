@@ -185,14 +185,18 @@
     panel.classList.remove('menu-overflow');
     panel.style.maxHeight = 'none';
     var natural = Math.ceil(panel.getBoundingClientRect().height);
-    var below = Math.max(0, v.bottom - at.y - EDGE), above = Math.max(0, at.y - v.top - EDGE);
+    /* A menu opened against an element knows both its edges, and opens
+       below the element or above it, never over it (0.81.1); one opened
+       at a point opens below the point or above it. */
+    var downAt = at.bottom != null ? at.bottom : at.y, upAt = at.top != null ? at.top : at.y;
+    var below = Math.max(0, v.bottom - downAt - EDGE), above = Math.max(0, upAt - v.top - EDGE);
     var down = below >= natural || below >= above;
     fitHeight(panel, down ? below : above, natural);
     var w = panel.offsetWidth;
     var rtl = getComputedStyle(document.documentElement).direction === 'rtl';
     var left = rtl ? at.x - w : at.x;
     panel.style.left = Math.max(v.left + EDGE, Math.min(left, v.right - w - EDGE)) + 'px';
-    panel.style.top = (down ? at.y : Math.max(v.top + EDGE, at.y - panel.offsetHeight)) + 'px';
+    panel.style.top = (down ? downAt : Math.max(v.top + EDGE, upAt - panel.offsetHeight)) + 'px';
     panel.scrollTop = scroll;
     cues(panel);
   }
@@ -721,7 +725,11 @@
     rows = rowsFrom(rows, opts.owner);
     if (!rows.some(function (r) { return r && r !== '-' && typeof r.label === 'string'; })) return null;
     ctx.owner = opts.owner || document.activeElement;
-    var panel = buildContext(rows, { x: x, y: y }, opts.label, 0, null);
+    var point = { x: x, y: y };
+    /* opts.edges, the top and bottom edges of an element the menu opens
+       against, as anchorPoint gives them (0.81.1). */
+    if (opts.edges && opts.edges.top != null) { point.top = opts.edges.top; point.bottom = opts.edges.bottom; }
+    var panel = buildContext(rows, point, opts.label, 0, null);
     var mark = opts['for'];
     if (mark && mark.nodeType === 1) {
       mark.setAttribute('data-menu-for', panel.id);
@@ -764,7 +772,9 @@
     var r = el.getBoundingClientRect();
     var rtl = getComputedStyle(el).direction === 'rtl';
     var low = (r.top + r.bottom) / 2 > viewport().bottom / 2;
-    return { x: Math.round(rtl ? r.right : r.left), y: Math.round(low ? r.top - 4 : r.bottom + 4) };
+    /* Both edges go with the point, so the menu opens below the element
+       or above it, never over it, whichever has the room (0.81.1). */
+    return { x: Math.round(rtl ? r.right : r.left), y: Math.round(low ? r.top - 4 : r.bottom + 4), top: Math.round(r.top - 4), bottom: Math.round(r.bottom + 4) };
   }
 
   function keyboardPoint(el) {
@@ -791,7 +801,7 @@
     if (!asked.rows.length) return;
     e.preventDefault();
     var at = asked.anchor ? anchorPoint(asked.anchor) : { x: e.clientX, y: e.clientY };
-    openAt(at.x, at.y, asked.rows, { owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
+    openAt(at.x, at.y, asked.rows, { edges: at, owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
   });
 
   document.addEventListener('keydown', function (e) {
@@ -806,7 +816,7 @@
     if (!asked.rows.length) return;
     e.preventDefault();
     if (asked.anchor) at = anchorPoint(asked.anchor);
-    openAt(at.x, at.y, asked.rows, { owner: target, 'for': asked.mark });
+    openAt(at.x, at.y, asked.rows, { edges: at, owner: target, 'for': asked.mark });
   });
 
   document.addEventListener('pointerdown', function (e) {
@@ -836,8 +846,10 @@
      a table row holding it in a cell. */
   function rowOf(el) {
     for (var n = el; n && n !== document.body; n = n.parentElement) {
+      /* A cell holding the button belongs to its table row (0.81.1). */
+      if (n.tagName === 'TD' || n.tagName === 'TH') continue;
       if (n.querySelector(':scope > [data-row-actions]')) return n;
-      if (n.tagName === 'TR' && n.querySelector(':scope > td > [data-row-actions]')) return n;
+      if (n.tagName === 'TR' && n.querySelector(':scope > :is(td, th) > [data-row-actions]')) return n;
     }
     return null;
   }
@@ -888,7 +900,7 @@
     var asked = ask(row, 0, 0, false);
     if (!asked.rows.length) return;
     var at = anchorPoint(btn);
-    openAt(at.x, at.y, asked.rows, { owner: btn, 'for': asked.mark || row });
+    openAt(at.x, at.y, asked.rows, { edges: at, owner: btn, 'for': asked.mark || row });
   }
   /* A press on the button opens the menu; a press while its menu is open
      closes it, as a menu button does: the press's pointerdown has already
@@ -926,7 +938,7 @@
       var asked = ask(target, x, y, false);
       if (!asked.rows.length) return;
       var at = asked.anchor ? anchorPoint(asked.anchor) : { x: x, y: y };
-      openAt(at.x, at.y, asked.rows, { owner: target, 'for': asked.mark || rowOf(target) });
+      openAt(at.x, at.y, asked.rows, { edges: at, owner: target, 'for': asked.mark || rowOf(target) });
       /* The browser's own long-press menu and the click that follows the
          finger lifting are this press's, and are let go. */
       ctx.longPress = Date.now();

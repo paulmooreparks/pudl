@@ -23,7 +23,7 @@ function check(name, ok, extra) {
     return row.getAttribute('data-name') + ':' + (getComputedStyle(btn).visibility === 'visible' ? 'shown' : 'hidden');
   }).join(' '));
   const at = await shown();
-  check('at rest only the current row shows its button', at === 'Alpha:hidden Beta:shown Gamma:hidden articles:hidden site:hidden', at);
+  check('at rest only the current row shows its button', at === 'Alpha:hidden Beta:shown Gamma:hidden articles:hidden site:hidden One:hidden Two:hidden', at);
   const kept = await p.evaluate(() => { const r = document.querySelector('[data-name="Alpha"] [data-row-actions]').getBoundingClientRect(); return r.width === 24 && r.height === 24; });
   check('a hidden button keeps its place', kept);
   const a11y = await p.evaluate(() => [...document.querySelectorAll('[data-row-actions]')].every(btn => btn.getAttribute('tabindex') === '-1' && btn.getAttribute('aria-hidden') === 'true' && btn.type === 'button'));
@@ -63,6 +63,36 @@ function check(name, ok, extra) {
     return Math.abs((a.top + a.bottom) / 2 - (btn.top + btn.bottom) / 2) < 3 && btn.left > a.left;
   });
   check('a tree node\'s button stands at the end of its own line, after its branch in the markup', treeShape);
+
+  /* In a table the row is the tr, not the cell holding the button
+     (0.81.1). */
+  await p.hover('[data-name="Two"] td:first-child');
+  check('in a table, pointing at any cell of a row shows its button', /Two:shown/.test(await shown()) && /One:hidden/.test(await shown()), await shown());
+  await p.click('[data-name="Two"] [data-row-actions]');
+  await p.waitForSelector('.context-menu:popover-open');
+  const table = await p.evaluate(() => ({ rows: [...document.querySelector('.context-menu:popover-open').querySelectorAll('.menu-action')].map(r => r.textContent.trim()),
+    marked: document.querySelector('[data-menu-for]').tagName, pressed: getComputedStyle(document.querySelector('[data-name="Two"] [data-row-actions]')).boxShadow.includes('inset') }));
+  check('in a table, the button opens the row\'s menu, marks the row and is drawn pressed in', JSON.stringify(table.rows) === '["Open Two","Remove Two"]' && table.marked === 'TR' && table.pressed, JSON.stringify(table));
+  await p.keyboard.press('Escape');
+
+  /* A button in the lower half of the window, with room below it all the
+     same, has its menu below it or above it, never over it, so a second
+     press lands on the button and closes the menu (0.81.1). */
+  await p.setViewportSize({ width: 900, height: 1000 });
+  await p.evaluate(() => { document.body.style.paddingTop = '560px'; });
+  await p.hover('[data-name="Gamma"] .md-item');
+  await p.click('[data-name="Gamma"] [data-row-actions]');
+  await p.waitForSelector('.context-menu:popover-open');
+  const low = await p.evaluate(() => {
+    const m = document.querySelector('.context-menu:popover-open').getBoundingClientRect(), b = document.querySelector('[data-name="Gamma"] [data-row-actions]').getBoundingClientRect();
+    return { clear: m.top >= b.bottom || m.bottom <= b.top, menu: [Math.round(m.top), Math.round(m.bottom)], button: [Math.round(b.top), Math.round(b.bottom)], half: innerHeight / 2 };
+  });
+  check('a low button\'s menu opens clear of the button', low.clear && low.button[0] > low.half, JSON.stringify(low));
+  await p.click('[data-name="Gamma"] [data-row-actions]');
+  await p.waitForTimeout(200);
+  check('and a second press on it closes the menu', !(await p.evaluate(() => !!document.querySelector('.context-menu:popover-open'))));
+  await p.evaluate(() => { document.body.style.paddingTop = ''; });
+  await p.setViewportSize({ width: 900, height: 700 });
 
   /* A long press opens a context menu where nothing else gives one. */
   if (b.browserType().name() === 'chromium') {

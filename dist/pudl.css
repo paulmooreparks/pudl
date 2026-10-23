@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.81.0.
+   Version 0.81.1.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -871,8 +871,10 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 [data-row-actions]:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 [data-row-actions]:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 :is([data-row-hot], [data-row-focus], [data-menu-for], [aria-selected="true"], [aria-current]:not([aria-current="false"]),
-    :has(> [aria-selected="true"], > [aria-current]:not([aria-current="false"]))) > :is([data-row-actions], td > [data-row-actions]) { visibility: visible; }
-[data-menu-for] > :is([data-row-actions], td > [data-row-actions]) { color: var(--text); background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
+    :has(> [aria-selected="true"], > [aria-current]:not([aria-current="false"]))) > [data-row-actions],
+tr:is([data-row-hot], [data-row-focus], [data-menu-for], [aria-selected="true"], [aria-current]:not([aria-current="false"])) > :is(td, th) > [data-row-actions] { visibility: visible; }
+[data-menu-for] > [data-row-actions],
+tr[data-menu-for] > :is(td, th) > [data-row-actions] { color: var(--text); background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 @media (forced-colors: active) {
   [data-row-actions] { border-color: ButtonText; }
   [data-row-actions]:empty::before { forced-color-adjust: none; background: ButtonText; }
