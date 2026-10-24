@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.83.0
+
+Shared docks can opt into split panes with `data-win-dock-splits`. Each pane has independent tabs and selection, and all four edges support additional panes along their long axis while minimum sizes permit. Placement is available through window menus, title-bar dragging and tab dragging, with a preview before dropping. Dividers support pointer and keyboard resizing, cancellation and history. Equalize panes, Swap with next pane and Merge panes preserve mounted content. Split state uses additive `ds.<edge>` address parameters, which region navigation preserves. Collapsed and constrained presentations retain the saved layout. See `docs/SHARED-DOCKS.md` and `samples/split-docks.html` for the markup and APIs.
+
+A superseded asynchronous address restore no longer applies windows or split topology after a newer restore has completed. This release implements specification 0.40.0.
+
 ## 0.82.1
 
 The front window's button fits a narrow taskbar. Once every other button had gone into "N more", the front window's button, which always stays, could still be wider than what was left of the dock, at a phone's width say, and was cut off at its edge. It now shrinks below its floor to fit, its title cut further with an ellipsis, and carries `data-win-tab-squeeze` while it does. This release implements specification 0.39.1.

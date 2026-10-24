@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split docks</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <script src="../../dist/pudl-regions.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 100dvh; }</style>
+</head>
+<body>
+  <nav hidden data-region="results"><a id="region-link" href="?filter=one">Filter</a></nav>
+  <div class="win-host"><div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="a,b,c,d,e" data-win-menu data-win-dock-tabs="all" data-win-dock-splits></div></div>
+  <template id="tpl-a"><section class="win" data-win="a" data-win-min="120,80"><header class="win-head"><h2 class="win-title">Alpha</h2></header><div class="win-body"><label>Draft <input id="draft"></label></div></section></template>
+  <template id="tpl-b"><section class="win" data-win="b" data-win-min="120,80"><header class="win-head"><h2 class="win-title">Bravo</h2></header><div class="win-body"><p>Bravo</p></div></section></template>
+  <template id="tpl-c"><section class="win" data-win="c" data-win-min="120,80"><header class="win-head"><h2 class="win-title">Charlie</h2></header><div class="win-body"><p>Charlie</p></div></section></template>
+  <template id="tpl-d"><section class="win" data-win="d" data-win-min="120,80"><header class="win-head"><h2 class="win-title">Delta</h2></header><div class="win-body"><p>Delta</p></div></section></template>
+  <template id="tpl-e"><section class="win" data-win="e" data-win-min="120,80"><header class="win-head"><h2 class="win-title">Echo</h2></header><div class="win-body"><p>Echo</p></div></section></template>
+</body>
+</html>

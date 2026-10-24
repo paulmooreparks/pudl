@@ -4,8 +4,8 @@
 
    The URL is the whole state. A page with windows open can be bookmarked,
    reloaded and shared, and Back and Forward step between sets of open
-   windows. Opening a window pushes a history entry, and every other change
-   replaces the current one.
+   windows. Opening a window or changing a split dock's arrangement pushes
+   a history entry; ordinary activation and placement replace the current one.
 
    A page may have default windows, standing furniture such as a panel of
    site links, named on the layer with data-win-default="site,help". An
@@ -126,6 +126,7 @@
   var cancelGesture = null;
   var policyStamp = '';
   var syncing = 0;
+  var restoreSerial = 0;
   var required = [];
   var dockGroups = {};
   var dockPeek = {};
@@ -140,6 +141,198 @@
   }
   function sharedEdge(edge) { return sharedEdges().indexOf(edge) >= 0; }
   function sideEdge(edge) { return edge === 'left' || edge === 'right'; }
+  function splitEdge(edge) { return sharedEdge(edge) && layer.hasAttribute('data-win-dock-splits'); }
+  function cloneTree(t) { return t ? JSON.parse(JSON.stringify(t)) : null; }
+  function treeGroups(t) { return !t ? [] : t.type === 'group' ? [t] : treeGroups(t.first).concat(treeGroups(t.second)); }
+  function treeNodes(t) { return !t || t.type === 'group' ? [] : [t].concat(treeNodes(t.first), treeNodes(t.second)); }
+  function dockTree(st, edge) { return splitEdge(edge) && st.docks && st.docks[edge] && st.docks[edge].tree; }
+  function groupFor(st, edge, key) { return treeGroups(dockTree(st, edge)).filter(function (g) { return g.order.indexOf(key) >= 0; })[0]; }
+  function freshId(tree) {
+    var used = treeGroups(tree).concat(treeNodes(tree)).map(function (t) { return t.id; }), i = 1;
+    while (used.indexOf('g' + i) >= 0) i++;
+    return 'g' + i;
+  }
+  /* Version 1 accepts one axis per edge. Bounds apply to restored data,
+     independently of the screen size on which it was saved. */
+  function validDockTree(raw, edge) {
+    if (!raw || raw.v !== 1) return null;
+    var seen = new Set(), keys = new Set(), count = 0;
+    function visit(t, depth) {
+      if (!t || depth > 32 || ++count > 255 || typeof t.id !== 'string' || !KEY_RE.test(t.id) || t.id.length > 80 || seen.has(t.id)) throw Error('dock tree');
+      seen.add(t.id);
+      if (t.type === 'group') {
+        if (!Array.isArray(t.order) || t.order.length > 256) throw Error('dock group');
+        var order = t.order.map(function (k) {
+          if (typeof k !== 'string' || !KEY_RE.test(k) || keys.has(k)) throw Error('dock member');
+          keys.add(k); return k;
+        });
+        return { type: 'group', id: t.id, order: order, selected: order.indexOf(t.selected) >= 0 ? t.selected : order[0] || null };
+      }
+      if (t.type !== 'split' || t.axis !== (sideEdge(edge) ? 'y' : 'x') || !Number.isFinite(t.ratio)) throw Error('dock split');
+      return { type: 'split', id: t.id, axis: t.axis, ratio: Math.max(0.01, Math.min(0.99, t.ratio)), first: visit(t.first, depth + 1), second: visit(t.second, depth + 1) };
+    }
+    try { return visit(raw.tree, 0); } catch (err) { return null; }
+  }
+  function normalizeDockTree(st, edge, members, d) {
+    if (!dockTree(st, edge)) return;
+    function prune(t) {
+      if (t.type === 'group') {
+        t.order = t.order.filter(function (k) { return members.indexOf(k) >= 0; });
+        t.order = required.filter(function (k) { return t.order.indexOf(k) >= 0; }).concat(t.order.filter(function (k) { return !requiredWindow(k); }));
+        return t.order.length ? t : null;
+      }
+      t.first = prune(t.first); t.second = prune(t.second);
+      return !t.first ? t.second : !t.second ? t.first : t;
+    }
+    d.tree = prune(d.tree);
+    var groups = treeGroups(d.tree);
+    if (!groups.length) { delete d.tree; delete d.activeGroup; return; }
+    var activeGroup = groups.filter(function (g) { return g.id === d.activeGroup; })[0] || groups[0];
+    members.forEach(function (k) { if (!groupFor(st, edge, k)) activeGroup.order.push(k); });
+    groups.forEach(function (g) {
+      if (g.order.indexOf(st.top) >= 0 && !st.min[st.top]) { g.selected = st.top; activeGroup = g; }
+      if (g.order.indexOf(g.selected) < 0 || st.min[g.selected]) g.selected = g.order.filter(function (k) { return !st.min[k]; })[0] || g.order[0];
+    });
+    d.activeGroup = activeGroup.id;
+    d.selected = activeGroup.selected;
+    d.order = groups.reduce(function (all, g) { return all.concat(g.order); }, []);
+    if (groups.length === 1) { delete d.tree; delete d.activeGroup; }
+  }
+  function dockBounds(edge) {
+    var w = layer.clientWidth, h = layer.clientHeight;
+    var top = dockSizePx('top'), bottom = dockSizePx('bottom');
+    return sideEdge(edge) ? { x: edge === 'left' ? 0 : w - dockSizePx(edge), y: top, w: dockSizePx(edge), h: Math.max(0, h - top - bottom) }
+      : { x: 0, y: edge === 'top' ? 0 : h - dockSizePx(edge), w: w, h: dockSizePx(edge) };
+  }
+  function dockSizePx(edge) {
+    var value = getComputedStyle(layer).getPropertyValue('--dock-' + edge).trim();
+    return value.indexOf('%') >= 0 ? parseFloat(value) / 100 * (sideEdge(edge) ? layer.clientWidth : layer.clientHeight) : parseFloat(value) || 0;
+  }
+  function dockTrack() { return matchMedia('(pointer: coarse)').matches ? 20 : 12; }
+  function groupMin(g, edge) {
+    return Math.max.apply(null, [80].concat(g.order.map(function (k) {
+      return wins[k] ? pxOf(wins[k], sideEdge(edge) ? '--win-min-h' : '--win-min-w', sideEdge(edge) ? 200 : 320) + (sideEdge(edge) ? 40 : 0) : 80;
+    })));
+  }
+  function treeMin(t, edge, st) {
+    if (!t) return 0;
+    if (t.type === 'group') return t.order.some(function (k) { return !st.min[k]; }) ? groupMin(t, edge) : sideEdge(edge) ? 40 : 80;
+    var a = treeMin(t.first, edge, st), b = treeMin(t.second, edge, st);
+    return a + b + (a && b ? dockTrack() : 0);
+  }
+  function treeShowing(t, st) { return treeGroups(t).some(function (g) { return g.order.some(function (k) { return !st.min[k]; }); }); }
+  function splitPresentation(st, edge) {
+    var tree = dockTree(st, edge);
+    if (!tree) return 'single';
+    if (railMode(st, edge)) return 'collapsed';
+    var bounds = dockBounds(edge);
+    return treeMin(tree, edge, st) > (sideEdge(edge) ? bounds.h : bounds.w) ? 'single' : 'split';
+  }
+  function paneFront(st, edge, key) {
+    var g = groupFor(st, edge, key);
+    return g && splitPresentation(st, edge) === 'split' ? g.selected : edgeFront(st, edge);
+  }
+  function splitDestination(st, key, edge, dest) {
+    if (!splitEdge(edge) || !dest || restricted(key) || (dockOnly(key) && !sideEdge(edge))) return false;
+    var groups = treeGroups(dockTree(st, edge));
+    var g = groups.filter(function (item) { return item.id === dest.group; })[0];
+    if (!g && dest.group === 'main' && !groups.length) g = { order: dockMembers(st, edge) };
+    if (!g || ['tab', 'before', 'after'].indexOf(dest.position) < 0) return false;
+    if (dest.position === 'tab') return true;
+    if (treeNodes(dockTree(st, edge)).length >= 127) return false;
+    function depth(t, id, n) { if (!t) return -1; if (t.id === id) return n; return t.type === 'split' ? Math.max(depth(t.first, id, n + 1), depth(t.second, id, n + 1)) : -1; }
+    if (depth(dockTree(st, edge), dest.group, 0) >= 31) return false;
+    if (splitPresentation(st, edge) === 'single' && groups.length > 1) return false;
+    if (g.order.indexOf(key) >= 0 && g.order.length === 1) return false;
+    var remaining = { order: g.order.filter(function (k) { return k !== key; }) };
+    var need = groupMin(remaining, edge) + groupMin({ order: [key] }, edge) + dockTrack();
+    var r = paneRects[edge] && paneRects[edge][dest.group];
+    var bounds = r || dockBounds(edge);
+    return !railMode(st, edge) && need <= (sideEdge(edge) ? bounds.h : bounds.w);
+  }
+  var paneRects = {}, paneSplitters = {};
+  var dockDropPreview = null;
+  function dockDropAt(key, x, y) {
+    var outer = layer.getBoundingClientRect(), px = x - outer.left, py = y - outer.top;
+    var specs = layoutDockPanes(state).specs;
+    for (var i = 0; i < specs.length; i++) {
+      var s = specs[i], edge = s.edge;
+      if (!splitEdge(edge) || !s.members.length || restricted(key) || (dockOnly(key) && !sideEdge(edge))) continue;
+      var r = s.rect || dockBounds(edge);
+      if (px < r.x || px > r.x + r.w || py < r.y || py > r.y + r.h) continue;
+      var pos = sideEdge(edge) ? (py - r.y) / r.h : (px - r.x) / r.w;
+      var where = pos < 0.25 ? 'before' : pos > 0.75 ? 'after' : 'tab';
+      var group = s.pane || { id: groupFor(state, edge, edgeFront(state, edge)) ? groupFor(state, edge, edgeFront(state, edge)).id : 'main' };
+      var dest = { group: group.id, position: where };
+      if (!splitDestination(state, key, edge, dest)) {
+        dest.position = 'tab';
+        if (!splitDestination(state, key, edge, dest)) continue;
+      }
+      return { edge: edge, destination: dest, rect: r };
+    }
+    /* The outer target creates a dock even when that edge is empty. */
+    var edge = px <= SNAP_PX ? 'left' : px >= layer.clientWidth - SNAP_PX ? 'right' : py <= SNAP_PX ? 'top' : py >= layer.clientHeight - SNAP_PX ? 'bottom' : null;
+    if (edge && splitEdge(edge) && !dockMembers(state, edge).length && (!dockOnly(key) || sideEdge(edge))) {
+      var r = { x: 0, y: 0, w: layer.clientWidth, h: layer.clientHeight };
+      if (sideEdge(edge)) { r.w *= DOCK_SIZE; if (edge === 'right') r.x = layer.clientWidth - r.w; }
+      else { r.h *= DOCK_SIZE; if (edge === 'bottom') r.y = layer.clientHeight - r.h; }
+      return { edge: edge, rect: r };
+    }
+    return null;
+  }
+  function showDockDrop(drop) {
+    if (!drop) { if (dockDropPreview) dockDropPreview.hidden = true; return; }
+    if (!dockDropPreview) { dockDropPreview = document.createElement('div'); dockDropPreview.className = 'win-dock-drop'; dockDropPreview.setAttribute('aria-hidden', 'true'); layer.appendChild(dockDropPreview); }
+    var r = Object.assign({}, drop.rect), dest = drop.destination, where = dest && dest.position;
+    if (where && where !== 'tab') {
+      if (sideEdge(drop.edge)) { r.h /= 2; if (where === 'after') r.y += r.h; }
+      else { r.w /= 2; if (where === 'after') r.x += r.w; }
+    }
+    rectStyle(dockDropPreview, r); dockDropPreview.hidden = false; dockDropPreview.style.zIndex = String(4 * state.open.length + 5);
+    dockDropPreview.textContent = !dest ? text('dock-' + drop.edge, DOCK_WORDS[drop.edge]) : where === 'tab' ? text('dock-add-tab', 'Add as tab') : sideEdge(drop.edge)
+      ? (where === 'before' ? text('dock-split-above', 'Split above') : text('dock-split-below', 'Split below'))
+      : (where === 'before' ? text('dock-split-left', 'Split left') : text('dock-split-right', 'Split right'));
+  }
+  function placeInDock(st, key, edge, dest) {
+    if (!splitDestination(st, key, edge, dest)) return null;
+    var work = docked(st, key, edge), d = dockRecord(work, edge);
+    if (!d.tree) d.tree = { type: 'group', id: 'main', order: dockMembers(st, edge), selected: d.selected };
+    var target = treeGroups(d.tree).filter(function (g) { return g.id === dest.group; })[0];
+    treeGroups(d.tree).forEach(function (g) { g.order = g.order.filter(function (k) { return k !== key; }); });
+    if (dest.position === 'tab') { target.order.push(key); target.selected = key; d.activeGroup = target.id; }
+    else {
+      var leaf = { type: 'group', id: freshId(d.tree), order: [key], selected: key };
+      var node = { type: 'split', id: '', axis: sideEdge(edge) ? 'y' : 'x', ratio: 0.5,
+        first: dest.position === 'before' ? leaf : target, second: dest.position === 'before' ? target : leaf };
+      node.id = freshId({ type: 'split', id: '', first: d.tree, second: leaf });
+      function replace(t) { if (t === target) return node; if (t.type === 'split') { t.first = replace(t.first); t.second = replace(t.second); } return t; }
+      d.tree = replace(d.tree); d.activeGroup = leaf.id;
+    }
+    return work;
+  }
+  function dockArrange(edge, action, groupId) {
+    if (!dockTree(state, edge)) return;
+    var work = copy(state), d = dockRecord(work, edge), groups = treeGroups(d.tree);
+    if (action === 'merge') { d.order = groups.reduce(function (a, g) { return a.concat(g.order); }, []); delete d.tree; delete d.activeGroup; }
+    else if (action === 'equalize') {
+      var bounds = dockBounds(edge), length = sideEdge(edge) ? bounds.h : bounds.w, track = dockTrack();
+      var unit = (length - (groups.length - 1) * track) / groups.length;
+      function equal(t) {
+        if (t.type === 'group') return 1;
+        var a = equal(t.first), b = equal(t.second);
+        var ratio = unit > 0 ? (a * unit + (a - 1) * track) / ((a + b) * unit + (a + b - 2) * track) : a / (a + b);
+        t.ratio = Math.max(0.01, Math.min(0.99, ratio)); return a + b;
+      }
+      equal(d.tree);
+    } else if (action === 'swap') {
+      var i = groups.findIndex(function (g) { return g.id === groupId; });
+      if (i < 0 || groups.length < 2) return;
+      var a = groups[i], b = groups[(i + 1) % groups.length];
+      var order = a.order, selected = a.selected;
+      a.order = b.order; a.selected = b.selected; b.order = order; b.selected = selected;
+    } else return;
+    commit(work, true);
+  }
   function requiredWindow(key) { return required.indexOf(key) >= 0; }
   function dockOnly(key) { return !!wins[key] && wins[key].hasAttribute('data-win-dock-only'); }
   function railThreshold() {
@@ -163,7 +356,8 @@
   function baseRail(st, edge) {
     var d = st.docks && st.docks[edge];
     var mode = d ? d.mode : 'auto';
-    return !!st.min[edgeFront(st, edge)] || mode === 'rail' || (mode === 'auto' && autoCollapsed(edge));
+    var minimizedDock = dockTree(st, edge) ? dockMembers(st, edge).every(function (k) { return !!st.min[k]; }) : !!st.min[edgeFront(st, edge)];
+    return minimizedDock || mode === 'rail' || (mode === 'auto' && autoCollapsed(edge));
   }
 
   /* Room to ask for (issue #16): a window marked data-win-room with a CSS
@@ -228,6 +422,11 @@
   }
   function dockMembers(st, edge) {
     var members = defaultMembers(st, edge);
+    var tree = dockTree(st, edge);
+    if (tree) {
+      var flat = treeGroups(tree).reduce(function (a, g) { return a.concat(g.order); }, []).filter(function (k) { return members.indexOf(k) >= 0; });
+      return flat.concat(members.filter(function (k) { return flat.indexOf(k) < 0; }));
+    }
     var order = st.docks && st.docks[edge] && st.docks[edge].order;
     if (!order) return members;
     var fixed = members.filter(requiredWindow), rest = members.filter(function (k) { return !requiredWindow(k); });
@@ -238,12 +437,14 @@
      counted from the first of them. */
   function reordered(st, edge, key, index) {
     st = copy(st);
-    var members = dockMembers(st, edge);
+    var pane = groupFor(st, edge, key);
+    var members = pane ? pane.order : dockMembers(st, edge);
     var rest = members.filter(function (k) { return !requiredWindow(k); });
     if (requiredWindow(key) || rest.indexOf(key) < 0) return st;
     rest.splice(rest.indexOf(key), 1);
     rest.splice(Math.max(0, Math.min(rest.length, index)), 0, key);
-    dockRecord(st, edge).order = members.filter(requiredWindow).concat(rest);
+    if (pane) pane.order = members.filter(requiredWindow).concat(rest);
+    else dockRecord(st, edge).order = members.filter(requiredWindow).concat(rest);
     return st;
   }
   function dockMode(edge, mode) {
@@ -254,7 +455,8 @@
     delete dockPeek[edge];
     commit(st, false);
     var hiddenFocus = document.activeElement && document.activeElement.closest('.win[hidden]');
-    if (hiddenFocus && dockGroups[edge]) dockGroups[edge].querySelector('.win-dock-toggle').focus();
+    var toggle = layer.querySelector('.win-dock-group[data-dock-edge="' + edge + '"] .win-dock-toggle:not([hidden])');
+    if (hiddenFocus && toggle) toggle.focus();
   }
 
   function normalizeDocks(st) {
@@ -269,14 +471,18 @@
       if (members.indexOf(d.selected) < 0) d.selected = members[0] || null;
       if (d.size == null && members.length) d.size = st.place[d.selected].s || DOCK_SIZE;
       if (d.size != null) members.forEach(function (key) { st.place[key].s = d.size; });
+      normalizeDockTree(st, edge, members, d);
+      if (!d.tree && d.order && d.order.join(',') === defaultMembers(st, edge).join(',')) delete d.order;
       if (dockPeek[edge] !== d.selected || !railMode(st, edge) || st.min[d.selected]) delete dockPeek[edge];
     });
   }
 
   function closeDockTab(key, edge, reason) {
+    var pane = groupFor(state, edge, key), candidates = pane && pane.order.filter(function (k) { return k !== key; });
     close(key, reason);
     if (wins[key]) return;
-    var tab = dockGroups[edge].querySelector('[aria-selected="true"]');
+    var survivor = candidates && candidates.filter(function (k) { return state.open.indexOf(k) >= 0; })[0];
+    var tab = survivor ? layer.querySelector('[data-dock-key="' + CSS.escape(survivor) + '"]') : layer.querySelector('.win-dock-group[data-dock-edge="' + edge + '"] [aria-selected="true"]');
     if (tab) tab.focus();
   }
 
@@ -358,13 +564,14 @@
 
   function positionDockMenus(group) {
     var bounds = group.getBoundingClientRect(), list = group.querySelector('.win-dock-tablist'), clip = list.getBoundingClientRect();
+    var rtl = getComputedStyle(group).direction === 'rtl';
     group.querySelectorAll('[data-dock-menu]').forEach(function (button) {
       var entry = list.querySelector('[data-dock-entry="' + CSS.escape(button.getAttribute('data-dock-menu')) + '"]');
       if (!entry) { button.remove(); return; }
       var rail = group.hasAttribute('data-dock-rail');
       var rect = entry.getBoundingClientRect();
       button.hidden = rail || rect.right > clip.right + 1 || rect.left < clip.left - 1 || rect.bottom > clip.bottom + 1 || rect.top < clip.top - 1;
-      button.style.left = (rect.right - bounds.left - (rail ? 13 : 23)) + 'px';
+      button.style.left = ((rtl ? rect.left + (rail ? 3 : 5) : rect.right - (rail ? 13 : 23)) - bounds.left) + 'px';
       button.style.top = (rect.top - bounds.top + (rect.height - 18) / 2) + 'px';
     });
   }
@@ -379,7 +586,7 @@
   }
 
   function focusDockTab(edge, key) {
-    var group = dockGroups[edge], tab = group && group.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+    var tab = layer.querySelector('[data-dock-key="' + CSS.escape(key) + '"]'), group = tab && tab.closest('.win-dock-group');
     if (!tab) return;
     group.querySelectorAll('[role="tab"]').forEach(function (t) { t.tabIndex = t === tab ? 0 : -1; });
     tab.focus();
@@ -389,7 +596,8 @@
      place among the ordinary tabs. */
   function moveDockTab(edge, key, step) {
     if (requiredWindow(key)) return;
-    var rest = dockMembers(state, edge).filter(function (k) { return !requiredWindow(k); });
+    var pane = groupFor(state, edge, key);
+    var rest = (pane ? pane.order : dockMembers(state, edge)).filter(function (k) { return !requiredWindow(k); });
     var i = rest.indexOf(key);
     if (i < 0 || i + step < 0 || i + step >= rest.length) return;
     commit(reordered(state, edge, key, i + step), false);
@@ -402,16 +610,20 @@
   function dragDockTab(e, group, edge) {
     var tab = e.button === 0 && e.target.closest('[data-dock-key]');
     if (!tab || e.ctrlKey || e.metaKey || e.altKey) return;
+    /* Preserve native strip scrolling on touch screens. Placement remains
+       available through each tab's menu without a drag gesture. */
+    if (splitEdge(edge) && e.pointerType === 'touch') return;
     var key = tab.getAttribute('data-dock-key');
-    if (requiredWindow(key)) return;
+    if (requiredWindow(key) && !splitEdge(edge)) return;
     var others = Array.from(group.querySelectorAll('.win-dock-entry')).filter(function (entry) {
       var k = entry.getAttribute('data-dock-entry');
       return k !== key && !requiredWindow(k);
     });
-    if (!others.length) return;
+    if (!others.length && !splitEdge(edge)) return;
     var vertical = iconRail(state, edge), rtl = getComputedStyle(group).direction === 'rtl';
     var startX = e.clientX, startY = e.clientY, moving = false, index = -1, mark = null;
     var id = e.pointerId;
+    var drop = null, outside = false;
 
     function placeAt(x, y) {
       var at = vertical ? y : x;
@@ -449,7 +661,12 @@
         group.setAttribute('data-dock-dragging', key);
       }
       ev.preventDefault();
-      placeAt(ev.clientX, ev.clientY);
+      var bounds = group.getBoundingClientRect();
+      outside = ev.clientX < bounds.left - 8 || ev.clientX > bounds.right + 8 || ev.clientY < bounds.top - 8 || ev.clientY > bounds.bottom + 8;
+      drop = outside && splitEdge(edge) ? dockDropAt(key, ev.clientX, ev.clientY) : null;
+      showDockDrop(drop);
+      mark.hidden = outside;
+      if (!outside && others.length) placeAt(ev.clientX, ev.clientY);
     }
     function finish(ev, keep) {
       document.removeEventListener('pointermove', move, true);
@@ -458,12 +675,16 @@
       document.removeEventListener('keydown', escape, true);
       if (!moving) return;
       if (mark) mark.remove();
+      showDockDrop(null);
       group.removeAttribute('data-dock-dragging');
       if (tab.hasPointerCapture && tab.hasPointerCapture(id)) tab.releasePointerCapture(id);
       /* The click a drag ends with does not select the tab. */
       group.__dragged = true;
       setTimeout(function () { group.__dragged = false; }, 0);
-      if (keep && index >= 0) {
+      if (keep && drop) {
+        var work = drop.destination ? placeInDock(state, key, drop.edge, drop.destination) : docked(state, key, drop.edge);
+        if (work) { commit(work, true); focusDockTab(drop.edge, key); }
+      } else if (keep && !outside && index >= 0 && !requiredWindow(key)) {
         commit(reordered(state, edge, key, index), false);
         focusDockTab(edge, key);
       }
@@ -482,15 +703,110 @@
     document.addEventListener('keydown', escape, true);
   }
 
+  function layoutDockPanes(st) {
+    var specs = [], splits = [];
+    paneRects = {};
+    sharedEdges().forEach(function (edge) {
+      paneRects[edge] = {};
+      var tree = dockTree(st, edge), bounds = dockBounds(edge), mode = splitPresentation(st, edge);
+      function layout(t, r) {
+        if (t.type === 'group') {
+          paneRects[edge][t.id] = r;
+          specs.push({ edge: edge, pane: t, rect: r, members: t.order, selected: t.selected }); return;
+        }
+        var a = treeMin(t.first, edge, st), b = treeMin(t.second, edge, st);
+        if (!a) { if (b) layout(t.second, r); return; }
+        if (!b) { layout(t.first, r); return; }
+        var vertical = sideEdge(edge), length = vertical ? r.h : r.w, track = dockTrack(), available = length - track;
+        var firstShowing = treeShowing(t.first, st), secondShowing = treeShowing(t.second, st);
+        var first = !firstShowing ? a : !secondShowing ? available - b : Math.max(a, Math.min(available - b, available * t.ratio));
+        var r1 = Object.assign({}, r), r2 = Object.assign({}, r), handle = Object.assign({}, r);
+        if (vertical) { r1.h = first; handle.y += first; handle.h = track; r2.y += first + track; r2.h -= first + track; }
+        else { r1.w = first; handle.x += first; handle.w = track; r2.x += first + track; r2.w -= first + track; }
+        if (firstShowing && secondShowing) splits.push({ edge: edge, node: t, rect: handle, length: available, min: a / available, max: 1 - b / available, ratio: first / available });
+        layout(t.first, r1); layout(t.second, r2);
+      }
+      if (tree && mode === 'split') layout(tree, bounds);
+      else specs.push({ edge: edge, members: dockMembers(st, edge), selected: edgeFront(st, edge) });
+    });
+    return { specs: specs, splits: splits };
+  }
+  function rectStyle(el, r) {
+    ['left', 'top', 'width', 'height'].forEach(function (name, i) { styleProp(el, name, [r.x, r.y, r.w, r.h][i] + 'px'); });
+    styleProp(el, 'right', 'auto'); styleProp(el, 'bottom', 'auto');
+  }
+  function renderDockDividers(splits) {
+    var wanted = new Set();
+    splits.forEach(function (s) {
+      var id = s.edge + '/' + s.node.id, el = paneSplitters[id]; wanted.add(id);
+      if (!el) {
+        el = document.createElement('div'); el.className = 'win-dock-splitter'; el.tabIndex = 0;
+        el.setAttribute('role', 'separator'); el.id = 'pudl-dock-splitter-' + s.edge + '-' + s.node.id;
+        el.addEventListener('keydown', function (e) {
+          var now = el.__split, vertical = sideEdge(now.edge), delta = e.shiftKey ? 0.1 : 0.01, next;
+          if (e.key === 'Enter') next = 0.5;
+          else if (e.key === 'Home') next = now.min;
+          else if (e.key === 'End') next = now.max;
+          else if (e.key === (vertical ? 'ArrowUp' : 'ArrowLeft')) next = now.ratio - delta;
+          else if (e.key === (vertical ? 'ArrowDown' : 'ArrowRight')) next = now.ratio + delta;
+          else return;
+          e.preventDefault(); e.stopPropagation(); setDockRatio(now.edge, now.node.id, next);
+        });
+        el.addEventListener('dblclick', function () { setDockRatio(el.__split.edge, el.__split.node.id, 0.5); });
+        el.addEventListener('pointerdown', function (e) {
+          if (e.button !== 0) return;
+          e.preventDefault(); e.stopPropagation(); el.focus();
+          var start = copy(state), now = el.__split, vertical = sideEdge(now.edge), at = vertical ? e.clientY : e.clientX, id = e.pointerId;
+          el.setPointerCapture(id); el.classList.add('dragging');
+          function move(ev) {
+            if (ev.pointerId !== id) return;
+            var work = copy(start), n = treeNodes(dockTree(work, now.edge)).filter(function (t) { return t.id === now.node.id; })[0];
+            n.ratio = Math.max(now.min, Math.min(now.max, now.ratio + ((vertical ? ev.clientY : ev.clientX) - at) / now.length));
+            apply(work);
+          }
+          function end(ev) {
+            if (ev.pointerId != null && ev.pointerId !== id) return;
+            document.removeEventListener('pointermove', move, true); document.removeEventListener('pointerup', end, true);
+            document.removeEventListener('pointercancel', end, true); document.removeEventListener('keydown', escape, true);
+            el.classList.remove('dragging'); if (el.hasPointerCapture(id)) el.releasePointerCapture(id);
+            if (ev.type === 'pointerup') commit(state, true); else apply(start);
+          }
+          function escape(ev) { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); end(ev); } }
+          document.addEventListener('pointermove', move, true); document.addEventListener('pointerup', end, true);
+          document.addEventListener('pointercancel', end, true); document.addEventListener('keydown', escape, true);
+        });
+        layer.appendChild(el); paneSplitters[id] = el;
+      }
+      el.__split = s; rectStyle(el, s.rect); el.style.zIndex = String(4 * state.open.length + 3);
+      el.setAttribute('aria-orientation', sideEdge(s.edge) ? 'horizontal' : 'vertical');
+      var primary = treeGroups(s.node.first);
+      el.setAttribute('aria-label', text('dock-divider', '{title}, {edge} dock divider').replace('{title}', primary.map(function (g) { return fullTitle(g.selected); }).join(', ')).replace('{edge}', text('dock-' + s.edge, DOCK_WORDS[s.edge])));
+      el.setAttribute('aria-valuenow', Math.round(s.ratio * 10000) / 100); el.setAttribute('aria-valuemin', Math.round(s.min * 10000) / 100); el.setAttribute('aria-valuemax', Math.round(s.max * 10000) / 100);
+      el.setAttribute('aria-controls', primary.map(function (g) { return wins[g.selected] && wins[g.selected].id; }).filter(Boolean).join(' '));
+    });
+    Object.keys(paneSplitters).forEach(function (id) { if (!wanted.has(id)) { var el = paneSplitters[id]; if (el === document.activeElement) { var tab = layer.querySelector('[role="tab"][aria-selected="true"]'); if (tab) tab.focus(); } el.remove(); delete paneSplitters[id]; } });
+  }
+  function setDockRatio(edge, id, value) {
+    if (!Number.isFinite(value)) return;
+    var work = copy(state), node = treeNodes(dockTree(work, edge)).filter(function (t) { return t.id === id; })[0];
+    if (!node) return;
+    var current = paneSplitters[edge + '/' + id];
+    node.ratio = current ? Math.max(current.__split.min, Math.min(current.__split.max, value)) : Math.max(0.01, Math.min(0.99, value));
+    commit(work, true);
+  }
   function renderDockGroups() {
     if (!sharedDocks()) return;
-    sharedEdges().forEach(function (edge) {
-      var members = dockMembers(state, edge), group = dockGroups[edge];
+    var layout = layoutDockPanes(state), wantedGroups = new Set();
+    state.open.forEach(function (k) { if (wins[k]) wins[k].removeAttribute('data-win-dock-pane'); });
+    layout.specs.forEach(function (spec) {
+      var edge = spec.edge, members = spec.members, groupId = spec.pane ? edge + '/' + spec.pane.id : edge;
+      wantedGroups.add(groupId);
+      var group = dockGroups[groupId];
       if (!group) {
         /* A strip the server drew is adopted, its tabs links to the
            addresses that select them, so a page without script can switch
            tabs too (issue #14); otherwise one is built. */
-        group = layer.querySelector(':scope > .win-dock-group[data-dock-edge="' + edge + '"]');
+        group = layer.querySelector(':scope > .win-dock-group[data-dock-edge="' + edge + '"]' + (spec.pane ? '[data-dock-pane="' + spec.pane.id + '"]' : ':not([data-dock-pane])'));
         if (!group) {
           group = document.createElement('div');
           group.className = 'win-dock-group';
@@ -510,12 +826,20 @@
           toggleButton.innerHTML = '<span class="glyph" aria-hidden="true"></span>';
           group.appendChild(toggleButton);
         }
-        dockGroups[edge] = group;
-        if (window.ResizeObserver) new ResizeObserver(function () {
-          var selectedTab = group.querySelector('[role="tab"][aria-selected="true"]');
-          if (selectedTab) selectedTab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-          positionDockMenus(group);
-        }).observe(group);
+        dockGroups[groupId] = group;
+        if (window.ResizeObserver) {
+          group.__resizeObserver = new ResizeObserver(function () {
+            if (group.__resizeFrame) return;
+            group.__resizeFrame = requestAnimationFrame(function () {
+              group.__resizeFrame = 0;
+              if (!group.isConnected) return;
+              var selectedTab = group.querySelector('[role="tab"][aria-selected="true"]');
+              if (selectedTab) selectedTab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+              positionDockMenus(group);
+            });
+          });
+          group.__resizeObserver.observe(group);
+        }
         group.querySelector('.win-dock-tablist').addEventListener('scroll', function () { positionDockMenus(group); });
         group.querySelector('.win-dock-tablist').setAttribute('aria-label', text('dock-' + edge, DOCK_WORDS[edge]));
         group.addEventListener('click', function (e) {
@@ -576,8 +900,22 @@
       }
       group.hidden = !members.length;
       var collapsed = railMode(state, edge), rail = iconRail(state, edge);
-      var selected = edgeFront(state, edge), list = group.querySelector('.win-dock-tablist');
+      var selected = spec.selected, list = group.querySelector('.win-dock-tablist');
+      setAttr(list, 'aria-label', text('dock-' + edge, DOCK_WORDS[edge]) + (spec.pane ? ': ' + fullTitle(selected) : ''));
+      if (spec.pane) {
+        group.setAttribute('data-dock-pane', spec.pane.id);
+        var strip = Object.assign({}, spec.rect, { h: 40 });
+        if (edge === 'top') strip.y += spec.rect.h - 40;
+        rectStyle(group, strip);
+        members.forEach(function (k) {
+          var win = wins[k]; if (!win) return;
+          win.setAttribute('data-win-dock-pane', spec.pane.id);
+          ['--dock-pane-x', '--dock-pane-y', '--dock-pane-w', '--dock-pane-h'].forEach(function (p, i) { styleProp(win, p, [spec.rect.x, spec.rect.y, spec.rect.w, spec.rect.h][i] + 'px'); });
+        });
+      }
+      var firstPane = !spec.pane || spec === layout.specs.filter(function (s) { return s.edge === edge; })[0];
       var dockToggle = group.querySelector('.win-dock-toggle');
+      dockToggle.hidden = !firstPane;
       if (edge === 'left' || rail) {
         if (group.firstElementChild !== dockToggle) group.insertBefore(dockToggle, list);
       } else if (list.nextElementSibling !== dockToggle) group.insertBefore(dockToggle, list.nextElementSibling);
@@ -619,6 +957,8 @@
           group.appendChild(menuButton);
         }
         var wrapper = tab.parentElement;
+        var membership = groupFor(state, edge, key);
+        wrapper.toggleAttribute('data-dock-boundary', !spec.pane && !!membership && i > 0 && membership.order[0] === key);
         wrapper.classList.toggle('section-tab', !rail);
         tab.classList.toggle('icon-btn', rail);
         tab.toggleAttribute('data-dock-peek', collapsed && dockPeek[edge] === key && !state.min[key]);
@@ -633,6 +973,7 @@
         setAttr(menuControl, 'title', menuControl.getAttribute('aria-label'));
         windowMark(tab, key);
         var win = wins[key];
+        if (!win) return;
         if (!win.id) win.id = 'pudl-dock-panel-' + key;
         setAttr(tab, 'aria-controls', win.id);
         setAttr(tab, 'aria-selected', String(key === selected));
@@ -657,6 +998,14 @@
          many times the windows are laid out before it (0.69.3). */
       soonPositionDockMenus(group);
     });
+    Object.keys(dockGroups).forEach(function (id) {
+      if (wantedGroups.has(id)) return;
+      var old = dockGroups[id];
+      if (old.__resizeObserver) old.__resizeObserver.disconnect();
+      if (old.__resizeFrame) cancelAnimationFrame(old.__resizeFrame);
+      old.remove(); delete dockGroups[id];
+    });
+    renderDockDividers(layout.splits);
     state.open.forEach(function (key) {
       var win = wins[key], saved = dockRoles.get(win);
       if (!saved || sharedEdge(shownEdge(state, key))) return;
@@ -706,6 +1055,7 @@
       Object.keys(st.docks).forEach(function (edge) {
         out.docks[edge] = Object.assign({}, st.docks[edge]);
         if (st.docks[edge].order) out.docks[edge].order = st.docks[edge].order.slice();
+        if (st.docks[edge].tree) out.docks[edge].tree = cloneTree(st.docks[edge].tree);
       });
     }
     return out;
@@ -1111,6 +1461,13 @@
         var order = keyList(m[4]);
         if (order.length) st.docks[edge].order = order;
       }
+      var raw = q.get('ds.' + edge);
+      if (splitEdge(edge) && raw && raw.length <= 32768) {
+        try {
+          var split = JSON.parse(raw), tree = validDockTree(split, edge);
+          if (tree) { var d = dockRecord(st, edge); d.tree = tree; d.activeGroup = split.activeGroup; }
+        } catch (err) { /* An invalid split leaves the ordinary dock available. */ }
+      }
     });
     keyList(q.get('min')).forEach(function (k) {
       if (st.open.indexOf(k) >= 0) st.min[k] = true;
@@ -1144,6 +1501,7 @@
     if (st.docks) ['left', 'right', 'top', 'bottom'].forEach(function (edge) {
       var d = st.docks[edge];
       if (!d) return;
+      if (splitEdge(edge) && d.tree) parts.push('ds.' + edge + '=' + encodeURIComponent(JSON.stringify({ v: 1, activeGroup: d.activeGroup, tree: d.tree })));
       /* Only what the default would not give back is written (issue #13).
          Read without a selection, a dock selects the window in front if it
          holds it, or else its first tab; read without a size, a dock that
@@ -1203,7 +1561,7 @@
       if (!seg) return;
       var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2)))) return;
+      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2))) || (/^ds\.(left|right|top|bottom)$/.test(k) && splitEdge(k.slice(3)))) return;
       var owner = scopedOwner(k);
       if (owner) {
         if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
@@ -1244,7 +1602,7 @@
      rather than hiding it. */
   function isHidden(st, key) {
     var edge = shownEdge(st, key);
-    if (sharedEdge(edge)) return edgeFront(st, edge) !== key || (railMode(st, edge) && dockPeek[edge] !== key);
+    if (sharedEdge(edge)) return paneFront(st, edge, key) !== key || (railMode(st, edge) && dockPeek[edge] !== key) || (!!dockTree(st, edge) && !!st.min[key]);
     if (edge) return edgeFront(st, edge) !== key;
     var p = parentOf(st, key);
     return !!(st.min[key] || (p && st.min[p]));
@@ -1761,9 +2119,15 @@
     if (restricted(key) || (dockOnly(key) && edge !== 'left' && edge !== 'right')) return copy(st);
     st = raised(st, key);
     var p = st.place[key];
+    var oldEdge = dockEdge(p);
     if (edge) {
       p.mode = 'dock-' + edge;
       if (p.s == null) p.s = DOCK_SIZE;
+      if (edge !== oldEdge && dockTree(st, edge)) {
+        var d = dockRecord(st, edge), groups = treeGroups(d.tree);
+        var group = groups.filter(function (g) { return g.id === d.activeGroup; })[0] || groups[0];
+        group.order.push(key); group.selected = key;
+      }
     } else {
       p.mode = 'floating';
       /* A window marked data-win-undock="<zone>" leaves its dock for that
@@ -1904,6 +2268,7 @@
     });
     normalizeDocks(st);
     roomRails = roomFor(st);
+    setDocks(st);
     /* The grid's moved lines: those no snapped window uses are forgotten,
        and those that squeeze a window are let back. The halves are drawn
        by the stylesheet, from the middle line. */
@@ -2178,8 +2543,8 @@
     });
   }
 
-  /* Applies a state and records it in the URL. Opening a window pushes a
-     history entry; everything else replaces the current one. */
+  /* Applies a state and records it in the URL. Opening a window and split
+     arrangement operations push history; ordinary placement replaces it. */
   function commit(st, push, rename) {
     clearTimeout(urlTimer);
     apply(st);
@@ -2605,11 +2970,36 @@
     /* Docking at any of the four edges, the one the window is docked at
        ticked, and Undock last on a docked window. */
     if (!sized && !fixed) {
-      var edges = (dockOnly(key) ? ['left', 'right'] : DOCK_EDGES).map(function (edge) {
-        return command('dock:' + edge, text('dock-' + edge, DOCK_WORDS[edge]), 'dock:' + edge, { checked: dock === edge });
+      var edges = [];
+      (dockOnly(key) ? ['left', 'right'] : DOCK_EDGES).forEach(function (edge) {
+        var label = text('dock-' + edge, DOCK_WORDS[edge]), members = dockMembers(state, edge);
+        if (!splitEdge(edge) || !members.length) { edges.push(command('dock:' + edge, label, 'dock:' + edge, { checked: dock === edge })); return; }
+        var groups = treeGroups(dockTree(state, edge));
+        if (!groups.length) groups = [{ id: 'main', order: members, selected: edgeFront(state, edge) }];
+        groups.forEach(function (g, i) {
+          var name = fullTitle(g.selected || g.order[0]) + (groups.length > 1 ? ' (' + (i + 1) + ')' : '');
+          ['tab', 'before', 'after'].forEach(function (position) {
+            var words = position === 'tab' ? text('dock-as-tab', 'As tab with {title}')
+              : sideEdge(edge) ? (position === 'before' ? text('dock-above', 'Above {title}') : text('dock-below', 'Below {title}'))
+                : (position === 'before' ? text('dock-left-of', 'Left of {title}') : text('dock-right-of', 'Right of {title}'));
+            var id = 'dockto:' + edge + ':' + g.id + ':' + position;
+            var allowed = splitDestination(state, key, edge, { group: g.id, position: position });
+            edges.push(command(id, label + ': ' + words.replace('{title}', name), id, { disabled: !allowed, detail: allowed ? '' : text('dock-no-room', 'Not enough room, or the source pane would be empty') }));
+          });
+        });
+        var full = sideEdge(edge) ? text('dock-full-height', 'Full height') : text('dock-full-width', 'Full width');
+        var mergeId = 'dockmerge:' + edge;
+        edges.push(command(mergeId, label + ': ' + full + (groups.length > 1 ? ', ' + text('dock-merge', 'merge panes') : ''), mergeId));
       });
       if (dock && !dockOnly(key)) edges.push('-', command('undock', text('undock', 'Undock'), 'undock'));
       list.push({ id: 'dock', label: text('dock-menu', 'Dock'), mnemonic: text('dock-mnemonic', '') || undefined, items: edges });
+    }
+    if (dockTree(state, dock) && !fixed) {
+      ['equalize', 'swap', 'merge'].forEach(function (action) {
+        var words = { equalize: 'Equalize panes', swap: 'Swap with next pane', merge: 'Merge panes' };
+        var id = 'dockarrange:' + dock + ':' + action;
+        list.push(command(id, text('dock-' + action + '-panes', words[action]), id));
+      });
     }
     if (!requiredWindow(key)) list.push(command('close', text('close', 'Close'), 'close', { danger: true }));
     return list;
@@ -2692,7 +3082,7 @@
 
   function runCommand(key, cmd) {
     if (!wins[key]) return;
-    if (restricted(key) && (['maximize', 'dock', 'undock', 'reset'].indexOf(cmd) >= 0 || /^(snap|dock):/.test(cmd))) return;
+    if (restricted(key) && (['maximize', 'dock', 'undock', 'reset'].indexOf(cmd) >= 0 || /^(snap|dock|dockto|dockmerge|dockarrange):/.test(cmd))) return;
     var p = state.place[key];
     if (cmd === 'page') {
       /* The link carries the command out itself, so its target and rel
@@ -2707,6 +3097,22 @@
     else if (cmd.indexOf('dock:') === 0) {
       var edge = cmd.slice(5);
       if (DOCK_EDGES.indexOf(edge) >= 0 && dockEdge(p) !== edge) commit(docked(state, key, edge), false);
+    }
+    else if (cmd.indexOf('dockto:') === 0) {
+      var to = cmd.split(':'), work = placeInDock(state, key, to[1], { group: to[2], position: to[3] });
+      if (work) commit(work, true);
+    }
+    else if (cmd.indexOf('dockmerge:') === 0) {
+      var mergeEdge = cmd.slice(10);
+      if (!splitEdge(mergeEdge) || (dockOnly(key) && !sideEdge(mergeEdge))) return;
+      var merged = docked(state, key, mergeEdge), record = dockRecord(merged, mergeEdge);
+      if (record.tree) record.order = treeGroups(record.tree).reduce(function (a, g) { return a.concat(g.order); }, []);
+      delete record.tree; delete record.activeGroup;
+      commit(merged, true);
+    }
+    else if (cmd.indexOf('dockarrange:') === 0) {
+      var arrange = cmd.split(':'), pane = groupFor(state, arrange[1], key);
+      dockArrange(arrange[1], arrange[2], pane && pane.id);
     }
     else if (cmd === 'reset') commit(resetPlaced(state, key), false);
     else if (cmd === 'close') {
@@ -3061,6 +3467,11 @@
     [st.min, st.place].forEach(function (m) { move(m, oldKey, key); });
     Object.keys(st.docks || {}).forEach(function (edge) {
       if (st.docks[edge].selected === oldKey) st.docks[edge].selected = key;
+      if (st.docks[edge].order) st.docks[edge].order = st.docks[edge].order.map(function (k) { return k === oldKey ? key : k; });
+      treeGroups(dockTree(st, edge)).forEach(function (g) {
+        g.order = g.order.map(function (k) { return k === oldKey ? key : k; });
+        if (g.selected === oldKey) g.selected = key;
+      });
       if (dockPeek[edge] === oldKey) dockPeek[edge] = key;
     });
     [wins, openers, closing, homes, menuRuns, lastFocus].forEach(function (m) { move(m, oldKey, key); });
@@ -3147,6 +3558,7 @@
   /* Brings the page in line with a URL, after Back or Forward or at start.
      An address that names no windows opens the page's default windows. */
   function sync(push) {
+    var serial = ++restoreSerial;
     syncing++;
     var named = readURL();
     var st = named || { open: defaults.slice(), top: null, min: {}, place: {} };
@@ -3155,13 +3567,14 @@
     var missing = st.open.filter(function (k) { return !wins[k]; });
     var loaded = {};
     return Promise.all(missing.map(function (k) {
-      return load(k).then(function (el) { loaded[k] = el; adopt(el); announceOpen(el); return null; },
+      return load(k).then(function (el) { if (serial !== restoreSerial) return null; loaded[k] = el; adopt(el); announceOpen(el); return null; },
                           function (err) {
                             if (window.console) console.warn('pudl-windows:', err.message);
                             return k;
                           });
     })).then(function (failed) {
       syncing--;
+      if (serial !== restoreSerial) return;
       failed.forEach(function (k) { if (k) st = closed(st, k); });
       /* A change made meanwhile from the arrangement before this one, such
          as one a listener on pudl:window-open makes, takes out the windows
@@ -3244,6 +3657,7 @@
   function gesture(e, key, edge) {
     if (restricted(key) || (dockOnly(key) && !edge)) return;
     var el = wins[key];
+    var beforeGesture = copy(state);
     var target = e.currentTarget;
     var outer = layer.getBoundingClientRect();
     var r = innerRect();
@@ -3253,6 +3667,7 @@
     var base = start, baseX = e.clientX, baseY = e.clientY;
     var lastX = baseX, lastY = baseY;
     var cur = start, snap = null, moved = false, frame = 0;
+    var dockDrop = null;
     /* A window sized by its content moves at the size it has, which its
        placement does not record, and never snaps, since a zone is a size. */
     var sized = contentSized(key);
@@ -3306,6 +3721,7 @@
       cur = Object.assign({}, start, { s: s });
       layer.style.setProperty('--dock-' + dockSide, (Math.round(s * 1000) / 10) + '%');
       el.style.setProperty('--win-dock-size', fmt(s));
+      if (splitEdge(dockSide)) renderDockGroups();
     }
 
     function step() {
@@ -3320,7 +3736,10 @@
       }
       cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h, s: base.s }, r.width, r.height, min);
       el.style.transform = 'translate(' + (cur.x - base.x) * r.width + 'px, ' + (cur.y - base.y) * r.height + 'px)';
+      dockDrop = sized ? null : dockDropAt(key, lastX, lastY);
+      showDockDrop(dockDrop);
       var s = sized ? null : snapAt(lastX, lastY, r, outer);
+      if (dockDrop) s = null;
       if (s !== snap) { snap = s; showGhost(s); }
     }
 
@@ -3336,6 +3755,7 @@
 
     function end(ev) {
       cancelGesture = null;
+      document.removeEventListener('keydown', escapeGesture, true);
       target.removeEventListener('pointermove', move);
       target.removeEventListener('pointerup', end);
       target.removeEventListener('pointercancel', end);
@@ -3344,6 +3764,7 @@
       if (frame) { cancelAnimationFrame(frame); if (ev.type !== 'policy') step(); }
       layer.classList.remove('dragging');
       showGhost(null);
+      showDockDrop(null);
       el.classList.remove('win-moving');
       el.style.transform = '';
       if (ev.type === 'policy') {
@@ -3365,9 +3786,17 @@
       suppressClick = true;
       setTimeout(function () { suppressClick = false; }, 0);
       var st = raised(state, key);
+      if (ev.type === 'escape' || (ev.type === 'pointercancel' && layer.hasAttribute('data-win-dock-splits'))) {
+        if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId);
+        apply(beforeGesture); return;
+      }
       if (ev.type === 'pointercancel') {
         commit(st, false);
         return;
+      }
+      if (!edge && dockDrop) {
+        var placed = dockDrop.destination ? placeInDock(state, key, dockDrop.edge, dockDrop.destination) : docked(state, key, dockDrop.edge);
+        if (placed) { commit(placed, true); focusWindow(key); return; }
       }
       if (edge && dockSide) {
         st.place[key] = cur;
@@ -3386,6 +3815,8 @@
     target.addEventListener('pointermove', move);
     target.addEventListener('pointerup', end);
     target.addEventListener('pointercancel', end);
+    function escapeGesture(ev) { if (ev.key === 'Escape' && moved) { ev.preventDefault(); ev.stopPropagation(); end({ type: 'escape' }); } }
+    document.addEventListener('keydown', escapeGesture, true);
     cancelGesture = function () { end({ type: 'policy' }); };
   }
 
@@ -3854,7 +4285,7 @@
        it, and back when it widens again. */
     function refreshPolicy() {
       if (syncing || !state.open.length) return;
-      var stamp = String(narrowLayer()) + ':' + sharedEdges().map(autoCollapsed).join(',') + ':' + Object.keys(roomFor(state)).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
+      var stamp = String(narrowLayer()) + ':' + (layer.hasAttribute('data-win-dock-splits') ? layer.clientWidth + ',' + layer.clientHeight : '') + ':' + sharedEdges().map(autoCollapsed).join(',') + ':' + Object.keys(roomFor(state)).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
       if (stamp === policyStamp) return;
       policyStamp = stamp;
       if (cancelGesture) cancelGesture();
@@ -3869,7 +4300,11 @@
       layer.dispatchEvent(new CustomEvent('pudl:windows-policy', { bubbles: true }));
     }
     window.addEventListener('resize', refreshPolicy);
-    if (window.ResizeObserver) new ResizeObserver(refreshPolicy).observe(layer);
+    var policyFrame = 0;
+    if (window.ResizeObserver) new ResizeObserver(function () {
+      if (!layer.hasAttribute('data-win-dock-splits')) { refreshPolicy(); return; }
+      if (!policyFrame) policyFrame = requestAnimationFrame(function () { policyFrame = 0; refreshPolicy(); });
+    }).observe(layer);
     new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
       attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height', 'data-win-room'] });
     new MutationObserver(function () {
@@ -3877,6 +4312,9 @@
       renderDockGroups();
     }).observe(layer, { subtree: true, attributes: true,
       attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress'] });
+    new MutationObserver(function () {
+      Object.keys(dockGroups).forEach(function (id) { soonPositionDockMenus(dockGroups[id]); });
+    }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['dir'] });
     document.addEventListener('pointerdown', dismissDockPeek, true);
     document.addEventListener('focusin', dismissDockPeek);
     document.addEventListener('keydown', function (e) {
@@ -3887,7 +4325,7 @@
       var key = dockPeek[edge];
       delete dockPeek[edge];
       apply(state);
-      var tab = dockGroups[edge] && dockGroups[edge].querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+      var tab = layer.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
       if (tab) tab.focus();
     });
 
@@ -3908,11 +4346,15 @@
         focusWindow(key);
       },
       minimize: function (key) { if (wins[key]) commit(minimized(state, key), false); },
-      dock: function (key, edge) {
+      dock: function (key, edge, destination) {
         if (!wins[key] || restricted(key) || (edge != null && SIDES.indexOf(edge) < 0)) return;
-        commit(docked(state, key, edge || null), false);
+        var work = destination ? placeInDock(state, key, edge, destination) : docked(state, key, edge || null);
+        if (work) commit(work, !!destination);
       },
       dockMode: dockMode,
+      dockArrange: dockArrange,
+      dockRatio: setDockRatio,
+      dockPresentation: function (edge) { return sharedEdge(edge) ? splitPresentation(state, edge) : null; },
       /* zone is a name from ZONES, a rectangle {x, y, w, h} of fractions,
          which is moved to the nearest sixths, or null to float again. */
       snap: function (key, zone) {

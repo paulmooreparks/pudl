@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split docks, PUDL</title>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-theme.js"></script>
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-tooltip.js" defer></script>
+  <script src="split-docks.js" defer></script>
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; display: flex; flex-direction: column; }
+    .topbar { flex: none; }
+    .win-host { flex: 1; min-height: 0; }
+    .win-body textarea { width: 100%; min-height: 12rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="topbar-brand" href="../reference.html#windows">PUDL split docks</a>
+    <div class="toolbar" role="toolbar" aria-label="Arrange the example">
+      <button class="btn btn-sm" type="button" data-demo-edge="left">Left</button>
+      <button class="btn btn-sm" type="button" data-demo-edge="right">Right</button>
+      <button class="btn btn-sm" type="button" data-demo-edge="top">Top</button>
+      <button class="btn btn-sm" type="button" data-demo-edge="bottom">Bottom</button>
+      <a class="btn btn-sm" href="split-docks.html">Reset example</a>
+      <button class="theme-toggle" type="button" aria-label="Switch theme" onclick="pudlToggleTheme()"></button>
+    </div>
+  </header>
+  <main class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="browser,search,terminal,problems,editor" data-win-menu data-win-dock-tabs="all" data-win-dock-splits></div>
+  </main>
+  <template id="tpl-browser"><section class="win" data-win="browser" data-win-min="180,100" data-win-glyph="folder"><header class="win-head"><h2 class="win-title">Browser</h2></header><div class="win-body"><p>The browser and Search share this pane's tabs.</p><ul class="tree"><li><a href="#project">Project</a><ul><li><a href="#source">Source</a></li><li><a href="#tests">Tests</a></li></ul></li></ul></div></section></template>
+  <template id="tpl-search"><section class="win" data-win="search" data-win-min="180,100" data-win-glyph="search"><header class="win-head"><h2 class="win-title">Search</h2></header><div class="win-body"><label class="form-label">Find in project <input class="form-input" type="search" placeholder="Search"></label></div></section></template>
+  <template id="tpl-terminal"><section class="win" data-win="terminal" data-win-min="180,100" data-win-glyph="terminal"><header class="win-head"><h2 class="win-title">Terminal</h2></header><div class="win-body"><p class="mono">Build completed successfully.</p><label class="form-label">Command <input class="form-input mono" placeholder="Enter a command"></label></div></section></template>
+  <template id="tpl-problems"><section class="win" data-win="problems" data-win-min="180,100" data-win-glyph="warning"><header class="win-head"><h2 class="win-title">Problems</h2></header><div class="win-body"><p>No problems were found.</p></div></section></template>
+  <template id="tpl-editor"><section class="win" data-win="editor" data-win-mode="maximized" data-win-glyph="pencil"><header class="win-head"><h2 class="win-title">Editor</h2></header><div class="win-body"><h1>Arrange your tools</h1><p>Drag a tab into another pane to add it there, or near its end to split it. The preview shows the result before you drop it. Each tab's window menu offers the same placements.</p><p>Drag the divider or focus it and use the arrow keys to resize. Its Enter key or a double-click resets the two shares. The window menu also offers Equalize panes, Swap with next pane and Merge panes.</p><label class="form-label">Draft <textarea class="form-input">This draft stays mounted while you rearrange the docks.</textarea></label></div></section></template>
+</body>
+</html>

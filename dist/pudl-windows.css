@@ -263,7 +263,7 @@
 .win-dock-group[data-dock-edge="left"] { left: 0; width: var(--dock-left); }
 .win-dock-group[data-dock-edge="right"] { right: 0; width: var(--dock-right); }
 .win-dock-tablist { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; margin: 0; }
-.win-dock-entry { display: inline-flex; flex: none; align-items: center; padding: 0 24px 0 0; min-width: 0; font-size: var(--text-2xs); font-weight: 700; line-height: 1.55; }
+.win-dock-entry { display: inline-flex; flex: none; align-items: center; padding: 0; padding-inline-end: 24px; min-width: 0; font-size: var(--text-2xs); font-weight: 700; line-height: 1.55; }
 .win-dock-entry[data-selected] { background: var(--surface); padding-top: 3px; box-shadow: none; border-color: var(--border); }
 .win-dock-entry > [role="tab"]:not(.icon-btn) { display: inline-flex; align-items: center; gap: 4px; min-width: 0; padding: 5px 8px; border: 0; border-radius: inherit; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .win-dock-menu { position: absolute; width: 18px; height: 18px; padding: 0; border: 1px solid var(--raise-border); border-radius: 50%; background: var(--raise-grad); box-shadow: var(--raise-shadow); color: var(--text); cursor: pointer; }
@@ -369,6 +369,40 @@
 .win-dock-mark[data-vertical] { width: auto; height: 2px; }
 .win-dock-group[data-dock-dragging] { cursor: grabbing; }
 .win-dock-group[data-dock-dragging] [role="tab"] { cursor: grabbing; }
+.win-dock-group[data-dock-rail] .win-dock-entry[data-dock-boundary] { border-top: 1px solid var(--border); padding-top: 4px; }
+.win-dock-group[data-dock-collapsed]:not([data-dock-rail]) .win-dock-entry[data-dock-boundary] { margin-inline-start: 8px; }
+
+/* Split dock geometry is derived from the saved tree. Windows stay direct
+   children of the layer, so moving a tab never remounts its content. */
+.win[data-win-dock-shared][data-win-dock-pane]:not([data-win-dock-peek]) {
+  left: var(--dock-pane-x); right: auto;
+  top: var(--dock-pane-y); bottom: auto;
+  width: var(--dock-pane-w); height: var(--dock-pane-h);
+  padding: 40px 0 0;
+}
+.win[data-win-dock-shared][data-win-dock-pane][data-win-edge="top"]:not([data-win-dock-peek]) { padding: 0 0 40px; }
+.win-dock-splitter {
+  position: absolute; pointer-events: auto; touch-action: none;
+  background: var(--surface-alt); cursor: col-resize;
+}
+.win-dock-splitter[aria-orientation="horizontal"] { cursor: row-resize; }
+.win-dock-splitter::after {
+  content: ''; position: absolute; inset: 0; background: var(--text-muted);
+  mask: var(--glyph-grip) center / 16px 16px no-repeat;
+}
+.win-dock-splitter[aria-orientation="horizontal"]::after { transform: rotate(90deg); }
+.win-dock-splitter:hover::after, .win-dock-splitter.dragging::after { background: var(--accent); }
+.win-dock-splitter:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; }
+.win-dock-drop {
+  position: absolute; pointer-events: none; display: flex; align-items: center; justify-content: center;
+  color: var(--text); background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  border: 2px solid var(--accent); box-sizing: border-box;
+}
+@media (forced-colors: active) {
+  .win-dock-splitter { border: 1px solid ButtonText; }
+  .win-dock-splitter::after { forced-color-adjust: none; background: ButtonText; }
+  .win-dock-splitter:focus-visible, .win-dock-drop { outline-color: Highlight; border-color: Highlight; }
+}
 
 /* A window's attention count sits on raised and recessed grounds, the
    taskbar's and the docks' tabs, pressed ones included, which are darker

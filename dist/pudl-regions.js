@@ -56,6 +56,8 @@
     if (name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0) return true;
     if (/^d\.(left|right)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs]')) return true;
     if (/^d\.(top|bottom)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs="all"]')) return true;
+    if (/^ds\.(left|right)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs][data-win-dock-splits]')) return true;
+    if (/^ds\.(top|bottom)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs="all"][data-win-dock-splits]')) return true;
     var layer = document.querySelector('[data-win-layer]');
     var raw = layer ? layer.getAttribute('data-win-params') || '' : '';
     return raw.split(/[\s,]+/).some(function (p) {

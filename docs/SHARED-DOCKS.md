@@ -1,5 +1,7 @@
 # Shared Docks
 
+Split panes are available as an opt-in extension described under [Split panes](#split-panes). The [interactive sample](../samples/split-docks.html) demonstrates all four edges.
+
 Shared docks add tabs to the window manager's docks, icon rails to its side docks and a collapsed strip to its top and bottom docks. They are opt-in; existing layers keep their previous dock behavior. Shared side docks were introduced in v0.55.0, and shared top and bottom docks and tab order in v0.57.0.
 
 The [sample workbench](../samples/shared-docks.html) has a required Workspace window, two browsers, a document, and Output and Problems windows in the bottom dock. Resize it to see the rails and the collapsed bottom strip, or use a dock's collapse button. Each collapsed dock's pin button opens it persistently.
@@ -98,6 +100,57 @@ Shift with the arrow keys toward or away from the central area resizes the share
 Selecting a tab in a rail or a collapsed strip slides out its mounted window over the central area. Working outside that window and its dock retracts it; its menus remain usable. Escape retracts it and returns focus to the tab, unless a menu or dialog needs the key first. Temporary slideouts are not saved in the URL. `pudlWindows.raise(key)` also reveals a docked window when its dock is collapsed.
 
 PUDL generates the dock groups and their accessibility attributes. A grouped window is a tab panel, labelled by its tab, and regains its previous role and label when it leaves the group. Hosts should use the public API and status attributes rather than modifying generated elements.
+
+## Split panes
+
+Add `data-win-dock-splits` to a layer that already enables shared docks. Left and right docks support vertically stacked panes. Top and bottom docks support side-by-side panes when `data-win-dock-tabs="all"` is enabled. Each pane has its own tab order and selected window. The dock retains one outer size and one Collapse or Pin control.
+
+```javascript
+pudlWindows.dock('browser', 'right');
+pudlWindows.dock('search', 'right');
+pudlWindows.dockMode('right', 'open');
+pudlWindows.dock('terminal', 'right', { group: 'main', position: 'after' });
+const dock = pudlWindows.state().docks.right;
+pudlWindows.dock('problems', 'right', { group: dock.tree.second.id, position: 'tab' });
+```
+
+The initial unsplit pane is named `main`. After splitting, obtain stable pane IDs from the tree returned by `state()`. `position` is `tab`, `before` or `after`. Before and after mean above and below at a side edge, or physically left and right at a top or bottom edge, including on RTL pages. A split is allowed only while both panes meet their minimum sizes. Additional splits use the same axis. An operation that cannot be performed leaves the state unchanged.
+
+The two-argument `dock(key, edge)` keeps its existing return behavior. A new member joins the most recently active pane; a member already on that edge keeps its pane. Moving a window preserves its mounted body and floating restore geometry. Closing or moving its last member removes an empty pane. Close refusal and required-window and dock-only restrictions continue to apply.
+
+Window menus provide every destination, identified by the selected window's title and its pane position. Full height at a side edge and Full width at a top or bottom edge explicitly merge the edge's panes into one tab group without closing windows. Other dock commands are available through the following calls.
+
+| Call | Effect |
+|---|---|
+| `dockArrange(edge, 'merge')` | Merge every pane in visual order and keep the active window selected |
+| `dockArrange(edge, 'equalize')` | Give the panes equal space, subject to minimum sizes |
+| `dockArrange(edge, 'swap', groupId)` | Exchange a pane's tabs and selection with the next pane, wrapping at the end |
+| `dockRatio(edge, splitId, ratio)` | Set an internal divider's preferred fraction, clamped to its current limits |
+| `dockPresentation(edge)` | Inspect effective presentation as `single`, `split`, `collapsed`, or null for an unshared edge |
+
+A mouse or pen can reorder a tab in its strip or drag it outside the strip to another pane. Touch retains native tab-strip scrolling and uses each tab's menu for placement. A floating window's title bar can use the same destinations. The middle half of a pane's long dimension adds a tab; the outer quarters offer a split when it fits, otherwise a tab. The preview labels the result. A 16px band at an empty workspace edge creates a dock there. Escape or pointer cancellation abandons placement. A tab dropped away from a valid target returns to its strip.
+
+An internal divider has a 12px track, or 20px with a coarse primary pointer. Arrow keys along its movement axis adjust it by 1%, or 10% with Shift. Home and End reach its limits, and Enter or a double-click resets its two shares. A drag updates the view live, commits one history entry when released and restores its starting ratio on Escape. Placement and arrangement commands also push history entries, so Back can undo them. Existing Shift+arrow resizing from a dock tab continues to resize the outer dock.
+
+Each pane takes the largest minimum among its tabs, including its strip. Stored ratios remain unchanged when the view clamps them to fit a smaller workspace. When the whole split cannot fit, the edge temporarily uses one tab group. `dockPresentation()` reports this independently of the canonical tree. Enlarging the workspace restores the tree without remounting its content. Minimized members retain membership. A fully minimized pane retains a strip to restore its windows, with a 40px side-dock minimum or an 80px top/bottom-dock minimum along the split axis.
+
+Collapsed docks flatten their tabs into one rail or strip, with separators between pane groups. A peek shows the selected window alone. Pin restores the saved split layout. Minimize All and Restore All preserve the tree and the dock mode.
+
+### Split state and addresses
+
+Each split dock adds `tree` and `activeGroup` to its state record. A leaf has `{ type: 'group', id, order, selected }`. A split has `{ type: 'split', id, axis, ratio, first, second }`, with axis `y` for a side dock and `x` for a top or bottom dock. `selected` on the dock remains its last active window, and `order` gives its flattened visual order. `state()` and `pudl:windows-change` return detached copies.
+
+The additive parameter `ds.<edge>` holds URI-encoded JSON `{ v: 1, activeGroup, tree }`. Existing `d.<edge>` preferences and `p.<key>` placements remain valid. An ordinary single-group dock omits `ds.<edge>`. Region navigation preserves split parameters. Layers without the opt-in ignore them.
+
+The decoder accepts at most 32,768 decoded characters, 255 nodes, depth 32 and 256 members in a group. Each node ID is at most 80 characters and uses the existing window-key grammar. Duplicate node IDs or duplicate window keys invalidate a tree. Invalid versions, shapes or axes fall back to the ordinary dock. Missing or misplaced members are removed from the tree without closing any windows; unassigned dock members join its active group. Empty branches collapse. Unknown selections fall back to available members. Interactive splitting uses the same node and depth limits. An older PUDL client can show the existing placements as one group, but cannot preserve splits when it rewrites the address.
+
+### Server-rendered split strips
+
+A server can render one direct-child `.win-dock-group[data-dock-edge][data-dock-pane]` for each visible pane, with the same tab markup described above. `data-dock-pane` is its group ID. Render Collapse or Pin only on the first strip. The script adopts those strips and supplies missing controls. Selection links include the complete split state with that group's updated selection and active group.
+
+Render the windows as direct children of the layer, mark them `data-win-dock-shared` and `data-win-dock-pane`, and hide every window except each group's selected non-minimized member. Set the layer's existing `--dock-*` sizes. For each pane, compute pixel geometry after subtracting divider tracks and clamping branch ratios to the minima. Give its windows `--dock-pane-x`, `--dock-pane-y`, `--dock-pane-w` and `--dock-pane-h`. Place its tab strip at the pane's top, or its foot for a top dock. The stylesheet reserves 40px for that strip. This gives a usable static view and ordinary navigation links without script; the enhancement adds dividers and in-place selection.
+
+`data-dock-pane`, `data-win-dock-pane`, `.win-dock-splitter` and `.win-dock-drop` are generated presentation hooks. Hosts should change canonical state through the public calls, rather than editing those elements.
 
 ## Status Marks
 
