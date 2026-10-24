@@ -23,6 +23,8 @@ const assert = require('assert');
   assert(await page.locator('.native-chrome').count() === 1, 'callback completion does not infer host state');
   await page.click('.native-window-menu > button');
   await page.waitForSelector('.native-window-menu .menu-panel:popover-open');
+  await page.evaluate(() => nativeDemo.update({ fullscreen: true, active: true }));
+  assert(await page.locator('.native-window-menu .menu-panel:popover-open').count() === 1, 'identical host state leaves the native menu open');
   await page.screenshot({ path: out('native-window-wide.png') });
   await page.keyboard.press('Escape');
   await page.waitForFunction(() => !document.querySelector('.native-window-menu .menu-panel').matches(':popover-open'));

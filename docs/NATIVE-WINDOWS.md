@@ -29,7 +29,7 @@ Only one controller can attach to a topbar. Attach before or after the menubar i
 
 The host reports native full-screen state. Browser `document.fullscreenElement`, viewport size and maximized state are not substitutes. No browser full-screen listener or viewport heuristic is installed. The controls remain hidden outside native full screen, including an ordinary maximized window. Applications that want other presentation policies need a separate contract.
 
-A missing callback disables its action even if its capability flag is true. Disabled buttons remain in their fixed slots so the other buttons do not move. A capability change or state update closes an open native menu. PUDL does not infer new window state from callback completion; the host sends the resulting state separately.
+A missing callback disables its action even if its capability flag is true. Disabled buttons remain in their fixed slots so the other buttons do not move. A capability or state change closes an open native menu; an identical repeated snapshot leaves it open. PUDL does not infer new window state from callback completion; the host sends the resulting state separately.
 
 ## Actions and errors
 

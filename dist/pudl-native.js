@@ -99,7 +99,8 @@
       update: function (next) {
         if (disposed) return false;
         var updated = validate(Object.assign({}, state, next));
-        closeMenu(true, 'state'); state = updated; draw(); return true;
+        if (['title', 'fullscreen', 'active', 'canMinimize', 'canRestore', 'canClose'].some(function (key) { return state[key] !== updated[key]; })) closeMenu(true, 'state');
+        state = updated; draw(); return true;
       },
       run: run,
       focusMenu: function () {
