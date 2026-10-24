@@ -99,6 +99,11 @@ const assert = require('assert');
   });
   await page.waitForSelector('#menubar-panel:popover-open');
   assert(await page.evaluate(() => document.querySelector('#menubar-panel').matches(':popover-open')), 'rebuilt surviving title reopens');
+  await page.evaluate(() => {
+    document.querySelector('[data-menubar-source] > li button').disabled = true;
+    pudlMenubar.refresh();
+  });
+  assert(await page.evaluate(() => document.querySelector('#menubar-panel .menu-action').getAttribute('aria-disabled') === 'true'), 'surviving panel refreshes command state');
   await page.evaluate(() => { document.querySelector('[data-menubar-source] > li').remove(); pudlMenubar.refresh(); });
   assert(await page.evaluate(() => !document.querySelector('#menubar-panel').matches(':popover-open')), 'removed title does not reopen');
 

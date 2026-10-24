@@ -97,7 +97,10 @@
         var node = anchor.startContainer || anchor;
         var el = node.nodeType === 1 ? node : node.parentElement;
         var block = el.closest('p,li,pre,blockquote,h1,h2,h3,h4,h5,h6,table') || el;
-        if (block !== state.body && state.body.contains(block)) block.insertAdjacentElement('afterend', item.marker);
+        if (block !== state.body && state.body.contains(block)) {
+          if (block.tagName === 'LI') block.appendChild(item.marker);
+          else block.insertAdjacentElement('afterend', item.marker);
+        }
       }
     });
     container.style.minHeight = beside ? floor + 'px' : '';

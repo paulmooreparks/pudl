@@ -168,7 +168,7 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
         integrity="sha384-apx4JcddiGfbbtBSUh64m5AJRxayFbqoA/G95EAkIJ2mVkQ86qW09KktpezmUCnL"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-menubar.js" defer
-        integrity="sha384-Iubu/Zezi7kJ4vmiAkEqgfz3tE93bh8fsg2YJpyi4y2bMyaJwCBs7dk+3yIsJYFp"
+        integrity="sha384-zlUwt9ms31+JrxSPYEM3LN6GRdVtLGXj0j8A+3fpxHQZh0TEvJxThAo1uB4m30lQ"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-disclose.js" defer
         integrity="sha384-DcuzeBBcA6OXHwa9frM4JcMAMdSnx93wnJvYxQG7obBLhTnJp2JggyPAojTQDcA5"

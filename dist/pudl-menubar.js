@@ -737,10 +737,17 @@
     }).join(';');
     if (sig === lastSig && built.firstChild) {
       rebind(); syncRibbon();
-      if (previous && !sameSource(previousSource, frontSrc)) {
+      if (previous) {
         var surviving = survivingTitle();
-        closeAll(false);
-        if (surviving) open(surviving, panelFocus ? 'first' : null);
+        var selectedLabel = document.activeElement && document.activeElement._item && document.activeElement._item.label;
+        if (!surviving) closeAll(false);
+        else {
+          open(surviving, null);
+          if (panelFocus) {
+            var row = items(panel).find(function (r) { return r._item && r._item.label === selectedLabel; }) || items(panel)[0];
+            if (row) row.focus();
+          }
+        }
       }
       return;
     }
