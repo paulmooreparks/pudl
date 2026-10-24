@@ -7,6 +7,11 @@ const assert = require('assert');
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(ROOT + '/samples/annotations.html');
   await page.waitForFunction(() => window.pudlAnnotations && document.querySelector('[data-notes-beside]'));
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(() => {
+    const a = document.querySelector('#note-one').getBoundingClientRect(), b = document.querySelector('#note-two').getBoundingClientRect();
+    return b.top >= a.bottom;
+  });
   assert(await page.evaluate(() => {
     const a = document.querySelector('#note-one').getBoundingClientRect(), b = document.querySelector('#note-two').getBoundingClientRect();
     return b.top >= a.bottom && document.querySelector('#body').getBoundingClientRect().width === 480;
