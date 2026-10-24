@@ -36,8 +36,9 @@
     }
     function allowed(action) { return !busy && available(action); }
     function closeMenu(restore, reason) {
+      var ownsFocus = menu.contains(document.activeElement) || controls.contains(document.activeElement);
       if (panel.matches(':popover-open')) panel.hidePopover();
-      if (restore && remembered && remembered.isConnected && remembered.ownerDocument === document && !remembered.matches(':disabled') && !remembered.closest('[hidden],[inert]') && remembered.getClientRects().length && getComputedStyle(remembered).visibility === 'visible') {
+      if (restore && ownsFocus && remembered && remembered.isConnected && remembered.ownerDocument === document && !remembered.matches(':disabled') && !remembered.closest('[hidden],[inert]') && remembered.getClientRects().length && getComputedStyle(remembered).visibility === 'visible') {
         remembered.focus({ preventScroll: true });
         if (document.activeElement === remembered) topbar.dispatchEvent(new CustomEvent('pudl:native-return-focus', { bubbles: true, detail: { target: remembered, reason: reason } }));
       }
@@ -49,7 +50,9 @@
       topbar.classList.toggle('native-inactive', on && state.active === false);
       menu.hidden = controls.hidden = !on;
       var label = String(state.title) + ': ' + words.menu;
-      trigger.setAttribute('aria-label', label); trigger.setAttribute('data-tooltip', label); trigger.title = label;
+      if (trigger.getAttribute('aria-label') !== label) {
+        trigger.setAttribute('aria-label', label); trigger.setAttribute('data-tooltip', label); trigger.title = label;
+      }
       trigger.disabled = busy;
       controls.setAttribute('aria-busy', String(busy));
       ['minimize', 'restore', 'close'].forEach(function (action) {

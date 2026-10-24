@@ -37,7 +37,7 @@ Each callback receives a copy of the state snapshot at the time of the request. 
 
 `chrome.run('minimize' | 'restore' | 'close')` returns a promise. It resolves true when an available callback completes, or false for unavailable, busy, discarded or rejected requests. True does not assert that an OS state transition occurred or that a close confirmation was accepted. A rejected callback emits bubbling `pudl:native-error` from the topbar, with `detail.action` and `detail.error`, then releases the pending state. The application should show an appropriate error; PUDL does not insert native exception text into the product UI.
 
-Destroy suppresses subsequent UI updates and error events from an already-started callback. It does not roll back native work.
+Destroy suppresses subsequent UI updates and error events from an already-started callback. It does not roll back native work. State updates and destruction restore remembered content focus only when focus is still within the native controls; they do not steal focus from other application content.
 
 ## Placement and keyboard behavior
 
