@@ -39,7 +39,12 @@ function check(name, ok, detail) {
   const under = async () => p.evaluate(l => { const f = document.querySelector('.combo:has(#currency)').getBoundingClientRect(), r = document.getElementById(l).getBoundingClientRect(); return Math.abs(r.top - f.bottom - 4) <= 1 && Math.abs(r.left - f.left) <= 1; }, await listOf('currency'));
   check('the list opens under the field, even with pudl-menu.js on the page', await under());
   await p.evaluate(() => { document.body.style.paddingBottom = '2000px'; window.scrollBy(0, 40); });
-  await p.waitForTimeout(100);
+  await p.waitForFunction(() => window.scrollY >= 40);
+  await p.waitForFunction(l => {
+    const field = document.querySelector('.combo:has(#currency)').getBoundingClientRect();
+    const list = document.getElementById(l).getBoundingClientRect();
+    return Math.abs(list.top - field.bottom - 4) <= 1 && Math.abs(list.left - field.left) <= 1;
+  }, await listOf('currency'));
   check('and follows the field as the page scrolls', await under());
   await p.evaluate(() => { window.scrollTo(0, 0); document.body.style.paddingBottom = ''; });
   await p.keyboard.type('zzz');
