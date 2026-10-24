@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.83.2
+
+Menu and popover repositioning tracks opened panels through popover lifecycle events. Resize and scroll events no longer search the full document to discover whether a menu is open. The fix removes repeated selector work on large desktops without changing menu placement or interaction. Lifecycle regression coverage includes cancellation, rapid close and reopen, replacement, removal and panels open before the script loads. Startup performance remains a separate issue. See `docs/proposals/menu-open-panel-tracking.md` for the measurements and their limits.
+
 ## 0.83.1
 
 Docked tabs keep their menu buttons visible when a horizontal scrollbar clips part of a tab. Menu buttons are positioned within the strip's visible height, and their positions update before a menu opens after selecting another tab. Right-clicking a docked tab now opens its window commands without changing the selected tab. Keyboard window-menu access and application context-menu overrides remain available.
