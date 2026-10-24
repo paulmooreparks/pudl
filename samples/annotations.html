@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Selection actions and margin notes</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-annotations.js" defer></script>
+  <style>main { padding: 2rem; } .noted-body { max-width: 30rem; } #result { min-height: 3rem; }</style>
+</head>
+<body><main>
+  <h1>Selection actions and margin notes</h1>
+  <p>Select a passage to offer Quote. Resize the container to turn notes into markers. The article keeps its width and position.</p>
+  <div class="noted" id="article">
+    <article class="noted-body" id="body" data-selection-actions="passage-actions">
+      <p id="first">A selection can carry several actions without giving the article a pressable surface. The application decides what each action does.</p>
+      <p id="second">Margin notes stay beside their passages where room permits. In a narrow panel, numbered buttons lead to the same mounted notes below the article.</p>
+      <p id="third">Ordinary links remain useful without JavaScript. <a href="#note-one">Read the first note</a>.</p>
+    </article>
+    <aside class="margin-note" id="note-one" data-note-for="first"><p>This is a note about the first passage.</p><a href="#first">First passage</a></aside>
+    <aside class="margin-note" id="note-two" data-note-for="second"><p>This longer note demonstrates collision avoidance. The note follows the preceding note if their ideal positions overlap.</p><a href="#second">Second passage</a></aside>
+  </div>
+  <div class="selection-actions" id="passage-actions" hidden><button class="btn btn-sm" type="button" data-selection-action="quote">Quote selection</button></div>
+  <p id="result" role="status"></p>
+  <button class="theme-toggle" type="button" onclick="pudlToggleTheme()" aria-label="Switch theme"></button>
+</main><script>
+document.addEventListener('pudl:selection-action', function (event) { document.getElementById('result').textContent = event.detail.action + ': ' + event.detail.text; });
+</script></body></html>

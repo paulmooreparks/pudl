@@ -709,8 +709,20 @@
      bar collapses or opens out, or the page's regions or policy change. */
   function render(force) {
     if (!bar) return;
+    var previous = openTitle && panel && panel.matches(':popover-open') ? openTitle._menu : null;
+    var previousSource = frontSrc;
+    var panelFocus = panel && panel.contains(document.activeElement);
+    function survivingTitle() {
+      if (!previous) return null;
+      return titles().find(function (t) {
+        var m = t._menu;
+        if (previous.all) return m.all;
+        return m.menu && m.menu.kind === previous.menu.kind && m.menu.name === previous.menu.name &&
+          (previous.title.id ? m.title.id === previous.title.id : m.title.label === previous.title.label) &&
+          (m.menu.kind !== 'front' || sameSource(previousSource, frontSrc));
+      });
+    }
     if (force) lastSig = null;
-    closeAll(false);
     frontSrc = findFront();
     menuScope = frontScope();
     menus = assemble();
@@ -723,7 +735,16 @@
       return [m.kind, m.name, m.titles.map(function (t) { return (t.id || '') + ':' + t.label + ':' + (t.letter || '') + ':' + (t.content ? t.content.length : '') + ':' + (t.glyph || ''); }).join(','),
         (m.pins || []).map(function (p) { return p.label + '@' + p.href; }).join(',')].join('|');
     }).join(';');
-    if (sig === lastSig && built.firstChild) { rebind(); syncRibbon(); return; }
+    if (sig === lastSig && built.firstChild) {
+      rebind(); syncRibbon();
+      if (previous && !sameSource(previousSource, frontSrc)) {
+        var surviving = survivingTitle();
+        closeAll(false);
+        if (surviving) open(surviving, panelFocus ? 'first' : null);
+      }
+      return;
+    }
+    closeAll(false);
     lastSig = sig;
     var focusedIndex = -1;
     if (built && built.contains(document.activeElement)) focusedIndex = titles().indexOf(document.activeElement);
@@ -768,6 +789,8 @@
     if (key !== '' && list[0]) list[0].setAttribute('accesskey', key || 'm');
     if (focusedIndex >= 0 && keep) keep.focus();
     syncRibbon();
+    var reopen = survivingTitle();
+    if (reopen) open(reopen, panelFocus ? 'first' : null);
   }
 
   /* Whether the full bar fits, measured with it showing, in one pass, so
@@ -1038,7 +1061,15 @@
   }
 
   function open(title, focusWhere) {
-    if (!currentTarget()) { render(); return; }
+    if (!currentTarget()) {
+      var prior = title._menu;
+      render();
+      title = titles().find(function (t) {
+        var info = t._menu;
+        return prior.all ? info.all : info.menu && prior.menu.kind === info.menu.kind && prior.menu.name === info.menu.name && prior.title.label === info.title.label;
+      });
+      if (!title || !currentTarget()) return;
+    }
     /* Unfolded into a ribbon, a title is a tab: it chooses its row of
        tools rather than opening a menu, whatever way it was reached. */
     if (ribbonActive() && !title._menu.all && hasTools(title)) { chooseTab(title, focusWhere); return; }
@@ -1164,8 +1195,7 @@
     var scopeEl = c.owner ? c.owner.scope.scope : document;
     if (fromMenu) {
       closeAll(false);
-      if (returnTo && returnTo.isConnected && returnTo !== document.body) returnTo.focus({ preventScroll: true });
-      else if (document.activeElement && built.contains(document.activeElement)) document.activeElement.blur();
+      restoreFocus('command');
     }
     if (c.run) { try { c.run(); } catch (err) { if (window.console) console.warn('pudl-menubar:', err); } return; }
     if (c.href != null && c.href.charAt(0) === '#' && c.href.length > 1) {
@@ -1280,7 +1310,7 @@
         e.preventDefault();
         if (openTitle && panel.matches(':popover-open')) closeAll(true);
         /* With no panel open, Escape leaves the bar for where focus was. */
-        else if (returnTo && returnTo.isConnected && returnTo !== document.body) returnTo.focus({ preventScroll: true });
+        else restoreFocus('escape');
       } else if (!isPin && e.key.length === 1 && /\S/.test(e.key) && !e.shiftKey) {
         /* A letter opens the title that has it. */
         var hit = list.filter(function (x) { return x.getAttribute('data-letter') === e.key.toLowerCase(); })[0];
@@ -1338,14 +1368,39 @@
      with no other key between and no loss of focus between, so Alt+Tab
      does nothing on its return. While the modifier is held the titles
      show their letters. */
-  var altArmed = false;
-  function focusBar() {
-    var list = titles();
-    if (!list.length) return;
+  var altArmed = false, enteringBar = false;
+  function ownsFocus(target) {
+    return target && (bar.contains(target) || (panel && panel.contains(target)) || (sub && sub.contains(target)));
+  }
+  function usableReturnTarget(target) {
+    if (!target || target.nodeType !== 1 || target.ownerDocument !== document || !target.isConnected || typeof target.focus !== 'function' || target.matches(':disabled') || target.closest('[inert],[hidden]') || !target.getClientRects().length) return false;
+    var style = getComputedStyle(target);
+    return style.visibility !== 'hidden' && style.visibility !== 'collapse';
+  }
+  function restoreFocus(reason) {
+    var target = returnTo;
+    returnTo = null;
+    if (target !== document.body && usableReturnTarget(target)) {
+      target.focus({ preventScroll: true });
+      if (document.activeElement === target) bar.dispatchEvent(new CustomEvent('pudl:menubar-return-focus', { bubbles: true, detail: { target: target, reason: reason } }));
+    } else if (ownsFocus(document.activeElement)) document.activeElement.blur();
+  }
+  function focusBar(options) {
+    if (!bar || !built || !usableReturnTarget(bar)) return false;
+    var list = titles().filter(usableReturnTarget);
+    if (!list.length) return false;
     var a = document.activeElement;
-    if (a && !bar.contains(a)) returnTo = a;
+    var explicit = options && options.returnTo;
+    if (!ownsFocus(a)) {
+      if (explicit != null && (!usableReturnTarget(explicit) || ownsFocus(explicit))) return false;
+      returnTo = explicit || a;
+    }
     list.forEach(function (x) { x.tabIndex = x === list[0] ? 0 : -1; });
-    list[0].focus();
+    enteringBar = true;
+    try { list[0].focus(); } finally { enteringBar = false; }
+    var focused = document.activeElement === list[0];
+    if (!focused) returnTo = null;
+    return focused;
   }
   function chordHeld(e) { return MAC ? (e.ctrlKey && e.altKey && !e.metaKey && !e.shiftKey) : (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey); }
   function onAccelDown(e) {
@@ -1363,7 +1418,7 @@
     e.preventDefault();
     if (!currentTarget()) render();
     var a = document.activeElement;
-    if (a && !bar.contains(a)) returnTo = a;
+    if (a && !ownsFocus(a)) returnTo = a;
     if (collapsed) {
       var one = built.querySelector('.menubar-one .menubar-title');
       open(one, 'first');
@@ -1731,11 +1786,11 @@
        arrival by what focus left. */
     built.addEventListener('pointerdown', function () {
       var a = document.activeElement;
-      if (a && !bar.contains(a)) returnTo = a;
+      if (a && !ownsFocus(a)) returnTo = a;
     });
     bar.addEventListener('focusin', function (e) {
       var from = e.relatedTarget;
-      if (from && !bar.contains(from)) returnTo = from;
+      if (!enteringBar && from && !ownsFocus(from)) returnTo = from;
     });
     built.addEventListener('click', onBarPointer);
     built.addEventListener('pointerover', onBarPointer);
@@ -1813,6 +1868,7 @@
   }
 
   window.pudlMenubar = {
+    focus: function (options) { return focusBar(options); },
     /* Rows are read afresh as each menu opens, so a refresh builds the bar
        again only when its menus, titles or pins read differently (0.69.3);
        an applet may call it whenever its commands change. */

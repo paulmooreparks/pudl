@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.85.0
+
+Selection actions and margin notes are available through optional `pudl-annotations.js`. Actions preserve a scoped text Range for pointer and keyboard activation. Notes align beside stationary content, avoid collisions and become passage markers with a note list when their container is narrow. Applications own annotation content and storage. See `docs/ANNOTATIONS.md` and `samples/annotations.html`.
+
+`pudlMenubar.focus({ returnTo })` exposes desktop menu entry for hosts, including sandboxed frames. Successful restoration emits `pudl:menubar-return-focus` with the target and reason. Hidden, disabled, inert and disconnected targets do not receive return events. The host owns cross-document restoration.
+
+Menu refreshes preserve surviving open titles instead of closing a site menu immediately after dismissing a dock peek. Tooltip dismissal no longer consumes Escape, so the same key can restore menu focus or reach an application handler. This release addresses issues 22, 23, 26 and 27.
+
 ## 0.84.0
 
 Ribbon tabs keep full-title hover and keyboard-focus tips through every folding stage. A labeled Ribbon tabs chooser provides direct selection by full title for touch and keyboard users in menu-bar and standalone ribbons. Its words come from `data-menubar-text-ribbon-tabs` on a menu bar or `data-ribbon-tabs-text` on a standalone ribbon.

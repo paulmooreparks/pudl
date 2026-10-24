@@ -63,29 +63,29 @@ Text is set in Inter, and a page downloads a font only for the characters it sho
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-theme.js"
         integrity="sha384-kd6cwrRNLEIY/49jBdC7mBi1fiFbf9DSlyMfmX61QgrtAc8YnUTEKkrBjKoBMgnY"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl.css"
-      integrity="sha384-P2uGFm7V4rYkM66zNZUCUGOreqdS3QcLb2QmaG3TqUAsWzYO1+H0VX0HoCQt7P0z"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl.css"
+      integrity="sha384-auWTlnon2DiRZqRGJfBoLFfrl6dMXejKyzbXn97cex//5AKNAkF1dDq/05XNIVui"
       crossorigin="anonymous">
 ```
 
 The same two files minified, which every file below has too, with its own hash:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/min/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/min/pudl-theme.js"
         integrity="sha384-XZBxq31AdQf7zRUvXdda9Cvl1P6JqRbnUesbhGQ4kFmnQlPf1Zvhgl5CASd0kjQ9"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/min/pudl.css"
-      integrity="sha384-8NuOV3ENA3AonRXob/J9vm32XjYxtFl6ULRS3N8Hz31XX0GivQ74gtmLL6i/o2/R"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/min/pudl.css"
+      integrity="sha384-frMqq6cDxcbViqVQuhnWHkx8SYctq7xWZtYhFSIS6n3SpbZ3j2wxhw8pzHuosa86"
       crossorigin="anonymous">
 ```
 
 With the menu script as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-menu.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-menu.js" defer
         integrity="sha384-NO2lOk/iVthZc7AFAZ6Epoa4pMd+IswmlqNJWqhvcZT87g6Cp5s+Idl6IaqEkDwe"
         crossorigin="anonymous"></script>
 ```
@@ -93,10 +93,10 @@ With the menu script as well:
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-windows.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-windows.css"
       integrity="sha384-qWPr8MBycy5YBXCHn7VhHmHUgqfiA7rpas/JSk4kXdhWJYvLPPaijVPb0lz+BgEH"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-windows.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-windows.js" defer
         integrity="sha384-lefQzlPoVdg8IEa9ZIRRZqEHycUnUy243Nkokb7iVH2dh3N8cgxHxK3zl3Pvk+pX"
         crossorigin="anonymous"></script>
 ```
@@ -104,7 +104,7 @@ With floating windows as well:
 With applets as well, loaded after the windows script:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-applets.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-applets.js" defer
         integrity="sha384-1Q3ZlCi53MnCzxEQSmOl+br4Su1/y6EbKdHe5cjKqjbAJVaG2THiXIlj06a1tkCE"
         crossorigin="anonymous"></script>
 ```
@@ -112,7 +112,7 @@ With applets as well, loaded after the windows script:
 With regions as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-regions.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-regions.js" defer
         integrity="sha384-VpbKr+w0RPg3CvDhqi5ahDIxITHmzx1gcG+jy+5oAX2fRUTdWtYGXcqyBNVucMDg"
         crossorigin="anonymous"></script>
 ```
@@ -120,7 +120,7 @@ With regions as well:
 With the sidebar divider as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-md.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-md.js" defer
         integrity="sha384-+K820KmqZIaxOZxArpH+XAzpaJfDrbDqoz5EjqQaLxouxwcz+K1YzkX7CT7NzOXR"
         crossorigin="anonymous"></script>
 ```
@@ -128,7 +128,7 @@ With the sidebar divider as well:
 With the dialog command buttons for older browsers as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-dialog.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-dialog.js" defer
         integrity="sha384-g8Wobr7R/IcsZhmHb4GRiTpnGGnUnWmkanT2e0zifKETY9aXFuWaTmfObuGQzTqe"
         crossorigin="anonymous"></script>
 ```
@@ -136,7 +136,7 @@ With the dialog command buttons for older browsers as well:
 With toasts as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-toast.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-toast.js" defer
         integrity="sha384-gnpXtHDYsAjtovbjyHQ5ValIDlRlt3tG05tg2LitfmDWUmigh9e3/H4F+gsxFRlD"
         crossorigin="anonymous"></script>
 ```
@@ -144,45 +144,45 @@ With toasts as well:
 With tabs within a page and tooltips as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-tabs.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-tabs.js" defer
         integrity="sha384-lpU1GEZwaB/Cn15ifE7UQKboo/KI/uZxaTYAiGZJm5C6BzeSiAVZ9zEc63gTcLX4"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-tooltip.js" defer
-        integrity="sha384-UkFxgugBjQyR6FPkxvUmnJK+hx3prgAFDLRAhgaIi77QVAgN/bwObHuF0zvVO3Eu"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-tooltip.js" defer
+        integrity="sha384-HDJ4lsJC6Z8CfMmBhyyhZb0fNghttxbLTaGJXC4Squ1lKY4FyJMHjxhRqjAUolLD"
         crossorigin="anonymous"></script>
 ```
 
 With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and code blocks that copy and download:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-hljs.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-hljs.css"
       integrity="sha384-fo4XfkospG0ZjwQuB+cvRKuwdy3TtGciaUXVrI2ESl7MsuuiU41IDoTNtr3i/Cyj"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-code.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-code.js" defer
         integrity="sha384-/v1kx/aWnxGTqr57wM4rCYnbtWgeysmaYmVYyVbS7xv627AumdudiiTv/QyNdtTr"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-toolbar.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-toolbar.js" defer
         integrity="sha384-ZUYBJzdXe6qCr6RRAx5p6f2UYdrCj4cnIFmTrDbXbcvdDSFzqtzqU4TpgtT7ALn5"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-split.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-split.js" defer
         integrity="sha384-apx4JcddiGfbbtBSUh64m5AJRxayFbqoA/G95EAkIJ2mVkQ86qW09KktpezmUCnL"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-menubar.js" defer
-        integrity="sha384-Tw8TAd7ZBFZwtEsWW97ZHjMb3oLVXECGJn/BClWFG0OO/ufbrpm0glfcn0kCVy6x"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-menubar.js" defer
+        integrity="sha384-Iubu/Zezi7kJ4vmiAkEqgfz3tE93bh8fsg2YJpyi4y2bMyaJwCBs7dk+3yIsJYFp"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-disclose.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-disclose.js" defer
         integrity="sha384-DcuzeBBcA6OXHwa9frM4JcMAMdSnx93wnJvYxQG7obBLhTnJp2JggyPAojTQDcA5"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-zoom.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-zoom.js" defer
         integrity="sha384-X7J9vOnggyyA2PCm/3ssowfj2lxGjeW97Zzes2T8I0wvEBJ5Nb3Kga9THHPAavt+"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-rows.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-rows.js" defer
         integrity="sha384-st3TkNtIIRXU2hzNWDhfXEuB5M1L6afgZF7W9eDr4FJD2Qal7itGSv5EioRa9KU+"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-tree.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-tree.js" defer
         integrity="sha384-UWaHt5yvDSCWLR6ZM4ULz6gTzoIntuKcBOL3L7Ix1taLbOTr/f0RGo3sXhteautu"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-grid.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.85.0/dist/pudl-grid.js" defer
         integrity="sha384-vrZRtYlMiXz5ku8IWZAQoUD9njds6obk8PTszhPGqQobfCbdY6oBTx8Da/AEcmoK"
         crossorigin="anonymous"></script>
 ```
@@ -498,6 +498,8 @@ Which document is open is the host's state, so a tab is a link to the address th
 With `pudl-tabs.js`, the list is one stop in the Tab order, on the selected tab; the arrow keys, Home and End move focus along it, and Enter or Space chooses, as the tab itself does. Pressing a tab's close button, or Delete on the focused tab, fires `pudl:tab-close` on the tab rather than following it, so the host can ask about unsaved changes before it removes the tab.
 
 ## Code
+
+Selection actions and margin notes are optional in 0.85.0. Load `pudl-annotations.js` for a button bar beside selected text or notes beside stationary content, with numbered passage markers in narrow containers. Applications own the actions and persistence. See [the annotation contract](docs/ANNOTATIONS.md) and [the example](samples/annotations.html).
 
 A code block is for reading, so it is flat: `pre.code`, a tinted panel in the monospace face with no shadow. An editor's surface takes input, so it is sunken like a field: `.code-surface` on the element the editor draws into. A code block whose lines may run past its width scrolls sideways, so it carries `tabindex="0"`, for a reader who scrolls by keyboard, and PUDL draws its focus ring.
 

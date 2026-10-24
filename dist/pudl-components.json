@@ -12,6 +12,18 @@
   },
   "components": [
     {
+      "id": "selection-actions", "name": "Selection actions", "kind": "layout",
+      "spec": "08-components/annotations.md", "requires": ["pudl-annotations.js"],
+      "template": "<article data-selection-actions=\"selection-offer\">Select this text</article><div class=\"selection-actions\" id=\"selection-offer\"><button class=\"btn btn-sm\" type=\"button\" data-selection-action=\"quote\">Quote</button></div>",
+      "parts": [{ "selector": ".selection-actions .btn", "surface": "raised" }]
+    },
+    {
+      "id": "margin-notes", "name": "Margin notes", "kind": "flat",
+      "spec": "08-components/annotations.md", "requires": ["pudl-annotations.js"],
+      "template": "<div class=\"noted\"><article class=\"noted-body\"><p id=\"sample-passage\">Passage</p></article><aside class=\"margin-note\" data-note-for=\"sample-passage\">Note</aside></div>",
+      "parts": [{ "selector": ".margin-note", "surface": "flat" }]
+    },
+    {
       "id": "button",
       "name": "Button",
       "kind": "raised",

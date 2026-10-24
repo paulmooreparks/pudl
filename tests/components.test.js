@@ -35,6 +35,7 @@ const KNOWN = {};
   /* The contract's component table, by name: each row is in the list. */
   const rows = contract.split('## Components')[1].split('## ')[0].split('\n').filter(l => /^\| [A-Z]/.test(l) && !l.startsWith('| Component')).map(l => l.split('|')[1].trim());
   const covered = {
+    'Selection actions': 'selection-actions', 'Margin notes': 'margin-notes',
     'Topbar': 'topbar', 'Status area': 'status-area', 'Section tabs': 'section-tabs', 'Buttons': 'button', 'Form fields': 'text-field', 'Switch': 'switch',
     'Segmented control': 'segmented', 'Badges and chips': 'badge', 'Card': 'card', 'Settings panel': 'settings-panel', 'Layout': 'stack', 'Key/value table': 'key-value-table',
     'Data table': 'data-table', 'Notices': 'notice', 'Toasts': 'toast', 'Tabs within a page': 'tabs', 'Empty and loading': 'empty-state',

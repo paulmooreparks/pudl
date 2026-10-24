@@ -126,7 +126,6 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && tip && tip.matches(':popover-open')) {
       hide();
-      e.stopPropagation();
     }
   }, true);
 
