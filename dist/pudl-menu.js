@@ -38,6 +38,7 @@
      panel of any content anchored to the control that opened it, which is
      placed as a menu is but has no rows to move through. */
   var PLACED = '.menu-panel, .popover';
+  var openPanels = new Set(Array.prototype.filter.call(document.querySelectorAll(PLACED), isOpen));
   function placed(el) { return !!(el && el.classList && (el.classList.contains('menu-panel') || el.classList.contains('popover'))); }
   var opening = new WeakSet();
 
@@ -252,6 +253,7 @@
   document.addEventListener('beforetoggle', function (e) {
     var panel = e.target;
     if (!placed(panel)) return;
+    if (e.newState === 'open') openPanels.add(panel); else openPanels.delete(panel);
     /* The filter starts empty every time the panel opens. beforetoggle
        fires for every opening, whereas the toggle events of a quick close
        and reopen can be merged into one, so the clearing belongs here. */
@@ -322,10 +324,12 @@
     if (placing) return;
     /* Scrolling anywhere comes here, many times a second; with no menu
        open there is nothing to place (0.69.3). */
-    if (!document.querySelector('.menu-panel:popover-open, .popover:popover-open')) return;
+    if (!openPanels.size) return;
     placing = requestAnimationFrame(function () {
       placing = 0;
-      document.querySelectorAll(PLACED).forEach(function (p) { if (isOpen(p)) place(p); });
+      openPanels.forEach(function (p) {
+        if (p.isConnected && isOpen(p)) place(p); else openPanels.delete(p);
+      });
     });
   }
   window.addEventListener('resize', placeOpen);

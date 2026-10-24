@@ -1,0 +1,60 @@
+const { launch, ROOT } = require('./lib');
+const assert = require('assert/strict');
+(async () => {
+  const browser = await launch();
+  const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+  await page.setContent('<link rel="stylesheet" href="' + ROOT + '/dist/pudl.css"><script src="' + ROOT + '/dist/pudl-menu.js"></script><style>body{height:2000px;margin:0}#opener{margin-left:50vw;margin-top:100px}</style><button id="opener" popovertarget="test-menu">Menu</button><div id="test-menu" class="menu-panel" popover><button class="menu-action">Action</button></div>');
+  await page.waitForFunction(() => window.pudlMenu);
+  await page.evaluate(() => {
+    window.fullMenuScans = 0;
+    const original = Document.prototype.querySelector;
+    Document.prototype.querySelector = function (selector) {
+      if (selector === '.menu-panel:popover-open, .popover:popover-open') window.fullMenuScans++;
+      return original.call(this, selector);
+    };
+  });
+  const settle = () => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.setViewportSize({ width: 1300, height: 900 }); await settle();
+  assert.equal(await page.evaluate(() => fullMenuScans), 0, 'closed menus do not search the document on resize');
+  await page.locator('#opener').click();
+  await page.waitForSelector('#test-menu:popover-open:not(.placing)');
+  const before = await page.locator('#test-menu').boundingBox();
+  await page.setViewportSize({ width: 1100, height: 900 }); await settle();
+  const after = await page.locator('#test-menu').boundingBox();
+  assert.ok(after.x < before.x - 80, 'tracked menu follows its moving opener');
+  await page.evaluate(() => window.scrollTo(0, 50)); await settle();
+  assert.ok((await page.locator('#test-menu').boundingBox()).y < after.y - 30, 'tracked menu follows scrolling');
+  await page.keyboard.press('Escape');
+  await page.locator('#opener').click();
+  await page.waitForSelector('#test-menu:popover-open:not(.placing)');
+  await page.evaluate(() => document.getElementById('test-menu').remove());
+  await page.setViewportSize({ width: 1200, height: 900 }); await settle();
+  assert.equal(await page.evaluate(() => fullMenuScans), 0, 'open, closed and removed panels avoid full document scans');
+  await page.evaluate(() => {
+    const panel = document.createElement('div');
+    panel.id = 'test-menu'; panel.className = 'menu-panel'; panel.setAttribute('popover', '');
+    panel.innerHTML = '<button class="menu-action">Replacement action</button>';
+    document.body.appendChild(panel);
+    panel.addEventListener('beforetoggle', event => { if (event.newState === 'open') event.preventDefault(); }, { once: true });
+    panel.showPopover();
+  });
+  await page.setViewportSize({ width: 1250, height: 900 }); await settle();
+  assert.equal(await page.locator('#test-menu').evaluate(el => el.matches(':popover-open')), false, 'cancelled opening remains closed');
+  await page.evaluate(() => {
+    const panel = document.getElementById('test-menu');
+    panel.showPopover(); panel.hidePopover(); panel.showPopover();
+  });
+  await page.waitForSelector('#test-menu:popover-open:not(.placing)');
+  const reopened = await page.locator('#test-menu').boundingBox();
+  await page.setViewportSize({ width: 1050, height: 900 }); await settle();
+  assert.ok((await page.locator('#test-menu').boundingBox()).x < reopened.x - 80, 'replacement and rapidly reopened panels remain tracked');
+  const seeded = await browser.newPage({ viewport: { width: 1400, height: 900 } });
+  await seeded.setContent('<link rel="stylesheet" href="' + ROOT + '/dist/pudl.css"><button style="margin-left:50vw" popovertarget="seeded">Menu</button><div id="seeded" class="menu-panel" popover><button class="menu-action">Action</button></div><script>document.getElementById("seeded").showPopover()</script><script src="' + ROOT + '/dist/pudl-menu.js"></script>');
+  await seeded.waitForFunction(() => window.pudlMenu);
+  await seeded.setViewportSize({ width: 1200, height: 900 });
+  await seeded.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const seededBox = await seeded.locator('#seeded').boundingBox(), opener = await seeded.locator('[popovertarget="seeded"]').boundingBox();
+  assert.ok(Math.abs(seededBox.x - opener.x) < 2, 'panel already open when script initializes is tracked');
+  await seeded.close();
+  await browser.close();
+})().catch(e => { console.error(e); process.exit(1); });
