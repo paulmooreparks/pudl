@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.83.1
+
+Docked tabs keep their menu buttons visible when a horizontal scrollbar clips part of a tab. Menu buttons are positioned within the strip's visible height, and their positions update before a menu opens after selecting another tab. Right-clicking a docked tab now opens its window commands without changing the selected tab. Keyboard window-menu access and application context-menu overrides remain available.
+
 ## 0.83.0
 
 Shared docks can opt into split panes with `data-win-dock-splits`. Each pane has independent tabs and selection, and all four edges support additional panes along their long axis while minimum sizes permit. Placement is available through window menus, title-bar dragging and tab dragging, with a preview before dropping. Dividers support pointer and keyboard resizing, cancellation and history. Equalize panes, Swap with next pane and Merge panes preserve mounted content. Split state uses additive `ds.<edge>` address parameters, which region navigation preserves. Collapsed and constrained presentations retain the saved layout. See `docs/SHARED-DOCKS.md` and `samples/split-docks.html` for the markup and APIs.

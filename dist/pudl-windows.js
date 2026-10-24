@@ -570,9 +570,11 @@
       if (!entry) { button.remove(); return; }
       var rail = group.hasAttribute('data-dock-rail');
       var rect = entry.getBoundingClientRect();
-      button.hidden = rail || rect.right > clip.right + 1 || rect.left < clip.left - 1 || rect.bottom > clip.bottom + 1 || rect.top < clip.top - 1;
-      button.style.left = ((rtl ? rect.left + (rail ? 3 : 5) : rect.right - (rail ? 13 : 23)) - bounds.left) + 'px';
-      button.style.top = (rect.top - bounds.top + (rect.height - 18) / 2) + 'px';
+      var left = rtl ? rect.left + 5 : rect.right - 23;
+      var top = Math.max(clip.top, Math.min(rect.top + (rect.height - 18) / 2, clip.top + list.clientHeight - 18));
+      button.hidden = rail || left < clip.left - 1 || left + 18 > clip.left + list.clientWidth + 1;
+      button.style.left = (left - bounds.left) + 'px';
+      button.style.top = (top - bounds.top) + 'px';
     });
   }
 
@@ -849,6 +851,7 @@
             var menuKey = menu.getAttribute('data-dock-menu');
             if (railMode(state, edge)) dockPeek[edge] = menuKey;
             commit(raised(state, menuKey), false);
+            positionDockMenus(group);
             var panel = document.getElementById('win-menu-' + menuKey);
             panel.setAttribute('data-menu-anchor', menu.id);
             openMenu(menuKey);
@@ -4222,9 +4225,9 @@
        on the layer or the dock turns it off. */
     document.addEventListener('pudl:contextmenu', function (e) {
       if (e.defaultPrevented || !e.detail || (e.detail.count && e.detail.count())) return;
-      var tab = e.target && e.target.closest && e.target.closest('[data-win-tab]');
+      var tab = e.target && e.target.closest && e.target.closest('[data-win-tab], [data-dock-key], [data-dock-menu]');
       if (!tab || tab.closest('[data-win-tab-menu="off"]') || layer.getAttribute('data-win-tab-menu') === 'off') return;
-      var key = tab.getAttribute('data-win-tab');
+      var key = tab.getAttribute('data-win-tab') || tab.getAttribute('data-dock-key') || tab.getAttribute('data-dock-menu');
       if (!wins[key]) return;
       var all = menuCommands(key);
       var own = all.filter(function (c) { return !c.items && c.id !== 'close'; });
