@@ -1845,11 +1845,11 @@
       if (measuring) return;
       measuring = requestAnimationFrame(function () {
         measuring = 0;
-        if (panel && panel.matches(':popover-open')) return;
         var was = level;
         fitStale = true;
         fit();
         if (was !== level) render(true);
+        else if (panel && panel.matches(':popover-open') && window.pudlMenu) window.pudlMenu.place(panel);
       });
     };
     var ro = window.ResizeObserver ? new ResizeObserver(refit) : null;
