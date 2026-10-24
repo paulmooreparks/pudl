@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Native full-screen chrome</title>
+  <script src="../dist/pudl-theme.js"></script><link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-menubar.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script><script src="../dist/pudl-tooltip.js" defer></script>
+  <script src="../dist/pudl-native.js" defer></script><script src="native-window.js" defer></script>
+  <style>body { margin: 0; } main { padding: 2rem; } .topbar [data-menubar] { flex: 0 1 auto; }</style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="menubar" data-menubar data-menubar-host="desktop" data-menubar-ribbon aria-label="Example app">
+      <ul data-menubar-source hidden>
+        <li data-menubar-id="site">Example app<ul><li><button type="button" data-menu-glyph="info">About</button></li></ul></li>
+        <li data-menubar-id="go" data-menu-glyph="home">Go<ul><li><a href="../reference.html">Reference</a></li></ul></li>
+        <li data-menubar-id="view" data-menu-glyph="eye">View<ul><li><button type="button" data-menu-glyph="theme" onclick="pudlToggleTheme()">Switch theme</button></li></ul></li>
+        <li data-menubar-id="help">Help<ul><li><a href="../docs/NATIVE-WINDOWS.md">Native host contract</a></li></ul></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h1>Native full-screen chrome</h1>
+    <p>This is a simulated native adapter. Its buttons write to the log; they do not minimize, restore or close your browser.</p>
+    <div class="hstack">
+      <button class="btn" type="button" id="fullscreen">Enter simulated full screen</button>
+      <button class="btn" type="button" id="theme" onclick="pudlToggleTheme()">Switch theme</button>
+      <label class="check"><input type="checkbox" id="can-close" checked> Allow Close</label>
+    </div>
+    <label class="form-label">Working text <input class="form-input" id="working-text" value="This content stays mounted"></label>
+    <p id="host-state" role="status"></p><ol id="native-log" aria-label="Native action log"></ol>
+  </main>
+</body></html>

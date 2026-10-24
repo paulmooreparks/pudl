@@ -40,6 +40,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 | `pudl-tooltip.js` | `pudl.css` | Tooltips on glyph-only controls |
 | `pudl-tree.js` | `pudl.css` | Trees |
 | `pudl-annotations.js` | `pudl.css` | Scoped selection action bars and aligned margin notes (0.85.0) |
+| `pudl-native.js` | `pudl.css`, `pudl-menu.js` | Native host-supplied full-screen topbar window controls (0.86.0) |
 | `pudl-grid.js` | `pudl.css` | Tables whose rows are choices |
 | `pudl-hljs.css` | `pudl.css` | highlight.js classes coloured from the syntax tokens |
 | `pudl-code.js` | `pudl.css` | Copy and Download on code blocks |
@@ -75,6 +76,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 
 | Component | Markup | State |
 |---|---|---|
+| Native window controls | Generated app menu and three native action buttons in `.topbar`, attached through `pudlNative.attach` | Host-reported full screen, active state and action capabilities; see [NATIVE-WINDOWS.md](NATIVE-WINDOWS.md) |
 | Selection actions | Content with `data-selection-actions="bar-id"`; sibling `.selection-actions` with that ID and `button[data-selection-action]` controls | `hidden` on the offer; `pudl:selection-action` carries action, cloned Range, text and button |
 | Margin notes | `.noted` holding `.noted-body` and `.margin-note[data-note-for]` siblings; notes link to element IDs in the body | generated `data-notes-beside`, `.note-marker` and `.note-back`; application may supply Range anchors |
 | Topbar | `header.topbar` holding `a.brand`, optionally `nav.topbar-tabs` of `a` (with `--section-current-bg` for what lies below), `.topbar-chrome` with `a.topbar-pill` (optionally a `.glyph` and a `.topbar-pill-label`, shown as the glyph alone on a phone), `button.theme-toggle`; a menu button may hold its words in `.menu-btn-label`, cut short on a phone | `aria-current` on the pill or tab for the current page |
@@ -272,6 +274,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
 | `pudlWindows.menuCommands(key)` | `pudl-windows.js` | Fresh standard command descriptors for a window, or the visible front window when omitted; missing windows return `[]`. Each has `id`, `label`, and `run` or nested `items`, with optional `checked`, `disabled`, or `danger`. Callbacks bind to the original element and recheck capabilities; applet commands and extension hooks are excluded. IDs and generated-menu rules are listed in the migration guide. |
 | `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
+| `pudlNative.attach(topbar, options)` | `pudl-native.js` | Return a native window controller with `update(snapshot)`, `run(action)`, `focusMenu()` and `destroy()`; [NATIVE-WINDOWS.md](NATIVE-WINDOWS.md) defines callbacks, state, focus/error events and native integration boundaries. |
 | `pudlMenubar.focus({ returnTo })` | `pudl-menubar.js` | Focus the first available title, returning a boolean; defaults to the previous active element. A supplied return target must be a usable element in this document outside the menu. Repeated entry retains the original excursion. Actual restoration emits bubbling `pudl:menubar-return-focus` on the bar with `detail.target` and `detail.reason` (`escape` or `command`), before a command runs. Hosts own restoration within frames. |
 | `pudlAnnotations.enhance(root)`, `.refresh()`, `.destroy(root)`, `.setRange(container, note, range)` | `pudl-annotations.js` | Optional scoped selection actions and aligned margin notes; see [ANNOTATIONS.md](ANNOTATIONS.md) for markup, event payloads and lifecycle. |
 | `pudlMenubar.ribbon(on)` | `pudl-menubar.js` | Unfold the bar into a ribbon or fold it back, remembering the choice; with no argument, whether it is unfolded (0.79.0, stable in 0.80.0) |
