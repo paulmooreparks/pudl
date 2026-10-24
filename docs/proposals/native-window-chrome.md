@@ -19,3 +19,5 @@ The standard menu keyboard pattern applies. A controller method exposes menu foc
 ## Verification
 
 Tests must exercise menu and ribbon mode, narrow fitting, both themes, RTL corner order, disabled capabilities, asynchronous duplicate suppression, callback rejection, full-screen exit while a menu is open, destroy and attach ordering relative to menu initialization. A sample adapter will simulate native state and plainly identify that it does not control an operating-system window. Real native integration remains the consuming application's responsibility.
+
+Pointer command restoration does not depend on a clicked button receiving DOM focus. That behavior varies by browser and OS, as the [button documentation](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/button#clicking_and_focus) explains. Explicit control activation restores the saved content target; background state changes restore only while the chrome still owns focus.

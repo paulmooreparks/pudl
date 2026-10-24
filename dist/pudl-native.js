@@ -7,7 +7,7 @@
     if (!topbar || !topbar.matches('.topbar') || topbar.ownerDocument !== document) throw new TypeError('A topbar in this document is required.');
     if (attached.has(topbar)) throw new Error('This topbar already has native controls.');
     options = options || {};
-    var actions = Object.assign({}, options.actions), words = Object.assign({ menu: 'Application window menu', minimize: 'Minimize application', restore: 'Leave full screen', close: 'Close application' }, options.words);
+    var actions = Object.assign({}, options.actions), words = Object.assign({ menu: 'Application window menu', minimize: 'Minimize application window', restore: 'Leave full screen', close: 'Close application window' }, options.words);
     var state = Object.assign({ fullscreen: false, active: true, title: options.title || 'Application', canMinimize: true, canRestore: true, canClose: true }, options.state);
     function validate(snapshot) {
       ['fullscreen', 'active', 'canMinimize', 'canRestore', 'canClose'].forEach(function (key) {
@@ -35,10 +35,10 @@
       return !disposed && state.fullscreen && state[capability] && typeof actions[action] === 'function';
     }
     function allowed(action) { return !busy && available(action); }
-    function closeMenu(restore, reason) {
+    function closeMenu(restore, reason, fromControl) {
       var ownsFocus = menu.contains(document.activeElement) || controls.contains(document.activeElement);
       if (panel.matches(':popover-open')) panel.hidePopover();
-      if (restore && ownsFocus && remembered && remembered.isConnected && remembered.ownerDocument === document && !remembered.matches(':disabled') && !remembered.closest('[hidden],[inert]') && remembered.getClientRects().length && getComputedStyle(remembered).visibility === 'visible') {
+      if (restore && (ownsFocus || fromControl) && remembered && remembered.isConnected && remembered.ownerDocument === document && !remembered.matches(':disabled') && !remembered.closest('[hidden],[inert]') && remembered.getClientRects().length && getComputedStyle(remembered).visibility === 'visible') {
         remembered.focus({ preventScroll: true });
         if (document.activeElement === remembered) topbar.dispatchEvent(new CustomEvent('pudl:native-return-focus', { bubbles: true, detail: { target: remembered, reason: reason } }));
       }
@@ -60,9 +60,9 @@
         rows[action].disabled = !allowed(action);
       });
     }
-    function run(action) {
+    function run(action, fromControl) {
       if (!Object.prototype.hasOwnProperty.call(buttons, action) || !allowed(action)) return Promise.resolve(false);
-      closeMenu(true, 'action');
+      closeMenu(true, 'action', fromControl);
       busy = true; draw();
       var snapshot = Object.assign({}, state), invoked = false;
       return Promise.resolve().then(function () {
@@ -79,14 +79,14 @@
       var button = document.createElement('button'); button.type = 'button'; button.className = 'icon-btn';
       button.setAttribute('data-native-action', action); button.setAttribute('aria-label', words[action]); button.setAttribute('data-tooltip', words[action]); button.title = words[action];
       var glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.style.setProperty('--glyph', 'var(--glyph-' + action + ')'); glyph.setAttribute('aria-hidden', 'true');
-      button.appendChild(glyph); button.addEventListener('click', function () { run(action); });
+      button.appendChild(glyph); button.addEventListener('click', function () { run(action, true); });
       buttons[action] = button; controls.appendChild(button);
     });
     ['restore', 'minimize', 'close'].forEach(function (action) {
       var row = document.createElement('button'); row.type = 'button'; row.className = 'menu-action';
       var glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.style.setProperty('--glyph', 'var(--glyph-' + action + ')'); glyph.setAttribute('aria-hidden', 'true');
       row.append(glyph, document.createTextNode(words[action]));
-      row.addEventListener('click', function () { run(action); }); rows[action] = row; panel.appendChild(row);
+      row.addEventListener('click', function () { run(action, true); }); rows[action] = row; panel.appendChild(row);
     });
     function remember(target) { if (target && !menu.contains(target) && !controls.contains(target)) remembered = target; }
     [menu, controls].forEach(function (slot) {
@@ -105,7 +105,7 @@
         if (['title', 'fullscreen', 'active', 'canMinimize', 'canRestore', 'canClose'].some(function (key) { return state[key] !== updated[key]; })) closeMenu(true, 'state');
         state = updated; draw(); return true;
       },
-      run: run,
+      run: function (action) { return run(action, false); },
       focusMenu: function () {
         if (disposed || !state.fullscreen || busy || !trigger.getClientRects().length) return false;
         var a = document.activeElement;
