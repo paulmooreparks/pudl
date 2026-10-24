@@ -614,6 +614,8 @@
 
   function titleButton(t, m) {
     var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
+    b.setAttribute('title', t.label);
+    b.setAttribute('data-tooltip', t.label);
     if (t.id) b.setAttribute('data-menu-id', t.id);
     if (t.content) t.content.forEach(function (n) {
       var c = n.cloneNode(true);
@@ -825,18 +827,8 @@
     }
     collapsed = needed > room + 0.5;
     if (collapsed) built.classList.remove('menubar-ribbon-on', 'menubar-title-glyphs');
-    built.querySelectorAll('.menubar-glyphed').forEach(function (t) {
-      if (glyphsOnly && !collapsed) t.setAttribute('data-tooltip', t.getAttribute('aria-label'));
-      else t.removeAttribute('data-tooltip');
-    });
-    /* A front title cut short by its ellipsis shows its whole words as its
-       tooltip (0.80.0). */
-    built.querySelectorAll('.menubar-front > .menubar-title').forEach(function (t) {
-      var w = t.querySelector(':scope > .menubar-words');
-      var cut = !!w && !collapsed && w.getClientRects().length > 0 && w.scrollWidth > w.clientWidth + 1;
-      if (cut && !t.hasAttribute('data-tooltip')) { t.setAttribute('data-tooltip', w.textContent.trim()); t.__pudlCutTip = true; }
-      else if (!cut && t.__pudlCutTip) { t.removeAttribute('data-tooltip'); t.__pudlCutTip = false; }
-    });
+    /* Title tips remain available in every folding stage, including
+       ribbon tabs whose words are still visible. */
     level = collapsed ? 3 : pinsCollapsed ? 2 : glyphsOnly ? 1 : 0;
     built.classList.toggle('menubar-pins-collapsed', pinsCollapsed && !collapsed);
     built.classList.toggle('menubar-collapsed', collapsed);
@@ -1435,6 +1427,13 @@
     var slot = document.querySelector('[data-menubar-ribbon-slot]');
     (slot || top || bar.parentNode).appendChild(ribbonToggle);
     ribbonRow = el('div', 'menubar-ribbon', { hidden: '' });
+    var chooser = el('button', 'btn btn-sm menu-btn menubar-ribbon-tabs', { type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false' });
+    chooser.textContent = text('ribbon-tabs', 'Ribbon tabs');
+    chooser.addEventListener('click', function () { openRibbonTabs(chooser); });
+    chooser.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); openRibbonTabs(chooser); }
+    });
+    ribbonRow.appendChild(chooser);
     (top || bar).insertAdjacentElement('afterend', ribbonRow);
     ribbonRow.addEventListener('click', onRibbonClick);
     /* A press on a command keeps focus where the reader was working, so a
@@ -1459,6 +1458,27 @@
 
   function barTitles() {
     return Array.prototype.slice.call(built.querySelectorAll('.menubar-menu:not(.menubar-one) > .menubar-title:not(.menubar-pins-more)'));
+  }
+
+  function openRibbonTabs(button) {
+    if (!ribbonActive() || !window.pudlMenu || !window.pudlMenu.openAt) return;
+    var rows = barTitles().filter(hasTools).map(function (t) {
+      return { label: t._menu.title.label, radio: true, checked: t.getAttribute('aria-selected') === 'true', run: function () {
+        if (t.isConnected) chooseTab(t, false);
+      } };
+    });
+    var r = button.getBoundingClientRect();
+    var panel = window.pudlMenu.openAt(getComputedStyle(button).direction === 'rtl' ? r.right : r.left, r.bottom + 4, rows,
+      { owner: button, 'for': button, label: text('ribbon-tabs', 'Ribbon tabs'), edges: { top: r.top - 4, bottom: r.bottom + 4 } });
+    if (!panel) return;
+    button.setAttribute('aria-expanded', 'true');
+    button.setAttribute('aria-controls', panel.id);
+    panel.addEventListener('toggle', function closed(e) {
+      if (e.newState !== 'closed') return;
+      button.setAttribute('aria-expanded', 'false');
+      button.removeAttribute('aria-controls');
+      panel.removeEventListener('toggle', closed);
+    });
   }
 
   function sideOf(t) { return t._menu.menu.kind === 'front' ? 'front' : 'host'; }

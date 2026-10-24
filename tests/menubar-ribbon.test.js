@@ -74,7 +74,7 @@ function check(name, ok, extra) {
   await p.evaluate(() => document.documentElement.style.removeProperty('--menubar-title-max'));
   await p.setViewportSize({ width: 1920, height: 900 }); await tipIs(null);
   cut.after = (await read()).tip;
-  check('a front title cut short shows its words as its tooltip, and loses it when it fits', cut.cut && cut.tip === 'Insert' && cut.name === 'Insert' && cut.after === null, JSON.stringify(cut));
+  check('a front title keeps its full-title tooltip before and after truncation', cut.cut && cut.tip === 'Insert' && cut.name === 'Insert' && cut.after === 'Insert', JSON.stringify(cut));
 
   check('no errors', errors.length === 0, errors.join(' | '));
   await b.close();

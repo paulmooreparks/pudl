@@ -95,6 +95,7 @@ const assert = require('assert/strict');
   const beforeDrag = (await state()).docks.right.tree.ratio, beforeURL = page.url();
   await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await page.mouse.down();
   await page.mouse.move(hb.x + hb.width / 2, hb.y + 75, { steps: 5 });
+  await page.waitForFunction(ratio => pudlWindows.state().docks.right.tree.ratio !== ratio, beforeDrag);
   assert.notEqual((await state()).docks.right.tree.ratio, beforeDrag);
   assert.equal(page.url(), beforeURL);
   await page.keyboard.press('Escape'); await page.mouse.up();

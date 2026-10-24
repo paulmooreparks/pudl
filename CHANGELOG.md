@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.84.0
+
+Ribbon tabs keep full-title hover and keyboard-focus tips through every folding stage. A labeled Ribbon tabs chooser provides direct selection by full title for touch and keyboard users in menu-bar and standalone ribbons. Its words come from `data-menubar-text-ribbon-tabs` on a menu bar or `data-ribbon-tabs-text` on a standalone ribbon.
+
+Window layers can opt into `data-win-resize-mode="outline"` to keep content at its current size while a pointer moves a frame edge, outer dock edge, dock-pane divider or snapped-window grid divider. Release applies the new geometry once and records one history entry; Escape and pointer cancellation discard the preview. A window can override frame and outer-dock resizing with `outline` or `live`. Keyboard resizing stays immediate. Dock-pane pointer resizing is also coalesced to one pending animation frame in live mode.
+
+This release implements specification 0.41.0 and includes the menu performance fix from 0.83.2. It does not resolve native-window restoration or startup performance.
+
 ## 0.83.2
 
 Menu and popover repositioning tracks opened panels through popover lifecycle events. Resize and scroll events no longer search the full document to discover whether a menu is open. The fix removes repeated selector work on large desktops without changing menu placement or interaction. Lifecycle regression coverage includes cancellation, rapid close and reopen, replacement, removal and panels open before the script loads. Startup performance remains a separate issue. See `docs/proposals/menu-open-panel-tracking.md` for the measurements and their limits.

@@ -63,29 +63,29 @@ Text is set in Inter, and a page downloads a font only for the characters it sho
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-theme.js"
         integrity="sha384-kd6cwrRNLEIY/49jBdC7mBi1fiFbf9DSlyMfmX61QgrtAc8YnUTEKkrBjKoBMgnY"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl.css"
-      integrity="sha384-8GBaZ68cMOdMNVUx1tkzlSkYnrCSOHv75q6vaAchIFF+IhWMaCgpx2NL2ozb2Ct6"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl.css"
+      integrity="sha384-P2uGFm7V4rYkM66zNZUCUGOreqdS3QcLb2QmaG3TqUAsWzYO1+H0VX0HoCQt7P0z"
       crossorigin="anonymous">
 ```
 
 The same two files minified, which every file below has too, with its own hash:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/min/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/min/pudl-theme.js"
         integrity="sha384-XZBxq31AdQf7zRUvXdda9Cvl1P6JqRbnUesbhGQ4kFmnQlPf1Zvhgl5CASd0kjQ9"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/min/pudl.css"
-      integrity="sha384-ag3CEs8SnvPs2d9UcFhSeXMjwDsQSZtoMt+ZVQbXcgRevghKHUiQh/wSNINEwCc/"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/min/pudl.css"
+      integrity="sha384-8NuOV3ENA3AonRXob/J9vm32XjYxtFl6ULRS3N8Hz31XX0GivQ74gtmLL6i/o2/R"
       crossorigin="anonymous">
 ```
 
 With the menu script as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-menu.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-menu.js" defer
         integrity="sha384-NO2lOk/iVthZc7AFAZ6Epoa4pMd+IswmlqNJWqhvcZT87g6Cp5s+Idl6IaqEkDwe"
         crossorigin="anonymous"></script>
 ```
@@ -93,18 +93,18 @@ With the menu script as well:
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-windows.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-windows.css"
       integrity="sha384-qWPr8MBycy5YBXCHn7VhHmHUgqfiA7rpas/JSk4kXdhWJYvLPPaijVPb0lz+BgEH"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-windows.js" defer
-        integrity="sha384-+AQSL3At4ZVGjkAUy8RErC2sdPtN6UJ2HioFywzgv3mcusc/Tw50tsqhHeDhGjnK"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-windows.js" defer
+        integrity="sha384-lefQzlPoVdg8IEa9ZIRRZqEHycUnUy243Nkokb7iVH2dh3N8cgxHxK3zl3Pvk+pX"
         crossorigin="anonymous"></script>
 ```
 
 With applets as well, loaded after the windows script:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-applets.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-applets.js" defer
         integrity="sha384-1Q3ZlCi53MnCzxEQSmOl+br4Su1/y6EbKdHe5cjKqjbAJVaG2THiXIlj06a1tkCE"
         crossorigin="anonymous"></script>
 ```
@@ -112,7 +112,7 @@ With applets as well, loaded after the windows script:
 With regions as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-regions.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-regions.js" defer
         integrity="sha384-VpbKr+w0RPg3CvDhqi5ahDIxITHmzx1gcG+jy+5oAX2fRUTdWtYGXcqyBNVucMDg"
         crossorigin="anonymous"></script>
 ```
@@ -120,7 +120,7 @@ With regions as well:
 With the sidebar divider as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-md.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-md.js" defer
         integrity="sha384-+K820KmqZIaxOZxArpH+XAzpaJfDrbDqoz5EjqQaLxouxwcz+K1YzkX7CT7NzOXR"
         crossorigin="anonymous"></script>
 ```
@@ -128,7 +128,7 @@ With the sidebar divider as well:
 With the dialog command buttons for older browsers as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-dialog.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-dialog.js" defer
         integrity="sha384-g8Wobr7R/IcsZhmHb4GRiTpnGGnUnWmkanT2e0zifKETY9aXFuWaTmfObuGQzTqe"
         crossorigin="anonymous"></script>
 ```
@@ -136,7 +136,7 @@ With the dialog command buttons for older browsers as well:
 With toasts as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-toast.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-toast.js" defer
         integrity="sha384-gnpXtHDYsAjtovbjyHQ5ValIDlRlt3tG05tg2LitfmDWUmigh9e3/H4F+gsxFRlD"
         crossorigin="anonymous"></script>
 ```
@@ -144,10 +144,10 @@ With toasts as well:
 With tabs within a page and tooltips as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-tabs.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-tabs.js" defer
         integrity="sha384-lpU1GEZwaB/Cn15ifE7UQKboo/KI/uZxaTYAiGZJm5C6BzeSiAVZ9zEc63gTcLX4"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-tooltip.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-tooltip.js" defer
         integrity="sha384-UkFxgugBjQyR6FPkxvUmnJK+hx3prgAFDLRAhgaIi77QVAgN/bwObHuF0zvVO3Eu"
         crossorigin="anonymous"></script>
 ```
@@ -155,34 +155,34 @@ With tabs within a page and tooltips as well:
 With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and code blocks that copy and download:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-hljs.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-hljs.css"
       integrity="sha384-fo4XfkospG0ZjwQuB+cvRKuwdy3TtGciaUXVrI2ESl7MsuuiU41IDoTNtr3i/Cyj"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-code.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-code.js" defer
         integrity="sha384-/v1kx/aWnxGTqr57wM4rCYnbtWgeysmaYmVYyVbS7xv627AumdudiiTv/QyNdtTr"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-toolbar.js" defer
-        integrity="sha384-p3DGx/VbjTD6vit61erlpj5BIvjNmZBiQwdBxf8949FoC/Zld8V0TEGp2Sy1GsUa"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-toolbar.js" defer
+        integrity="sha384-ZUYBJzdXe6qCr6RRAx5p6f2UYdrCj4cnIFmTrDbXbcvdDSFzqtzqU4TpgtT7ALn5"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-split.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-split.js" defer
         integrity="sha384-apx4JcddiGfbbtBSUh64m5AJRxayFbqoA/G95EAkIJ2mVkQ86qW09KktpezmUCnL"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-menubar.js" defer
-        integrity="sha384-XPYSmJVaT8wjAdDbtdn1+zmyJgI7RgyXB4Tg6CCRGLKkk5n3lnH3RYpqIoMGJ5rj"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-menubar.js" defer
+        integrity="sha384-Tw8TAd7ZBFZwtEsWW97ZHjMb3oLVXECGJn/BClWFG0OO/ufbrpm0glfcn0kCVy6x"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-disclose.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-disclose.js" defer
         integrity="sha384-DcuzeBBcA6OXHwa9frM4JcMAMdSnx93wnJvYxQG7obBLhTnJp2JggyPAojTQDcA5"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-zoom.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-zoom.js" defer
         integrity="sha384-X7J9vOnggyyA2PCm/3ssowfj2lxGjeW97Zzes2T8I0wvEBJ5Nb3Kga9THHPAavt+"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-rows.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-rows.js" defer
         integrity="sha384-st3TkNtIIRXU2hzNWDhfXEuB5M1L6afgZF7W9eDr4FJD2Qal7itGSv5EioRa9KU+"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-tree.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-tree.js" defer
         integrity="sha384-UWaHt5yvDSCWLR6ZM4ULz6gTzoIntuKcBOL3L7Ix1taLbOTr/f0RGo3sXhteautu"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.83.2/dist/pudl-grid.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.84.0/dist/pudl-grid.js" defer
         integrity="sha384-vrZRtYlMiXz5ku8IWZAQoUD9njds6obk8PTszhPGqQobfCbdY6oBTx8Da/AEcmoK"
         crossorigin="anonymous"></script>
 ```
@@ -951,6 +951,8 @@ The bar is one tab stop and follows the WAI-ARIA menu bar pattern: Left and Righ
 
 **Resident applets** (preview, 0.79.0). An applet whose mount carries `data-applet-resident` has its menus in the bar all the time, after the site's menus, whatever is in front, and its shortcuts work anywhere. A resident applet suits something that runs for as long as the application does, such as the reader's pins: `samples/menu-ribbon.html` keeps its pins in a command bar at the topbar's right, which is the Pins applet's mount, and the Pins menu comes from that applet.
 
+**Ribbon discovery** (0.84.0) keeps full-title hover and keyboard-focus tips available through folding. A labeled **Ribbon tabs** chooser lists the available tabs and marks the selected one, so keyboard and touch users can choose by title. Down Arrow opens the chooser and Escape closes it. Menu bars localize its label with `data-menubar-text-ribbon-tabs`; standalone ribbons use `data-ribbon-tabs-text`.
+
 ## Filtering a list
 
 A master-detail toolbar's filter that applies on submission pairs its input with a raised apply button, since an action that can be pressed must look pressable. The group is drawn as one sunken field with the button as a raised strip inside its border, as every field with a key is, and the button's magnifying glass comes from the stylesheet:
@@ -1118,6 +1120,8 @@ The title keeps to one line and ends in an ellipsis when the sidebar is too narr
 The detail pane starts with an `.md-back` link, which appears only when one pane shows at a time. Its `href` is the list's URL with the current filters kept, and its fragment names the record's row, whose `.md-row` carries that id, so the list scrolls back to where the reader left it. The link text names the list. It returns to the list the record lives in, and it is not a breadcrumb trail. While the record shows, the list's toolbar and filter chips step aside, since they act on the list, except a toolbar marked `.md-site-tools`, which holds site-wide tools such as a launcher or a window dock and stays in both panes, and while the list shows, its rows grow taller because they are touch targets. None of this needs script.
 
 ## Floating windows
+
+**Outline resizing** (0.84.0) previews pointer resizing without reflowing window content during the drag. Set `data-win-resize-mode="outline"` on the window layer to enable it. Release applies the new bounds once and records one history entry; Escape or pointer cancellation discards the preview. Frame edges, outer dock edges, dock-pane dividers and snapped-window grid dividers support this mode. A window may override the layer with `outline` or `live` for its own frame and outer dock edge; shared dividers use the layer setting. Keyboard resizing remains immediate. The default is `live`. This setting does not change native operating-system window resizing.
 
 A project can open records as windows floating above a list or a board, from two optional files loaded after the core ones:
 

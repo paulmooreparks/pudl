@@ -1,5 +1,10 @@
 (function () {
   'use strict';
+  document.querySelector('[data-demo-outline]').addEventListener('click', function (e) {
+    var on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    document.querySelector('[data-win-layer]').setAttribute('data-win-resize-mode', on ? 'outline' : 'live');
+  });
   var tools = ['browser', 'search', 'terminal', 'problems'];
   var initialized = new URLSearchParams(location.search).has('open');
   function arrange(edge) {

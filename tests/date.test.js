@@ -31,6 +31,16 @@ function check(name, ok, detail) {
   const echo = id => p.evaluate(id => document.getElementById(id).parentElement.querySelector('.date-echo').textContent.replace(/,/g, ''), id);
   const panelOf = id => p.evaluate(id => document.getElementById(id + '-text').getAttribute('aria-controls'), id);
   const inPanel = async (id, sel) => '#' + await panelOf(id) + ' ' + sel;
+  // Wait for each delivered event before sending the next notch. Otherwise
+  // consecutive wheel inputs can be combined or inspected before delivery.
+  async function wheel(selector, deltaY) {
+    await p.evaluate(selector => {
+      window.testWheelReceived = false;
+      document.querySelector(selector).addEventListener('wheel', () => { window.testWheelReceived = true; }, { once: true });
+    }, selector);
+    await p.mouse.wheel(0, deltaY);
+    await p.waitForFunction(() => window.testWheelReceived);
+  }
   const open = async id => p.evaluate(l => document.getElementById(l).matches(':popover-open'), await panelOf(id));
   const focused = () => p.evaluate(() => document.activeElement.getAttribute('data-date') || document.activeElement.getAttribute('data-month') || document.activeElement.id);
   const type = async (id, s, key) => { await p.fill('#' + id + '-text', s); await heard(); await p.keyboard.press(key || 'Tab'); };
@@ -256,9 +266,9 @@ function check(name, ok, detail) {
   await p.click(await inPanel('jp', '.date-title'));
   check('the Japanese chooser shows the era year beside the number', await p.textContent(await inPanel('jp', '.date-year-name')) === '令和8年', await p.textContent(await inPanel('jp', '.date-year-name')));
   await p.click(await inPanel('jp', '.date-year input'));
-  await p.mouse.wheel(0, -100);
-  await p.mouse.wheel(0, -100);
-  await p.mouse.wheel(0, 100);
+  await wheel(await inPanel('jp', '.date-year input'), -100);
+  await wheel(await inPanel('jp', '.date-year input'), -100);
+  await wheel(await inPanel('jp', '.date-year input'), 100);
   check('the wheel steps the focused year field, up for later', await p.inputValue(await inPanel('jp', '.date-year input')) === '2027' && await p.textContent(await inPanel('jp', '.date-year-name')) === '令和9年');
   await p.keyboard.press('Escape');
   await p.keyboard.press('Escape');
@@ -352,22 +362,22 @@ function check(name, ok, detail) {
   await p.focus('#t30-text');
   await p.hover('#t30-text');
   await heard();
-  await p.mouse.wheel(0, -100);
+  await wheel('#t30-text', -100);
   check('a wheel notch up over a focused time field steps it a minute, wrapping past midnight', await val('t30') === '00:00' && await text('t30') === '00:00' && await echo('t30') === '00:00');
   check('and fires input and change for the notch', await heard() === 'input:t30,change:t30');
-  await p.mouse.wheel(0, 100);
-  await p.mouse.wheel(0, 100);
+  await wheel('#t30-text', 100);
+  await wheel('#t30-text', 100);
   check('a notch down steps it back', await val('t30') === '23:58');
   await p.focus('#after');
   await p.hover('#t30-text');
-  await p.mouse.wheel(0, -100);
+  await wheel('#t30-text', -100);
   check('a field the page scrolls past without focus is never changed', await val('t30') === '23:58');
   await type('at', '17:45');
   await p.focus('#at-text');
   await p.hover('#at-text');
-  await p.mouse.wheel(0, -100);
+  await wheel('#at-text', -100);
   check('the wheel steps by the input\'s step', await val('at') === '18:00');
-  await p.mouse.wheel(0, -100);
+  await wheel('#at-text', -100);
   check('and stops at max rather than wrapping', await val('at') === '18:00');
 
   /* refresh, reset and state. */

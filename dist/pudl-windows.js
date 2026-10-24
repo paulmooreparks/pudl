@@ -737,6 +737,14 @@
     ['left', 'top', 'width', 'height'].forEach(function (name, i) { styleProp(el, name, [r.x, r.y, r.w, r.h][i] + 'px'); });
     styleProp(el, 'right', 'auto'); styleProp(el, 'bottom', 'auto');
   }
+  function outlineResize(win) {
+    var mode = win && win.getAttribute('data-win-resize-mode');
+    return (mode == null ? layer.getAttribute('data-win-resize-mode') : mode) === 'outline';
+  }
+  function resizePreview(r) {
+    rectStyle(ghost, r);
+    ghost.hidden = false;
+  }
   function renderDockDividers(splits) {
     var wanted = new Set();
     splits.forEach(function (s) {
@@ -759,23 +767,38 @@
           if (e.button !== 0) return;
           e.preventDefault(); e.stopPropagation(); el.focus();
           var start = copy(state), now = el.__split, vertical = sideEdge(now.edge), at = vertical ? e.clientY : e.clientX, id = e.pointerId;
+          var outline = outlineResize(), work = start, frame = 0, last = at;
           el.setPointerCapture(id); el.classList.add('dragging');
+          function step() {
+            frame = 0;
+            work = copy(start);
+            var n = treeNodes(dockTree(work, now.edge)).filter(function (t) { return t.id === now.node.id; })[0];
+            n.ratio = Math.max(now.min, Math.min(now.max, now.ratio + (last - at) / now.length));
+            if (outline) {
+              var rect = Object.assign({}, now.rect);
+              rect[vertical ? 'y' : 'x'] += (n.ratio - now.ratio) * now.length;
+              resizePreview(rect);
+            } else apply(work);
+          }
           function move(ev) {
             if (ev.pointerId !== id) return;
-            var work = copy(start), n = treeNodes(dockTree(work, now.edge)).filter(function (t) { return t.id === now.node.id; })[0];
-            n.ratio = Math.max(now.min, Math.min(now.max, now.ratio + ((vertical ? ev.clientY : ev.clientX) - at) / now.length));
-            apply(work);
+            last = vertical ? ev.clientY : ev.clientX;
+            if (!frame) frame = requestAnimationFrame(step);
           }
           function end(ev) {
             if (ev.pointerId != null && ev.pointerId !== id) return;
+            cancelGesture = null;
             document.removeEventListener('pointermove', move, true); document.removeEventListener('pointerup', end, true);
             document.removeEventListener('pointercancel', end, true); document.removeEventListener('keydown', escape, true);
             el.classList.remove('dragging'); if (el.hasPointerCapture(id)) el.releasePointerCapture(id);
-            if (ev.type === 'pointerup') commit(state, true); else apply(start);
+            if (frame) { cancelAnimationFrame(frame); if (ev.type === 'pointerup') step(); }
+            showGhost(null);
+            if (ev.type === 'pointerup') commit(outline ? work : state, true); else if (ev.type !== 'policy') apply(start);
           }
           function escape(ev) { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); end(ev); } }
           document.addEventListener('pointermove', move, true); document.addEventListener('pointerup', end, true);
           document.addEventListener('pointercancel', end, true); document.addEventListener('keydown', escape, true);
+          cancelGesture = function () { end({ type: 'policy' }); };
         });
         layer.appendChild(el); paneSplitters[id] = el;
       }
@@ -1797,6 +1820,12 @@
     if (!el || e.button !== 0 || !layer.contains(el)) return;
     e.preventDefault();
     var lines = splitLines(el), r = innerRect(), mins = gridMins(state), work = withGrid();
+    var outline = outlineResize(), start = copy(state), origin = layer.getBoundingClientRect();
+    var previews = outline ? lines.map(function () {
+      var preview = document.createElement('div');
+      preview.className = 'win-ghost'; preview.hidden = true;
+      preview.setAttribute('aria-hidden', 'true'); layer.appendChild(preview); return preview;
+    }) : [];
     lines.forEach(function (l) { pinLines(work.grid, state, l[0], l[1]); });
     var lastX = e.clientX, lastY = e.clientY, frame = 0, movedAny = false;
     el.setPointerCapture(e.pointerId);
@@ -1804,10 +1833,16 @@
     layer.classList.add('dragging');
     function step() {
       frame = 0;
-      lines.forEach(function (l) {
+      lines.forEach(function (l, i) {
         var f = l[0] === 'x' ? (lastX - r.left) / r.width : (lastY - r.top) / r.height;
         work.grid[l[0]][l[1]] = clampLine(work.grid, mins, l[0], l[1], f);
+        if (outline) {
+          var at = work.grid[l[0]][l[1]], vertical = l[0] === 'x';
+          rectStyle(previews[i], { x: r.left - origin.left + (vertical ? at * r.width - 1 : 0), y: r.top - origin.top + (vertical ? 0 : at * r.height - 1), w: vertical ? 2 : r.width, h: vertical ? r.height : 2 });
+          previews[i].hidden = false;
+        }
       });
+      if (outline) return;
       var view = copy(work);
       view.grid = copyGrid(work.grid);
       apply(view);
@@ -1818,14 +1853,26 @@
       movedAny = true;
       if (!frame) frame = requestAnimationFrame(step);
     }
-    function up() {
-      if (frame) { cancelAnimationFrame(frame); step(); }
+    function up(ev) {
+      if (frame) { cancelAnimationFrame(frame); if (!outline || ev.type === 'pointerup') step(); }
       el.removeEventListener('pointermove', move);
       el.removeEventListener('pointerup', up);
       el.removeEventListener('pointercancel', up);
       el.classList.remove('dragging');
       layer.classList.remove('dragging');
-      if (movedAny) commit(withGrid(), false);
+      previews.forEach(function (preview) { preview.remove(); });
+      document.removeEventListener('keydown', escape, true);
+      if (outline) {
+        cancelGesture = null;
+        if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+        if (movedAny && ev.type === 'pointerup') commit(work, true);
+        else if (ev.type !== 'policy') apply(start);
+      } else if (movedAny) commit(withGrid(), false);
+    }
+    function escape(ev) { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); up({ type: 'escape' }); } }
+    if (outline) {
+      document.addEventListener('keydown', escape, true);
+      cancelGesture = function () { up({ type: 'policy' }); };
     }
     el.addEventListener('pointermove', move);
     el.addEventListener('pointerup', up);
@@ -3670,6 +3717,7 @@
     var base = start, baseX = e.clientX, baseY = e.clientY;
     var lastX = baseX, lastY = baseY;
     var cur = start, snap = null, moved = false, frame = 0;
+    var outline = !!edge && outlineResize(el), startBox = el.getBoundingClientRect();
     var dockDrop = null;
     /* A window sized by its content moves at the size it has, which its
        placement does not record, and never snaps, since a zone is a size. */
@@ -3722,6 +3770,17 @@
       var reach = { bottom: outer.bottom - lastY, top: lastY - outer.top, left: lastX - outer.left, right: outer.right - lastX }[dockSide];
       var s = Math.min(DOCK_MAX, Math.max((head + 60) / span, reach / span));
       cur = Object.assign({}, start, { s: s });
+      if (outline) {
+        var box = { x: startBox.left - outer.left, y: startBox.top - outer.top, w: startBox.width, h: startBox.height };
+        if (dockSide === 'left' || dockSide === 'right') {
+          box.w = s * outer.width;
+          if (dockSide === 'right') box.x = outer.width - box.w;
+        } else {
+          box.h = s * outer.height;
+          if (dockSide === 'bottom') box.y = outer.height - box.h;
+        }
+        resizePreview(box); return;
+      }
       layer.style.setProperty('--dock-' + dockSide, (Math.round(s * 1000) / 10) + '%');
       el.style.setProperty('--win-dock-size', fmt(s));
       if (splitEdge(dockSide)) renderDockGroups();
@@ -3734,7 +3793,8 @@
       var dy = (lastY - baseY) / r.height;
       if (edge) {
         cur = resizeFrom(base, edge, dx, dy, min);
-        setPlacement(el, cur);
+        if (outline) resizePreview({ x: r.left - outer.left + cur.x * r.width, y: r.top - outer.top + cur.y * r.height, w: cur.w * r.width, h: cur.h * r.height });
+        else setPlacement(el, cur);
         return;
       }
       cur = clampPlacement({ mode: 'floating', x: base.x + dx, y: base.y + dy, w: base.w, h: base.h, s: base.s }, r.width, r.height, min);
@@ -3789,7 +3849,7 @@
       suppressClick = true;
       setTimeout(function () { suppressClick = false; }, 0);
       var st = raised(state, key);
-      if (ev.type === 'escape' || (ev.type === 'pointercancel' && layer.hasAttribute('data-win-dock-splits'))) {
+      if (ev.type === 'escape' || (ev.type === 'pointercancel' && (outline || layer.hasAttribute('data-win-dock-splits')))) {
         if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId);
         apply(beforeGesture); return;
       }
@@ -3812,7 +3872,7 @@
           if (st.place[key].s == null) st.place[key].s = DOCK_SIZE;
         } else if (snap) inZone(st.place[key], zoneOf(ZONES[snap]));
       }
-      commit(st, false);
+      commit(st, outline);
     }
 
     target.addEventListener('pointermove', move);

@@ -868,6 +868,9 @@
     tabs.forEach(function (tab, i) {
       var row = rowOf(tab, i);
       if (!row) return;
+      var label = tab.getAttribute('aria-label') || tab.textContent.trim();
+      if (!tab.hasAttribute('data-tooltip')) tab.setAttribute('data-tooltip', label);
+      if (!tab.hasAttribute('title')) tab.setAttribute('title', label);
       if (!tab.id) tab.id = (r.id || 'pudl-ribbon') + '-tab-' + i;
       if (!row.id) row.id = (r.id || 'pudl-ribbon') + '-row-' + i;
       tab.setAttribute('aria-controls', row.id);
@@ -918,6 +921,28 @@
     var head = el('div', 'ribbon-bar');
     r.insertBefore(head, list);
     head.append(list, inTabs);
+    var chooser = el('button', 'btn btn-sm menu-btn ribbon-tabs', { type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false' });
+    chooser.textContent = r.getAttribute('data-ribbon-tabs-text') || 'Ribbon tabs';
+    function openTabs() {
+      if (!window.pudlMenu || !window.pudlMenu.openAt) return;
+      var rect = chooser.getBoundingClientRect();
+      var entries = tabs.filter(function (tab) { return !tab.hidden; }).map(function (tab) {
+        return { label: tab.getAttribute('aria-label') || tab.textContent.trim(), radio: true, checked: tab.getAttribute('aria-selected') === 'true', disabled: tab.disabled || tab.getAttribute('aria-disabled') === 'true', run: function () { choose(tab, false); } };
+      });
+      var panel = window.pudlMenu.openAt(getComputedStyle(chooser).direction === 'rtl' ? rect.right : rect.left, rect.bottom + 4, entries,
+        { owner: chooser, 'for': chooser, label: chooser.textContent, edges: { top: rect.top - 4, bottom: rect.bottom + 4 } });
+      if (!panel) return;
+      chooser.setAttribute('aria-expanded', 'true');
+      chooser.setAttribute('aria-controls', panel.id);
+      panel.addEventListener('toggle', function closed(e) {
+        if (e.newState !== 'closed') return;
+        chooser.setAttribute('aria-expanded', 'false'); chooser.removeAttribute('aria-controls');
+        panel.removeEventListener('toggle', closed);
+      });
+    }
+    chooser.addEventListener('click', openTabs);
+    chooser.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); openTabs(); } });
+    head.insertBefore(chooser, inTabs);
 
     /* The menu bar the ribbon folds into: a title for each tab, whose menu
        holds the tab's groups in order, each under its name, in the rows a

@@ -6,6 +6,15 @@ const { launch, ROOT, out } = require('./lib');
 
 const PROBE = '<p id="probe">Quarterly expenses 123.45 ↩</p><h1 id="head">Heading</h1>';
 
+async function renderedFonts(page) {
+  await page.locator('#probe').evaluate(el => {
+    // Demand loading starts when the changed text is laid out. Do not
+    // inspect an already-resolved ready promise from the preceding layout.
+    el.getBoundingClientRect();
+    return document.fonts.ready;
+  });
+}
+
 async function probe(browser, sheets) {
   const page = await browser.newPage();
   const requested = [];
@@ -17,7 +26,7 @@ async function probe(browser, sheets) {
     body: '<!doctype html>' + sheets.map(s => `<link rel="stylesheet" href="/dist/${s}">`).join('') + PROBE
   }));
   await page.goto(ROOT + '/font-probe');
-  await page.evaluate(() => document.fonts.ready);
+  await renderedFonts(page);
   return { page, requested };
 }
 
@@ -69,7 +78,7 @@ async function parity(page, family, opticalSizing, weights) {
     assert.deepEqual(requested, ['Inter-latin.woff2']);
     console.log('PASS English, headings and footnote arrows download only Latin upright');
     await page.locator('#probe').evaluate(el => { el.style.fontStyle = 'italic'; });
-    await page.evaluate(() => document.fonts.ready);
+    await renderedFonts(page);
     assert.deepEqual(requested, ['Inter-latin.woff2', 'Inter-Italic-latin.woff2']);
     console.log('PASS italic loads on demand without whole fonts or other scripts');
 
@@ -85,7 +94,7 @@ async function parity(page, family, opticalSizing, weights) {
         await page.locator('#probe').evaluate((el, arg) => {
           el.style.fontStyle = arg.italic ? 'italic' : 'normal'; el.textContent = arg.text;
         }, { italic, text });
-        await page.evaluate(() => document.fonts.ready);
+        await renderedFonts(page);
         assert.deepEqual(requested.slice(before), [`Inter-${italic ? 'Italic-' : ''}${name}.woff2`]);
       }
       console.log(`PASS ${name} loads only its matching upright and italic subsets`);
