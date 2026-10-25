@@ -943,6 +943,31 @@
     chooser.addEventListener('click', openTabs);
     chooser.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); openTabs(); } });
     head.insertBefore(chooser, inTabs);
+    chooser.hidden = true;
+    function fitTabs() {
+      if (!head.getClientRects().length) return;
+      /* Measure without the chooser so that it cannot cause its own
+         overflow or keep itself visible after the titles fit again. */
+      chooser.hidden = true;
+      var clipped = list.scrollWidth > list.clientWidth + 1;
+      var panel = document.getElementById(chooser.getAttribute('aria-controls'));
+      if (!clipped) {
+        var returnFocus = document.activeElement === chooser || (panel && panel.contains(document.activeElement));
+        if (panel && panel.matches(':popover-open')) panel.hidePopover();
+        if (returnFocus) {
+          var selected = tabs.filter(function (t) { return t.getAttribute('aria-selected') === 'true'; })[0];
+          if (selected) selected.focus();
+        }
+      }
+      chooser.hidden = !clipped;
+    }
+    var fitTabsFrame = 0;
+    function scheduleTabsFit() {
+      if (!fitTabsFrame) fitTabsFrame = requestAnimationFrame(function () { fitTabsFrame = 0; fitTabs(); });
+    }
+    if (window.ResizeObserver) { var tabsResize = new ResizeObserver(scheduleTabsFit); tabsResize.observe(head); tabsResize.observe(list); }
+    new MutationObserver(scheduleTabsFit).observe(list, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style'] });
+    if (document.fonts) document.fonts.ready.then(scheduleTabsFit);
 
     /* The menu bar the ribbon folds into: a title for each tab, whose menu
        holds the tab's groups in order, each under its name, in the rows a
@@ -983,6 +1008,7 @@
       inBar.setAttribute('aria-pressed', on ? 'false' : 'true');
       if (remember) { try { localStorage.setItem(key, on ? 'folded' : 'ribbon'); } catch (e) { /* not kept */ } }
       if (hadFocus) (on ? inBar : inTabs).focus();
+      scheduleTabsFit();
       r.dispatchEvent(new CustomEvent('pudl:ribbon-fold', { bubbles: true, detail: { folded: on } }));
     }
     var kept = null;

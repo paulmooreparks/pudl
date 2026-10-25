@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.87.1
+
+The Ribbon tabs chooser stays hidden when all tab titles fit. It appears when menu-bar tab titles fold to glyphs or a standalone ribbon's tab strip overflows. Widening closes an obsolete chooser and returns its focus to the selected tab.
+
+This release implements specification 0.44.1. No application changes are required beyond upgrading the pinned PUDL distribution.
+
 ## 0.87.0
 
 Native full-screen controls now match normal floating-window button dimensions, rounded corners and raised surfaces. Their transparent hit areas still reach the screen edges. The application menu uses the normal window glyph by default and accepts an application image URL through `pudlNative.attach`'s `icon` option, with a window-glyph fallback if the image fails to load.

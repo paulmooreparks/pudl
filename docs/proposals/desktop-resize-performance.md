@@ -6,7 +6,7 @@ Paul reported slow restore and resize behavior in Dinah Desktop on 24 October 20
 
 Every menu title and ribbon tab keeps its full title as a tooltip through every folding stage. PUDL's tooltip script shows it after hover and immediately on keyboard focus. A native title supplies a mouse fallback when that script is absent. Glyph-only tabs retain their accessible names.
 
-Touch users need a visible labeled route. The implemented Ribbon tabs chooser lists every available tab by its full name and identifies the selected tab. Choosing an entry selects that ribbon tab. The chooser is reachable from keyboard and touch, without a long-press gesture or a first tap that only explains a tab. It appears beside the tools in a menu-bar ribbon and beside the tabs in a standalone ribbon. Down Arrow opens it from keyboard focus, and Escape closes it and returns focus. Existing menu mode remains an alternative with labeled commands.
+Touch users need a visible labeled route when titles become unavailable. The Ribbon tabs chooser lists every available tab by its full name and identifies the selected tab. Choosing an entry selects that ribbon tab. The chooser is reachable from keyboard and touch, without a long-press gesture or a first tap that only explains a tab. It appears beside the tools when menu-bar tab titles fold to glyphs, or beside standalone ribbon tabs when their strip overflows. It stays hidden when all titles fit. Widening closes an obsolete chooser and returns its focus to the selected tab. Down Arrow opens it from keyboard focus, and Escape closes it and returns focus. Existing menu mode remains an alternative with labeled commands.
 
 ## Resize measurement
 

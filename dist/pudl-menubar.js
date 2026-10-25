@@ -1597,6 +1597,18 @@
     }
     ribbonRow.hidden = !on;
     var list = barTitles();
+    var chooser = ribbonRow.querySelector('.menubar-ribbon-tabs');
+    var needsChooser = on && built.classList.contains('menubar-title-glyphs') && list.some(function (x) { return hasTools(x) && x.classList.contains('menubar-glyphed'); });
+    if (chooser && !needsChooser) {
+      var chooserPanel = document.getElementById(chooser.getAttribute('aria-controls'));
+      var returnFocus = document.activeElement === chooser || (chooserPanel && chooserPanel.contains(document.activeElement));
+      if (chooserPanel && chooserPanel.matches(':popover-open')) chooserPanel.hidePopover();
+      if (returnFocus) {
+        var selected = chosenTitle(list, chosen.last) || chosenTitle(list, 'front') || chosenTitle(list, 'host') || list[0];
+        if (selected) selected.focus();
+      }
+    }
+    if (chooser) chooser.hidden = !needsChooser;
     var groups = built.querySelectorAll(':scope > .menubar-menu:not(.menubar-one)');
     function asMenu(x) {
       x.setAttribute('role', 'menuitem');
