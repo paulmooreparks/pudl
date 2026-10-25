@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.87.0
+
+Native full-screen controls now match normal floating-window button dimensions, rounded corners and raised surfaces. Their transparent hit areas still reach the screen edges. The application menu uses the normal window glyph by default and accepts an application image URL through `pudlNative.attach`'s `icon` option, with a window-glyph fallback if the image fails to load.
+
+This release implements specification 0.44.0.
+
 ## 0.86.0
 
 Native desktop applications can attach full-screen window controls to a topbar through optional `pudl-native.js`. The application window menu occupies the physical top left; Minimize, Restore and Close occupy the physical top right after Show as ribbon. Applications supply authoritative native state, capabilities and asynchronous action callbacks. PUDL handles presentation, menus, keyboard focus, duplicate suppression and error events without assuming a native framework or invoking browser window APIs. Controls remain hidden outside full screen. See `docs/NATIVE-WINDOWS.md` and the simulated `samples/native-window.html` adapter.

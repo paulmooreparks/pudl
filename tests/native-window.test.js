@@ -22,9 +22,22 @@ const assert = require('assert');
     const top = document.querySelector('.topbar').getBoundingClientRect(), menu = document.querySelector('.native-window-menu').getBoundingClientRect();
     const controls = document.querySelector('.native-window-controls').getBoundingClientRect(), close = document.querySelector('[data-native-action=close]').getBoundingClientRect();
     const toggle = document.querySelector('.menubar-ribbon-toggle').getBoundingClientRect();
-    return Math.abs(top.left) < 1 && Math.abs(top.right - innerWidth) < 1 && menu.left === top.left && Math.abs(close.right - top.right) < 1 && controls.left >= toggle.right && menu.top === top.top && Math.abs(close.bottom - top.bottom) <= 1;
+    return Math.abs(top.left) < 1 && Math.abs(top.right - innerWidth) < 1 && menu.left === top.left && Math.abs(controls.right - top.right) < 1 && controls.left >= toggle.right && menu.top === top.top && Math.abs(controls.bottom - top.bottom) <= 1 && close.height < top.height;
   });
   assert(await corners(), 'corners remain outside folding content');
+  await page.addStyleTag({ url: ROOT + '/dist/pudl-windows.css' });
+  assert(await page.evaluate(() => {
+    const normal = document.createElement('button'); normal.className = 'win-btn'; document.body.appendChild(normal);
+    const native = document.querySelector('[data-native-action=minimize]');
+    const a = getComputedStyle(normal), b = getComputedStyle(native);
+    const same = ['width', 'height', 'borderRadius', 'backgroundImage', 'borderTopWidth'].every(key => a[key] === b[key]);
+    normal.remove();
+    return same && document.querySelector('.native-window-menu .glyph').style.getPropertyValue('--glyph') === 'var(--glyph-window)';
+  }), 'native controls match normal window dimensions, shape and default menu glyph');
+  const top = await page.locator('.topbar').boundingBox();
+  await page.mouse.click(top.x + top.width - 1, top.y + 1);
+  await page.waitForFunction(() => document.querySelector('#native-log').textContent.includes('Close requested'));
+  assert(await page.locator('.native-chrome').count() === 1, 'corner hit target invokes Close without changing host state');
   await page.click('[data-native-action=minimize]');
   await page.waitForFunction(() => document.querySelector('#native-log').textContent.includes('Minimize requested'));
   assert(await page.evaluate(() => document.activeElement.id === 'working-text'), 'native action restores content focus');
@@ -91,6 +104,14 @@ const assert = require('assert');
     let rejected = false; try { instance.update({ fullscreen: 'false' }); } catch (e) { rejected = e instanceof TypeError; }
     instance.destroy(); return rejected;
   }), 'invalid host state does not enable controls');
+  await page.evaluate(() => {
+    window.iconNative = pudlNative.attach(document.querySelector('.topbar'), { icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cpath fill="red" d="M0 0h16v16H0z"/%3E%3C/svg%3E', state: { fullscreen: true } });
+  });
+  await page.waitForFunction(() => document.querySelector('.native-window-icon').naturalWidth > 0);
+  assert(await page.locator('.native-window-menu img[alt=""][aria-hidden=true]').count() === 1, 'application icon replaces the default glyph');
+  await page.evaluate(() => document.querySelector('.native-window-icon').dispatchEvent(new Event('error')));
+  assert(await page.locator('.native-window-menu > button > .glyph').count() === 1, 'failed application icon falls back to window glyph');
+  await page.evaluate(() => iconNative.destroy());
   await page.setContent('<link rel="stylesheet" href="' + ROOT + '/dist/pudl.css"><script src="' + ROOT + '/dist/pudl-native.js"></script><script src="' + ROOT + '/dist/pudl-menu.js" defer></script><script src="' + ROOT + '/dist/pudl-menubar.js" defer></script><header class="topbar"><nav data-menubar data-menubar-ribbon><ul data-menubar-source hidden><li>App<ul><li><button>About</button></li></ul></li></ul></nav></header><script>window.early = pudlNative.attach(document.querySelector(".topbar"), {state:{fullscreen:true}});</script>');
   await page.waitForSelector('.menubar-ribbon-toggle');
   assert(await corners(), 'native attach before menu initialization preserves ordering');

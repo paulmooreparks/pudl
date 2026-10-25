@@ -7,6 +7,7 @@
     if (!topbar || !topbar.matches('.topbar') || topbar.ownerDocument !== document) throw new TypeError('A topbar in this document is required.');
     if (attached.has(topbar)) throw new Error('This topbar already has native controls.');
     options = options || {};
+    if (options.icon !== undefined && (typeof options.icon !== 'string' || !options.icon.trim())) throw new TypeError('An application icon must be a nonempty image URL.');
     var actions = Object.assign({}, options.actions), words = Object.assign({ menu: 'Application window menu', minimize: 'Minimize application window', restore: 'Leave full screen', close: 'Close application window' }, options.words);
     var state = Object.assign({ fullscreen: false, active: true, title: options.title || 'Application', canMinimize: true, canRestore: true, canClose: true }, options.state);
     function validate(snapshot) {
@@ -24,7 +25,16 @@
     controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', words.menu);
     [menu, controls].forEach(function (el) { el.setAttribute('data-native-chrome-slot', ''); el.hidden = true; });
     trigger.type = 'button'; trigger.className = 'icon-btn menu-btn';
-    var icon = document.createElement('span'); icon.className = 'glyph'; icon.style.setProperty('--glyph', 'var(--glyph-app)'); icon.setAttribute('aria-hidden', 'true');
+    var icon = document.createElement(options.icon ? 'img' : 'span');
+    if (options.icon) {
+      icon.alt = ''; icon.className = 'native-window-icon';
+      icon.addEventListener('error', function () {
+        var fallback = document.createElement('span'); fallback.className = 'glyph'; fallback.style.setProperty('--glyph', 'var(--glyph-window)'); fallback.setAttribute('aria-hidden', 'true'); icon.replaceWith(fallback);
+      });
+      icon.src = options.icon;
+    }
+    else { icon.className = 'glyph'; icon.style.setProperty('--glyph', 'var(--glyph-window)'); }
+    icon.setAttribute('aria-hidden', 'true');
     trigger.appendChild(icon);
     panel.className = 'menu-panel'; panel.id = 'pudl-native-menu-' + (++uid); panel.setAttribute('popover', 'auto');
     trigger.setAttribute('popovertarget', panel.id); trigger.setAttribute('aria-haspopup', 'menu'); trigger.setAttribute('aria-expanded', 'false');
@@ -80,7 +90,8 @@
       button.setAttribute('data-native-action', action); button.setAttribute('aria-label', words[action]); button.setAttribute('data-tooltip', words[action]); button.title = words[action];
       var glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.style.setProperty('--glyph', 'var(--glyph-' + action + ')'); glyph.setAttribute('aria-hidden', 'true');
       button.appendChild(glyph); button.addEventListener('click', function () { run(action, true); });
-      buttons[action] = button; controls.appendChild(button);
+      var target = document.createElement('span'); target.className = 'native-window-target'; target.appendChild(button);
+      buttons[action] = button; controls.appendChild(target);
     });
     ['restore', 'minimize', 'close'].forEach(function (action) {
       var row = document.createElement('button'); row.type = 'button'; row.className = 'menu-action';
