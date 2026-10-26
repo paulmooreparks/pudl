@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.89.0
+
+Taskbars can opt into window-entry reordering with `data-win-taskbar-reorder`. Mouse/pen dragging, Alt+Shift+Left/Right, entry context commands and a visible Arrange taskbar control share one order. The arrangement popover includes overflow entries and supports click/tap-only draft moves with Apply and Cancel. Its actions are a compact glyph toolbar that folds into group menus in a narrow popover when `pudl-toolbar.js` is loaded. Moves preserve window activation, mounted content and shared-dock ordering, announce their result, and persist through the independent `tb.order` URL parameter. Region navigation carries `tb.order` like the other window parameters. See `docs/TASKBAR-ORDER.md` and `samples/taskbar-reordering.html`.
+
+Existing pages need no changes. This release implements specification 0.46.0.
+
 ## 0.88.0
 
 Windows can show title-bar status chips using `.win-statuses` with `.win-status` text spans after the title/detail and before the window controls. Chips inherit the title bar's foreground, with transparent fills, currentColor outlines and no shadow; `.strong` emphasizes in-progress work by weight. This keeps the status readable against active, inactive and forced-colour title bars without relying on semantic fills.

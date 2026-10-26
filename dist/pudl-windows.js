@@ -1075,6 +1075,7 @@
       if (place[k].zone) place[k].zone = Object.assign({}, place[k].zone);
     });
     var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place, recent: recentOf(st) };
+    out.taskbarOrder = taskbarKeys(st);
     if (!gridEmpty(st.grid)) out.grid = copyGrid(st.grid);
     if (st.docks) {
       out.docks = {};
@@ -1477,6 +1478,7 @@
     var q = new URLSearchParams(location.search);
     if (!q.has('open')) return null;
     var st = { open: keyList(q.get('open')), top: null, min: {}, place: {} };
+    st.taskbarOrder = keyList(q.get('tb.order'));
     sharedEdges().forEach(function (edge) {
       var m = /^(auto|open|rail):([A-Za-z0-9_-]*)(?::([0-9.]*))?(?::([A-Za-z0-9_,-]*))?$/.exec(q.get('d.' + edge) || '');
       if (m) {
@@ -1517,6 +1519,8 @@
     var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto' || st.docks[edge].size != null || !!st.docks[edge].order; });
     if (!st.open.length && !dockPreference) return [];
     var parts = ['open=' + st.open.join(',')];
+    var taskOrder = taskbarKeys(st), defaultOrder = st.open.filter(function (k) { return !parentOf(st, k); });
+    if (taskOrder.join(',') !== defaultOrder.join(',')) parts.push('tb.order=' + taskOrder.join(','));
     if (st.top) parts.push('top=' + st.top);
     var mins = st.open.filter(function (k) { return st.min[k]; });
     if (mins.length) parts.push('min=' + mins.join(','));
@@ -1587,7 +1591,7 @@
       if (!seg) return;
       var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2))) || (/^ds\.(left|right|top|bottom)$/.test(k) && splitEdge(k.slice(3)))) return;
+      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k === 'tb.order' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2))) || (/^ds\.(left|right|top|bottom)$/.test(k) && splitEdge(k.slice(3)))) return;
       var owner = scopedOwner(k);
       if (owner) {
         if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
@@ -2305,6 +2309,8 @@
   }
 
   function apply(st) {
+    if (taskbarDrag) taskbarDrag.cancel();
+    st.taskbarOrder = taskbarKeys(st);
     st.open.forEach(function (k) {
       var p = st.place[k];
       if (p && dockOnly(k) && p.mode !== 'dock-left' && p.mode !== 'dock-right') {
@@ -2399,6 +2405,7 @@
     syncPane();
     renderSplitters(st);
     announceSeen(st);
+    if (taskbarArrangement) taskbarArrangement.refresh();
   }
 
   /* Every window button and dock tab is a real link to the state it
@@ -2491,7 +2498,7 @@
         var k = a.getAttribute('data-win-tab');
         if (k && !have.has(k)) have.set(k, a); else a.remove();
       });
-      var want = state.open.filter(function (k) {
+      var want = taskbarKeys(state).filter(function (k) {
         return !parentOf(state, k) && !(dock.hasAttribute('data-win-dock-omit-docked') && shownEdge(state, k));
       });
       have.forEach(function (a, k) { if (want.indexOf(k) < 0) { a.remove(); have.delete(k); } });
@@ -2504,6 +2511,10 @@
         if (dock.children[i] !== a) dock.insertBefore(a, dock.children[i] || null);
         var cls = 'win-tab' + (state.min[k] ? ' minimized' : '');
         if (a.className !== cls) a.className = cls;
+        if (taskbarReorderEnabled() && dock.closest('.win-bar')) {
+          a.draggable = false;
+          setAttr(a, 'aria-keyshortcuts', 'Alt+Shift+ArrowLeft Alt+Shift+ArrowRight');
+        } else a.removeAttribute('aria-keyshortcuts');
         setAttr(a, 'href', urlFor(tabbed(state, k)));
         if (k === topRoot) setAttr(a, 'aria-current', 'true'); else if (a.hasAttribute('aria-current')) a.removeAttribute('aria-current');
         windowMark(a, k, state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(fullTitle(k)) : fullTitle(k));
@@ -2598,6 +2609,7 @@
      arrangement operations push history; ordinary placement replaces it. */
   function commit(st, push, rename) {
     clearTimeout(urlTimer);
+    if (rename && taskbarArrangement) taskbarArrangement.remap(rename.from, rename.to);
     apply(st);
     var url = urlFor(st, rename);
     if (url !== location.pathname + location.search + location.hash) {
@@ -3556,6 +3568,8 @@
         st.place[key] = clampPlacement(initialPlacement(key, el, st.open.length - 1, null, from || null), innerW(), innerH(), narrowPolicy(el) === 'maximized' ? { w: 0, h: 0 } : null);
       } else {
         st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
+        if (taskbarArrangement) taskbarArrangement.remap(oldKey, key);
+        st.taskbarOrder = taskbarKeys(st).map(function (k) { return k === oldKey ? key : k; }).filter(function (k, i, all) { return all.indexOf(k) === i; });
         st.place[key] = Object.assign({}, st.place[oldKey]);
         delete st.min[key];
         markClosing(oldKey, 'replace');
@@ -3594,6 +3608,7 @@
     var el = wins[oldKey];
     var st = copy(state);
     st.open[st.open.indexOf(oldKey)] = key;
+    st.taskbarOrder = st.taskbarOrder.map(function (k) { return k === oldKey ? key : k; });
     if (st.top === oldKey) st.top = key;
     [st.min, st.place].forEach(function (m) { move(m, oldKey, key); });
     Object.keys(st.docks || {}).forEach(function (edge) {
@@ -4080,8 +4095,196 @@
      windows that still do not fit, from the last, leave the dock for a
      More button after it, whose menu lists them. The button of the window
      in front always stays. Nothing scrolls. */
+  var taskbarDrag = null, taskbarArrangement = null, taskbarLive = null;
+  function taskbarReorderEnabled() { return !!layer && layer.hasAttribute('data-win-taskbar-reorder'); }
+  function taskbarKeys(st) {
+    var roots = st.open.filter(function (k) { return !parentOf(st, k); });
+    return (st.taskbarOrder || []).concat(roots).filter(function (k, i, all) { return roots.indexOf(k) >= 0 && all.indexOf(k) === i; });
+  }
+  function taskbarProjection(dock) {
+    return taskbarKeys(state).filter(function (k) { return !dock.hasAttribute('data-win-dock-omit-docked') || !shownEdge(state, k); });
+  }
+  function announceTaskbar(key, order, preview) {
+    if (!taskbarLive) { taskbarLive = document.createElement('div'); taskbarLive.className = 'visually-hidden'; taskbarLive.setAttribute('role', 'status'); document.body.appendChild(taskbarLive); }
+    taskbarLive.textContent = text(preview ? 'taskbar-preview-moved' : 'taskbar-moved', preview ? 'Preview places {title} at position {position} of {count}.' : '{title} moved to position {position} of {count}.').replace('{title}', fullTitle(key)).replace('{position}', order.indexOf(key) + 1).replace('{count}', order.length);
+  }
+  function focusTaskbar(dock, key) {
+    var tab = Array.from(dock.children).find(function (t) { return t.getAttribute('data-win-tab') === key; });
+    var bar = dock.closest('.win-bar');
+    if (bar) fitBar(bar);
+    var target = tab && tab.getClientRects().length ? tab : bar && bar.querySelector('.win-bar-more');
+    if (target) target.focus({ preventScroll: true });
+  }
+  function setTaskbarOrder(order, key, dock) {
+    if (!taskbarReorderEnabled()) return false;
+    var before = taskbarKeys(state), st = copy(state);
+    st.taskbarOrder = order;
+    st.taskbarOrder = taskbarKeys(st);
+    if (st.taskbarOrder.join(',') === before.join(',')) return false;
+    var focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.win-bar [data-win-dock] > [data-win-tab]');
+    var focusedDock = focused && focused.parentElement, focusedKey = focused && focused.getAttribute('data-win-tab');
+    commit(st, true);
+    if (dock) focusTaskbar(dock, key);
+    else if (focusedDock) focusTaskbar(focusedDock, focusedKey);
+    if (key) announceTaskbar(key, dock ? taskbarProjection(dock) : taskbarKeys(state));
+    return true;
+  }
+  function reorderTaskbar(key, destination, dock) {
+    if (!taskbarReorderEnabled() || !destination || typeof destination !== 'object') return false;
+    var fields = Object.keys(destination);
+    if (fields.length !== 1 || ['before', 'after', 'edge'].indexOf(fields[0]) < 0) return false;
+    var order = taskbarKeys(state), at = order.indexOf(key), field = fields[0], target = destination[field];
+    if (at < 0 || (field === 'edge' ? ['start', 'end'].indexOf(target) < 0 : target === key || order.indexOf(target) < 0)) return false;
+    order.splice(at, 1);
+    var index = field === 'edge' ? (target === 'start' ? 0 : order.length) : order.indexOf(target) + (field === 'after' ? 1 : 0);
+    order.splice(index, 0, key);
+    return setTaskbarOrder(order, key, dock);
+  }
+  function taskbarOrderCommands(dock, key) {
+    function move(kind) {
+      var list = taskbarProjection(dock), i = list.indexOf(key);
+      if (i < 0) return;
+      var other = kind === 'first' ? list[0] : kind === 'last' ? list[list.length - 1] : list[i + (kind === 'earlier' ? -1 : 1)];
+      if (!other || other === key) return;
+      var destination = {}; destination[kind === 'earlier' || kind === 'first' ? 'before' : 'after'] = other;
+      reorderTaskbar(key, destination, dock);
+    }
+    var list = taskbarProjection(dock), index = list.indexOf(key);
+    return [
+      { label: text('taskbar-earlier', 'Move earlier'), disabled: index <= 0, run: function () { move('earlier'); } },
+      { label: text('taskbar-later', 'Move later'), disabled: index < 0 || index === list.length - 1, run: function () { move('later'); } },
+      { label: text('taskbar-first', 'Move to beginning'), disabled: index <= 0, run: function () { move('first'); } },
+      { label: text('taskbar-last', 'Move to end'), disabled: index < 0 || index === list.length - 1, run: function () { move('last'); } },
+      '-', { label: text('taskbar-arrange', 'Arrange taskbar'), run: function () { arrangeTaskbar(dock, key); } }
+    ];
+  }
+  function arrangeTaskbar(dock, selected) {
+    if (!taskbarReorderEnabled() || !dock || !dock.closest('.win-bar') || !dock.isConnected) return false;
+    if (taskbarArrangement) taskbarArrangement.close();
+    var anchor = dock.closest('.win-bar').querySelector('.win-bar-arrange');
+    if (!anchor) return false;
+    var panel = document.createElement('div'); panel.className = 'popover win-taskbar-arrangement'; panel.id = 'pudl-taskbar-arrangement';
+    panel.setAttribute('popover', 'auto'); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', text('taskbar-arrange', 'Arrange taskbar'));
+    if (!anchor.id) anchor.id = 'pudl-taskbar-arrange-' + (++statusId);
+    panel.setAttribute('data-menu-anchor', anchor.id);
+    var title = document.createElement('h2'); title.className = 'popover-title'; title.textContent = text('taskbar-arrange', 'Arrange taskbar');
+    var list = document.createElement('select'); list.className = 'form-select'; list.size = 8; list.setAttribute('aria-label', text('taskbar-items', 'Taskbar windows'));
+    var actions = document.createElement('div'); actions.className = 'toolbar win-taskbar-tools'; actions.setAttribute('role', 'toolbar'); actions.setAttribute('aria-label', text('taskbar-arrange', 'Arrange taskbar')); actions.setAttribute('data-toolbar-fold', '');
+    var moveGroup = document.createElement('div'); moveGroup.className = 'toolbar-group'; moveGroup.setAttribute('aria-label', text('taskbar-order', 'Taskbar order')); moveGroup.setAttribute('data-toolbar-glyph', 'sort');
+    var finishGroup = document.createElement('div'); finishGroup.className = 'toolbar-group'; finishGroup.setAttribute('aria-label', text('taskbar-apply', 'Apply order')); finishGroup.setAttribute('data-toolbar-glyph', 'check'); finishGroup.setAttribute('data-toolbar-priority', '10'); finishGroup.setAttribute('data-toolbar-end', '');
+    actions.append(moveGroup, finishGroup);
+    function actionButton(label, glyph, primary) {
+      var button = document.createElement('button'); button.type = 'button'; button.className = 'btn btn-sm' + (primary ? ' btn-primary' : ''); button.setAttribute('aria-label', label); button.setAttribute('data-toolbar-glyph-only', ''); button.title = label; button.setAttribute('data-tooltip', label);
+      var icon = document.createElement('span'); icon.className = 'glyph'; icon.setAttribute('aria-hidden', 'true'); icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
+      var words = document.createElement('span'); words.className = 'toolbar-words'; words.textContent = label; button.append(icon, words); return button;
+    }
+    var draft = taskbarKeys(state), moves = [], disposed = false, renamedSelection = null;
+    function shownDraft() { var eligible = taskbarProjection(dock); return draft.filter(function (k) { return eligible.indexOf(k) >= 0; }); }
+    function draw() {
+      if (disposed) return;
+      var value = renamedSelection || list.value || selected, live = taskbarKeys(state);
+      renamedSelection = null;
+      draft = draft.filter(function (k) { return live.indexOf(k) >= 0; });
+      live.forEach(function (k) { if (draft.indexOf(k) < 0) draft.push(k); });
+      var shown = shownDraft(); list.textContent = '';
+      shown.forEach(function (k) { var option = document.createElement('option'); option.value = k; option.textContent = fullTitle(k); list.appendChild(option); });
+      if (shown.indexOf(value) >= 0) list.value = value; else if (shown.length) list.selectedIndex = 0;
+      var i = shown.indexOf(list.value);
+      moves.forEach(function (b, n) { b.disabled = i < 0 || (n === 0 || n === 2 ? i === 0 : i === shown.length - 1); });
+    }
+    ['earlier', 'later', 'first', 'last'].forEach(function (kind, n) {
+      var b = actionButton(text('taskbar-' + kind, ['Move earlier', 'Move later', 'Move to beginning', 'Move to end'][n]), ['arrow-up', 'arrow-down', 'sort-up', 'sort-down'][n]);
+      b.addEventListener('click', function () {
+        var shown = shownDraft(), key = list.value, i = shown.indexOf(key);
+        var target = kind === 'first' ? shown[0] : kind === 'last' ? shown[shown.length - 1] : shown[i + (kind === 'earlier' ? -1 : 1)];
+        if (!target || target === key) return;
+        draft.splice(draft.indexOf(key), 1);
+        draft.splice(draft.indexOf(target) + (kind === 'later' || kind === 'last' ? 1 : 0), 0, key);
+        draw(); list.focus(); announceTaskbar(key, shownDraft(), true);
+      }); moves.push(b); moveGroup.appendChild(b);
+    });
+    list.addEventListener('change', draw);
+    function close() {
+      if (disposed) return;
+      var ownsFocus = panel.contains(document.activeElement) || document.activeElement === document.body;
+      disposed = true;
+      if (panel.matches(':popover-open')) panel.hidePopover();
+      panel.remove(); taskbarArrangement = null;
+      if (ownsFocus && anchor.isConnected && anchor.getClientRects().length) anchor.focus({ preventScroll: true });
+    }
+    var applyButton = actionButton(text('taskbar-apply', 'Apply order'), 'check', true);
+    applyButton.addEventListener('click', function () { if (!dock.isConnected || !taskbarReorderEnabled()) { close(); return; } draw(); var key = list.value, order = draft.slice(); close(); setTaskbarOrder(order, key, null); });
+    var cancel = actionButton(text('taskbar-cancel', 'Cancel'), 'close'); cancel.addEventListener('click', close);
+    finishGroup.append(applyButton, cancel); panel.append(title, list, actions); document.body.appendChild(panel);
+    taskbarArrangement = { refresh: draw, close: close, remap: function (from, to) { draft = draft.map(function (k) { return k === from ? to : k; }); if (list.value === from) renamedSelection = to; } };
+    panel.addEventListener('toggle', function (e) { if (e.newState === 'closed') close(); });
+    draw(); panel.showPopover(); if (window.pudlToolbar) window.pudlToolbar.enhance(panel); return true;
+  }
+  function dragTaskbar(e) {
+    var tab = e.target.closest && e.target.closest('.win-bar [data-win-dock] > [data-win-tab]');
+    if (!tab || !taskbarReorderEnabled() || e.button !== 0 || e.pointerType === 'touch' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+    var dock = tab.parentElement, key = tab.getAttribute('data-win-tab'), start = e.clientX, id = e.pointerId;
+    var targets = Array.from(dock.children).filter(function (t) { return t !== tab && t.hasAttribute('data-win-tab') && t.getClientRects().length; });
+    if (!targets.length) return;
+    var rtl = getComputedStyle(dock).direction === 'rtl', viewportWidth = innerWidth, viewportHeight = innerHeight;
+    var moving = false, marker = null, destination = null, frame = 0, latest = null, ended = false;
+    function cleanup() {
+      if (ended) return;
+      ended = true;
+      if (frame) cancelAnimationFrame(frame);
+      document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', cancel); document.removeEventListener('keydown', escape, true);
+      window.removeEventListener('blur', cancel); window.removeEventListener('resize', cancel); tab.removeEventListener('lostpointercapture', cancel);
+      if (marker) marker.remove(); tab.classList.remove('win-taskbar-dragging'); taskbarDrag = null;
+      if (tab.hasPointerCapture(id)) tab.releasePointerCapture(id);
+      if (moving) window.addEventListener('pointerdown', clearSuppression, { once: true, capture: true });
+      fitBarsSoon();
+    }
+    function cancel(event) {
+      if (event && event.type === 'pointercancel' && event.pointerId !== id) return;
+      if (!moving && latest && Math.abs(latest.clientX - start) >= 6) { moving = true; window.addEventListener('click', suppressClick, true); }
+      destination = null;
+      cleanup();
+    }
+    function escape(event) { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancel(); } }
+    function move(event) {
+      if (event.pointerId !== id) return;
+      latest = { clientX: event.clientX, clientY: event.clientY, pointerId: id };
+      if (!frame) frame = requestAnimationFrame(function () { frame = 0; preview(latest, false); });
+    }
+    function preview(event, ending) {
+      if (!taskbarReorderEnabled() || innerWidth !== viewportWidth || innerHeight !== viewportHeight || (getComputedStyle(dock).direction === 'rtl') !== rtl) { cancel(); return; }
+      if (!moving && Math.abs(event.clientX - start) < 6) return;
+      if (!moving) {
+        moving = true; if (!ending) tab.setPointerCapture(id); tab.classList.add('win-taskbar-dragging');
+        marker = document.createElement('div'); marker.className = 'win-taskbar-marker'; marker.setAttribute('aria-hidden', 'true'); document.body.appendChild(marker);
+        window.addEventListener('click', suppressClick, true);
+      }
+      var bounds = dock.getBoundingClientRect();
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) { destination = null; marker.hidden = true; return; }
+      var next = targets.find(function (t) { var r = t.getBoundingClientRect(); return rtl ? event.clientX > (r.left + r.right) / 2 : event.clientX < (r.left + r.right) / 2; });
+      var target = next || targets[targets.length - 1], rect = target.getBoundingClientRect();
+      destination = {}; destination[next ? 'before' : 'after'] = target.getAttribute('data-win-tab');
+      marker.setAttribute('data-label', text(next ? 'taskbar-before' : 'taskbar-after', next ? 'Before {title}' : 'After {title}').replace('{title}', fullTitle(destination[next ? 'before' : 'after'])));
+      marker.setAttribute('data-align', event.clientX > innerWidth / 2 ? 'end' : 'start');
+      marker.toggleAttribute('data-below', bounds.top < 40);
+      marker.hidden = false; marker.style.left = (next ? (rtl ? rect.right : rect.left) : (rtl ? rect.left : rect.right)) + 'px'; marker.style.top = bounds.top + 'px'; marker.style.height = bounds.height + 'px';
+    }
+    function clearSuppression() { window.removeEventListener('click', suppressClick, true); window.removeEventListener('pointerdown', clearSuppression, true); }
+    function suppressClick(event) { if (event.detail && event.target.closest && event.target.closest('.win-bar') === dock.closest('.win-bar')) { event.preventDefault(); event.stopImmediatePropagation(); } clearSuppression(); }
+    function up(event) { if (event.pointerId !== id) return; if (latest) preview({ clientX: event.clientX, clientY: event.clientY }, true); if (ended) return; var drop = moving && destination; cleanup(); if (drop) reorderTaskbar(key, drop, dock); }
+    taskbarDrag = { dock: dock, cancel: cancel };
+    document.addEventListener('pointermove', move); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', cancel); document.addEventListener('keydown', escape, true);
+    window.addEventListener('blur', cancel); window.addEventListener('resize', cancel); tab.addEventListener('lostpointercapture', cancel);
+  }
   function fitBar(bar) {
     var dock = bar.querySelector(':scope > [data-win-dock]');
+    if (taskbarDrag && taskbarDrag.dock === dock) return;
+    var arrange = bar.querySelector(':scope > .win-bar-arrange');
+    if (taskbarReorderEnabled() && dock && !arrange) {
+      arrange = document.createElement('button'); arrange.type = 'button'; arrange.className = 'icon-btn win-bar-arrange';
+      arrange.setAttribute('aria-label', text('taskbar-arrange', 'Arrange taskbar')); arrange.title = text('taskbar-arrange', 'Arrange taskbar'); arrange.setAttribute('data-tooltip', arrange.title);
+      arrange.addEventListener('click', function () { arrangeTaskbar(dock); }); dock.insertAdjacentElement('afterend', arrange);
+    } else if (!taskbarReorderEnabled() && arrange) arrange.remove();
     if (!dock || !bar.getClientRects().length) return;
     var more = bar.querySelector(':scope > .win-bar-more');
     var tabs = Array.prototype.slice.call(dock.querySelectorAll(':scope > [data-win-tab]'));
@@ -4128,6 +4331,10 @@
     var rows = (more.__over || []).map(function (t) {
       return { label: (t.getAttribute('aria-label') || t.textContent).trim(), run: function () { t.click(); } };
     });
+    if (taskbarReorderEnabled()) {
+      if (rows.length) rows.push('-');
+      rows.push({ label: text('taskbar-arrange', 'Arrange taskbar'), run: function () { arrangeTaskbar(more.parentElement.querySelector('[data-win-dock]')); } });
+    }
     var r = more.getBoundingClientRect();
     var low = (r.top + r.bottom) / 2 > window.innerHeight / 2;
     window.pudlMenu.openAt(Math.round(r.left), Math.round(low ? r.top - 4 : r.bottom + 4), rows,
@@ -4352,6 +4559,15 @@
     document.addEventListener('click', onBarEdge, true);
     document.addEventListener('contextmenu', onBarEdge, true);
     watchBars();
+    document.addEventListener('pointerdown', dragTaskbar);
+    document.addEventListener('keydown', function (e) {
+      if (e.defaultPrevented || !taskbarReorderEnabled() || !e.altKey || !e.shiftKey || e.ctrlKey || e.metaKey || ['ArrowLeft', 'ArrowRight'].indexOf(e.key) < 0) return;
+      var tab = e.target.closest && e.target.closest('.win-bar [data-win-dock] > [data-win-tab]');
+      if (!tab) return;
+      e.preventDefault();
+      var rtl = getComputedStyle(tab.parentElement).direction === 'rtl';
+      taskbarOrderCommands(tab.parentElement, tab.getAttribute('data-win-tab'))[(e.key === 'ArrowLeft') !== rtl ? 0 : 1].run();
+    });
     window.addEventListener('keydown', onSwitchKeyDown, true);
     window.addEventListener('keyup', onSwitchKeyUp, true);
     window.addEventListener('blur', function () { switchEnd(); });
@@ -4376,6 +4592,8 @@
       var close = all.filter(function (c) { return c.id === 'close'; });
       var content = contentCommands(wins[key], key);
       var rows = [];
+      var taskbarDock = tab.closest('.win-bar [data-win-dock]');
+      if (taskbarReorderEnabled() && taskbarDock) rows.push({ label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(taskbarDock, key) });
       [own, lists, content, close].forEach(function (part) {
         if (!part.length) return;
         if (rows.length) rows.push('-');
@@ -4397,14 +4615,16 @@
       var bar = e.target && e.target.closest && e.target.closest('.win-bar');
       if (!bar || bar.getAttribute('data-win-bar-menu') === 'off' || e.target.closest('[data-win-tab]')) return;
       if (!bar.querySelector('[data-win-dock]')) return;
-      e.detail.add([
+      var taskbarRows = [
         { label: text('minimize-all', 'Minimize all'), glyph: 'minimize-all', disabled: !anyShowing(state), run: function () { commit(allMinimized(state), false); } },
         { label: text('restore-all', 'Restore all'), glyph: 'restore-all', disabled: !anyMinimized(state), run: restoreAll },
         '-',
         { label: text('close-all', 'Close all windows'), danger: true, disabled: !closable(state).length, run: function () {
           closable(state).forEach(function (k) { if (state.open.indexOf(k) >= 0) close(k); });
         } }
-      ]);
+      ];
+      if (taskbarReorderEnabled()) taskbarRows.push('-', { label: text('taskbar-arrange', 'Arrange taskbar'), run: function () { arrangeTaskbar(bar.querySelector('[data-win-dock]')); } });
+      e.detail.add(taskbarRows);
     });
 
     /* The window menu is built as it opens. beforetoggle does not bubble,
@@ -4498,6 +4718,8 @@
       dockMode: dockMode,
       dockArrange: dockArrange,
       dockRatio: setDockRatio,
+      reorderTaskbar: reorderTaskbar,
+      arrangeTaskbar: function (dock) { return arrangeTaskbar(dock || document.querySelector('.win-bar [data-win-dock]')); },
       dockPresentation: function (edge) { return sharedEdge(edge) ? splitPresentation(state, edge) : null; },
       /* zone is a name from ZONES, a rectangle {x, y, w, h} of fractions,
          which is moved to the nearest sixths, or null to float again. */

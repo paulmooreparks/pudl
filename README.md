@@ -1312,6 +1312,8 @@ A right-click on a window's button in the dock opens the same menu, against the 
 
 ### The taskbar
 
+The window layer can opt into taskbar reordering with `data-win-taskbar-reorder`. Readers can drag mouse/pen entries, use Alt+Shift+Left/Right, choose Taskbar order from an entry's context menu, or tap the generated Arrange taskbar button. Its draft list includes overflow entries and has move controls, Apply order and Cancel. Ordering has its own `tb.order` URL state and leaves window activation and shared-dock ordering unchanged. See [the contract and API](docs/TASKBAR-ORDER.md) and [the sample](samples/taskbar-reordering.html).
+
 A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one line and puts the page's own buttons on either side of it in the order you write them. Short of room it never scrolls (0.81.2): the window buttons shrink to 120px, then the tray shows its glyphs alone, then the last buttons but the front window's go into a "N more" button whose menu lists them.
 
 ```html
@@ -1646,7 +1648,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.88.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.89.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 

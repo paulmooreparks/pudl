@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taskbar reordering</title>
+  <link rel="stylesheet" href="../dist/pudl.css"><link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-toolbar.js" defer></script><script src="../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } main { padding: 16px; } .win-host { height: calc(100vh - 190px); min-height: 300px; } .win-bar { position: fixed; bottom: 0; left: 0; right: 0; } .mirror { display: none; }</style>
+</head>
+<body>
+  <main><h1>Taskbar reordering</h1><p>Drag a window button with a mouse or pen, use Alt+Shift with Left or Right, or open Arrange taskbar. Moves do not activate windows. Back undoes a completed reorder.</p><button class="btn btn-sm" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'">Switch theme</button></main>
+  <div class="win-host"><div class="win-layer" data-win-layer data-win-taskbar-reorder data-win-dock-tabs="all" data-win-menu data-win-src="#taskbar-{key}" data-win-required="help" data-win-default="notes,files,terminal,search,help,settings,preview,output,child"></div></div>
+  <nav class="win-dock mirror" data-win-dock aria-label="Other window list"></nav>
+  <footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav><a class="icon-btn" href="?" data-win-back aria-label="Minimize all"></a></footer>
+  <script>
+    const titles = { notes: 'Notes', files: 'Files', terminal: 'Terminal', search: 'Search', help: 'Help', settings: 'Settings', preview: 'Preview', output: 'Output', child: 'Notes detail', fresh: 'New window' };
+    Object.entries(titles).forEach(([key, title], index) => {
+      const template = document.createElement('template'); template.id = 'taskbar-' + key;
+      template.innerHTML = '<section class="win"><header class="win-head"><h2 class="win-title"></h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><label>Working text <input class="form-input" value="Mounted content"></label></div></section>';
+      const win = template.content.firstElementChild; win.setAttribute('data-win', key); win.querySelector('.win-title').textContent = title;
+      win.style.cssText = '--win-x:' + (.02 + index * .015) + ';--win-y:' + (.02 + index * .015) + ';--win-w:.42;--win-h:.55';
+      if (key === 'child') win.setAttribute('data-win-parent', 'notes');
+      document.body.appendChild(template);
+    });
+    if (new URLSearchParams(location.search).has('no-reorder')) document.querySelector('[data-win-layer]').removeAttribute('data-win-taskbar-reorder');
+  </script>
+</body></html>

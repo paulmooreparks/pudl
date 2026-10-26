@@ -841,6 +841,7 @@
     { "id": "windows", "name": "Windows", "spec": "08-components/windows.md", "markup": ".win-layer[data-win-layer]", "requires": ["pudl-windows.js"] },
     { "id": "window-status", "name": "Title-bar status", "spec": "08-components/windows.md", "markup": ".win-head > .win-statuses > .win-status", "requires": ["pudl-menu.js", "pudl-windows.js"] },
     { "id": "taskbar", "name": "Taskbar", "spec": "08-components/windows.md", "markup": ".win-bar:has([data-win-dock])", "requires": ["pudl-windows.js"] },
+    { "id": "taskbar-order", "name": "Taskbar ordering", "spec": "08-components/windows.md", "markup": ".win-layer[data-win-layer][data-win-taskbar-reorder]", "requires": ["pudl-menu.js", "pudl-windows.js"] },
     { "id": "applet", "name": "Applet mount", "spec": "09-applets.md", "markup": "[data-applet]", "requires": ["pudl-applets.js"] },
     { "id": "region", "name": "Region", "markup": "[data-region]", "requires": ["pudl-regions.js"] },
     { "id": "toast", "name": "Toast", "spec": "08-components/notices-and-toasts.md", "markup": ".toast-region", "requires": ["pudl-toast.js"] },

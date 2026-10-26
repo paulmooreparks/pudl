@@ -53,7 +53,7 @@
   /* The windows' own parameters, and those the window layer declares as
      belonging to a window with data-win-params, such as r.<key>. */
   function isWinParam(name) {
-    if (name === 'open' || name === 'top' || name === 'min' || name.indexOf('p.') === 0) return true;
+    if (name === 'open' || name === 'top' || name === 'min' || name === 'tb.order' || name.indexOf('p.') === 0) return true;
     if (/^d\.(left|right)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs]')) return true;
     if (/^d\.(top|bottom)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs="all"]')) return true;
     if (/^ds\.(left|right)$/.test(name) && document.querySelector('[data-win-layer][data-win-dock-tabs][data-win-dock-splits]')) return true;

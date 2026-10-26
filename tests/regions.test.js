@@ -126,6 +126,15 @@ function check(name, ok, extra) {
   await p.waitForFunction(() => /kind=note/.test(location.search) && !document.querySelector('[data-region][aria-busy]'));
   check('a region form leaves its empty fields out of the address', !/(^|[?&])q=/.test(await url()), await url());
 
+  // Taskbar order is window state, so a region link must carry it forward.
+  await p.evaluate(() => {
+    document.querySelector('[data-win-layer]').setAttribute('data-win-taskbar-reorder', '');
+    pudlWindows.reorderTaskbar('mixing', { before: 'url-state' });
+  });
+  await p.click('.section-tab[href="article-reader-engineering.html"]');
+  await p.waitForFunction(() => /engineering/.test(location.pathname) && !document.querySelector('[data-region][aria-busy]'));
+  check('region navigation preserves taskbar ordering', await p.evaluate(() => new URLSearchParams(location.search).get('tb.order') === 'mixing,url-state' && pudlWindows.state().taskbarOrder.join() === 'mixing,url-state'));
+
   // A page without the same regions is an ordinary navigation.
   await p.evaluate(() => {
     const a = document.createElement('a');

@@ -478,6 +478,17 @@
 .win-status-popover { color: var(--text); }
 .win-status-popover ul { margin: 0; padding-inline-start: 1.25em; }
 .win-status-popover li + li { margin-top: var(--space-2); }
+.win-bar > .win-bar-arrange { flex: none; }
+.win-bar-arrange::before { content: ''; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--glyph-sort) center / contain no-repeat; mask: var(--glyph-sort) center / contain no-repeat; }
+.win-taskbar-marker { position: fixed; width: 3px; margin-left: -1px; background: var(--accent); outline: 1px solid var(--text); pointer-events: none; z-index: 2147483647; }
+.win-taskbar-marker::after { content: attr(data-label); position: absolute; bottom: calc(100% + 4px); left: 0; padding: 4px 8px; max-width: 14rem; width: max-content; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--surface); color: var(--text); border: 1px solid currentColor; border-radius: var(--radius-sm); font: 600 var(--text-sm)/1.5 var(--font); }
+.win-taskbar-marker[data-align="end"]::after { left: auto; right: 0; }
+.win-taskbar-marker[data-below]::after { bottom: auto; top: calc(100% + 4px); }
+.win-taskbar-dragging { opacity: .7; cursor: grabbing; }
+.win-taskbar-arrangement { width: min(440px, calc(100vw - 24px)); }
+.win-taskbar-arrangement > select { display: block; width: 100%; height: min(12rem, 40svh); padding: var(--space-1); background-image: none; margin-block: var(--space-3); }
+.win-taskbar-arrangement > .win-taskbar-tools { margin-top: var(--space-2); }
+@media (forced-colors: active) { .win-taskbar-marker { background: Highlight; outline-color: CanvasText; forced-color-adjust: none; } .win-taskbar-marker::after { background: Canvas; color: CanvasText; } }
 
 /* Window buttons are PUDL's glyph buttons (0.79.0): raised squares with
    corners of radius-sm and the glyph centred. They are sized from the
