@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window status</title>
+  <link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 700px; } .win-layer { --win-active-bg: var(--accent); --win-active-fg: var(--on-accent); }</style>
+</head>
+<body>
+  <div class="win-host"><div class="win-layer" data-win-layer data-win-menu data-win-default="status,plain">
+    <section class="win" data-win="status" style="--win-x: .02; --win-y: .02; --win-w: .8; --win-h: .7">
+      <header class="win-head">
+        <h2 class="win-title">Agent</h2>
+        <div class="win-statuses" aria-label="Window status">
+          <span class="win-status strong">Working</span>
+          <span class="win-status">Background 2</span>
+          <span class="win-status">Subagents 3</span>
+        </div>
+        <nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="minimize" aria-label="Minimize"></button><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav>
+      </header>
+      <div class="win-body"><input class="form-input" aria-label="Content" value="Mounted content"></div>
+    </section>
+    <section class="win" data-win="plain" style="--win-x: .85; --win-y: .75; --win-w: .1; --win-h: .2">
+      <header class="win-head"><h2 class="win-title">Plain</h2></header><div class="win-body">No statuses.</div>
+    </section>
+  </div></div>
+  <script>if (new URLSearchParams(location.search).has('shared')) document.querySelector('[data-win-layer]').setAttribute('data-win-dock-tabs', 'all');</script>
+</body></html>

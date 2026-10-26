@@ -464,6 +464,20 @@
 .win-item-detail::before { content: var(--win-title-sep, " · "); white-space: pre; }
 .win-item-title:has(+ .win-item-detail:not([hidden])) { flex: 2 1 auto; min-width: 0; }
 .win-chrome { flex: none; display: inline-flex; gap: 5px; align-items: center; }
+.win-statuses { display: inline-flex; flex: none; align-items: center; gap: var(--space-1); color: inherit; }
+.win-status {
+  display: inline-flex; flex: none; align-items: center; gap: var(--space-1);
+  padding: 0 6px; border: 1px solid currentColor; border-radius: var(--radius-pill);
+  background: transparent; color: inherit; box-shadow: none;
+  font: 500 var(--text-2xs)/1.55 var(--font); white-space: nowrap;
+}
+.win-status.strong { font-weight: 700; }
+.win-status > .glyph { --glyph-size: 1em; }
+.win-statuses[data-win-status-compact] > .win-status { display: none; }
+.win-statuses:not([data-win-status-compact]) > .win-status-toggle { display: none; }
+.win-status-popover { color: var(--text); }
+.win-status-popover ul { margin: 0; padding-inline-start: 1.25em; }
+.win-status-popover li + li { margin-top: var(--space-2); }
 
 /* Window buttons are PUDL's glyph buttons (0.79.0): raised squares with
    corners of radius-sm and the glyph centred. They are sized from the

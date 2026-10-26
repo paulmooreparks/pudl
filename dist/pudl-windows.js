@@ -2333,6 +2333,7 @@
     Object.keys(wins).forEach(function (k) {
       if (st.open.indexOf(k) >= 0) return;
       var gone = wins[k];
+      if (gone.__winStatuses) gone.__winStatuses.destroy();
       delete wins[k];
       delete lastFocus[k];
       gone.dispatchEvent(new CustomEvent('pudl:window-close', { bubbles: true, detail: { key: k, reason: closing[k] || 'address' } }));
@@ -2899,6 +2900,7 @@
       head.tabIndex = 0;
       labelHead(key);
       addMenu(el, key, head);
+      setupStatuses(el, head);
     }
 
     /* Where reset returns the window: the placement its markup gave it as
@@ -2911,6 +2913,81 @@
     var body = el.querySelector('.win-body');
     if (body && !body.hasAttribute('tabindex')) body.tabIndex = 0;
     return el;
+  }
+
+  /* Statuses inherit the header palette. Only their own header and small
+     status group are observed; transcript mutations do not trigger fits. */
+  var statusId = 0;
+  function setupStatuses(win, head) {
+    var group = head.querySelector(':scope > .win-statuses');
+    if (!group || win.__winStatuses) return;
+    var button = document.createElement('button');
+    button.type = 'button'; button.className = 'win-btn win-status-toggle';
+    button.setAttribute('aria-label', text('status', 'Window status'));
+    button.setAttribute('aria-haspopup', 'dialog');
+    var glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.style.setProperty('--glyph', 'var(--glyph-info)'); glyph.setAttribute('aria-hidden', 'true'); button.appendChild(glyph);
+    var panel = document.createElement('div'); panel.className = 'popover win-status-popover'; panel.id = 'win-status-' + (++statusId);
+    panel.setAttribute('popover', 'auto'); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-label', text('status', 'Window status'));
+    var close = document.createElement('button'); close.type = 'button'; close.className = 'btn btn-sm'; close.textContent = text('status-dismiss', 'Dismiss');
+    close.setAttribute('popovertarget', panel.id); close.setAttribute('popovertargetaction', 'hide');
+    /* The owning window may be hidden in a collapsed dock. Keep its
+       read-only popup outside that hidden subtree. */
+    var list = document.createElement('ul'); panel.append(list, close); layer.appendChild(panel);
+    button.setAttribute('popovertarget', panel.id); group.appendChild(button);
+    var frame = 0, disposed = false, menuReturnTarget = null;
+    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return !s.hidden && s.textContent.trim(); }); }
+    function refresh() {
+      list.textContent = '';
+      statuses().forEach(function (s) { var row = document.createElement('li'); row.textContent = s.textContent.trim(); if (s.classList.contains('strong')) row.style.fontWeight = '700'; list.appendChild(row); });
+    }
+    function fit() {
+      frame = 0;
+      if (disposed || !win.isConnected) return;
+      var returnFocus = document.activeElement === button || panel.contains(document.activeElement);
+      group.hidden = !statuses().length;
+      if (group.hidden) { if (panel.matches(':popover-open')) panel.hidePopover(); if (returnFocus && head.getClientRects().length) head.focus({ preventScroll: true }); return; }
+      if (!head.getClientRects().length) return;
+      group.removeAttribute('data-win-status-compact');
+      var title = head.querySelector('.win-title');
+      var vertical = getComputedStyle(head).writingMode !== 'horizontal-tb';
+      var compact = vertical || head.scrollWidth > head.clientWidth + 1 || (title && title.scrollWidth > title.clientWidth + 1);
+      group.toggleAttribute('data-win-status-compact', !!compact);
+      if (!compact && panel.matches(':popover-open')) {
+        panel.hidePopover();
+      }
+      if (!compact && returnFocus) head.focus({ preventScroll: true });
+      if (panel.matches(':popover-open')) refresh();
+    }
+    function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(fit); }
+    var ro = window.ResizeObserver ? new ResizeObserver(schedule) : null;
+    var title = head.querySelector('.win-title');
+    if (ro) { ro.observe(head); ro.observe(group); if (title) ro.observe(title); }
+    var mo = new MutationObserver(function (records) {
+      if (records.some(function (r) { return r.target !== button && !(r.target === group && r.type === 'attributes'); })) schedule();
+    });
+    mo.observe(group, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style'] });
+    mo.observe(head, { childList: true });
+    if (title) mo.observe(title, { subtree: true, childList: true, characterData: true });
+    panel.addEventListener('beforetoggle', function (e) {
+      if (e.newState === 'open') refresh();
+      else if (menuReturnTarget && panel.contains(document.activeElement) && menuReturnTarget.isConnected && menuReturnTarget.getClientRects().length) menuReturnTarget.focus({ preventScroll: true });
+    });
+    win.__winStatuses = {
+      available: function () { return statuses().length > 0; },
+      open: function () {
+        var key = win.getAttribute('data-win');
+        var candidates = [button, head].concat(Array.prototype.slice.call(document.querySelectorAll('[data-dock-key="' + CSS.escape(key) + '"], [data-win-tab="' + CSS.escape(key) + '"]')));
+        var anchor = candidates.filter(function (c) { return c && c.getClientRects().length && !c.closest('.menu-panel, .context-menu'); })[0];
+        if (!anchor) anchor = head.getClientRects().length ? head : null;
+        if (!anchor) return;
+        if (!anchor.id) anchor.id = 'win-status-anchor-' + (++statusId);
+        menuReturnTarget = anchor; panel.setAttribute('data-menu-anchor', anchor.id); panel.showPopover();
+      },
+      destroy: function () { disposed = true; if (frame) cancelAnimationFrame(frame); if (panel.matches(':popover-open')) panel.hidePopover(); panel.remove(); if (ro) ro.disconnect(); mo.disconnect(); }
+    };
+    button.addEventListener('click', function () { menuReturnTarget = null; panel.removeAttribute('data-menu-anchor'); });
+    if (document.fonts) document.fonts.ready.then(schedule);
+    schedule();
   }
 
   /* === The window menu =====================================================
@@ -2998,6 +3075,7 @@
       } }, extra || {});
     }
     var page = win.querySelector('.win-head a[data-win-action="page"]');
+    if (win.__winStatuses && win.__winStatuses.available()) list.push(command('status', text('status', 'Window status'), 'status'));
     if (page) list.push(command('page', text('page', 'Open as a page'), 'page'));
     if (shareURL(key)) list.push(command('copy-link', text('copy-link', 'Copy the link'), 'copy-link'));
     var minId = dock ? (state.min[key] ? 'expand' : 'collapse') : (state.min[key] ? 'unminimize' : 'minimize');
@@ -3139,7 +3217,8 @@
          apply, as they do from the title bar. */
       var a = wins[key].querySelector('.win-head a[data-win-action="page"]');
       if (a) a.click();
-    } else if (cmd === 'copy-link') copyLink(key);
+    } else if (cmd === 'status') { if (wins[key].__winStatuses) wins[key].__winStatuses.open(); }
+    else if (cmd === 'copy-link') copyLink(key);
     else if (cmd === 'minimize') commit(state.min[key] ? raised(state, key) : minimized(state, key), false);
     else if (cmd === 'maximize') commit(maximizeToggled(state, key), false);
     else if (cmd === 'dock') commit(docked(state, key, dockEdge(p) ? null : 'bottom'), false);

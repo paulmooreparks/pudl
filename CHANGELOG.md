@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.88.0
+
+Windows can show title-bar status chips using `.win-statuses` with `.win-status` text spans after the title/detail and before the window controls. Chips inherit the title bar's foreground, with transparent fills, currentColor outlines and no shadow; `.strong` emphasizes in-progress work by weight. This keeps the status readable against active, inactive and forced-colour title bars without relying on semantic fills.
+
+When chips would truncate the title, or the header becomes vertical, they compact to a Window status button that opens their full text in a read-only popover. The window commands also provide Window status, including shared docks with hidden headers. Text updates refit locally and refresh an open popover; empty groups disappear. Applications own text, counts and announcements. Existing chips and badges elsewhere retain their appearance. See `docs/WINDOW-STATUS.md` and the reference window example.
+
+This release implements specification 0.45.0 and addresses issue #28.
+
 ## 0.87.1
 
 The Ribbon tabs chooser stays hidden when all tab titles fit. It appears when menu-bar tab titles fold to glyphs or a standalone ribbon's tab strip overflows. Widening closes an obsolete chooser and returns its focus to the selected tab.
