@@ -97,7 +97,7 @@ With floating windows as well:
       integrity="sha384-js+9lVOq65HxVJocaOCIGNIzBPLjw0QzvX0dQXgbRdYZfbe8/zP0w1dzq/UEeRVT"
       crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.88.0/dist/pudl-windows.js" defer
-        integrity="sha384-hOMw6hKBIr585DM1vONYG9plVPC8BzHEz+6lI0MRHnIXd+2qU6A+2TUAxnybUzJG"
+        integrity="sha384-ukPHvHeCWJabu2zPD3EJ/XSdJbGq8XGqD6wAnikvFO0XAXKMv/LggJFC5USyLXM6"
         crossorigin="anonymous"></script>
 ```
 

@@ -2924,6 +2924,7 @@
     var button = document.createElement('button');
     button.type = 'button'; button.className = 'win-btn win-status-toggle';
     button.setAttribute('aria-label', text('status', 'Window status'));
+    button.setAttribute('data-tooltip', text('status', 'Window status')); button.title = text('status', 'Window status');
     button.setAttribute('aria-haspopup', 'dialog');
     var glyph = document.createElement('span'); glyph.className = 'glyph'; glyph.style.setProperty('--glyph', 'var(--glyph-info)'); glyph.setAttribute('aria-hidden', 'true'); button.appendChild(glyph);
     var panel = document.createElement('div'); panel.className = 'popover win-status-popover'; panel.id = 'win-status-' + (++statusId);
