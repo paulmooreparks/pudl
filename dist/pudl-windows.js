@@ -2976,6 +2976,7 @@
     win.__winStatuses = {
       available: function () { return statuses().length > 0; },
       open: function () {
+        if (!statuses().length) return;
         var key = win.getAttribute('data-win');
         var candidates = [button, head].concat(Array.prototype.slice.call(document.querySelectorAll('[data-dock-key="' + CSS.escape(key) + '"], [data-win-tab="' + CSS.escape(key) + '"]')));
         var anchor = candidates.filter(function (c) { return c && c.getClientRects().length && !c.closest('.menu-panel, .context-menu'); })[0];
