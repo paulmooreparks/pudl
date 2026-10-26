@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.89.1
+
+Tooltips no longer cover the menus their controls open. A control whose menu or popover is open shows no tooltip, and a showing tooltip hides when any menu or popover opens. A menu title showing its words in full no longer repeats them as a tooltip; a title folded to its glyph, or cut short, still has one.
+
+Upgrade the pinned distribution; no markup changes are needed. This release implements specification 0.46.1.
+
 ## 0.89.0
 
 Taskbars can opt into window-entry reordering with `data-win-taskbar-reorder`. Mouse/pen dragging, Alt+Shift+Left/Right, entry context commands and a visible Arrange taskbar control share one order. The arrangement popover includes overflow entries and supports click/tap-only draft moves with Apply and Cancel. Its actions are a compact glyph toolbar that folds into group menus in a narrow popover when `pudl-toolbar.js` is loaded. Moves preserve window activation, mounted content and shared-dock ordering, announce their result, and persist through the independent `tb.order` URL parameter. Region navigation carries `tb.order` like the other window parameters. See `docs/TASKBAR-ORDER.md` and `samples/taskbar-reordering.html`.

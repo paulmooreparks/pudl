@@ -53,10 +53,28 @@
     tip.style.left = Math.round(left) + 'px';
   }
 
+  /* A control whose menu or popover is open has its panel beside it, which
+     a tooltip would cover; and a control already showing its words needs
+     no tooltip repeating them, as a menu title does until it folds to its
+     glyph. */
+  function opened(target) {
+    if (target.getAttribute('aria-expanded') === 'true') return true;
+    var id = target.getAttribute('popovertarget');
+    var p = id && document.getElementById(id);
+    return !!(p && p.matches(':popover-open'));
+  }
+  function wordsShown(target, text) {
+    if ((target.innerText || '').replace(/\s+/g, ' ').trim() !== text.replace(/\s+/g, ' ').trim()) return false;
+    /* Words cut short with an ellipsis still need the tooltip. */
+    return ![target].concat(Array.prototype.slice.call(target.querySelectorAll('*'))).some(function (n) {
+      return n.clientWidth > 0 && n.scrollWidth > n.clientWidth + 1;
+    });
+  }
+
   function show(target) {
     clearTimeout(hideTimer);
     var text = textFor(target);
-    if (!text) return;
+    if (!text || opened(target) || wordsShown(target, text)) return;
     var t = el();
     t.textContent = text;
     owner = target;
@@ -129,6 +147,10 @@
     }
   }, true);
 
+  /* Any other popover opening, such as a menu, takes the tooltip away. */
+  document.addEventListener('beforetoggle', function (e) {
+    if (e.target !== tip && e.newState === 'open') hide();
+  }, true);
   document.addEventListener('pointerdown', hide, true);
   window.addEventListener('scroll', hide, true);
 })();
