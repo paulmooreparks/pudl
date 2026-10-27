@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.92.0
+
+Nine glyphs for versions and changes join the set: `--glyph-commit`, `--glyph-fork`, `--glyph-merge`, `--glyph-tag`, `--glyph-stash`, `--glyph-history`, `--glyph-compare`, `--glyph-move` and `--glyph-upload`. They suit version control and anything else that keeps versions, such as a page's history or a document's revisions. `--glyph-download` now also means bringing something here from elsewhere, such as pulling changes, with `--glyph-upload` as its counterpart, and `--glyph-plus` and `--glyph-minus` also mark something added or removed.
+
+`--glyph-branch` is unchanged and still means a child window's row beneath its parent. A project that uses it for a version-control branch should move to `--glyph-fork`. The contract's list of glyph tokens is now complete; it had missed nine that earlier releases added.
+
+This release implements specification 0.49.0.
+
 ## 0.91.0
 
 Eight category colours, `--category-1` to `--category-8`, tell things apart without saying anything about their state: a chart's series, tags, a calendar's categories or the lanes of a history graph. They come in light and dark values, are assigned in order, and each reaches 3:1 on `--bg`, `--surface` and `--input-bg` while staying apart from the status colours and the accent. A mark on `--surface-alt` takes a 1px `--text-muted` outline. They are for marks rather than words, and never the only way to identify something. In forced colours they all become `CanvasText`. The README and the reference page's tokens section show them.
