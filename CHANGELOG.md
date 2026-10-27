@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.89.5
+
+Fixes a regression in 0.89.2: in a shared dock's tab strip the chosen tab stood 1px above the strip's foot with the other tabs, so the rule ran across it instead of opening into its window. The chosen tab now reaches the foot. A top dock, whose tabs hang from the strip, now mirrors the rule: the other tabs hang 1px below it and the chosen tab reaches through it. A collapsed strip's buttons are unchanged.
+
+A new test measures every tab strip PUDL draws: section, page, document and ribbon tabs, a menu bar shown as a ribbon, and shared docks on all four edges.
+
+Upgrade the pinned distribution; no markup changes are needed. This release implements specification 0.46.3.
+
 ## 0.89.4
 
 A menu bar shown as a ribbon now continues the line around its chosen tab along the topbar's foot, in front of the other tabs. In the dark theme the topbar's own rule was darker than the tab's outline, so the line stopped at the chosen tab. The topbar's rule takes `border` while the ribbon shows.
