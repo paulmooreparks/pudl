@@ -47,5 +47,17 @@
     "syntax-heading": { "$value": { "colorSpace": "srgb", "components": [0.1059, 0.1216, 0.1412], "hex": "#1b1f24" } },
     "syntax-link": { "$value": { "colorSpace": "srgb", "components": [0.1725, 0.3216, 0.5098], "hex": "#2c5282" } },
     "syntax-error": { "$value": { "colorSpace": "srgb", "components": [0.7059, 0.1373, 0.0941], "hex": "#b42318" } }
+  },
+  "category": {
+    "$description": "Eight colours that tell things apart without saying anything about their state, such as a chart's series, tags or the lanes of a history graph, assigned in this order. Each reaches 3:1 on bg, surface and input-bg, stays apart from the status colours and the accent, and is never the only way a thing is identified. A theme that changes bg, surface, input-bg or the lighting sets all eight and keeps those rules.",
+    "$type": "color",
+    "category-1": { "$value": { "colorSpace": "srgb", "components": [0.3059, 0.3686, 0.9961], "hex": "#4e5efe" } },
+    "category-2": { "$value": { "colorSpace": "srgb", "components": [0.0784, 0.6157, 0.6], "hex": "#149d99" } },
+    "category-3": { "$value": { "colorSpace": "srgb", "components": [0.5137, 0.1608, 0.4196], "hex": "#83296b" } },
+    "category-4": { "$value": { "colorSpace": "srgb", "components": [0.4627, 0.5961, 0.0196], "hex": "#769805" } },
+    "category-5": { "$value": { "colorSpace": "srgb", "components": [0.0627, 0.4314, 0.6039], "hex": "#106e9a" } },
+    "category-6": { "$value": { "colorSpace": "srgb", "components": [0.4549, 0, 0.7333], "hex": "#7400bb" } },
+    "category-7": { "$value": { "colorSpace": "srgb", "components": [0.5176, 0.5137, 0.7922], "hex": "#8483ca" } },
+    "category-8": { "$value": { "colorSpace": "srgb", "components": [0.8078, 0.102, 0.4353], "hex": "#ce1a6f" } }
   }
 }

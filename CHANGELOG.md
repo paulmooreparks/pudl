@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.91.0
+
+Eight category colours, `--category-1` to `--category-8`, tell things apart without saying anything about their state: a chart's series, tags, a calendar's categories or the lanes of a history graph. They come in light and dark values, are assigned in order, and each reaches 3:1 on `--bg`, `--surface` and `--input-bg` while staying apart from the status colours and the accent. A mark on `--surface-alt` takes a 1px `--text-muted` outline. They are for marks rather than words, and never the only way to identify something. In forced colours they all become `CanvasText`. The README and the reference page's tokens section show them.
+
+A theme that changes `--bg`, `--surface`, `--input-bg` or the lighting must now set all eight, since the defaults fall below 3:1 on most other surfaces. Nothing else changes. This release implements specification 0.48.0.
+
 ## 0.90.0
 
 A toast can carry one action, the obvious next step after what it reports, such as Restart Now or Try Again. `pudlToast(message, { action: { run } })` adds a small raised button between the text and the dismiss button. `run` is a pudl-commands id, whose label and state the button takes, or a function given with a `label`; `scope` says which element to find the command from, such as a window. A server writes the same as a `button.btn.btn-sm.toast-action` with `data-command`, or as a link, before the dismiss button.

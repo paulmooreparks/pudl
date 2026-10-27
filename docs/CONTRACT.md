@@ -60,6 +60,7 @@ Everything is in `dist/`. `pudl.css` and its `fonts/` are the language; everythi
 - Lighting: `--light`, `--shade`, `--lit`, `--depth`
 - Topbar: `--tb-bg`, `--tb-fg`, `--tb-link-hover`
 - Syntax: `--syntax-keyword`, `--syntax-string`, `--syntax-number`, `--syntax-comment`, `--syntax-name`, `--syntax-tag`, `--syntax-attr`, `--syntax-heading`, `--syntax-link`, `--syntax-error`, each reaching 4.5:1 on `--surface`, `--surface-alt` and `--input-bg`
+- Categories (0.91.0): `--category-1` to `--category-8`, in assignment order, for marks that tell things apart without a state, each reaching 3:1 on `--bg`, `--surface` and `--input-bg`; a theme that changes those surfaces or the lighting sets all eight; `CanvasText` in forced colours
 - Fonts: `--font`, `--font-display`, `--mono`
 - Adjustments with defaults derived from the above: `--dialog-bg`, `--section-current-bg`, `--win-active-bg`, `--win-active-fg`, `--win-active-border`, `--win-active-shadow`, `--win-head-docked`
 - Layout: `--md-sidebar-w` and `--md-sidebar-min` on a `.md-layout`

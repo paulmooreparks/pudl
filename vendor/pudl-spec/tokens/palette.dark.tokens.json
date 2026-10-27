@@ -42,5 +42,17 @@
     "syntax-heading": { "$value": { "colorSpace": "srgb", "components": [0.902, 0.9098, 0.9216], "hex": "#e6e8eb" } },
     "syntax-link": { "$value": { "colorSpace": "srgb", "components": [0.5529, 0.702, 0.8784], "hex": "#8db3e0" } },
     "syntax-error": { "$value": { "colorSpace": "srgb", "components": [0.9412, 0.5216, 0.4824], "hex": "#f0857b" } }
+  },
+  "category": {
+    "$description": "Eight colours that tell things apart without saying anything about their state, in the same order and hue families as the light form, chosen against the dark surfaces. Each reaches 3:1 on bg, surface and input-bg, stays apart from the status colours and the accent, and is never the only way a thing is identified.",
+    "$type": "color",
+    "category-1": { "$value": { "colorSpace": "srgb", "components": [0.2627, 0.4078, 0.9922], "hex": "#4368fd" } },
+    "category-2": { "$value": { "colorSpace": "srgb", "components": [0.0275, 0.8353, 0.8196], "hex": "#07d5d1" } },
+    "category-3": { "$value": { "colorSpace": "srgb", "components": [0.9608, 0.3451, 0.8471], "hex": "#f558d8" } },
+    "category-4": { "$value": { "colorSpace": "srgb", "components": [0.4078, 0.5255, 0.2431], "hex": "#68863e" } },
+    "category-5": { "$value": { "colorSpace": "srgb", "components": [0.0706, 0.502, 0.6471], "hex": "#1280a5" } },
+    "category-6": { "$value": { "colorSpace": "srgb", "components": [0.6706, 0.251, 0.8745], "hex": "#ab40df" } },
+    "category-7": { "$value": { "colorSpace": "srgb", "components": [0.6314, 0.6196, 0.9922], "hex": "#a19efd" } },
+    "category-8": { "$value": { "colorSpace": "srgb", "components": [0.8667, 0.1176, 0.4706], "hex": "#dd1e78" } }
   }
 }

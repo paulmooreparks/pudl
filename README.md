@@ -503,6 +503,8 @@ Selection actions and margin notes are optional in 0.85.0. Load `pudl-annotation
 
 A code block is for reading, so it is flat: `pre.code`, a tinted panel in the monospace face with no shadow. An editor's surface takes input, so it is sunken like a field: `.code-surface` on the element the editor draws into. A code block whose lines may run past its width scrolls sideways, so it carries `tabindex="0"`, for a reader who scrolls by keyboard, and PUDL draws its focus ring.
 
+Eight **category colours** (0.91.0), `--category-1` to `--category-8`, tell things apart without saying anything about their state: a chart's series, tags, a calendar's categories or the lanes of a history graph. Assign them in order and by identity, so hiding one series does not repaint the others. Each reaches 3:1 on `--bg`, `--surface` and `--input-bg` and stays apart from the status colours and the accent; draw a mark on `--surface-alt` with a 1px `--text-muted` outline. Use them for marks, not words, and never as the only way to identify something, so a series has a legend and a tag has its words. Past eight, repeat from the first where position or words already identify each item, and fold the rest into an "Other" where colour matches an item to its legend. A theme that changes the surfaces or the lighting sets all eight, since the defaults fail most other surfaces. In forced colours they all become `CanvasText`.
+
 Highlighted code takes its colours from ten syntax tokens, `--syntax-keyword`, `--syntax-string`, `--syntax-number`, `--syntax-comment`, `--syntax-name`, `--syntax-tag`, `--syntax-attr`, `--syntax-heading`, `--syntax-link` and `--syntax-error`, set for both themes, each reaching 4.5:1 on every surface a code block or editor sits on. A theme may set them, and should keep that contrast. The optional `pudl-hljs.css` maps highlight.js's classes onto them, in place of a highlight.js theme:
 
 ```html
@@ -1650,7 +1652,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.90.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.91.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
