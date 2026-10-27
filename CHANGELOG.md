@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.89.4
+
+A menu bar shown as a ribbon now continues the line around its chosen tab along the topbar's foot, in front of the other tabs. In the dark theme the topbar's own rule was darker than the tab's outline, so the line stopped at the chosen tab. The topbar's rule takes `border` while the ribbon shows.
+
+Upgrade the pinned distribution; no markup changes are needed. This release implements specification 0.46.3.
+
 ## 0.89.3
 
 Fixes a regression in 0.89.1: an expanded disclosure, such as a sidebar toggle with `aria-expanded="true"`, lost its tooltip. Tooltips are now withheld only from a control that owns an open popup: one with `aria-expanded="true"` and an `aria-haspopup` other than `false`, or one whose `popovertarget` or `aria-controls` element is an open popover.

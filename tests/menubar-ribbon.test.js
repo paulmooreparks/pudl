@@ -35,6 +35,16 @@ function check(name, ok, extra) {
   check('unfolded, every title is a tab, a resident applet\'s included', tabs.includes('File') && tabs.includes('View') && tabs.includes('Pins'), JSON.stringify(tabs));
   check('the page\'s root says the ribbon shows', await p.evaluate(() => document.documentElement.hasAttribute('data-menubar-ribbon-on')));
   check('a toolbar marked to give way to the ribbon hides', !(await p.isVisible('#own-toolbar')));
+  /* The topbar's rule is the chosen tab's outline colour, in both themes. */
+  for (const theme of ['dark', 'light']) {
+    const rule = await p.evaluate(t => {
+      document.documentElement.dataset.theme = t;
+      const c = document.querySelector('.menubar-title[aria-selected="true"]');
+      return [getComputedStyle(c.closest('.topbar')).borderBottomColor, getComputedStyle(c).borderTopColor];
+    }, theme);
+    check('the topbar\'s rule continues the chosen tab\'s line, ' + theme, rule[0] === rule[1], JSON.stringify(rule));
+  }
+  await p.evaluate(() => delete document.documentElement.dataset.theme);
 
   /* The row is built from the chosen tab's rows. */
   await p.getByRole('tab', { name: 'View', exact: true }).click();
