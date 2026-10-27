@@ -57,11 +57,17 @@
      a tooltip would cover; and a control already showing its words needs
      no tooltip repeating them, as a menu title does until it folds to its
      glyph. */
+  /* Only a control that owns a popup counts (0.89.3): one that says it has
+     one, with aria-haspopup, and has it expanded, or one whose popover
+     target or controlled element is an open popover. A disclosure, such as
+     a sidebar toggle, is expanded with nothing over it, and keeps its tip. */
   function opened(target) {
-    if (target.getAttribute('aria-expanded') === 'true') return true;
-    var id = target.getAttribute('popovertarget');
-    var p = id && document.getElementById(id);
-    return !!(p && p.matches(':popover-open'));
+    var popup = target.getAttribute('aria-haspopup');
+    if (target.getAttribute('aria-expanded') === 'true' && popup && popup !== 'false') return true;
+    return [target.getAttribute('popovertarget')].concat((target.getAttribute('aria-controls') || '').split(/\s+/)).some(function (id) {
+      var p = id && document.getElementById(id);
+      return !!(p && p.hasAttribute('popover') && p.matches(':popover-open'));
+    });
   }
   function wordsShown(target, text) {
     if ((target.innerText || '').replace(/\s+/g, ' ').trim() !== text.replace(/\s+/g, ' ').trim()) return false;

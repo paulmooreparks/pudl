@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.89.3
+
+Fixes a regression in 0.89.1: an expanded disclosure, such as a sidebar toggle with `aria-expanded="true"`, lost its tooltip. Tooltips are now withheld only from a control that owns an open popup: one with `aria-expanded="true"` and an `aria-haspopup` other than `false`, or one whose `popovertarget` or `aria-controls` element is an open popover.
+
+Upgrade the pinned distribution; no markup changes are needed. This release implements specification 0.46.2.
+
 ## 0.89.2
 
 A tab bar's rule now runs in front of the tabs that are not current. Those tabs stand 1px above the bar's foot, and only the current tab reaches it and opens the rule into the content below. Section tabs, page tabs and ribbon tabs all change; the bar's height and the current tab's position do not.

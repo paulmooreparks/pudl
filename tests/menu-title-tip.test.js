@@ -35,6 +35,21 @@ const assert = require('assert/strict');
   assert.equal(await tipOpen(), false, 'opening a menu hides a showing tooltip');
   await p.keyboard.press('Escape'); await p.keyboard.press('Escape');
 
+  /* A disclosure that is expanded, such as a sidebar toggle, owns no popup
+     and keeps its tooltip. */
+  await p.evaluate(() => {
+    const panel = document.createElement('aside'); panel.id = 'disc-panel'; panel.textContent = 'Sidebar';
+    const b = document.createElement('button'); b.className = 'icon-btn'; b.id = 'disclosure';
+    b.setAttribute('aria-label', 'Hide sidebar'); b.setAttribute('aria-expanded', 'true'); b.setAttribute('aria-controls', 'disc-panel');
+    b.style.cssText = 'position:fixed;left:200px;top:400px;z-index:2147483646';
+    document.body.append(panel, b);
+  });
+  await p.mouse.move(10, 880); await settle();
+  await p.hover('#disclosure');
+  await p.waitForSelector('.tooltip:popover-open');
+  assert.equal(await p.locator('.tooltip').innerText(), 'Hide sidebar', 'an expanded disclosure keeps its tooltip on hover');
+  await p.mouse.move(10, 880); await settle();
+
   /* Folded to its glyph, a title still has its tooltip. */
   let folded = false;
   for (let width = 1400; width >= 500 && !folded; width -= 50) {
