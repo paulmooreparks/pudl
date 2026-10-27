@@ -16,7 +16,24 @@
 
    A .notice-close or .toast-close button dismisses the notice or toast it
    sits in. The dismiss button's label on a toast raised by script comes
-   from data-toast-close-label on the region, or is "Dismiss". */
+   from data-toast-close-label on the region, or is "Dismiss".
+
+   A toast may carry one action (0.90.0), the one obvious next step, as a
+   small raised button between its text and its dismiss button:
+
+     pudlToast('The update is ready. Restart now to install it.',
+               { action: { run: 'app.restart' } });
+
+   run is a pudl-commands id, whose label, state and handling the button
+   takes from the command, so the step has one name everywhere, or a
+   function, with label then required; scope, an element, says where to
+   look the command up, and label stands in until the command is found. The server writes the same
+   thing as a button.toast-action inside the .toast, with data-command, or
+   as a link. A toast with an action never leaves by itself, since a
+   button on a timer fails a reader slow to reach it. Pressing the action
+   runs it, as the person's own choice, and dismisses the toast; a failure
+   is raised as a danger toast. The step must also be offered somewhere
+   that lasts, such as the application's notifications. */
 (function () {
   'use strict';
 
@@ -78,7 +95,7 @@
 
   /* Starts a toast's clock, which pauses while the reader is on it. */
   function arm(t) {
-    if (t.hasAttribute('data-toast-armed') || t.hasAttribute('data-toast-sticky')) return;
+    if (t.hasAttribute('data-toast-armed') || t.hasAttribute('data-toast-sticky') || t.querySelector('.toast-action')) return;
     t.setAttribute('data-toast-armed', '');
     var left = parseInt(t.getAttribute('data-toast-ms'), 10) || DURATION;
     var timer = 0, started = 0, held = 0;
@@ -110,6 +127,45 @@
     return b;
   }
 
+  /* The action's button, or null, reported, when it has nothing to run or
+     no words to show. */
+  function actionButton(a) {
+    if (!a) return null;
+    var C = window.pudlCommands, label = a.label;
+    if (typeof a.run === 'string') {
+      var cmd = C && C.find(a.run, a.scope || undefined);
+      if (cmd) label = String(C.value(cmd, 'label') || a.run).replace(/…$/, '');
+      if (!cmd && !C) { console.warn('pudlToast: action ' + a.run + ' needs pudl-commands.js'); return null; }
+    } else if (typeof a.run !== 'function') {
+      console.warn('pudlToast: an action needs run, a command id or a function'); return null;
+    }
+    if (!label) { console.warn('pudlToast: an action needs a label'); return null; }
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn btn-sm toast-action';
+    b.textContent = label;
+    b.setAttribute('data-tooltip', label);
+    if (typeof a.run === 'string') b.setAttribute('data-command', a.run);
+    else b.__toastRun = a.run;
+    if (a.scope) b.__toastScope = a.scope;
+    return b;
+  }
+
+  /* A command button pudl-commands has bound runs from its own handler, so
+     the step is run once; one whose command it could not see from the
+     toast, such as a window's, is run here in the scope given. */
+  function runAction(b) {
+    var id = b.getAttribute('data-command'), done;
+    if (id && b.__pudlBound) return;
+    try {
+      if (b.__toastRun) done = b.__toastRun();
+      else if (id && window.pudlCommands) done = window.pudlCommands.run(id, undefined, b.__toastScope, { grant: 'all', owner: { kind: 'person' } });
+    } catch (err) { done = Promise.reject(err); }
+    Promise.resolve(done).catch(function (err) {
+      window.pudlToast(err && err.message ? err.message : String(err), { kind: 'danger' });
+    });
+  }
+
   window.pudlToast = function (message, opts) {
     opts = opts || {};
     var modal = openModal();
@@ -124,6 +180,8 @@
     p.className = 'toast-text';
     p.textContent = message;
     t.appendChild(p);
+    var act = actionButton(opts.action);
+    if (act) t.appendChild(act);
     t.appendChild(closeButton(r.getAttribute('data-toast-close-label') || 'Dismiss'));
     /* A live region announces what is added to it after it exists, so a
        region made just now for a dialog gets its first toast a moment
@@ -134,6 +192,13 @@
   };
 
   document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('.toast .toast-action');
+    if (a) {
+      if (a.getAttribute('aria-disabled') === 'true' || a.disabled) return;
+      if (a.tagName === 'BUTTON') { e.preventDefault(); runAction(a); }
+      dismiss(a.closest('.toast'));
+      return;
+    }
     var b = e.target.closest && e.target.closest('.notice-close, .toast-close');
     if (!b) return;
     e.preventDefault();

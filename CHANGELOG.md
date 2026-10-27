@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.90.0
+
+A toast can carry one action, the obvious next step after what it reports, such as Restart Now or Try Again. `pudlToast(message, { action: { run } })` adds a small raised button between the text and the dismiss button. `run` is a pudl-commands id, whose label and state the button takes, or a function given with a `label`; `scope` says which element to find the command from, such as a window. A server writes the same as a `button.btn.btn-sm.toast-action` with `data-command`, or as a link, before the dismiss button.
+
+A toast with an action never leaves by itself. Pressing the action runs it once and dismisses the toast, and a failure is raised as a danger toast. Offer the same step somewhere that lasts, such as the application's notifications, and let the toast's text say what the action does. See the README's notices and toasts section.
+
+Existing toasts are unchanged. This release implements specification 0.47.0.
+
 ## 0.89.5
 
 Fixes a regression in 0.89.2: in a shared dock's tab strip the chosen tab stood 1px above the strip's foot with the other tabs, so the rule ran across it instead of opening into its window. The chosen tab now reaches the foot. A top dock, whose tabs hang from the strip, now mirrors the rule: the other tabs hang 1px below it and the chosen tab reaches through it. A collapsed strip's buttons are unchanged.

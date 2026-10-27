@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A toast with an action</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-commands.js" defer></script>
+  <script src="../../dist/pudl-toast.js" defer></script>
+  <script src="../../dist/pudl-tooltip.js" defer></script>
+  <style>body { margin: 16px; }</style>
+</head>
+<body>
+  <p>A page command, Restart, and a window-like scope with its own command, Try again.</p>
+  <section id="pane"><p>Pane</p></section>
+  <div class="toast-region">
+    <div class="toast" id="server-toast"><p class="toast-text">Rendered by the server. Restart now to install it.</p><button type="button" class="btn btn-sm toast-action" data-command="app.restart">Restart now</button><button type="button" class="toast-close" aria-label="Dismiss"></button></div>
+  </div>
+  <script>
+    window.__ran = [];
+    document.addEventListener('DOMContentLoaded', function () {
+      pudlCommands.register(document.body, [
+        { id: 'app.restart', label: 'Restart now', run: function () { window.__ran.push('restart'); } },
+        { id: 'app.locked', label: 'Locked', disabled: true, reason: 'Not now', run: function () { window.__ran.push('locked'); } }
+      ]);
+      pudlCommands.register(document.getElementById('pane'), [
+        { id: 'pane.retry', label: 'Try again', run: function () { window.__ran.push('retry'); } },
+        { id: 'pane.fails', label: 'Fail', run: function () { throw new Error('The download failed again'); } }
+      ]);
+    });
+  </script>
+</body>
+</html>

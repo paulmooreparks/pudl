@@ -702,6 +702,8 @@ The close button is optional. An error the reader must act on is always a notice
 
 Toasts gather in a `.toast-region` at the foot of the window, a live region, so screen readers announce each one. With the optional `pudl-toast.js`, a script raises one with `pudlToast('Expense saved.', { kind: 'positive' })`, and a server renders one as `<div class="toast positive"><p class="toast-text">Expense saved.</p></div>` inside the region, typically after a form posts and redirects. A toast leaves after five seconds, or `data-toast-ms`, and waits while the pointer or focus is on it; `data-toast-sticky` keeps it until dismissed. A live region does not announce what was on the page when it loaded, so the script re-inserts the server's toasts a moment after load, which makes them heard.
 
+A toast may carry one **action** (0.90.0), the obvious next step, as a small raised button between its text and its dismiss button: `pudlToast('The update is ready. Restart now to install it.', { action: { run: 'app.restart' } })`. `run` is a pudl-commands id, whose label and state the button takes, so the toast, a menu, a key and an agent all run one command; it may instead be a function, with a `label`. `scope` gives an element to find the command from, such as a window's. A server writes the same as `<button type="button" class="btn btn-sm toast-action" data-command="app.restart">Restart now</button>` before the dismiss button, or as a link. A toast with an action never leaves by itself; pressing the action runs it once and dismisses the toast, and a failure is raised as a danger toast. Offer the same step somewhere that lasts, such as the application's notifications, and let the toast's text say what the action does, since a live region announces text and not buttons.
+
 Content that arrives later can carry toasts too. A window's body fetched after the page loaded, or regions swapped in, may hold a `.toast`, usually `hidden` so it does not flash where it stands; the script moves it into the region, shows it and announces it, adding a dismiss button if it has none. A server can then render the same toast after a redirect whether the reader is on a page or in a window.
 
 ## Dialogs
@@ -1648,7 +1650,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.89.5, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.90.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
