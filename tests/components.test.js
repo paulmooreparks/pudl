@@ -39,7 +39,7 @@ const KNOWN = {};
     'Selection actions': 'selection-actions', 'Margin notes': 'margin-notes',
     'Topbar': 'topbar', 'Status area': 'status-area', 'Section tabs': 'section-tabs', 'Buttons': 'button', 'Form fields': 'text-field', 'Switch': 'switch',
     'Segmented control': 'segmented', 'Badges and chips': 'badge', 'Card': 'card', 'Settings panel': 'settings-panel', 'Layout': 'stack', 'Key/value table': 'key-value-table',
-    'Data table': 'data-table', 'Notices': 'notice', 'Toasts': 'toast', 'Tabs within a page': 'tabs', 'Empty and loading': 'empty-state',
+    'Data table': 'data-table', 'Notices': 'notice', 'Toasts': 'toast', 'Diffs': 'diff', 'Tabs within a page': 'tabs', 'Empty and loading': 'empty-state',
     'Pagination': 'pagination', 'Dialog': 'dialog', 'Menu': 'menu', 'Master-detail': 'master-detail', 'Windows': 'windows', 'Title-bar status': 'window-status', 'Taskbar ordering': 'taskbar-order',
     'Applets': 'applet', 'Regions': 'region', 'Grid': 'grid', 'Tree': 'tree', 'Path bar': 'path-bar', 'Glyph': 'glyph',
     'Document tabs': 'document-tabs', 'Code': 'code-block', 'Visually hidden': 'visually-hidden', 'Splitter': 'splitter',

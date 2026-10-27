@@ -49,6 +49,13 @@
     "focus-ring": { "fade": "accent", "by": 0.26 },
     "focus-ring-danger": { "fade": "danger", "by": 0.26 }
   },
+  "diff": {
+    "$description": "A diff's colours. Added and removed take the status colours by default, as readers expect, and a theme may point them elsewhere. The tint is the strongest at which every syntax colour still reaches 4.5:1 over input-bg; 10% holds for the default palette.",
+    "diff-add": "positive",
+    "diff-del": "danger",
+    "diff-add-bg": { "fade": "diff-add", "by": 0.10 },
+    "diff-del-bg": { "fade": "diff-del", "by": 0.10 }
+  },
   "topbar": {
     "$description": "The application bar's chrome, from its two colours and the accent.",
     "tb-grad": { "gradient": [{ "mix": ["tb-fg", "tb-bg"], "by": 0.08 }, "tb-bg"] },

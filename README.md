@@ -590,6 +590,26 @@ A stepper (0.74.0) shows the steps of a task that takes several pages: which are
 
 A done step is the tick on an accent circle and a link back to its page, the current step its number in a heavy accent ring with its name in bold, and a step to come its number in a light ring with its name muted. The steps run across, joined by lines that take the accent after a done step, and on a narrow screen only the current step keeps its name in sight. `.stepper.vertical` runs them down the side, the current one lit as a list's current row.
 
+### Diffs
+
+A **diff** (0.93.0) shows what changed between two texts, and `pudl.css` draws a read-only one from markup with no script. Each changed line is filled with `--diff-add-bg` or `--diff-del-bg` and always shows its sign, the `plus` or `minus` glyph, because the tint alone is too faint to rely on. `--diff-add` and `--diff-del` default to the status colours and a theme may point them elsewhere, as long as every syntax colour keeps 4.5:1 on the tint and each sign 3:1. Changed words are `ins` and `del` with a 2px underline. Gutters, signs, headings and folded bands are not selected with the text.
+
+```html
+<section class="diff" data-diff-layout="inline" aria-label="Changes to store.go">
+  <p class="diff-summary">1 hunk, 1 line added, 1 removed</p>
+  <div class="diff-hunk" role="group" aria-labelledby="h1">
+    <div class="diff-hunk-head" id="h1"><code>@@ -40,3 +40,3 @@</code> <span>Hunk 1 of 1</span>
+      <span class="diff-hunk-actions"><button class="btn btn-sm" type="button">Stage hunk 1</button></span></div>
+    <div class="diff-line" data-diff="same"><span class="diff-no">40</span><span class="diff-no">40</span><span class="diff-sign"></span><code class="diff-text">func open() {</code></div>
+    <div class="diff-line" data-diff="del" role="deletion"><span class="diff-no">41</span><span class="diff-no"></span><span class="diff-sign"><span class="visually-hidden">Removed</span></span><code class="diff-text">  return <del class="diff-word">nil</del></code></div>
+    <div class="diff-line" data-diff="add" role="insertion"><span class="diff-no"></span><span class="diff-no">41</span><span class="diff-sign"><span class="visually-hidden">Added</span></span><code class="diff-text">  return <ins class="diff-word">err</ins></code></div>
+  </div>
+  <div class="diff-fold"><button class="btn btn-sm" type="button">Show 42 unchanged lines</button></div>
+</section>
+```
+
+Side by side, `data-diff-layout="split"` holds a `.diff-sides` of two `.diff-side` regions labelled Before and After, each with one `.diff-no` per line, and `data-diff="pad"` lines, hatched and `aria-hidden`, keep the sides aligned. Where lines can be chosen, `data-diff-choose` on the diff makes every line 24px tall and each changed line's gutter holds a `label.diff-choose` with a checkbox; a chosen line takes an accent edge. In forced colours added lines get a solid start edge, removed lines a dashed one, and removed words are struck through. The application computes the diff, highlights the code, and provides Next Change, keyboard choosing and the actions, as `08-components/diffs.md` in the specification describes. An editor that keeps its own markup meets the same rules through the four tokens.
+
 ## Data tables
 
 A data table lists many records, one per row, inside a `.data-table-wrap` that scrolls sideways when the columns outrun the space and keeps the header in view.
@@ -1652,7 +1672,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.92.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.93.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 

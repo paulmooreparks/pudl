@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.93.0
+
+A read-only diff is now markup that `pudl.css` draws with no script: a `section.diff`, inline or side by side, with hunk headings, line numbers, signs, changed words, unmatched regions, folded lines and optional choice boxes. Four derived tokens, `--diff-add`, `--diff-del`, `--diff-add-bg` and `--diff-del-bg`, colour it; the first two default to the status colours and a theme may point them elsewhere, keeping every syntax colour at 4.5:1 on the tints. Every changed line shows a `plus` or `minus` sign, since the tint alone is too faint. In forced colours the kinds become solid and dashed edges and removed words are struck through. See the README's Diffs section and the reference page.
+
+An editor that keeps its own markup, such as a merge view, meets the same rules through the four tokens. Nothing existing changes. This release implements specification 0.50.0.
+
 ## 0.92.0
 
 Nine glyphs for versions and changes join the set: `--glyph-commit`, `--glyph-fork`, `--glyph-merge`, `--glyph-tag`, `--glyph-stash`, `--glyph-history`, `--glyph-compare`, `--glyph-move` and `--glyph-upload`. They suit version control and anything else that keeps versions, such as a page's history or a document's revisions. `--glyph-download` now also means bringing something here from elsewhere, such as pulling changes, with `--glyph-upload` as its counterpart, and `--glyph-plus` and `--glyph-minus` also mark something added or removed.

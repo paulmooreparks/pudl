@@ -130,7 +130,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.92.0</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.93.0</a>
     </div>
   </header>
 
@@ -1048,6 +1048,21 @@
 
 Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </div>
+    </div>
+    <p>A diff shows what changed between two texts, inline as here or side by side, and needs no script. Each changed line shows a plus or minus sign as well as its tint, since the tint alone is too faint to rely on. Changed words are underlined, the gutters are left out when the text is copied, and each hunk has a heading with its range and its actions. The application computes the diff and decides what its actions do.</p>
+    <div class="demo">
+      <section class="diff" data-diff-layout="inline" aria-label="Changes to restore-all.js">
+        <p class="diff-summary">1 hunk, 1 line added, 1 removed</p>
+        <div class="diff-hunk" role="group" aria-labelledby="ref-hunk-1">
+          <div class="diff-hunk-head" id="ref-hunk-1"><code>@@ -2,3 +2,3 @@</code> <span>Hunk 1 of 1</span>
+            <span class="diff-hunk-actions"><button class="btn btn-sm" type="button">Stage hunk 1</button></span></div>
+          <div class="diff-line" data-diff="same"><span class="diff-no">2</span><span class="diff-no">2</span><span class="diff-sign"></span><code class="diff-text"><span class="hljs-keyword">function</span> <span class="hljs-title function_">restoreAll</span>(state) {</code></div>
+          <div class="diff-line" data-diff="del" role="deletion"><span class="diff-no">3</span><span class="diff-no"></span><span class="diff-sign"><span class="visually-hidden">Removed</span></span><code class="diff-text">  <span class="hljs-keyword">const</span> top = state.top || <del class="diff-word"><span class="hljs-literal">undefined</span></del>;</code></div>
+          <div class="diff-line" data-diff="add" role="insertion"><span class="diff-no"></span><span class="diff-no">3</span><span class="diff-sign"><span class="visually-hidden">Added</span></span><code class="diff-text">  <span class="hljs-keyword">const</span> top = state.top ?? <ins class="diff-word"><span class="hljs-literal">null</span></ins>;</code></div>
+          <div class="diff-line" data-diff="same"><span class="diff-no">4</span><span class="diff-no">4</span><span class="diff-sign"></span><code class="diff-text">  <span class="hljs-keyword">return</span> { ...state, top };</code></div>
+        </div>
+        <div class="diff-fold"><button class="btn btn-sm" type="button">Show 12 unchanged lines</button></div>
+      </section>
     </div>
 
     <h2 id="split">21. Splitters</h2>

@@ -845,6 +845,7 @@
     { "id": "applet", "name": "Applet mount", "spec": "09-applets.md", "markup": "[data-applet]", "requires": ["pudl-applets.js"] },
     { "id": "region", "name": "Region", "markup": "[data-region]", "requires": ["pudl-regions.js"] },
     { "id": "toast", "name": "Toast", "spec": "08-components/notices-and-toasts.md", "markup": ".toast-region", "requires": ["pudl-toast.js"] },
+    { "id": "diff", "name": "Diff", "spec": "08-components/diffs.md", "markup": "section.diff" },
     { "id": "tooltip", "name": "Tooltip", "spec": "08-components/tooltips.md", "markup": "[data-tooltip]", "requires": ["pudl-tooltip.js"] },
     { "id": "visually-hidden", "name": "Visually hidden", "markup": ".visually-hidden" }
   ]
