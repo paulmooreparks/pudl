@@ -29,13 +29,13 @@ function check(name, ok, extra) {
       otherBg: getComputedStyle(other).backgroundImage,
       curBg: getComputedStyle(cur).backgroundColor,
       curTaller: r(cur).height > r(other).height,
-      sameFoot: Math.abs(r(cur).bottom - r(other).bottom) < 1,
+      onRule: Math.abs(r(cur).bottom - 1 - r(other).bottom) < 0.5,
       curBottom: Math.round(r(cur).bottom), barBottom: Math.round(r(bar).bottom)
     };
   });
   check('tabs: a tab you can go to is raised', /gradient/.test(tabs.otherBg), tabs.otherBg);
   check('tabs: the current tab takes the section colour', tabs.curBg === await token('--section-current-bg'), tabs.curBg);
-  check('tabs: the current tab is taller and stands on the same baseline', tabs.curTaller && tabs.sameFoot && tabs.curBottom === tabs.barBottom, JSON.stringify(tabs));
+  check('tabs: the current tab is taller and opens the rule the others stand on', tabs.curTaller && tabs.onRule && tabs.curBottom === tabs.barBottom, JSON.stringify(tabs));
   await p.locator('.tabs-demo').screenshot({ path: out('tabs16.png') });
 
   /* The bar keeps its height when no tab is current, so the page below it

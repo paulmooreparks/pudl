@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.89.2
+
+A tab bar's rule now runs in front of the tabs that are not current. Those tabs stand 1px above the bar's foot, and only the current tab reaches it and opens the rule into the content below. Section tabs, page tabs and ribbon tabs all change; the bar's height and the current tab's position do not.
+
+Upgrade the pinned distribution; no markup changes are needed. This release implements specification 0.46.2.
+
 ## 0.89.1
 
 Tooltips no longer cover the menus their controls open. A control whose menu or popover is open shows no tooltip, and a showing tooltip hides when any menu or popover opens. A menu title showing its words in full no longer repeats them as a tooltip; a title folded to its glyph, or cut short, still has one.
