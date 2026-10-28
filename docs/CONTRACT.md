@@ -254,7 +254,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | Function | From | Does |
 |---|---|---|
 | `pudlSetTheme(p)`, `pudlThemePreference()`, `pudlToggleTheme()` | `pudl-theme.js` | Set, read and toggle the reader's theme |
-| `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.snap(key, zone or null)`, `.retitle(key, title)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included |
+| `pudlWindows.open(key)`, `.replace(oldKey, key)`, `.raise(key)`, `.minimize(key)`, `.minimizeAll()`, `.restoreAll()`, `.dock(key, edge or null)`, `.snap(key, zone or null)`, `.retitle(key, title, detail)`, `.close(key)`, `.state()` | `pudl-windows.js` | What the matching link or button does, URL and history included. `retitle`'s `detail` sets or, given `''`, clears the window's `data-win-detail`, and leaving it out keeps the detail as it is; set the detail through `retitle`, since PUDL does not watch the attribute |
 | `pudlWindows.closeAll()` | `pudl-windows.js` | Close every window the reader may close, each as a script's close would, so one that refuses stays (0.79.0, stable in 0.80.0) |
 | `pudlWindows.shareURL(key)` | `pudl-windows.js` | The window's absolute HTTP(S) share URL, or null; omitted key means the visible front window; resolves against the document base and preserves the host's query and fragment |
 | `pudlWindows.effectivePlacement(key)` | `pudl-windows.js` | Detached derived placement after responsive policy, or null for an unknown key; `state()` retains canonical URL placement |

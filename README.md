@@ -1070,6 +1070,8 @@ A **toolbar** (0.61.0) is `.toolbar[role="toolbar"]` of `.toolbar-group[role="gr
 
 A toolbar marked `data-toolbar-fold` keeps to one row (0.78.0; a preview before). Each group may carry `data-toolbar-group`, its name; `data-toolbar-glyph`, its glyph; `data-toolbar-priority`, higher kept open longer; `data-toolbar-end`, which keeps it at the row's end; and `data-toolbar-keep`, which never folds it. As room runs out `pudl-toolbar.js` takes each group, one step at a time, from its name and its controls with their words, to their glyphs alone, to one menu button with the group's glyph and name, to that button's glyph alone, to a section of a More menu at the row's end, and back as the row widens. `pudl:toolbar-fit` fires on the toolbar when it has folded.
 
+A toolbar folds again when its width changes, and when what it holds changes: elements added or removed, text changed, or the `hidden`, `disabled` or `aria-disabled` attribute of anything in it. It does not watch classes or inline styles, so a page that changes a control's width that way calls `pudlToolbar.fit(bar)`. It never folds while one of its menus is open, since that would take the menu's button away; a change made meanwhile is folded for once the menu closes (0.93.1).
+
 Nothing is lost by folding. A folded group's menu holds a row for each command; a switching command (`aria-pressed`) as a ticked row that keeps the menu open, so several can be set in turn; a segmented control's choices as radio rows under its name; a `select` as a row whose submenu holds its options, the current one ticked and shown as the row's second line; a set of keys that step a value, such as a minus and a plus, as rows that keep the menu open; a field typed into, such as a search field or a combo box, as a row that opens the field itself in a popover against the fold button, focus in it, and puts it back when the popover closes; and a menu button as a row that opens its menu beside it, with its headings and separators. On a window 640px wide or less a submenu shows in the menu's place, with a Back row first.
 
 A command whose glyph nearly every reader knows, such as bold, the lists, copy, the arrows or reload, can be marked `data-toolbar-glyph-only`: it shows its glyph alone at every stage, and its `.toolbar-words` become its accessible name and tooltip. A field shows its value, such as a font's name, and needs no label of its own. A toolbar marked `data-toolbar-captions="none"` shows no group names before its groups; each group's name is still its fold button's words.
@@ -1672,7 +1674,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.93.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.93.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 

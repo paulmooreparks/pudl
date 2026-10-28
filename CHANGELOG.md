@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.93.1
+
+A folding toolbar whose contents change while one of its menus is open now folds again when the menu closes. Before, the fold it skipped under the open menu was forgotten, so the toolbar kept a stale fold, too folded or overflowing, until its width next changed. Pages that called `pudlToolbar.fit(bar)` as a menu closed to work round this can drop that call.
+
+The README now says which changes refold a toolbar, and that a change to a control's class or inline style is not one of them, so a page making one calls `pudlToolbar.fit(bar)`. The contract now gives `pudlWindows.retitle(key, title, detail)` its third argument, which sets or clears a window's detail; PUDL does not watch `data-win-detail` itself.
+
+Upgrade the pinned distribution; no markup changes are needed. This release implements specification 0.50.0.
+
 ## 0.93.0
 
 A read-only diff is now markup that `pudl.css` draws with no script: a `section.diff`, inline or side by side, with hunk headings, line numbers, signs, changed words, unmatched regions, folded lines and optional choice boxes. Four derived tokens, `--diff-add`, `--diff-del`, `--diff-add-bg` and `--diff-del-bg`, colour it; the first two default to the status colours and a theme may point them elsewhere, keeping every syntax colour at 4.5:1 on the tints. Every changed line shows a `plus` or `minus` sign, since the tint alone is too faint. In forced colours the kinds become solid and dashed edges and removed words are struck through. See the README's Diffs section and the reference page.
