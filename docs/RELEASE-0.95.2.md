@@ -114,4 +114,6 @@ GitHub Actions ran the test workflow three times, and every job passed on the fi
 - Release commit `c280fe0`, `main` push: run 41108593483.
 - README commit `8455809`, `main` push: run 41108963307.
 
-The PUDL Usage announcement is recorded here when it happens.
+## Announcement
+
+The Architect cleared the CI hold, reviewed the announcement and asked for two changes: a heading that also covers the taskbar, dock and stack controls, and a sentence saying the updated CDN examples are in the README on `main` while the archive keeps its tagged README. The announcement was posted to the PUDL Usage group on 2026-10-31 (bus message 1931). It keeps the test limits and the first-attempt CI result.
