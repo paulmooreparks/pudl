@@ -33,3 +33,7 @@ Actual browser zoom remains unperformed. The bounded native Chrome for Testing a
 ## Final demo notice
 
 After admission, the demo notice was changed from development-preview wording to the release version. No control markup, style or runtime changed in that edit. An extra smoke run passed all three Gel engine checks and Chromium Glaze, then stalled in Firefox Glaze. A bounded Firefox-only retry timed out at 60 seconds; both process trees were stopped. These attempts are retained in `release-095-demo-smoke.log` and `release-095-demo-firefox-isolated.log` and are not counted as passes. The independently reviewed wrapped-demo matrix and complete minified gates remain the evidence for the controls.
+
+## Linux release check
+
+The first Linux CI run passed Chromium, Firefox and minified Chromium, but WebKit failed the split-button geometry check. That check measured each half in separate browser evaluations without waiting for fonts. It now waits for `document.fonts.ready` and measures both halves in one evaluation, keeping the original height and shared-border assertions. The corrected suite passes all three Windows engines and Linux WebKit. The original CI failure is retained in `tests/output/release-095-ci-failure.log`; these focused results do not establish the original failure's cause conclusively.

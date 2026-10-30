@@ -13,12 +13,16 @@ function check(name, ok, detail) {
   const p = await browser.newPage({ viewport: { width: 1000, height: 700 } });
   await p.goto(ROOT + '/tests/fixtures/popover.html');
   await p.waitForFunction(() => window.pudlMenu);
+  await p.evaluate(() => document.fonts.ready);
   const rect = sel => p.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return { l: Math.round(r.left), r: Math.round(r.right), t: Math.round(r.top), b: Math.round(r.bottom), h: Math.round(r.height) }; }, sel);
   const open = id => p.evaluate(id => document.getElementById(id).matches(':popover-open'), id);
   const active = () => p.evaluate(() => document.activeElement.id);
 
   /* The split button. */
-  const main = await rect('#save'), more = await rect('#split .menu-btn');
+  const [main, more] = await p.evaluate(() => ['#save', '#split .menu-btn'].map(selector => {
+    const r = document.querySelector(selector).getBoundingClientRect();
+    return { l: Math.round(r.left), r: Math.round(r.right), t: Math.round(r.top), b: Math.round(r.bottom), h: Math.round(r.height) };
+  }));
   check('a split button\'s keys are joined, one height, sharing a border', main.h === more.h && more.l === main.r - 1, JSON.stringify([main, more]));
   await p.click('#split .menu-btn');
   await p.waitForFunction(() => document.getElementById('save-more').matches(':popover-open') && !document.getElementById('save-more').classList.contains('placing'));
