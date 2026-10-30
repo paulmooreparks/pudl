@@ -79,3 +79,17 @@ The release commit contains this record as it stood before tagging. The commit, 
 The release commit is `1399389adc63ab2bc530ac7465991dc5f1800f38`, and it contains exactly the 29 paths in the release file list. Before tagging, every one of the 20 frozen files in that commit matched its hash in the freeze file. The annotated tag `v0.95.1` points to that commit, and `main` and the tag were pushed together on 2026-10-31. The GitHub release is at https://github.com/paulmooreparks/pudl/releases/tag/v0.95.1.
 
 All 83 CSS and JavaScript files under `dist/` at the tag were fetched from jsDelivr and matched the tagged bytes, with no mismatches. Their SHA-384 integrity values are in `tests/output/release-0951-cdn-hashes.txt`. The 24 CDN examples in `README.md` now point at `v0.95.1` with those values; seven of them changed their hash, and the rest serve files whose bytes did not change since 0.94.0.
+
+## Release archive correction
+
+The GitHub release was first published without the archive and checksum that projects copying PUDL download, because `RELEASING.md` did not mention them. The Architect found the omission by comparing the release with 0.95.0, which has `pudl-0.95.0.zip` and `pudl-0.95.0.zip.sha256`. The 0.95.0 archive came from a scoped `git archive` of its tag; running `git archive --format=zip --prefix=pudl-0.95.0/ v0.95.0 CHANGELOG.md LICENSE README.md dist docs/SKINS-VERIFICATION.md docs/SKINS.md tests/skins/FINAL-ADMISSION.md` reproduces it byte for byte.
+
+The 0.95.1 archive was built the same way from the pushed tag, with the documents this release points to: `git archive --format=zip --prefix=pudl-0.95.1/ v0.95.1 CHANGELOG.md LICENSE README.md dist docs/WINDOW-STATUS.md docs/RELEASE-0.95.1.md`. Its comment is the release commit `1399389`, and building it a second time gave identical bytes. Both files were uploaded to the existing release on 2026-10-31, and the tag still points to `1399389`.
+
+The uploaded pair was then downloaded from the public addresses. `sha256sum -c` passed, and the download matched the built archive. All 164 files in the archive are byte-identical to the tag, and its `dist/` holds the same 159 files as `dist/` at the tag. Because the archive comes from the tag, its `README.md` still shows the 0.94.0 CDN examples; the branch's README has the 0.95.1 values.
+
+- Archive: https://github.com/paulmooreparks/pudl/releases/download/v0.95.1/pudl-0.95.1.zip (5,772,864 bytes)
+- Checksum: https://github.com/paulmooreparks/pudl/releases/download/v0.95.1/pudl-0.95.1.zip.sha256
+- SHA-256: `fee72ca9e074a96a3cb8a9a6aa51128cf3a6f3776c2529022e9f4e615ac5eb2d`
+
+`RELEASING.md` now includes building the archive and checksum from the tag, uploading them with the release, and checking the downloaded pair.
