@@ -10,7 +10,9 @@ PUDL's grammar is that raised means pressable, sunken means input and flat means
 
 ## What a skin is
 
-A skin is a named set of values for the **shape tokens**, a new kind of token beside the palette, the scales and the derived tokens. An application loads a skin's stylesheet after `pudl.css` and selects it with `data-skin` on the root element, as it selects a theme with `data-theme`, so a reader can switch skins at run time and the choice is kept as the theme's is. A skin sets its own palette for both the light and the dark form, since a shape and its colours are designed together, and a theme may still be laid over it. An application that loads no skin looks exactly as it does today, because the default skin is today's PUDL.
+A skin is a named set of values for the **shape tokens**, a new kind of token beside the palette, the scales and the derived tokens. An application loads a skin's stylesheet after `pudl.css` and selects it with `data-skin` on the root element, as it selects a theme with `data-theme`, so a reader can switch skins at run time and the choice is kept as the theme's is. A skin sets its own palette for both the light and the dark form, since a shape and its colours are designed together, and a theme may still be laid over it.
+
+Today's look becomes the **standard** skin, and it is also the appearance with no skin at all. Its values are the shape tokens' defaults, built into `pudl.css` as today's values are, so an application that loads no skin and sets no attribute looks exactly as it does now and needs no new file. It is still a skin like the others: it has a name, `data-skin="standard"` selects it explicitly, a skin picker lists it beside the rest so a reader who chose another can come back, and it is the baseline every other skin is tested against.
 
 A skin changes nothing about markup, scripts, keyboard behaviour, focus order, the URL, applets, commands or what an agent sees. An agent driving a skinned application reads the same roles, names and states, and needs to know nothing about the skin.
 
@@ -81,15 +83,17 @@ These are the candidates, each to be checked before it is used. The licence must
 
 1. **Specification.** Chapter 3 gains the shape tokens and the rules above, and chapter 10 gains the faithful marking. The scales stay fixed for themes; only a skin may set the radii.
 2. **Tokenising.** Every component that draws a raised, sunken, recessed or lifted surface today, or a corner, a border width or a window button, must read the shape tokens. The stylesheets use the radius tokens about 77 times, the raised fills, borders, shadows and pressed states about 190 times, and literal radii or round corners 48 times, across `pudl.css` and `pudl-windows.css`. This is the largest part of the work. It is done as one sweep, behind one test that measures every component's corners, borders, fills and contrast under each skin and in both forms, so that a component missed by the sweep fails the test instead of being found later.
-3. **The default skin.** Today's look is expressed as the default skin's values, and the default skin must render exactly as PUDL does now. The existing screenshots and geometry tests are the check.
+3. **The standard skin.** Today's look is expressed as the standard skin's values, and it must render exactly as PUDL does now. The existing screenshots and geometry tests are the check.
 4. **Bevel**, first, as the test of the layer, since it changes the most shapes with the least decoration.
 5. **Glaze**, then **Gel**, both versions.
 
 Each step is a release of its own. I expect the specification and the tokenising, with Bevel, to take two or three releases, and Glaze and Gel one each after that.
 
-## Questions to settle
+## Decisions
 
-- Whether a skin's stylesheet is one file per skin, which keeps the default stylesheet small, or one file holding every skin, which lets a reader switch without a second download.
-- Whether a skin's dark form is required. The looks this proposal draws on had no dark mode, but PUDL requires both forms, so each skin would design one in its own spirit.
-- Whether the texture of the Gel skin, the pinstripes, is drawn by CSS gradients alone, which keeps it a token, or by an image, which looks closer to the original.
-- Whether Glaze's slightly larger title bar and Gel's capsule buttons change any layout that tests assume, such as the docked title bar's height.
+These were open questions when the proposal was written, and are settled as follows.
+
+- **Each skin is a file of its own**, `pudl-skin-<name>.css`, loaded after `pudl.css`. The standard skin needs no file. An application loads the files of the skins it offers, so `pudl.css` stays the size it is for the many applications that offer none, and each skin is cached on its own. A reader switching to a skin the application already loaded downloads nothing.
+- **Every skin has a dark form.** PUDL requires both forms of every palette, and a skin is no exception. The looks these skins draw on had no dark mode, so each skin designs one in its own spirit, keeping its shapes and moving its colours, and both forms pass the same contrast tests.
+- **Gel's pinstripes are drawn with CSS gradients**, with no image. A gradient is a token a theme can recolour, it follows the dark form, it costs no download, and forced colours remove it as they remove every other background. An image would look slightly closer to the original and would lose all four.
+- **A skin may change heights and sizes, and the tests read them from the tokens.** Glaze's taller title bar and Gel's capsule buttons are set through the shape tokens, including the docked title bar's height, which is already a token. Any test that assumes a literal height today is changed to read the token, as part of the tokenising sweep, so that the same tests hold for every skin.
