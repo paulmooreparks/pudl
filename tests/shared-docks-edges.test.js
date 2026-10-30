@@ -144,6 +144,7 @@ function check(name, ok, detail) {
 
   /* Tab order by pointer. */
   const drag = async (key, toKey, side, opts = {}) => {
+    await tab(key).scrollIntoViewIfNeeded();
     const from = await tab(key).boundingBox(), to = await page.locator('[data-dock-entry="' + toKey + '"]').boundingBox();
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
     await page.mouse.down();

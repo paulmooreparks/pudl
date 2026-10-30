@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.95.1
+
+Window execution states now share glyphs and semantic colours across title chips, taskbar and dock controls, stack popup rows and folded status popovers. Compact slots remain reserved without a state, and popup controls stay fixed when state words change. Legacy running marks use the Working arc. Stack buttons now inherit the same line-height as ordinary taskbar entries, keeping each row level as text grows and full-mode stacking changes.
+
+Retitling a window updates its menu-bar title. Contributed commands are checked against the current source before invocation, so removed or disabled commands cannot run from stale menu or ribbon controls. Command-change notifications refresh open menu and ribbon surfaces.
+
+Dock-tab pointer reordering suppresses competing native drags from glyph and text descendants. Folded status chips retain their glyphs and use the popover foreground when their title-bar colour was inherited.
+
+This release implements specification 0.52.1.
+
+
 ## 0.95.0
 
 Skin support adds generated Bevel, Gel and Glaze stylesheets, an admission catalogue and optional runtime selection with remembered preference and Standard fallback. Skins retain mounted content, window state and target geometry. Standard retains its captured appearance. Hosts can disable theme and skin persistence with `data-pudl-persistence="host"` and use their own settings store. See `docs/SKINS.md` for loading, palette precedence and the public API.

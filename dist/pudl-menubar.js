@@ -258,8 +258,8 @@
       titles = [{ label: name, items: articleItems(src) }].concat(
         readList(src.nav.querySelector(':scope > ul') || document.createElement('ul')).filter(function (t) { return t.items; }));
     }
-    titles.forEach(function (t) { own(t.items, src); });
-    Object.keys(into).forEach(function (k) { own(into[k], src); });
+    titles.forEach(function (t) { own(t.items, src, ['title', t.id || t.label]); });
+    Object.keys(into).forEach(function (k) { own(into[k], src, ['into', k]); });
     return { kind: 'front', name: name, titles: titles, into: into, src: src };
   }
 
@@ -282,7 +282,7 @@
       if (c === '-') return '-';
       if (c && c.heading) return { heading: String(c.heading) };
       if (!c || typeof c.label !== 'string') return null;
-      var item = { label: c.label, run: c.run, disabled: !!c.disabled, danger: !!c.danger };
+      var item = { id: c.id != null ? String(c.id) : undefined, label: c.label, run: c.run, disabled: !!c.disabled, danger: !!c.danger };
       if (c.checked != null) item.checked = !!c.checked;
       if (c.radio != null) item.radio = String(c.radio);
       if (c.shortcut) item.shortcut = String(c.shortcut);
@@ -328,11 +328,15 @@
 
   /* The host's titles, with the front menu's additions, and the front
      menu, each command checked against the rules. */
-  function own(items, src) {
+  function own(items, src, path, disabled) {
     items.forEach(function (c) {
       if (!c || typeof c !== 'object') return;
       c.owner = src;
-      if (c.items) own(c.items, src);
+      /* A disabled parent disables everything under it, so a submenu opened
+         before the parent was disabled cannot invoke its old child. */
+      c.disabled = !!(disabled || c.disabled);
+      c.commandPath = (path || []).concat(c.id || c.label || c.heading);
+      if (c.items) own(c.items, src, c.commandPath, c.disabled);
     });
   }
 
@@ -717,10 +721,18 @@
       return titles().find(function (t) {
         var m = t._menu;
         if (previous.all) return m.all;
-        return m.menu && m.menu.kind === previous.menu.kind && m.menu.name === previous.menu.name &&
+        /* The front menu is named for its window, so a retitle must not end it. */
+        return m.menu && m.menu.kind === previous.menu.kind && (m.menu.kind === 'front' || m.menu.name === previous.menu.name) &&
           (previous.title.id ? m.title.id === previous.title.id : m.title.label === previous.title.label) &&
           (m.menu.kind !== 'front' || sameSource(previousSource, frontSrc));
       });
+    }
+    /* Keyboard focus that was in a panel that does not come back goes to the
+       front menu's first title, so it is never dropped onto the page. */
+    function focusFront(fallback) {
+      var list = titles();
+      var t = list.find(function (x) { return x._menu && x._menu.menu && x._menu.menu.kind === 'front'; }) || fallback || list[0];
+      if (t) t.focus();
     }
     if (force) lastSig = null;
     frontSrc = findFront();
@@ -740,8 +752,10 @@
       if (previous) {
         var surviving = survivingTitle();
         var selectedLabel = document.activeElement && document.activeElement._item && document.activeElement._item.label;
-        if (!surviving) closeAll(false);
-        else {
+        if (!surviving) {
+          closeAll(false);
+          if (panelFocus) focusFront();
+        } else {
           open(surviving, null);
           if (panelFocus) {
             var row = items(panel).find(function (r) { return r._item && r._item.label === selectedLabel; }) || items(panel)[0];
@@ -798,6 +812,7 @@
     syncRibbon();
     var reopen = survivingTitle();
     if (reopen) open(reopen, panelFocus ? 'first' : null);
+    else if (panelFocus) focusFront(keep);
   }
 
   /* Whether the full bar fits, measured with it showing, in one pass, so
@@ -1077,7 +1092,7 @@
       render();
       title = titles().find(function (t) {
         var info = t._menu;
-        return prior.all ? info.all : info.menu && prior.menu.kind === info.menu.kind && prior.menu.name === info.menu.name && prior.title.label === info.title.label;
+        return prior.all ? info.all : info.menu && prior.menu.kind === info.menu.kind && (prior.menu.kind === 'front' || prior.menu.name === info.menu.name) && (prior.title.id ? prior.title.id === info.title.id : prior.title.label === info.title.label);
       });
       if (!title || !currentTarget()) return;
     }
@@ -1200,9 +1215,27 @@
      a reader's click on it would be, an applet's run called. Focus goes
      back first to where it was before the bar, so a command that acts on
      the focused thing finds it. */
+  /* Re-resolve a contributed command by its source and menu path. A
+     closure from a previous opening must never outlive its availability. */
+  function currentCommand(c) {
+    if (!c.owner) return c;
+    var matches = [], path = JSON.stringify(c.commandPath);
+    function visit(list) {
+      list.forEach(function (item) {
+        if (!item || typeof item !== 'object') return;
+        if (item.owner && sameSource(c.owner, item.owner) && JSON.stringify(item.commandPath) === path) matches.push(item);
+        if (item.items) visit(item.items);
+      });
+    }
+    assemble().forEach(function (m) { m.titles.forEach(function (t) { visit(t.items); }); });
+    return matches.length === 1 ? matches[0] : null;
+  }
+
   function act(c, fromMenu) {
     if (c.disabled || c.items) return;
     if ((fromMenu && !currentTarget()) || (c.owner && !c.owner.resident && !sameSource(c.owner, findFront()))) { render(); return; }
+    c = currentCommand(c);
+    if (!c || c.disabled || c.items) { render(); return; }
     var scopeEl = c.owner ? c.owner.scope.scope : document;
     if (fromMenu) {
       closeAll(false);
@@ -1645,17 +1678,18 @@
        states are read now; a new toolbar is folded by pudl-toolbar.js as
        it arrives. Focus inside it stays on the same control. */
     var old = ribbonRow.querySelector(':scope > .toolbar');
-    var focusIndex = -1;
-    if (old && old.contains(document.activeElement)) focusIndex = Array.prototype.indexOf.call(old.querySelectorAll('button, a[href], select'), document.activeElement);
+    var focusedCommand = old && old.contains(document.activeElement) ? document.activeElement._item : null;
     menus = assemble();
     var label = t._menu.title.label;
     var fresh = findTitle(t._menu.menu.kind, label);
     var tb = el('div', 'toolbar', { role: 'toolbar', id: rowId, 'aria-label': label, 'data-toolbar-fold': '', 'data-toolbar-captions': bar.getAttribute('data-menubar-ribbon-captions') || 'none' });
     ribbonGroups(fresh ? fresh.items : t._menu.title.items, label).forEach(function (g) { tb.appendChild(g); });
     if (old) old.replaceWith(tb); else ribbonRow.appendChild(tb);
-    if (focusIndex >= 0) {
-      var again = tb.querySelectorAll('button, a[href], select')[focusIndex];
-      if (again) again.focus();
+    if (focusedCommand) {
+      var again = Array.from(tb.querySelectorAll('button, a[href], select')).find(function (n) {
+        return n._item && (focusedCommand.owner ? sameSource(n._item.owner, focusedCommand.owner) && JSON.stringify(n._item.commandPath) === JSON.stringify(focusedCommand.commandPath) : n._item.label === focusedCommand.label);
+      });
+      if (again) again.focus(); else t.focus();
     }
   }
 
@@ -1827,6 +1861,8 @@
     render();
 
     document.addEventListener('pudl:windows-change', soon);
+    document.addEventListener('pudl:window-title', function () { render(); });
+    document.addEventListener('pudl:commands-change', function () { render(); });
     /* A resident applet's menus join the bar as it starts. */
     document.addEventListener('pudl:applet-start', function (e) {
       if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-applet-resident')) render(true);
@@ -1904,7 +1940,7 @@
     /* Every key bound in the bar now: its key in PUDL's spelling and as
        shown, the row's label and title, its source and whether disabled. */
     shortcuts: function () {
-      if (bar && !currentTarget()) render();
+      if (bar) { if (!currentTarget()) render(); else assemble(); }
       var list = bound.map(function (b) { return Object.assign({}, b); });
       /* The window switcher's keys, which are the windows script's and not
          rows of the bar, are listed with it. */

@@ -151,7 +151,7 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-dock-splits` | a shared-dock window layer | `pudl-windows.js`, `pudl-windows.css` | Opt into independent tabbed panes along each dock's long axis; top and bottom require `data-win-dock-tabs="all"`. See [SHARED-DOCKS.md](SHARED-DOCKS.md#split-panes). |
 | `data-win-resize-mode` | a window layer or window | `pudl-windows.js` | `outline` previews pointer resizing without reflowing window content until release; `live` is the default. A window overrides the layer for its frame and outer dock edge; shared pane and grid dividers use the layer. Escape or pointer cancellation discards an outline, and release commits one history entry. Keyboard resizing remains immediate. |
 | `data-dock-pane`, `data-win-dock-pane`, `.win-dock-splitter`, `.win-dock-drop` | a shared dock strip, a window, a divider, a placement preview | `pudl-windows.js`, `pudl-windows.css` | Derived pane identity and geometry, accessible internal resizing and drag preview; generated presentation hooks, also available for server rendering |
-| `data-win-glyph`, `data-win-attention`, `data-win-running`, `data-win-progress` | a window | `pudl-windows.js` | Glyph token suffix, positive integer attention count, boolean running mark, and percentage from 0 to 100; reflected in side tabs, rails and taskbar |
+| `data-win-glyph`, `data-win-attention`, `data-win-running`, `data-win-progress` | a window | `pudl-windows.js` | Glyph token suffix, positive integer attention count, legacy boolean Working mark, and percentage from 0 to 100; reflected in side tabs, rails and taskbar |
 | `data-win-params` | the window layer | `pudl-windows.js`, `pudl-regions.js` | Prefixes, space- or comma-separated, of the page's window-scoped parameters: `<prefix>.<key>` belongs to window `<key>`, travels with the windows through region swaps and history, follows the window when it is re-keyed, and is dropped when it closes; `p` is PUDL's and is ignored |
 | `data-win-pane="off"` | the window layer | `pudl-windows.js` | Leave the master-detail layout's `data-md-pane` to the server |
 | `data-win`, `data-win-parent`, `data-win-mode` | a window | `pudl-windows.js` | Its key, its parent's key, its starting mode |
@@ -347,3 +347,11 @@ Full-mode taskbars use `data-win-taskbar-stacks="full"`; their thresholds, inter
 ## Skins
 
 The [skin contract](SKINS.md) defines validated definitions, generated treatments, selection and availability, host-owned persistence, palette precedence and release admission. Standard remains the default appearance when no available alternative is selected. Skin selection preserves mounted content, window state and navigation history.
+
+## Menu and execution-state corrections in 0.95.1
+
+`data-win-state` and `data-win-state-label` follow [WINDOW-STATUS.md](WINDOW-STATUS.md). All execution marks share the glyph mapping, reserved compact slots, folded words and aggregation rules described there. The legacy running attribute uses the same renderer.
+
+`pudlWindows.retitle()` updates the menu bar and emits bubbling `pudl:window-title` with `detail.key`. Menu opening and shortcut lookup read the current front applet's commands. Before invoking a contributed command from an existing menu or ribbon, PUDL resolves its source and menu path again and rejects removed, ambiguous or disabled commands. Explicit command IDs provide stable identity; otherwise the label and containing menu path identify the command.
+
+`pudlCommands.changed()` invalidates command tables and causes the menu bar to refresh its open menu or ribbon through `pudl:commands-change`. Applets whose state lives outside command tables may call the documented `pudlMenubar.refresh()` to update an already-open surface. Pure JavaScript state changes require such notification for immediate redraw; subsequent opening and invocation always re-read availability. Ordinary command-state changes do not require a refresh workaround before opening a menu.

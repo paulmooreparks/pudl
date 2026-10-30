@@ -299,7 +299,7 @@
 .win-dock-group[data-dock-rail] .doc-tab-close { display: none; }
 .win-dock-group[data-dock-rail] .win-item-attention { position: absolute; top: 0; right: 0; padding: 0 3px; font-size: var(--text-2xs); }
 .win-dock-group[data-dock-rail] .win-item-attention::before { display: none; }
-.win-dock-group[data-dock-rail] .win-item-running { position: absolute; bottom: 2px; right: 2px; }
+.win-dock-group[data-dock-rail] .win-item-state { position: absolute; bottom: 2px; inset-inline-end: 2px; }
 .win[data-win-dock-peek] {
   top: var(--dock-top, 0px);
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
@@ -415,7 +415,28 @@
    words are drawn further toward the text colour than an ordinary badge's
    so that they keep 4.5:1 on every one of them, in both themes. */
 .win-item-attention.badge:is(.warn, .danger, .positive, .accent) { color: color-mix(in srgb, var(--badge-color) 40%, var(--text)); }
-.win-item-running { display: inline-block; flex: none; width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%; background: var(--positive); }
+/* Reserve the execution slot even before a window has a state. */
+.win-item-state { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; }
+.win-state { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; max-width: 100%; }
+.win-state-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.win-state > .glyph { --glyph-size: 16px; flex: 0 0 16px; }
+.win-state[data-state="working"] { color: color-mix(in srgb, var(--accent) 40%, var(--text)); }
+.win-state[data-state="waiting"] { color: color-mix(in srgb, var(--warn) 40%, var(--text)); }
+.win-state[data-state="stuck"] { color: color-mix(in srgb, var(--danger) 40%, var(--text)); }
+.win-state[data-state="idle"] { color: var(--text-muted); }
+.win-state[data-state="working"] > .glyph { animation: win-working 1.2s linear infinite; }
+@keyframes win-working { to { transform: rotate(360deg); } }
+.win-item-state .win-state-words, .win-execution .win-state-words { display: none; }
+.win-status.win-execution { box-sizing: border-box; width: 24px; min-width: 24px; height: 22px; padding: 0; justify-content: center; background: var(--surface); }
+.win-stack-link .win-item-state { flex-basis: 10em; width: 10em; max-width: 40%; justify-content: start; }
+.win-stack-link .win-state-words { display: block; }
+.win-status-popover { width: min(24rem, calc(100vw - 24px)); }
+.win-status-popover li { overflow-wrap: anywhere; }
+.win-status-popover .win-execution-row { height: 22px; }
+.win-status-popover li > .glyph { vertical-align: middle; margin-inline-end: var(--space-1); }
+@media (prefers-reduced-motion: reduce) { .win-state[data-state] > .glyph { animation: none; } }
+@media (forced-colors: active) { .win-state[data-state] { forced-color-adjust: none; background: Canvas; color: CanvasText; } }
+
 .win-item-progress { font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
 .win-tab .win-item-glyph { flex: none; }
 .win-tab .win-item-title { overflow: hidden; text-overflow: ellipsis; }
@@ -722,6 +743,9 @@
   background: var(--raise-grad);
   box-shadow: var(--raise-shadow);
   font-size: var(--text-xs); font-weight: 600;
+  /* A stack is a button, whose own line height is the browser's "normal";
+     inheriting makes it the line height a link in the same row has. */
+  line-height: inherit;
   color: var(--text); text-decoration: none;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -838,13 +862,14 @@
     background: Highlight; color: HighlightText; border-color: Highlight;
   }
   .win.active .win-head .win-btn { forced-color-adjust: none; background: Canvas; color: CanvasText; }
+  .win-status.win-execution { forced-color-adjust: none; background: Canvas; color: CanvasText; }
+  .win-state > .glyph { forced-color-adjust: none; background: currentColor; }
   .win-ghost { border-color: Highlight; }
   /* The glyphs are masks, painted in the colour the system has set. */
   .win-btn[data-win-action]::before { forced-color-adjust: none; background: ButtonText; }
   .win-tab::before, .md-row-child .md-item::before { forced-color-adjust: none; background: CanvasText; }
   .win-tab[aria-current="true"]::before, .win-tab[aria-current="true"] .win-item-glyph { background: HighlightText; }
   .win-stack[aria-current="true"] .win-item-attention { color: HighlightText; border-color: HighlightText; background: Highlight; }
-  .win-stack[aria-current="true"] .win-item-running { background: HighlightText; }
   .win-stack-link:focus-visible, .win-stack[aria-expanded="true"] { outline-color: Highlight; }
 }
 
@@ -867,3 +892,5 @@
   .win.active .win-title { font-size: var(--text-lg); white-space: normal; }
   .win.active .win-body { overflow: visible; border: 0; padding: 0; }
 }
+
+.win-statuses[data-win-status-empty], .win-execution:has(> .win-state[hidden]) { visibility: hidden; }

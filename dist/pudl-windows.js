@@ -514,6 +514,39 @@
     setTimeout(finish, 700);
   }
 
+  var EXECUTION_STATES = ['stuck', 'waiting', 'working', 'idle'];
+  var STATE_GLYPHS = { working: 'working', waiting: 'flag', stuck: 'warning', idle: 'ring' };
+  function executionState(win) {
+    var explicit = win.getAttribute('data-win-state');
+    var state = explicit === null ? (win.hasAttribute('data-win-running') ? 'working' : '') : explicit;
+    if (EXECUTION_STATES.indexOf(state) < 0) return null;
+    return { state: state, label: win.getAttribute('data-win-state-label') || text('state-' + state, state.charAt(0).toUpperCase() + state.slice(1)) };
+  }
+  function paintState(mark, value) {
+    if (!mark.firstChild) mark.innerHTML = '<span class="glyph" aria-hidden="true"></span><span class="win-state-words"></span>';
+    setAttr(mark, 'role', 'img');
+    setHidden(mark, !value);
+    setAttr(mark, 'data-state', value ? value.state : '');
+    setAttr(mark, 'aria-label', value ? value.label : '');
+    setAttr(mark, 'title', value ? value.label : '');
+    setAttr(mark, 'data-tooltip', value ? value.label : '');
+    setText(mark.lastChild, value ? value.label : '');
+    styleProp(mark.firstChild, '--glyph', 'var(--glyph-' + (value ? STATE_GLYPHS[value.state] : 'ring') + ')');
+  }
+  function titleState(win) {
+    var mark = win.querySelector('.win-head > .win-statuses > .win-execution > .win-state');
+    if (mark) paintState(mark, executionState(win));
+  }
+  function stackState(keys) {
+    var counts = { stuck: 0, waiting: 0, working: 0, idle: 0 };
+    keys.forEach(function (k) { var v = executionState(wins[k]); if (v) counts[v.state]++; });
+    var state = EXECUTION_STATES.find(function (s) { return counts[s]; });
+    if (!state) return null;
+    return { state: state, label: EXECUTION_STATES.filter(function (s) { return counts[s]; }).map(function (s) {
+      return stackText('state-count-' + s, '{n} ' + s, { n: counts[s] });
+    }).join(', ') };
+  }
+
   /* title, when given, is the tooltip in place of the spoken name. */
   function windowMark(node, key, title) {
     var win = wins[key];
@@ -522,13 +555,13 @@
     if (!/^[a-z][a-z0-9-]*$/.test(glyph)) glyph = 'app';
     var count = Number(win.getAttribute('data-win-attention'));
     count = Number.isSafeInteger(count) && count > 0 ? count : 0;
-    var running = win.hasAttribute('data-win-running');
+    var execution = executionState(win);
     var progressText = (win.getAttribute('data-win-progress') || '').trim();
     var progress = progressText ? Number(progressText) : NaN;
     progress = isFinite(progress) && progress >= 0 && progress <= 100 ? Math.round(progress) : null;
     var icon = node.querySelector('.win-item-glyph');
     if (!icon) {
-      node.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-item-detail" hidden></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span><span class="win-item-progress" aria-hidden="true"></span>';
+      node.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-item-detail" hidden></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-state"><span class="win-state win-item-running"></span></span><span class="win-item-progress" aria-hidden="true"></span>';
       icon = node.firstChild;
     }
     styleProp(icon, '--glyph', 'var(--glyph-' + glyph + ')');
@@ -539,13 +572,13 @@
     var badge = node.querySelector('.win-item-attention');
     setHidden(badge, !count);
     setText(badge, count ? String(count) : '');
-    setHidden(node.querySelector('.win-item-running'), !running);
+    paintState(node.querySelector('.win-item-running'), execution);
     var meter = node.querySelector('.win-item-progress');
     setHidden(meter, progress === null);
     setText(meter, progress === null ? '' : progress + '%');
-    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (running ? ', ' + text('running', 'running') : '') + (progress === null ? '' : ', ' + progress + '%');
+    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (execution ? ', ' + execution.label : '') + (progress === null ? '' : ', ' + progress + '%');
     setAttr(node, 'aria-label', label);
-    setAttr(node, 'title', title || label);
+    setAttr(node, 'title', title ? title + (execution ? ', ' + execution.label : '') : label);
   }
 
   /* Text and hidden set only when they differ (0.69.3); setting text to
@@ -923,6 +956,11 @@
           });
         });
         group.addEventListener('pointerdown', function (e) { dragDockTab(e, group, edge); });
+        /* Pointer dragging owns tab movement, including glyph descendants. */
+        group.addEventListener('dragstart', function (e) {
+          var target = e.target.nodeType === 1 ? e.target : e.target.parentElement;
+          if (target && target.closest('[data-dock-key]')) e.preventDefault();
+        });
       }
       group.hidden = !members.length;
       var collapsed = railMode(state, edge), rail = iconRail(state, edge);
@@ -2717,6 +2755,7 @@
     fitBarsSoon();
     renderDockGroups();
     renderRows();
+    wins[key].dispatchEvent(new CustomEvent('pudl:window-title', { bubbles: true, detail: { key: key } }));
   }
 
   /* === Updating a window in place =========================================
@@ -2729,7 +2768,7 @@
      has it, by id or by name, and otherwise goes to the new body; a notice
      in the new content is announced. */
   var WINDOW_HEADER = 'X-PUDL-Window';
-  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress'];
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-progress'];
   var announceRegion = null;
 
   function announce(words) {
@@ -2935,7 +2974,11 @@
   var statusId = 0;
   function setupStatuses(win, head) {
     var group = head.querySelector(':scope > .win-statuses');
-    if (!group || win.__winStatuses) return;
+    if (win.__winStatuses) return;
+    if (!group) { group = document.createElement('div'); group.className = 'win-statuses'; head.insertBefore(group, head.querySelector('.win-chrome')); }
+    var execution = document.createElement('span'); execution.className = 'win-status win-execution';
+    execution.innerHTML = '<span class="win-state"></span>'; group.prepend(execution);
+    titleState(win);
     var button = document.createElement('button');
     button.type = 'button'; button.className = 'win-btn win-status-toggle';
     button.setAttribute('aria-label', text('status', 'Window status'));
@@ -2951,17 +2994,39 @@
     var list = document.createElement('ul'); panel.append(list, close); layer.appendChild(panel);
     button.setAttribute('popovertarget', panel.id); group.appendChild(button);
     var frame = 0, disposed = false, menuReturnTarget = null;
-    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return !s.hidden && s.textContent.trim(); }); }
+    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return !s.hidden && (s.classList.contains('win-execution') ? !!executionState(win) : !!s.textContent.trim()); }); }
     function refresh() {
       list.textContent = '';
-      statuses().forEach(function (s) { var row = document.createElement('li'); row.textContent = s.textContent.trim(); if (s.classList.contains('strong')) row.style.fontWeight = '700'; list.appendChild(row); });
+      [execution].concat(statuses().filter(function (s) { return s !== execution; })).forEach(function (s) {
+        var row = document.createElement('li');
+        if (s.classList.contains('win-execution')) {
+          var value = executionState(win);
+          row.className = 'win-execution-row';
+          var mark = document.createElement('span'); mark.className = 'win-state'; paintState(mark, value); row.appendChild(mark);
+        } else {
+          var foreground = getComputedStyle(s).color;
+          var inherited = foreground === getComputedStyle(head).color;
+          var glyph = s.querySelector('.glyph');
+          if (glyph) {
+            var icon = document.createElement('span'); icon.className = 'glyph'; icon.setAttribute('aria-hidden', 'true');
+            icon.style.setProperty('--glyph', getComputedStyle(glyph).getPropertyValue('--glyph'));
+            if (getComputedStyle(glyph).color !== foreground) icon.style.color = getComputedStyle(glyph).color;
+            row.appendChild(icon);
+          }
+          row.appendChild(document.createTextNode(s.textContent.trim()));
+          if (!inherited) row.style.color = foreground;
+          if (s.classList.contains('strong')) row.style.fontWeight = '700';
+        }
+        list.appendChild(row);
+      });
     }
     function fit() {
       frame = 0;
       if (disposed || !win.isConnected) return;
       var returnFocus = document.activeElement === button || panel.contains(document.activeElement);
-      group.hidden = !statuses().length;
-      if (group.hidden) { if (panel.matches(':popover-open')) panel.hidePopover(); if (returnFocus && head.getClientRects().length) head.focus({ preventScroll: true }); return; }
+      var empty = !statuses().length;
+      group.toggleAttribute('data-win-status-empty', empty);
+      if (empty) { if (panel.matches(':popover-open')) panel.hidePopover(); if (returnFocus && head.getClientRects().length) head.focus({ preventScroll: true }); }
       if (!head.getClientRects().length) return;
       group.removeAttribute('data-win-status-compact');
       var title = head.querySelector('.win-title');
@@ -2981,7 +3046,7 @@
     var mo = new MutationObserver(function (records) {
       if (records.some(function (r) { return r.target !== button && !(r.target === group && r.type === 'attributes'); })) schedule();
     });
-    mo.observe(group, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style'] });
+    mo.observe(group, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style', 'data-state', 'aria-label'] });
     mo.observe(head, { childList: true });
     if (title) mo.observe(title, { subtree: true, childList: true, characterData: true });
     panel.addEventListener('beforetoggle', function (e) {
@@ -4163,17 +4228,17 @@
     });
   }
   function stackMark(button, entry) {
-    var meta = stackMetadata(entry.group), count = 0, running = false;
-    entry.keys.forEach(function (k) { var n = Number(wins[k].getAttribute('data-win-attention')); if (Number.isSafeInteger(n) && n > 0) count += n; running = running || wins[k].hasAttribute('data-win-running'); });
-    if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span>';
+    var meta = stackMetadata(entry.group), count = 0, execution = stackState(entry.keys);
+    entry.keys.forEach(function (k) { var n = Number(wins[k].getAttribute('data-win-attention')); if (Number.isSafeInteger(n) && n > 0) count += n; });
+    if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-state"><span class="win-state win-item-running"></span></span>';
     styleProp(button.firstChild, '--glyph', 'var(--glyph-' + meta.glyph + ', var(--glyph-window))');
     setText(button.querySelector('.win-item-title'), meta.label);
     setText(button.querySelector('.win-stack-count'), String(entry.keys.length));
     var badge = button.querySelector('.win-item-attention'); setText(badge, String(count)); setHidden(badge, !count);
-    setHidden(button.querySelector('.win-item-running'), !running);
+    paintState(button.querySelector('.win-item-running'), execution);
     var name = stackText('stack-name', '{label}, {n} windows', { label: meta.label, n: entry.keys.length });
     if (count) name += stackText('stack-attention', ', {attention} needing attention', { attention: count });
-    if (running) name += text('stack-running', ', running');
+    if (execution) name += ', ' + execution.label;
     setAttr(button, 'aria-label', name);
     setAttr(button, 'title', button.getAttribute('aria-label'));
   }
@@ -4996,11 +5061,12 @@
     new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
       attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height', 'data-win-room'] });
     new MutationObserver(function () {
+      Object.keys(wins).forEach(function (key) { titleState(wins[key]); });
       document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
       if (taskbarDrag) taskbarDrag.cancel();
       renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
       var changed = records.some(function (record) {
