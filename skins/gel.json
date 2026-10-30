@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "id": "gel",
+  "name": "Gel",
+  "treatment": "gel",
+  "radii": {
+    "radius": 12,
+    "radius-sm": 8,
+    "radius-xs": 4,
+    "radius-pill": 999
+  },
+  "palette": {
+    "light": {},
+    "dark": {}
+  }
+}

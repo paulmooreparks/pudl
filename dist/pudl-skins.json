@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "skins": [
+    {
+      "id": "standard",
+      "label": "Standard",
+      "stylesheet": null,
+      "admitted": true
+    },
+    {
+      "id": "bevel",
+      "label": "Bevel",
+      "stylesheet": "pudl-skin-bevel.css",
+      "sha256": "a384480d663e2ddee59633ae36a342ad3410e56a250c1c588c2edf9e467f0519",
+      "admitted": true
+    },
+    {
+      "id": "gel",
+      "label": "Gel",
+      "stylesheet": "pudl-skin-gel.css",
+      "sha256": "4d03f6ffe78e8304c95afd15b6a0b9163a58c50d9427ad42cc6fdb30d5492979",
+      "admitted": true
+    },
+    {
+      "id": "glaze",
+      "label": "Glaze",
+      "stylesheet": "pudl-skin-glaze.css",
+      "sha256": "a31493999a6b1aafd05a46cc17c921b0b10f4587fbc4f7f938fbe5f8e8f6dd65",
+      "admitted": true
+    }
+  ]
+}

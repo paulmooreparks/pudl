@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-theme="light" data-skin="bevel">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skin preview</title>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <link rel="stylesheet" href="skins-bevel.css">
+  <link rel="stylesheet" href="skins-gel.css">
+  <link rel="stylesheet" href="skins-glaze.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="skins.js" defer></script>
+  <style>
+    body { margin: 0; }
+    main { max-width: 1100px; margin: auto; padding: var(--space-5); }
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--space-4); }
+    .preview-group { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-block: var(--space-3); }
+    .preview-fields { display: grid; gap: var(--space-3); }
+    .preview-fields label { display: grid; gap: var(--space-1); }
+    .preview-workspace { margin-block-start: var(--space-5); }
+    .win-host { height: 350px; }
+    .preview-note { color: var(--text-muted); }
+    .topbar label { color: var(--tb-fg); }
+  </style>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="skins.html">Skin preview</a><div class="preview-group">
+    <label>Skin <span class="form-select-wrap"><select class="form-select" id="skin"><option value="standard">Standard</option><option value="bevel" selected>Bevel</option><option value="gel">Gel</option><option value="glaze">Glaze</option></select></span></label>
+    <label>Colours <span class="form-select-wrap"><select class="form-select" id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></span></label>
+  </div></header>
+  <main>
+    <h1>Bevel</h1>
+    <p class="preview-note">Bevel, Gel and Glaze are available in PUDL 0.95.0. Switch skins and colours to compare them.</p>
+    <div class="preview-grid">
+      <section class="card"><h2>Commands</h2>
+        <div class="preview-group"><button class="btn">Open</button><button class="btn btn-primary">Save</button><button class="btn btn-danger">Delete</button><button class="btn" disabled>Unavailable</button></div>
+        <div class="preview-group"><button class="btn" aria-pressed="true">Pinned</button><button class="btn btn-primary" aria-pressed="true">Selected</button>
+          <div class="menu"><button class="btn menu-btn" popovertarget="actions">Actions</button><div class="menu-panel" id="actions" popover><button class="menu-action">Rename</button><button class="menu-action">Duplicate</button></div></div>
+        </div>
+        <p>Use Tab to inspect focus, then open Actions with the keyboard.</p>
+      </section>
+      <section class="card"><h2>Fields</h2><div class="preview-fields">
+        <label>Name <input class="form-input" value="A working document"></label>
+        <label>Location <span class="form-select-wrap"><select class="form-select"><option>Documents</option><option>Archive</option></select></span></label>
+        <label>Notes <textarea class="form-textarea" rows="2">This content stays mounted when the skin changes.</textarea></label>
+      </div></section>
+    </div>
+    <section class="preview-workspace" aria-label="Window preview">
+      <div class="preview-group"><a class="btn" href="?open=editor" data-win-open="editor">Open Editor</a><a class="btn" href="?open=notes" data-win-open="notes">Open Notes</a></div>
+      <div class="win-host"><div class="win-layer" data-win-layer data-win-menu data-win-src="#preview-{key}" data-win-default="editor,notes" data-win-taskbar-stacks="always"></div></div>
+      <footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></footer>
+    </section>
+  </main>
+  <template id="preview-editor"><section class="win" data-win="editor" data-win-group="documents" data-win-group-label="Documents" data-win-group-glyph="folder" style="--win-x:.03;--win-y:.04;--win-w:.52;--win-h:.8">
+    <header class="win-head"><h2 class="win-title">Editor</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+    <div class="win-body"><label>Document text <textarea class="form-textarea" rows="3">A document in a floating window.</textarea></label><p><button class="btn btn-primary">Save document</button></p></div>
+  </section></template>
+  <template id="preview-notes"><section class="win" data-win="notes" data-win-group="documents" data-win-group-label="Documents" data-win-group-glyph="folder" style="--win-x:.42;--win-y:.2;--win-w:.5;--win-h:.72">
+    <header class="win-head"><h2 class="win-title">Notes</h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header>
+    <div class="win-body"><label>Working notes <input class="form-input" value="Compare both colour forms"></label><p>Try the grouped taskbar and window menu.</p></div>
+  </section></template>
+</body>
+</html>

@@ -21,11 +21,13 @@
   var KEY = 'pudl-theme';
   var DEFAULT = 'dark';
   var root = document.documentElement;
+  var persist = root.getAttribute('data-pudl-persistence') !== 'host';
   var system = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
   function valid(p) { return p === 'light' || p === 'dark' || p === 'system'; }
 
   function saved() {
+    if (!persist) return null;
     var v = null;
     try { v = localStorage.getItem(KEY); } catch (e) { /* storage blocked */ }
     return valid(v) ? v : null;
@@ -36,7 +38,9 @@
     return system && !system.matches ? 'light' : 'dark';
   }
 
-  var pref = saved() || DEFAULT;
+  var initial = root.getAttribute('data-theme-pref');
+  if (!valid(initial)) initial = root.getAttribute('data-theme');
+  var pref = saved() || (!persist && valid(initial) ? initial : DEFAULT);
 
   function apply() {
     var theme = resolve(pref);
@@ -54,7 +58,7 @@
   window.pudlSetTheme = function (p) {
     if (!valid(p)) return;
     pref = p;
-    try { localStorage.setItem(KEY, p); } catch (e) { /* storage blocked */ }
+    try { if (persist) localStorage.setItem(KEY, p); } catch (e) { /* storage blocked */ }
     announce(apply());
   };
 
@@ -76,7 +80,7 @@
 
   /* A choice made in another tab of the same site. */
   window.addEventListener('storage', function (e) {
-    if (e.key !== KEY) return;
+    if (!persist || e.key !== KEY) return;
     pref = saved() || DEFAULT;
     announce(apply());
   });

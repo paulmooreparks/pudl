@@ -14,7 +14,7 @@ The [shared dock contract](SHARED-DOCKS.md) defines the opt-in tabs, responsive 
 - **Deprecation.** When a name is replaced, the old name keeps working until the next major release, and the changelog and the README's "Names that changed" say so. The names already replaced are listed at the end of this document.
 - **Releases.** A release is a tag, `v<version>`, and its files never change once pushed. A project copies the contents of `dist/` from a tag, or loads them from jsDelivr at the tag with integrity hashes.
 - **Browsers.** PUDL supports browsers from 2024 on: Chromium 120, Firefox 128 and Safari 17.4 and later, the versions that support popovers, `:has()`, container queries, `color-mix()`, `:dir()` and the other features PUDL uses. Every release is tested in Chromium, Firefox and WebKit. `pudl-dialog.js` supplies the dialog command buttons, which are newer than that floor.
-- **No state of its own.** PUDL keeps state only in the URL and, for the reader's theme, in local storage under the key `pudl-theme`. Everything else a project wants remembered, it stores itself, from the events below.
+- **No state of its own.** PUDL keeps state only in the URL and, for the reader's theme and skin, in local storage under the keys `pudl-theme` and `pudl-skin`. Everything else a project wants remembered, it stores itself, from the events below.
 
 ## Files
 
@@ -341,3 +341,9 @@ Applet `menus()` title descriptors accept `id`. The first title is the identity;
 Legacy `commands()` results appear under Actions beside a generated identity menu. Generated article menus have no File menu since 0.49.0; their identity menu uses Copy link to this content and Close window, and holds Print, after Copy link, only when the page menu carries `data-page-print`. Existing translation overrides continue to apply. See the [migration guide](MENU-BAR-MIGRATION.md) for all changed defaults and stable window command IDs.
 
 The [persistent sidebar contract](PERSISTENT-SIDEBAR.md) defines `data-md-persistent`, sizing and translation attributes, `data-md-action` commands, `pudlMd`, and the `pudl:md-request` and `pudl:md-change` events introduced in 0.43.0. Its derived attributes and CSS properties belong to PUDL.
+
+Full-mode taskbars use `data-win-taskbar-stacks="full"`; their thresholds, interaction deferral and non-bar behavior are defined in [Taskbar stacks](TASKBAR-STACKS.md#full-mode).
+
+## Skins
+
+The [skin contract](SKINS.md) defines validated definitions, generated treatments, selection and availability, host-owned persistence, palette precedence and release admission. Standard remains the default appearance when no available alternative is selected. Skin selection preserves mounted content, window state and navigation history.

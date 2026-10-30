@@ -27,6 +27,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node build/skins.js --check --release
+      - run: node --test build/skin-definition.test.js build/skin-css.test.js
       - run: node build/minify.js --check
       - run: npx playwright install --with-deps chromium
       - run: node tests/run.js chromium

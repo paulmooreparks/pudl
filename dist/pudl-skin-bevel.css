@@ -1,0 +1,47 @@
+@media screen and (forced-colors: none) {
+/* Generated candidate skin. Rendered conformance is a separate gate. */
+:root:where([data-skin="bevel"]) {
+  --danger-hover-fill: var(--danger);
+  --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --dismiss-radius: 0px;
+  --entry-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--light);
+  --focus-ring: var(--accent);
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --overlay-shadow: 2px 2px 0 var(--shade);
+  --primary-active-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--light);
+  --primary-fill: var(--accent);
+  --primary-hover-fill: var(--accent-hover);
+  --primary-pressed-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--light);
+  --radius: 0px;
+  --radius-pill: 0px;
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  --raise-active-bg: color-mix(in srgb, var(--shade) 15%, var(--surface-alt));
+  --raise-active-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--light);
+  --raise-border: color-mix(in srgb, var(--text) 65%, var(--surface));
+  --raise-border-hover: var(--text);
+  --raise-grad: var(--surface-alt);
+  --raise-grad-hover: color-mix(in srgb, var(--text) 6%, var(--surface-alt));
+  --raise-shadow: inset 1px 1px 0 var(--light), inset -1px -1px 0 var(--shade);
+  --recess-shadow: inset 0 1px 0 var(--shade);
+  --shadow-btn-primary: inset 1px 1px 0 var(--light), inset -1px -1px 0 var(--shade);
+  --shadow-card: 1px 1px 0 var(--shade);
+  --shadow-dialog: 2px 2px 0 var(--shade);
+  --snap-current-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--light);
+  --surface-edge-shadow: inset 0 1px 0 var(--light);
+  --tb-active-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--tb-fg);
+  --tb-chip: color-mix(in srgb, var(--tb-fg) 12%, var(--tb-bg));
+  --tb-chip-shadow: inset 1px 1px 0 var(--tb-fg), inset -1px -1px 0 var(--shade);
+  --tb-focus-ring: var(--tb-fg);
+  --tb-grad: var(--tb-bg);
+  --tb-toggle-active-shadow: inset 1px 1px 0 var(--shade), inset -1px -1px 0 var(--tb-fg);
+  --toast-shadow: 2px 2px 0 var(--shade);
+  --tooltip-shadow: 1px 1px 0 var(--shade);
+  --win-active-bg: linear-gradient(to right, var(--accent), var(--accent-hover));
+  --win-active-fg: var(--on-accent);
+  --win-active-shadow: inset 0 1px 0 var(--light);
+  --win-chrome-focus-shadow: 0 0 0 2px #fff, 0 0 0 3px #000;
+  --win-shadow: 2px 2px 0 var(--shade);
+  --win-shadow-active: 3px 3px 0 var(--shade);
+}
+}

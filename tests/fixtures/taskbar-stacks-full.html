@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Full-mode taskbar verification</title>
+  <link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-toolbar.js" defer></script><script src="../../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; }
+    .win-host { height: calc(100vh - 180px); }
+    .win-bar { position: fixed; left: 0; right: auto; width: 1250px; bottom: 0; }
+    #wide-bar { bottom: 48px; }
+    #filtered-bar { bottom: 96px; }
+  </style>
+</head>
+<body>
+  <label>Outside editor <input id="outside" class="form-input" value="Keep focus"></label>
+  <nav id="mirror" class="win-dock" data-win-dock aria-label="Non-bar mirror" hidden></nav>
+  <div class="win-host"><main class="win-layer" data-win-layer data-win-menu data-win-taskbar-reorder data-win-taskbar-stacks="full" data-win-group-open="alpha" data-win-src="#full-{key}" data-win-default="a1,b1,a2,b2,a3,u1,u2,child"></main></div>
+  <footer id="filtered-bar" class="win-bar"><nav id="filtered" class="win-dock" data-win-dock data-win-dock-omit-docked aria-label="Filtered windows"></nav></footer>
+  <footer id="wide-bar" class="win-bar"><nav id="wide" class="win-dock" data-win-dock aria-label="Wide windows"></nav></footer>
+  <footer id="probe-bar" class="win-bar"><nav id="probe" class="win-dock" data-win-dock aria-label="Probe windows"></nav></footer>
+  <script>
+    const titles = { a1: 'Atlas first long document title', b1: 'Beacon first long document title', a2: 'Atlas second long document title', b2: 'Beacon second long document title', a3: 'Atlas third long document title', u1: 'Independent first long document title', u2: 'Independent second long document title', child: 'Atlas child long document title' };
+    Object.entries(titles).forEach(([key, title], index) => {
+      const template = document.createElement('template'); template.id = 'full-' + key;
+      template.innerHTML = '<section class="win"><header class="win-head"><h2 class="win-title"></h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><input class="form-input" aria-label="Window editor" value="Mounted content"></div></section>';
+      const win = template.content.firstElementChild;
+      win.setAttribute('data-win', key); win.querySelector('.win-title').textContent = title;
+      win.style.cssText = '--win-x:' + (.02 + index * .02) + ';--win-y:' + (.02 + index * .02) + ';--win-w:.4;--win-h:.5';
+      const group = key.startsWith('a') ? 'alpha' : key.startsWith('b') ? 'beta' : '';
+      if (group) { win.setAttribute('data-win-group', group); win.setAttribute('data-win-group-label', group === 'alpha' ? 'Atlas' : 'Beacon'); }
+      if (key === 'child') win.setAttribute('data-win-parent', 'a1');
+      document.body.appendChild(template);
+    });
+  </script>
+</body>
+</html>

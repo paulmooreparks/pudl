@@ -1,0 +1,17 @@
+[
+  {
+    "id": "bevel",
+    "admitted": true,
+    "sha256": "a384480d663e2ddee59633ae36a342ad3410e56a250c1c588c2edf9e467f0519"
+  },
+  {
+    "id": "gel",
+    "admitted": true,
+    "sha256": "4d03f6ffe78e8304c95afd15b6a0b9163a58c50d9427ad42cc6fdb30d5492979"
+  },
+  {
+    "id": "glaze",
+    "admitted": true,
+    "sha256": "a31493999a6b1aafd05a46cc17c921b0b10f4587fbc4f7f938fbe5f8e8f6dd65"
+  }
+]

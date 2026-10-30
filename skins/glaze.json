@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "id": "glaze",
+  "name": "Glaze",
+  "treatment": "glaze",
+  "radii": {
+    "radius": 8,
+    "radius-sm": 4,
+    "radius-xs": 3,
+    "radius-pill": 999
+  },
+  "palette": {
+    "light": {
+      "accent": "#1754b5",
+      "accent-hover": "#103b88"
+    },
+    "dark": {
+      "accent": "#80c4ff",
+      "accent-hover": "#a0c8ff"
+    }
+  }
+}

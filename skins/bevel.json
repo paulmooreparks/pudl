@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "id": "bevel",
+  "name": "Bevel",
+  "treatment": "bevel",
+  "radii": {
+    "radius": 0,
+    "radius-sm": 0,
+    "radius-xs": 0,
+    "radius-pill": 0
+  },
+  "palette": {
+    "light": {},
+    "dark": {}
+  }
+}

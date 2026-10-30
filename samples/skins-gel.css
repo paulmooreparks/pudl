@@ -1,0 +1,34 @@
+@media screen and (forced-colors: none) {
+/* Generated candidate skin. Rendered conformance is a separate gate. */
+:root:where([data-skin="gel"]) {
+  --button-radius: 999px;
+  --danger-hover-fill: var(--danger);
+  --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --dismiss-radius: 50%;
+  --entry-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) 30%, transparent);
+  --focus-ring: var(--accent);
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --primary-active-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 55%, transparent);
+  --primary-fill: linear-gradient(to bottom, var(--accent-hover), var(--accent) 48%, var(--accent-hover) 49%, var(--accent));
+  --primary-hover-fill: var(--accent-hover);
+  --primary-pressed-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 55%, transparent);
+  --radius: 12px;
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
+  --raise-active-bg: color-mix(in srgb, var(--accent) 16%, var(--surface-alt));
+  --raise-active-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) 45%, transparent);
+  --raise-border: color-mix(in srgb, var(--text) 65%, var(--surface));
+  --raise-border-hover: var(--text);
+  --raise-grad: linear-gradient(to bottom, color-mix(in srgb, var(--light) 30%, var(--surface-alt)) 0%, var(--surface) 48%, var(--surface-alt) 49%, color-mix(in srgb, var(--accent) 8%, var(--surface-alt)) 100%);
+  --raise-grad-hover: linear-gradient(to bottom, color-mix(in srgb, var(--light) 35%, var(--surface-alt)), var(--surface) 48%, color-mix(in srgb, var(--accent) 12%, var(--surface-alt)) 49%, var(--surface-alt));
+  --raise-shadow: inset 0 1px 0 color-mix(in srgb, var(--light) 75%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--shade) 20%, transparent), 0 1px 2px color-mix(in srgb, var(--shade) 25%, transparent);
+  --tb-focus-ring: var(--tb-fg);
+  --win-active-bg: repeating-linear-gradient(to bottom, transparent 0px, transparent 2px, color-mix(in srgb, var(--text) 4%, transparent) 2px, color-mix(in srgb, var(--text) 4%, transparent) 3px), linear-gradient(var(--surface), var(--surface-alt));
+  --win-active-border: var(--raise-border);
+  --win-active-fg: var(--text);
+  --win-active-shadow: inset 0 1px 0 color-mix(in srgb, var(--light) 65%, transparent);
+  --win-button-radius: 999px;
+  --win-chrome-focus-shadow: 0 0 0 2px #fff, 0 0 0 3px #000;
+}
+}

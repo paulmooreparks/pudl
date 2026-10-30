@@ -1,0 +1,42 @@
+@media screen and (forced-colors: none) {
+/* Generated candidate skin. Rendered conformance is a separate gate. */
+:root:where([data-skin="glaze"]) {
+  --button-radius: 4px;
+  --danger-hover-fill: var(--danger);
+  --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --dismiss-radius: 4px;
+  --entry-shadow: inset 0 1px 2px color-mix(in srgb, var(--shade) 25%, transparent);
+  --focus-ring: var(--accent);
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --primary-active-shadow: inset 0 2px 4px color-mix(in srgb, var(--shade) 45%, transparent);
+  --primary-fill: linear-gradient(var(--accent), var(--accent-hover));
+  --primary-hover-fill: var(--accent-hover);
+  --primary-pressed-shadow: inset 0 2px 4px color-mix(in srgb, var(--shade) 45%, transparent);
+  --radius: 8px;
+  --radius-pill: 999px;
+  --radius-sm: 4px;
+  --radius-xs: 3px;
+  --raise-active-bg: color-mix(in srgb, var(--accent) 18%, var(--surface-alt));
+  --raise-active-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 40%, transparent);
+  --raise-border: color-mix(in srgb, var(--text) 65%, var(--surface));
+  --raise-border-hover: var(--accent);
+  --raise-grad: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 5%, var(--surface-alt)));
+  --raise-grad-hover: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 15%, var(--surface-alt)));
+  --raise-shadow: inset 0 1px 0 color-mix(in srgb, var(--light) 70%, transparent), inset 0 -2px 0 color-mix(in srgb, var(--shade) 15%, transparent), 0 1px 2px color-mix(in srgb, var(--shade) 20%, transparent);
+  --tb-focus-ring: var(--tb-fg);
+  --win-active-bg: linear-gradient(to bottom, var(--accent-hover) 0%, var(--accent) 18%, var(--accent-hover) 88%, var(--accent) 100%);
+  --win-active-border: var(--accent-hover);
+  --win-active-fg: var(--on-accent);
+  --win-active-shadow: inset 0 1px 0 color-mix(in srgb, var(--light) 70%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--shade) 35%, transparent);
+  --win-button-radius: 4px;
+  --win-chrome-focus-shadow: 0 0 0 2px #fff, 0 0 0 3px #000;
+}
+:root:where([data-skin="glaze"]:not([data-theme="dark"])) {
+  --accent: #1754b5;
+  --accent-hover: #103b88;
+}
+:root:where([data-skin="glaze"][data-theme="dark"]) {
+  --accent: #80c4ff;
+  --accent-hover: #a0c8ff;
+}
+}

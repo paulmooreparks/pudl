@@ -2,7 +2,7 @@
 
 Taskbar stacks group root windows without changing their membership or canonical order. This contract is approved for implementation.
 
-The host sets `data-win-group`, `data-win-group-label` and optional `data-win-group-glyph` on each root. Optional `data-win-section` labels consecutive runs in the popup. The layer opts in with `data-win-taskbar-stacks="always"`; `data-win-group-open` names the expanded group. Other mode values preserve ordinary buttons. Group keys use the window-key alphabet, letters, digits, underscore and hyphen.
+The host sets `data-win-group`, `data-win-group-label` and optional `data-win-group-glyph` on each root. Optional `data-win-section` labels consecutive runs in the popup. The layer opts in with `data-win-taskbar-stacks="always"` or `"full"`; `data-win-group-open` names the expanded group. Other mode values preserve ordinary buttons. Full mode is defined below. Group keys use the window-key alphabet, letters, digits, underscore and hyphen.
 
 ## Membership and presentation
 
@@ -57,3 +57,19 @@ Group minimize and restore use the represented-root snapshot defined above. Clos
 ## Labels
 
 The layer's `data-win-text-*` mechanism supplies the new words. `stack-name` defaults to `{label}, {n} windows`; nonzero attention appends `stack-attention`, defaulting to `, {attention} needing attention`, and running appends `stack-running`, defaulting to `, running`. `stack-list` names the popup and defaults to `{label}`. `stack-close-window` and `stack-window-commands` accept `{title}`. `stack-minimize`, `stack-restore` and `stack-close` accept `{n}`. `more-stacks` and `more-stacks-name` accept `{entries}` and `{windows}`. The group's label is host content and is rendered as text.
+
+## Full mode
+
+The `data-win-taskbar-stacks="full"` mode keeps separate root buttons until the existing fit procedure would need More. It then projects every eligible group as a stack in one transition. Groups with one represented root and ungrouped roots remain ordinary buttons. The host continues to supply opaque group keys and metadata; composing a key from a workspace and a window kind belongs to the host.
+
+Each dock that is a direct child of a `.win-bar` makes its own decision from its represented roots and available width. Measure the separate-button layout using the existing shrink limits and compact-tray stage, with More absent. Enter stacked mode only when that layout would overflow. Do not use the widths of the currently rendered stacks to decide whether separate buttons fit.
+
+For the return threshold, the spare room is the largest represented ordinary button's minimum fitting width, plus one inter-button gap. This uses the existing rule of 120px or the button's natural width when smaller. Return to separate buttons only when the same separate-button measurement fits with that reserve. Initial layout starts separate if it fits; subsequent layouts retain the current mode within the gap between thresholds. An empty dock resets to separate. Font, title, status, membership, filter and available-width changes must invalidate the measurement. Overflow uses the existing 1 CSS pixel tolerance: `scrollWidth > clientWidth + 1`. Returning to separate buttons requires measured spare room plus 1 CSS pixel to reach the reserve. A dock outside a `.win-bar` keeps separate buttons in full mode because it has no More-based fit boundary.
+
+Full mode ignores `data-win-group-open`; always mode keeps honoring it. If the stacked projection still overflows, the existing More behavior applies. These presentation changes must not rewrite canonical order, URL history, activation or MRU state.
+
+The transition rule holds the dock's current projection while its preview, pinned list, owned menu or submenu, Arrange session, or drag is active. Changes mark its fit as pending. After the last such interaction closes, commits or cancels, measure the current layout again and apply the threshold rule once; do not replay a mode selected from an earlier measurement. Unrelated menus do not hold this dock. Pending work must survive skipped fit calls and unchanged widths, as deferred toolbar folding does.
+
+Deferral does not freeze live membership, command eligibility or viewport-safe popup placement. Existing removal and cancellation rules still apply if an interaction's target disappears. When the deferred projection removes a focused trigger, use the existing taskbar focus-recovery rules; a pointer preview must not take focus from an outside editor. The fit itself writes no history and does not activate a window.
+
+Verification must cover both threshold directions, repeated near-threshold changes, filtered and mirrored docks, long localized labels, font arrival, RTL, and stacks that still require More. It must also cover nested interactions, closing the last interaction without a width change, cancellation, target removal and pending changes superseded before dismissal. Implementation was authorized on 30 October 2026.

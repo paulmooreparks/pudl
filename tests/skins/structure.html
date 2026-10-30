@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Standard structural capture</title>
+  <link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-toast.js" defer></script><script src="../../dist/pudl-tooltip.js" defer></script>
+  <style>body{margin:16px}.capture-region{padding:16px;border:1px solid var(--border)}.capture-probe{margin:16px 0}</style>
+</head>
+<body>
+  <main class="capture-region" data-region="skin-baseline">
+    <div data-applet="capture-only"><p>Mounted applet content</p><button class="btn">Applet action</button></div>
+    <p>The applet mount is a visual fixture; lifecycle behavior is covered separately.</p>
+    <button id="tooltip-probe" class="icon-btn capture-probe" aria-label="Capture action" data-tooltip="Capture tooltip"><span class="glyph" style="--glyph:var(--glyph-info)" aria-hidden="true"></span></button>
+    <span class="visually-hidden">Accessible hidden description</span>
+  </main>
+  <section class="diff capture-probe" aria-label="Example changes"><div class="diff-hunk"><div class="diff-line" data-diff="del"><span class="diff-no">1</span><span class="diff-sign">-</span><code class="diff-text">old value</code></div><div class="diff-line" data-diff="add"><span class="diff-no">1</span><span class="diff-sign">+</span><code class="diff-text">new value</code></div></div></section>
+</body>
+</html>

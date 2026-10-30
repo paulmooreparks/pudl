@@ -119,11 +119,11 @@
 .win[data-win-size="content"] { padding: 0; }
 .win[data-win-size="content"] .win-head {
   border-width: 0 0 1px;
-  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  border-radius: max(0px, calc(var(--radius) - 1px)) max(0px, calc(var(--radius) - 1px)) 0 0;
 }
 .win[data-win-size="content"] .win-body {
   border: 0;
-  border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+  border-radius: 0 0 max(0px, calc(var(--radius) - 1px)) max(0px, calc(var(--radius) - 1px));
 }
 .win[data-win-size="content"] > .win-rh,
 .win[data-win-size="content"] .win-head [data-win-action="maximize"],
@@ -268,7 +268,7 @@
    tabs do; the chosen one reaches the foot and opens the rule (0.89.5). */
 .win-dock-entry[data-selected] { background: var(--surface); padding-top: 3px; box-shadow: none; border-color: var(--border); margin-bottom: 0; }
 .win-dock-entry > [role="tab"]:not(.icon-btn) { display: inline-flex; align-items: center; gap: 4px; min-width: 0; padding: 5px 8px; border: 0; border-radius: inherit; background: transparent; color: inherit; font: inherit; cursor: pointer; }
-.win-dock-menu { position: absolute; width: 18px; height: 18px; padding: 0; border: 1px solid var(--raise-border); border-radius: 50%; background: var(--raise-grad); box-shadow: var(--raise-shadow); color: var(--text); cursor: pointer; }
+.win-dock-menu { position: absolute; width: 18px; height: 18px; padding: 0; border: 1px solid var(--raise-border); border-radius: var(--dismiss-radius, 50%); background: var(--raise-grad); box-shadow: var(--raise-shadow); color: var(--text); cursor: pointer; }
 .win-dock-menu::before { content: ''; display: block; width: 10px; height: 10px; margin: auto; background: currentColor; mask: var(--glyph-caret) center / contain no-repeat; }
 .win-dock-menu:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .win-dock-entry > button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
@@ -431,8 +431,8 @@
   --win-text: var(--text-md);   /* the title's size, which the buttons and their glyphs are sized from */
   background: var(--raise-grad);
   border: 1px solid var(--raise-border);
-  border-radius: calc(var(--radius) - var(--win-band)) calc(var(--radius) - var(--win-band)) 0 0;
-  box-shadow: inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent);
+  border-radius: max(0px, calc(var(--radius) - var(--win-band))) max(0px, calc(var(--radius) - var(--win-band))) 0 0;
+  box-shadow: var(--surface-edge-shadow, inset 0 1px color-mix(in srgb, var(--light) var(--lit), transparent));
   cursor: move;
   user-select: none;
   touch-action: none;
@@ -504,7 +504,7 @@
 .win-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 2)); height: var(--win-button-size, calc(var(--win-text, var(--text-md)) * 2)); padding: 0; flex-shrink: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--win-button-radius, var(--radius-sm));
   border: 1px solid var(--raise-border);
   background: var(--raise-grad);
   box-shadow: var(--raise-shadow);
@@ -516,6 +516,7 @@
 .win-btn:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 .win-btn:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 .win-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.win.active > .win-head .win-btn:focus-visible { box-shadow: var(--win-chrome-focus-shadow, 0 0 0 3px var(--focus-ring)); }
 .win-btn[data-win-action="close"]:hover { color: var(--danger); }
 
 /* The glyphs come from here, drawn from pudl.css's glyph masks, so the
@@ -564,10 +565,10 @@
 .win-snap .win-snap-zone:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 .win-snap .win-snap-zone[aria-current="true"] {
   background: var(--accent); border-color: var(--accent-hover);
-  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent);
+  box-shadow: var(--snap-current-shadow, inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent));
 }
 .win-snap .win-snap-zone[aria-current="true"]:focus-visible {
-  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent), 0 0 0 3px var(--focus-ring);
+  box-shadow: var(--snap-current-shadow, inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent)), 0 0 0 3px var(--focus-ring);
 }
 @media (forced-colors: active) {
   .win-snap .win-snap-zone { border-color: ButtonText; }
@@ -596,7 +597,7 @@
   padding: 16px 18px;
   background: var(--surface);
   border: 1px solid var(--border); border-top: 0;
-  border-radius: 0 0 calc(var(--radius) - var(--win-band)) calc(var(--radius) - var(--win-band));
+  border-radius: 0 0 max(0px, calc(var(--radius) - var(--win-band))) max(0px, calc(var(--radius) - var(--win-band)));
 }
 /* Tabs that are a window's whole body fill it (0.71.0). The bar runs from
    edge to edge under the title bar, and the chosen panel takes the rest of

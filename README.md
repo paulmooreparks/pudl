@@ -4,7 +4,7 @@ PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.17.0.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.52.0.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -1691,6 +1691,14 @@ PUDL is released under the Apache License 2.0. See `LICENSE`, which `dist/LICENS
 
 A window layer with `data-win-taskbar-stacks="always"` combines two or more represented root windows sharing a `data-win-group` into a stack. Each root supplies the group's label and optional glyph through `data-win-group-label` and `data-win-group-glyph`. The layer's `data-win-group-open` names a group to leave expanded. The application restores this choice from its own addressable state.
 
+Use `data-win-taskbar-stacks="full"` to leave buttons separate until the ordinary taskbar would need More. All eligible groups then stack together. They return to separate buttons only with spare room equal to the widest ordinary button's minimum fitting width plus one gap. Full mode ignores `data-win-group-open`; each `.win-bar` measures its own dock, and non-bar docks stay separate. A list, owned menu, Arrange session or drag holds its dock's current form until the interaction ends, then the bar measures again.
+
 A stack previews its windows on hover and pins the list on click. Keyboard opening focuses a window link; each row has a separate Close button. Selecting a row raises or restores its window. Group commands affect only the roots shown by the originating taskbar, including when the stack is in More. A docked root omitted by that taskbar is left alone. Reordering a genuine stack moves its logical members together, while an individual button still moves just its own window.
 
 See the [stack contract](docs/TASKBAR-STACKS.md) for query, filtering, lifecycle and ordering rules, and the [interactive sample](samples/taskbar-stacks.html) for stacking, expansion and Arrange taskbar.
+
+## Skins
+
+PUDL offers Standard, Bevel, Gel and Glaze through generated skin stylesheets. Load an offered `dist/pudl-skin-<id>.css` after the component stylesheets and select its identifier with `data-skin` on the root. Standard needs no extra stylesheet. The catalogue `dist/pudl-skins.json` identifies which skins are admitted in the distribution; development candidates must not be treated as approved skins.
+
+The optional `dist/pudl-skins.js` provides registration, selection and saved preference with Standard fallback. Hosts with their own appearance store set `data-pudl-persistence="host"` before loading PUDL's theme and skin scripts, then supply preferences through their public APIs. This disables PUDL storage access and storage-event following for both choices. See [the skin contract](docs/SKINS.md) and [the live sample](samples/skins.html).

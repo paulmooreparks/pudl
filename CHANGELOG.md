@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.95.0
+
+Skin support adds generated Bevel, Gel and Glaze stylesheets, an admission catalogue and optional runtime selection with remembered preference and Standard fallback. Skins retain mounted content, window state and target geometry. Standard retains its captured appearance. Hosts can disable theme and skin persistence with `data-pudl-persistence="host"` and use their own settings store. See `docs/SKINS.md` for loading, palette precedence and the public API.
+
+
+Taskbars accept `data-win-taskbar-stacks="full"`. They keep separate window buttons until the ordinary layout would need More, then stack all eligible groups together. A spare-button-width margin prevents repeated switching near the boundary. Full mode ignores the expanded-group setting and defers presentation switches while a dock-owned interaction is active. Existing always mode remains available.
+
+Single-line fields retain their default height and grow to accommodate enlarged text without clipping.
+
+A delayed taskbar hover preview no longer opens over an existing menu and blocks its commands. This release implements specification 0.52.0. See `docs/SKINS-VERIFICATION.md` for validation evidence and its limits.
+
 ## 0.94.0
 
 Taskbars can opt into `data-win-taskbar-stacks="always"`. Roots with the same host-supplied group share a button with their count, attention and running state. Hover previews the windows; clicking pins the list, and keyboard and touch can reach every window and its separate Close control. The host can keep one group expanded with `data-win-group-open`.
