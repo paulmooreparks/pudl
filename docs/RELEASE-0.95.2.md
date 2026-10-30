@@ -94,4 +94,16 @@ The test harness should keep each suite's complete output and save screenshots u
 
 ## Publication
 
-The commit, tag, GitHub release with its archive and checksum, jsDelivr verification, README update, CI results and the PUDL Usage announcement are recorded here when they happen.
+The release commit contains this record as it stood before tagging. The publication details below were added in the follow-up commit that updates the README.
+
+The release commit is `c280fe0fca9a61a9e3fda3277ed8bf0fa59302f9`, with the 18 changed paths from the release list and nothing else. Before tagging, all 13 frozen files in that commit matched their hashes, and pudl-spec `v0.52.2` was confirmed published at `d7a0145`. The annotated tag `v0.95.2` points to that commit, and `main` and the tag were pushed together on 2026-10-31; `v0.95.1` still resolves to `1399389`. The GitHub release is at https://github.com/paulmooreparks/pudl/releases/tag/v0.95.2.
+
+The archive was built from the pushed tag with `git archive --format=zip --prefix=pudl-0.95.2/ v0.95.2 CHANGELOG.md LICENSE README.md dist docs/WINDOW-STATUS.md docs/proposals/0952-window-status.md docs/RELEASE-0.95.2.md`, and building it twice gave identical bytes. Its comment is the release commit. It was attached to the release with its checksum, then both were downloaded from the public addresses. `sha256sum -c` passed, the download matched the built archive, all 165 files are byte-identical to the tag, and its `dist/` holds the same 159 files as `dist/` at the tag.
+
+- Archive: https://github.com/paulmooreparks/pudl/releases/download/v0.95.2/pudl-0.95.2.zip (5,780,780 bytes)
+- Checksum: https://github.com/paulmooreparks/pudl/releases/download/v0.95.2/pudl-0.95.2.zip.sha256
+- SHA-256: `c1495df9d6eaf2bf80abf59a0e2a27b8ca1c7aa49761de0410210b1f2fb136e6`
+
+All 83 CSS and JavaScript files under `dist/` at the tag were fetched from jsDelivr and matched the tagged bytes, with no mismatches; their SHA-384 values are in `tests/output/release-0952-cdn-hashes.txt`. The 24 CDN examples in `README.md` now point at `v0.95.2` with those values. Three of them changed their hash: the core stylesheet, whose source changed in two comment lines, and the windows stylesheet and script. Because the archive comes from the tag, its `README.md` still shows the 0.95.1 CDN examples.
+
+CI results and the PUDL Usage announcement are recorded here when they happen.
