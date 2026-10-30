@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.95.2
+
+The Window status popover accepts pointer input again. It is a child of the window layer and inherited that layer's `pointer-events: none`, so a click on Dismiss and the mouse wheel reached whatever lay underneath. The popover now takes both itself.
+
+Status rows in the popover lose their list bullets and indentation. They sit in one scrolling region named Window status, which is a tab stop, takes focus when the popover opens, and keeps its scroll position and focus as rows change. A window can set `data-win-status-rows` to a whole number from 1 to 6 to reserve that many rows, capped to the viewport, so Dismiss stays still while statuses come and go; longer content scrolls, and enlarged or wrapped text is never clipped. Without the attribute, the popover sizes to its rows as before. A window with no execution state no longer shows an empty state row, and Dismiss now sits a small gap below the list.
+
+An optional `data-win-state-detail` holds a longer explanation of a window's state that is never drawn. When it is present, the title mark, taskbar and dock buttons and stack popup rows add it after the state words in their accessible names and tooltips, keeping the window's title, count and progress. A stack's aggregate name still gives counts only. Without the attribute, names and tooltips are unchanged.
+
+A project needs to change nothing; both attributes are optional. This release implements specification 0.52.2.
+
 ## 0.95.1
 
 Window execution states now share glyphs and semantic colours across title chips, taskbar and dock controls, stack popup rows and folded status popovers. Compact slots remain reserved without a state, and popup controls stay fixed when state words change. Legacy running marks use the Working arc. Stack buttons now inherit the same line-height as ordinary taskbar entries, keeping each row level as text grows and full-mode stacking changes.

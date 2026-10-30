@@ -430,9 +430,19 @@
 .win-status.win-execution { box-sizing: border-box; width: 24px; min-width: 24px; height: 22px; padding: 0; justify-content: center; background: var(--surface); }
 .win-stack-link .win-item-state { flex-basis: 10em; width: 10em; max-width: 40%; justify-content: start; }
 .win-stack-link .win-state-words { display: block; }
-.win-status-popover { width: min(24rem, calc(100vw - 24px)); }
-.win-status-popover li { overflow-wrap: anywhere; }
-.win-status-popover .win-execution-row { height: 22px; }
+/* The popover is a child of the window layer, which lets the pointer through to the content beneath it, so the popover takes the pointer back. */
+.win-status-popover { --win-status-row: max(22px, 1.5em); width: min(24rem, calc(100vw - 24px)); pointer-events: auto; }
+.win-status-popover li { min-height: var(--win-status-row); overflow-wrap: anywhere; }
+.win-status-popover .win-execution-row { display: flex; align-items: center; }
+/* The rows scroll in a region of their own, so Dismiss stays where it is:
+   the popover is a column that is never taller than the viewport, and the
+   region gives up height before the button does. A window that sets
+   data-win-status-rows reserves that many rows (and the gaps between
+   them), whatever it shows at the moment. */
+.win-status-popover:popover-open { display: flex; flex-direction: column; overflow: hidden; }
+.win-status-rows { flex: 0 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.win-status-popover[data-win-status-rows] .win-status-rows { flex-basis: calc(var(--win-status-count) * var(--win-status-row) + (var(--win-status-count) - 1) * var(--space-2)); }
+.win-status-popover > .btn { flex: none; align-self: start; margin-top: var(--space-2); }
 .win-status-popover li > .glyph { vertical-align: middle; margin-inline-end: var(--space-1); }
 @media (prefers-reduced-motion: reduce) { .win-state[data-state] > .glyph { animation: none; } }
 @media (forced-colors: active) { .win-state[data-state] { forced-color-adjust: none; background: Canvas; color: CanvasText; } }
@@ -502,7 +512,7 @@
 .win-statuses[data-win-status-compact] > .win-status { display: none; }
 .win-statuses:not([data-win-status-compact]) > .win-status-toggle { display: none; }
 .win-status-popover { color: var(--text); }
-.win-status-popover ul { margin: 0; padding-inline-start: 1.25em; }
+.win-status-popover ul { margin: 0; padding: 0; list-style: none; }
 .win-status-popover li + li { margin-top: var(--space-2); }
 .win-bar > .win-bar-arrange { flex: none; }
 .win-bar-arrange::before { content: ''; width: 14px; height: 14px; background: currentColor; -webkit-mask: var(--glyph-sort) center / contain no-repeat; mask: var(--glyph-sort) center / contain no-repeat; }

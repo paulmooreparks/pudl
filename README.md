@@ -1674,7 +1674,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.95.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.95.2, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1703,4 +1703,4 @@ PUDL offers Standard, Bevel, Gel and Glaze through generated skin stylesheets. L
 
 The optional `dist/pudl-skins.js` provides registration, selection and saved preference with Standard fallback. Hosts with their own appearance store set `data-pudl-persistence="host"` before loading PUDL's theme and skin scripts, then supply preferences through their public APIs. This disables PUDL storage access and storage-event following for both choices. See [the skin contract](docs/SKINS.md) and [the live sample](samples/skins.html).
 
-Execution states in 0.95.1 use `data-win-state` and optional `data-win-state-label`, with consistent glyphs, colours and stable compact slots. See [Window status](docs/WINDOW-STATUS.md) for rendering, localization and legacy running compatibility.
+Execution states use `data-win-state` and optional `data-win-state-label`, with consistent glyphs, colours and stable compact slots. Since 0.95.2, an optional `data-win-state-detail` adds a longer explanation to the state's accessible names and tooltips without drawing it, and `data-win-status-rows` reserves one to six rows in the Window status popover so Dismiss stays still. See [Window status](docs/WINDOW-STATUS.md) for rendering, localization, sizing and legacy running compatibility.

@@ -47,3 +47,15 @@ Compact marks expose state words through an accessible name and tooltip. Stack p
 Stacks use the highest-priority represented state: Stuck, Waiting, Working, then Idle. Their accessible names and tooltips give counts for all represented states. Unmarked windows contribute no state. Layer attributes `data-win-text-state-working`, `-state-waiting`, `-state-stuck` and `-state-idle` localize default names. `data-win-text-state-count-working` and the corresponding other three names localize count phrases using `{n}`. These replace the old stack-running text override.
 
 The folded popover preserves a host chip's decorative glyph and words. An inherited title-bar foreground becomes the popover foreground; a distinct custom chip or glyph foreground is retained. It creates read-only output without copying IDs, event handlers or interactive controls. Hosts remain responsible for a custom chip foreground's contrast against the popover surface.
+
+## Plain rows, state detail and the status region (0.95.2)
+
+The Window status popover lists its rows with no bullets and no start indent, and the list keeps its list role for assistive technology. A window with no execution state has no state row.
+
+An optional `data-win-state-detail` on the window gives a longer explanation of the state. The visible words stay the label from `data-win-state-label`, or the default word for the state. When the detail is non-empty after trimming, the accessible name and tooltip of the window's execution marks, and the state part of the name and tooltip of its taskbar, dock and stack-popup controls, read `label: detail`. Without a detail they read as before. A stack's own name and counts never include an individual window's detail.
+
+The popover's rows sit in a region named with the same localized Window status text. The region is a tab stop and takes focus when the popover opens, so the keyboard scrolls it natively. It is made once, so it keeps focus and scroll position while the rows change. Dismiss stays below it.
+
+Set `data-win-status-rows="1"` to `"6"` on the window to reserve that many rows, counting the state row when the window has a state. The value must be a single digit from 1 to 6 with nothing around it, and anything else means no reservation. The region keeps that size, calculated from a row of at least `max(22px, 1.5em)` plus the gaps, however many rows it shows, so Dismiss does not move. Longer content scrolls inside the region, and a short viewport reduces the reservation so the popover and Dismiss stay on screen. Enlarged text grows the reservation with the rows.
+
+When the last status goes away while the popover is open, it closes. Focus goes back to the control that opened it, or the window's header, only when focus was inside the popover or on its control. The popover receives pointer input itself, so Dismiss and the mouse wheel work, and the wheel does not scroll the surface beneath at the ends of the rows.

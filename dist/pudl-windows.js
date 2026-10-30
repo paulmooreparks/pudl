@@ -520,16 +520,21 @@
     var explicit = win.getAttribute('data-win-state');
     var state = explicit === null ? (win.hasAttribute('data-win-running') ? 'working' : '') : explicit;
     if (EXECUTION_STATES.indexOf(state) < 0) return null;
-    return { state: state, label: win.getAttribute('data-win-state-label') || text('state-' + state, state.charAt(0).toUpperCase() + state.slice(1)) };
+    /* The detail is a longer explanation that is never drawn: the visible
+       words stay the label, and the detail joins it in the name and tooltip. */
+    var detail = (win.getAttribute('data-win-state-detail') || '').trim();
+    return { state: state, label: win.getAttribute('data-win-state-label') || text('state-' + state, state.charAt(0).toUpperCase() + state.slice(1)), detail: detail };
   }
+  function stateName(value) { return value.detail ? value.label + ': ' + value.detail : value.label; }
   function paintState(mark, value) {
     if (!mark.firstChild) mark.innerHTML = '<span class="glyph" aria-hidden="true"></span><span class="win-state-words"></span>';
+    var name = value ? stateName(value) : '';
     setAttr(mark, 'role', 'img');
     setHidden(mark, !value);
     setAttr(mark, 'data-state', value ? value.state : '');
-    setAttr(mark, 'aria-label', value ? value.label : '');
-    setAttr(mark, 'title', value ? value.label : '');
-    setAttr(mark, 'data-tooltip', value ? value.label : '');
+    setAttr(mark, 'aria-label', name);
+    setAttr(mark, 'title', name);
+    setAttr(mark, 'data-tooltip', name);
     setText(mark.lastChild, value ? value.label : '');
     styleProp(mark.firstChild, '--glyph', 'var(--glyph-' + (value ? STATE_GLYPHS[value.state] : 'ring') + ')');
   }
@@ -576,9 +581,9 @@
     var meter = node.querySelector('.win-item-progress');
     setHidden(meter, progress === null);
     setText(meter, progress === null ? '' : progress + '%');
-    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (execution ? ', ' + execution.label : '') + (progress === null ? '' : ', ' + progress + '%');
+    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (execution ? ', ' + stateName(execution) : '') + (progress === null ? '' : ', ' + progress + '%');
     setAttr(node, 'aria-label', label);
-    setAttr(node, 'title', title ? title + (execution ? ', ' + execution.label : '') : label);
+    setAttr(node, 'title', title ? title + (execution ? ', ' + stateName(execution) : '') : label);
   }
 
   /* Text and hidden set only when they differ (0.69.3); setting text to
@@ -2768,7 +2773,7 @@
      has it, by id or by name, and otherwise goes to the new body; a notice
      in the new content is announced. */
   var WINDOW_HEADER = 'X-PUDL-Window';
-  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-progress'];
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-status-rows', 'data-win-progress'];
   var announceRegion = null;
 
   function announce(words) {
@@ -2991,13 +2996,28 @@
     close.setAttribute('popovertarget', panel.id); close.setAttribute('popovertargetaction', 'hide');
     /* The owning window may be hidden in a collapsed dock. Keep its
        read-only popup outside that hidden subtree. */
-    var list = document.createElement('ul'); panel.append(list, close); layer.appendChild(panel);
+    /* Without bullets some screen readers drop the list, so it says what it is. */
+    var list = document.createElement('ul'); list.setAttribute('role', 'list');
+    /* The rows scroll in a named region that is a tab stop, so a keyboard
+       reader can scroll them. It is made once and only its rows are replaced,
+       so it keeps focus and its scroll position while the status changes. */
+    var region = document.createElement('div'); region.className = 'win-status-rows'; region.tabIndex = 0;
+    region.setAttribute('role', 'region'); region.setAttribute('aria-label', text('status', 'Window status'));
+    region.appendChild(list); panel.append(region, close); layer.appendChild(panel);
     button.setAttribute('popovertarget', panel.id); group.appendChild(button);
     var frame = 0, disposed = false, menuReturnTarget = null;
     function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return !s.hidden && (s.classList.contains('win-execution') ? !!executionState(win) : !!s.textContent.trim()); }); }
+    /* data-win-status-rows is a whole number from 1 to 6 in plain decimal
+       digits; anything else, including padding or a sign, counts as absent. */
+    function reservedRows() { var raw = win.getAttribute('data-win-status-rows'); return raw !== null && /^[1-6]$/.test(raw) ? Number(raw) : 0; }
     function refresh() {
+      var reserved = reservedRows(), scroll = region.scrollTop;
+      if (reserved) { panel.setAttribute('data-win-status-rows', String(reserved)); panel.style.setProperty('--win-status-count', String(reserved)); }
+      else { panel.removeAttribute('data-win-status-rows'); panel.style.removeProperty('--win-status-count'); }
       list.textContent = '';
       [execution].concat(statuses().filter(function (s) { return s !== execution; })).forEach(function (s) {
+        /* A window with no state has no state row, not an empty one. */
+        if (s === execution && !executionState(win)) return;
         var row = document.createElement('li');
         if (s.classList.contains('win-execution')) {
           var value = executionState(win);
@@ -3019,6 +3039,7 @@
         }
         list.appendChild(row);
       });
+      region.scrollTop = scroll;
     }
     function fit() {
       frame = 0;
@@ -3026,7 +3047,19 @@
       var returnFocus = document.activeElement === button || panel.contains(document.activeElement);
       var empty = !statuses().length;
       group.toggleAttribute('data-win-status-empty', empty);
-      if (empty) { if (panel.matches(':popover-open')) panel.hidePopover(); if (returnFocus && head.getClientRects().length) head.focus({ preventScroll: true }); }
+      if (empty) {
+        if (panel.matches(':popover-open')) panel.hidePopover();
+        /* Focus goes back only if it was in the popover or on its control, and
+           to the control that opened it when that is still showing, else the
+           header; a reader who has moved elsewhere is left where they are. */
+        if (returnFocus) {
+          var back = menuReturnTarget && menuReturnTarget.isConnected && menuReturnTarget.getClientRects().length ? menuReturnTarget : (head.getClientRects().length ? head : null);
+          if (back) back.focus({ preventScroll: true });
+        }
+      }
+      /* An open popover shows the window's status whether or not its header
+         is showing, as when a shared dock holds the window's tab instead. */
+      if (panel.matches(':popover-open')) refresh();
       if (!head.getClientRects().length) return;
       group.removeAttribute('data-win-status-compact');
       var title = head.querySelector('.win-title');
@@ -3037,7 +3070,6 @@
         panel.hidePopover();
       }
       if (!compact && returnFocus) head.focus({ preventScroll: true });
-      if (panel.matches(':popover-open')) refresh();
     }
     function schedule() { if (!disposed && !frame) frame = requestAnimationFrame(fit); }
     var ro = window.ResizeObserver ? new ResizeObserver(schedule) : null;
@@ -3049,6 +3081,13 @@
     mo.observe(group, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style', 'data-state', 'aria-label'] });
     mo.observe(head, { childList: true });
     if (title) mo.observe(title, { subtree: true, childList: true, characterData: true });
+    /* The reservation is the owning window's attribute, so a change to it
+       refreshes an open popover directly. */
+    var reservation = new MutationObserver(function () { if (panel.matches(':popover-open')) refresh(); });
+    reservation.observe(win, { attributes: true, attributeFilter: ['data-win-status-rows'] });
+    /* Focus goes to the scroll region once the popover is open, not wherever
+       the browser would put it, so there is one stable place to start. */
+    panel.addEventListener('toggle', function (e) { if (e.newState === 'open' && panel.matches(':popover-open')) region.focus({ preventScroll: true }); });
     panel.addEventListener('beforetoggle', function (e) {
       if (e.newState === 'open') refresh();
       else if (menuReturnTarget && panel.contains(document.activeElement) && menuReturnTarget.isConnected && menuReturnTarget.getClientRects().length) menuReturnTarget.focus({ preventScroll: true });
@@ -3065,7 +3104,7 @@
         if (!anchor.id) anchor.id = 'win-status-anchor-' + (++statusId);
         menuReturnTarget = anchor; panel.setAttribute('data-menu-anchor', anchor.id); panel.showPopover();
       },
-      destroy: function () { disposed = true; if (frame) cancelAnimationFrame(frame); if (panel.matches(':popover-open')) panel.hidePopover(); panel.remove(); if (ro) ro.disconnect(); mo.disconnect(); }
+      destroy: function () { disposed = true; if (frame) cancelAnimationFrame(frame); if (panel.matches(':popover-open')) panel.hidePopover(); panel.remove(); if (ro) ro.disconnect(); mo.disconnect(); reservation.disconnect(); }
     };
     button.addEventListener('click', function () { menuReturnTarget = null; panel.removeAttribute('data-menu-anchor'); });
     if (document.fonts) document.fonts.ready.then(schedule);
@@ -5066,7 +5105,7 @@
       if (taskbarDrag) taskbarDrag.cancel();
       renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
       var changed = records.some(function (record) {
