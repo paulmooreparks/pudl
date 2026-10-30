@@ -93,3 +93,14 @@ The uploaded pair was then downloaded from the public addresses. `sha256sum -c` 
 - SHA-256: `fee72ca9e074a96a3cb8a9a6aa51128cf3a6f3776c2529022e9f4e615ac5eb2d`
 
 `RELEASING.md` now includes building the archive and checksum from the tag, uploading them with the release, and checking the downloaded pair.
+
+## Continuous integration
+
+GitHub Actions ran the test workflow twice on release commit `1399389`, once for the push of `main` and once for the push of the tag. Both runs failed only in their Linux WebKit job, each with a different single failure and 108 of 109 suite runs passing. The Chromium, Firefox, minified-copies and font-subset jobs passed in both runs.
+
+- Tag push, run 41091695229, attempt 1, WebKit job https://github.com/paulmooreparks/pudl/actions/runs/41091695229/job/124186933556: `sidebar.test.js` failed "the maximum follows the layout" with `{"max":438,"half":398}`.
+- `main` push, run 41091695191, attempt 1, WebKit job https://github.com/paulmooreparks/pudl/actions/runs/41091695191/job/124186933308: `annotations-focus.test.js` failed "marker focuses mounted note" with `AssertionError [ERR_ASSERTION]`.
+
+Neither test file changed in this release, and neither did `dist/pudl-annotations.js` or `dist/pudl-regions.js`. `dist/pudl.css` did change, and it contains the sidebar styles. Both suites passed in WebKit on Windows in the final local normal and minified runs, and CI passed WebKit on the previous commit, `e0a156b`. None of this establishes a cause. The Architect approved waiting for CI on the two follow-up commits, then one rerun of each failed WebKit job, with the Usage announcement held until the results are in.
+
+The two follow-up commits, `032af19` (README integrity values) and `f6c269a` (release archive process), have the same `dist/` bytes as the release commit. Their runs, 41092136386 and 41092672766, passed every job, WebKit included. The single permitted rerun of each failed WebKit job on `1399389` then passed. That was attempt 2 of the tag run (https://github.com/paulmooreparks/pudl/actions/runs/41091695229/job/124194192867) and attempt 2 of the `main` run (https://github.com/paulmooreparks/pudl/actions/runs/41091695191/job/124194209427), and neither assertion repeated. The original failures stay in the CI history as attempt 1 of each run, and their cause remains unproven. No test was changed and the tag did not move.
