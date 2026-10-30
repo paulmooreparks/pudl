@@ -40,7 +40,7 @@ const KNOWN = {};
     'Topbar': 'topbar', 'Status area': 'status-area', 'Section tabs': 'section-tabs', 'Buttons': 'button', 'Form fields': 'text-field', 'Switch': 'switch',
     'Segmented control': 'segmented', 'Badges and chips': 'badge', 'Card': 'card', 'Settings panel': 'settings-panel', 'Layout': 'stack', 'Key/value table': 'key-value-table',
     'Data table': 'data-table', 'Notices': 'notice', 'Toasts': 'toast', 'Diffs': 'diff', 'Tabs within a page': 'tabs', 'Empty and loading': 'empty-state',
-    'Pagination': 'pagination', 'Dialog': 'dialog', 'Menu': 'menu', 'Master-detail': 'master-detail', 'Windows': 'windows', 'Title-bar status': 'window-status', 'Taskbar ordering': 'taskbar-order',
+    'Pagination': 'pagination', 'Dialog': 'dialog', 'Menu': 'menu', 'Master-detail': 'master-detail', 'Windows': 'windows', 'Title-bar status': 'window-status', 'Taskbar ordering': 'taskbar-order', 'Taskbar stacks': 'taskbar-stacks',
     'Applets': 'applet', 'Regions': 'region', 'Grid': 'grid', 'Tree': 'tree', 'Path bar': 'path-bar', 'Glyph': 'glyph',
     'Document tabs': 'document-tabs', 'Code': 'code-block', 'Visually hidden': 'visually-hidden', 'Splitter': 'splitter',
     'Drop target': 'drop-zone', 'Numbers and time': null,

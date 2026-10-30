@@ -1674,7 +1674,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.93.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.94.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1685,3 +1685,12 @@ PUDL supersedes earlier design languages and keeps the control vocabulary they s
 ## Licence
 
 PUDL is released under the Apache License 2.0. See `LICENSE`, which `dist/LICENSE` copies. Inter, in `dist/fonts/`, is by Rasmus Andersson and the Inter Project Authors and is released under the SIL Open Font License 1.1. See `dist/fonts/Inter-LICENSE.txt`.
+
+
+### Taskbar stacks
+
+A window layer with `data-win-taskbar-stacks="always"` combines two or more represented root windows sharing a `data-win-group` into a stack. Each root supplies the group's label and optional glyph through `data-win-group-label` and `data-win-group-glyph`. The layer's `data-win-group-open` names a group to leave expanded. The application restores this choice from its own addressable state.
+
+A stack previews its windows on hover and pins the list on click. Keyboard opening focuses a window link; each row has a separate Close button. Selecting a row raises or restores its window. Group commands affect only the roots shown by the originating taskbar, including when the stack is in More. A docked root omitted by that taskbar is left alone. Reordering a genuine stack moves its logical members together, while an individual button still moves just its own window.
+
+See the [stack contract](docs/TASKBAR-STACKS.md) for query, filtering, lifecycle and ordering rules, and the [interactive sample](samples/taskbar-stacks.html) for stacking, expansion and Arrange taskbar.

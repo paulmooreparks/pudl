@@ -108,6 +108,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Ribbon | `.ribbon` holding a `.tablist` of `[role=tab][aria-controls]` and the folding `.toolbar`s they control; the script adds `.ribbon-bar`, `.ribbon-toggle` and `.ribbon-menus` (0.78.0) | an `id` to remember its folding, an `aria-label` on the tab list |
 | Taskbar | `.win-bar` holding a `nav.win-dock[data-win-dock]`, the page's own buttons on either side, an optional `.status-area` as its tray, and `a.icon-btn` links with `data-win-back`, `data-win-restore` and `data-win-close-all`, empty for PUDL's glyphs or holding a `.glyph`, `svg` or `img` (0.79.0) | an `aria-label` on the dock and each icon link |
 | Taskbar ordering | `data-win-taskbar-reorder` on the window layer enables pointer, keyboard and menu moves plus the generated Arrange taskbar button/popover; see [TASKBAR-ORDER.md](TASKBAR-ORDER.md) | existing dock labels; PUDL supplies move announcements |
+| Taskbar stacks | `data-win-taskbar-stacks="always"` groups root windows; the host sets membership and the expanded group; see [TASKBAR-STACKS.md](TASKBAR-STACKS.md) | named stack buttons, nonmodal window lists and separate Close controls |
 | Stepper | `ol.stepper`, with `.vertical`, of `li`, a done one `.done` holding an `a`, the current one `aria-current="step"` (0.74.0) | `aria-label` on the list |
 | Progress bar | `progress.progress`, in a `.progress-row` with `.progress-label` and `.progress-value` (0.74.0) | `value`, `max`; none for busy |
 | Meter | `meter.meter`, with `.marks`, in a `.meter-row` with `.meter-label` and `.meter-value` (0.74.0) | `min`, `max`, `low`, `high`, `optimum`, `value`; `data-band` set by the script |
@@ -296,6 +297,16 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlCode.enhance(scope or pre)`, `.names`, `.extensions`, `.words` | `pudl-code.js` | Take in code blocks added by other means; the maps and words a project extends |
 | `pudlRegions.refresh()` | `pudl-regions.js` | Carry the live windows into region links a script has rendered |
 | `pudlRegions.reload()` | `pudl-regions.js` | Fetch the current address again, past any cache, and swap its regions in place with no new history entry; resolves `true` once swapped, or `false` if a navigation started meanwhile superseded it; rejects, leaving the regions as they were and never navigating, if the request fails or the page has other regions |
+
+### Taskbar grouping and owned popovers
+
+`pudlWindows.group(key)` returns a fresh array of logical root members in canonical taskbar order. `pudlWindows.group(key, dock)` returns the roots represented by a connected managed `[data-win-dock]`. An invalid supplied dock, including explicit `undefined`, returns `[]`. The query never changes state.
+
+The layer accepts `data-win-taskbar-stacks="always"` and `data-win-group-open`. Root windows provide `data-win-group`, `data-win-group-label`, `data-win-group-glyph` and optional `data-win-section`. The [stack contract](TASKBAR-STACKS.md) defines counts, filtering, focus, commands and order.
+
+A `.popover` with `data-popover-focus="manual"` manages focus itself. The generic menu script still places it, but skips its opening and closing focus policy. Its owner must provide keyboard opening and focus recovery.
+
+`pudlMenu.updateContext(rows, mark)` refreshes the open context menu only when `mark` is the element passed as `for` to `openAt`, or marked by the context-menu event. It returns false for a different owner. Stable optional row `id` values preserve focused controls and open submenus as labels change. Without an id, a row matches by label. An empty array closes the owned menu. Removing the focused row chooses the next surviving row, then the previous one.
 
 ## Addresses
 

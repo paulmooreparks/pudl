@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taskbar stacks</title>
+  <link rel="stylesheet" href="../dist/pudl.css"><link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-toolbar.js" defer></script><script src="../dist/pudl-windows.js" defer></script>
+  <style>html, body { height: 100%; } body { margin: 0; display: flex; flex-direction: column; } main { padding: 16px; flex: none; } .win-host { flex: 1; min-height: 0; } .win-bar { flex: none; } .mirror { display: none; }</style>
+</head>
+<body>
+  <main><h1>Taskbar stacks</h1><p>Hover a stack to preview its windows, click to pin the list, or use the keyboard to open it. Each row has a separate Close button. Right-click a stack for group commands. Drag stacks or use Arrange taskbar to change their order.</p><button class="btn btn-sm" onclick="document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'">Switch theme</button> <label>Expanded group <select class="form-select" id="expanded"><option value="">All stacked</option><option value="work">Work</option><option value="tools">Tools</option></select></label><nav aria-label="Open sample windows"><a class="btn btn-sm" href="?open=notes" data-win-open="notes">Open Notes</a> <a class="btn btn-sm" href="?open=files" data-win-open="files">Open Files</a> <a class="btn btn-sm" href="?open=terminal" data-win-open="terminal">Open Terminal</a></nav></main>
+  <div class="win-host"><div class="win-layer" data-win-layer data-win-taskbar-stacks="always" data-win-taskbar-reorder data-win-dock-tabs="all" data-win-menu data-win-src="#taskbar-{key}" data-win-required="help" data-win-default="notes,files,terminal,search,help,settings,preview,output,child"></div></div>
+  <nav class="win-dock mirror" data-win-dock aria-label="Other window list"></nav>
+  <footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav><a class="icon-btn" href="?" data-win-back aria-label="Minimize all"></a></footer>
+  <script>
+    const titles = { notes: 'Notes', files: 'Files', terminal: 'Terminal', search: 'Search', help: 'Help', settings: 'Settings', preview: 'Preview', output: 'Output', child: 'Notes detail', fresh: 'New window' };
+    Object.entries(titles).forEach(([key, title], index) => {
+      const template = document.createElement('template'); template.id = 'taskbar-' + key;
+      template.innerHTML = '<section class="win"><header class="win-head"><h2 class="win-title"></h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><label>Working text <input class="form-input" value="Mounted content"></label></div></section>';
+      const win = template.content.firstElementChild; win.setAttribute('data-win', key); win.querySelector('.win-title').textContent = title;
+      win.style.cssText = '--win-x:' + (.02 + index * .015) + ';--win-y:' + (.02 + index * .015) + ';--win-w:.42;--win-h:.55';
+      var group = ['notes', 'files', 'preview', 'output', 'child'].includes(key) ? 'work' : 'tools';
+      win.setAttribute('data-win-group', group); win.setAttribute('data-win-group-label', group === 'work' ? 'Work' : 'Tools'); win.setAttribute('data-win-group-glyph', group === 'work' ? 'folder' : 'gear');
+      if (key === 'notes') win.setAttribute('data-win-attention', '2');
+      if (key === 'output') win.setAttribute('data-win-running', '');
+      if (key === 'child') win.setAttribute('data-win-parent', 'notes');
+      document.body.appendChild(template);
+    });
+    const expanded = document.getElementById('expanded'), layer = document.querySelector('[data-win-layer]');
+    function restoreGroup() { expanded.value = new URLSearchParams(location.search).get('group') || ''; layer.setAttribute('data-win-group-open', expanded.value); }
+    expanded.addEventListener('change', () => { const address = new URL(location.href); if (expanded.value) address.searchParams.set('group', expanded.value); else address.searchParams.delete('group'); history.pushState(history.state, '', address); restoreGroup(); });
+    window.addEventListener('popstate', restoreGroup); restoreGroup();
+  </script>
+</body></html>

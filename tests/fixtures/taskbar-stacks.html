@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taskbar stack verification</title>
+  <link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; }
+    .win-host { height: calc(100vh - 150px); }
+    .win-bar { position: fixed; inset-inline: 0; bottom: 0; }
+    .filtered-bar { bottom: 48px; }
+  </style>
+</head>
+<body>
+  <label>Outside editor <input id="outside" class="form-input" value="Keep this focus"></label>
+  <div class="win-host"><main class="win-layer" data-win-layer data-win-menu data-win-taskbar-reorder data-win-taskbar-stacks="always" data-win-dock-tabs="all" data-win-src="#stack-{key}" data-win-default="a1,b1,a2,b2,a3,spare,child"></main></div>
+  <footer class="win-bar filtered-bar"><nav id="filtered" class="win-dock" data-win-dock data-win-dock-omit-docked aria-label="Filtered windows"></nav></footer>
+  <footer class="win-bar"><nav id="all" class="win-dock" data-win-dock aria-label="All windows"></nav></footer>
+  <script>
+    const parameters = new URLSearchParams(location.search);
+    const layer = document.querySelector('[data-win-layer]');
+    if (parameters.has('no-stacks')) layer.removeAttribute('data-win-taskbar-stacks');
+    const definitions = [
+      ['a1', 'Atlas one', 'alpha', 'Atlas', 'Chats', '2'],
+      ['b1', 'Beacon one', 'beta', 'Beacon', 'Documents', '0'],
+      ['a2', 'Atlas two', 'alpha', 'Atlas', 'Documents', '3'],
+      ['b2', 'Beacon two', 'beta', 'Beacon', 'Documents', '0'],
+      ['a3', 'Atlas three', 'alpha', 'Atlas', 'Chats', '0'],
+      ['spare', 'Independent', '', '', '', '0'],
+      ['child', 'Atlas child', 'beta', 'Beacon', 'Chats', '40'],
+      ['fresh', 'New arrival', 'alpha', 'Atlas', 'Chats', '0']
+    ];
+    definitions.forEach(([key, title, group, label, section, attention], index) => {
+      const template = document.createElement('template');
+      template.id = 'stack-' + key;
+      template.innerHTML = '<section class="win"><header class="win-head"><h2 class="win-title"></h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><input class="form-input" aria-label="Window editor" value="Mounted content"></div></section>';
+      const win = template.content.firstElementChild;
+      win.setAttribute('data-win', key);
+      win.querySelector('.win-title').textContent = title;
+      win.style.cssText = '--win-x:' + (.02 + index * .025) + ';--win-y:' + (.02 + index * .025) + ';--win-w:.4;--win-h:.5';
+      if (group) {
+        win.setAttribute('data-win-group', group);
+        win.setAttribute('data-win-group-label', label);
+        win.setAttribute('data-win-group-glyph', 'window');
+      }
+      if (section) win.setAttribute('data-win-section', section);
+      win.setAttribute('data-win-attention', attention);
+      if (key === 'a2' || key === 'child') win.setAttribute('data-win-running', '');
+      if (key === 'child') win.setAttribute('data-win-parent', 'a1');
+      document.body.appendChild(template);
+    });
+  </script>
+</body>
+</html>

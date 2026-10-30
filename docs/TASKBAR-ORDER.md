@@ -50,3 +50,8 @@ pudlWindows.arrangeTaskbar();
 Labels use the existing `data-win-text-*` localization mechanism on the layer. The keys are `taskbar-arrange`, `taskbar-order`, `taskbar-items`, `taskbar-earlier`, `taskbar-later`, `taskbar-first`, `taskbar-last`, `taskbar-apply`, `taskbar-cancel`, `taskbar-before`, `taskbar-after`, `taskbar-moved` and `taskbar-preview-moved`. Before/After labels accept `{title}`; move announcements accept `{title}`, `{position}` and `{count}`.
 
 Automated tests cover browser interaction and state. Manual screen-reader and native-host testing remains necessary before claiming interoperability with a particular assistive technology or desktop host.
+
+
+## Grouped entries
+
+With opt-in taskbar stacks, pointer moves, keyboard moves, menus and Arrange operate on displayed entries. A genuine stack gathers its logical group into a stable block; an ordinary link moves only its own key. An internal stack-list move permutes the group's occupied canonical slots. The [stack contract](TASKBAR-STACKS.md) gives interleaved and filtered examples. The public `reorderTaskbar(key, destination)` call continues to move one root window.

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.94.0
+
+Taskbars can opt into `data-win-taskbar-stacks="always"`. Roots with the same host-supplied group share a button with their count, attention and running state. Hover previews the windows; clicking pins the list, and keyboard and touch can reach every window and its separate Close control. The host can keep one group expanded with `data-win-group-open`.
+
+Stack commands affect only roots represented by their originating dock and preserve the existing cancellable close lifecycle. Dragging, keyboard moves, Arrange and More understand stacks while the address retains its existing root-window order format. `pudlWindows.group(key, dock)` queries logical or dock-filtered membership without changing state. See `docs/TASKBAR-STACKS.md` and `samples/taskbar-stacks.html`.
+
+Owned popovers can manage focus through `data-popover-focus="manual"`. `pudlMenu.updateContext(rows, mark)` preserves focused rows and open submenus through live updates using stable row IDs. Existing taskbars remain unchanged unless stacking is enabled.
+
+Upgrade the pinned distribution to use stacks. Existing markup needs no changes; grouping is opt-in. This release implements specification 0.51.0. See `docs/TASKBAR-STACKS-VERIFICATION.md` for the verification results and remaining manual accessibility check.
+
 ## 0.93.1
 
 A folding toolbar whose contents change while one of its menus is open now folds again when the menu closes. Before, the fold it skipped under the open menu was forgotten, so the toolbar kept a stale fold, too folded or overflowing, until its width next changed. Pages that called `pudlToolbar.fit(bar)` as a menu closed to work round this can drop that call.

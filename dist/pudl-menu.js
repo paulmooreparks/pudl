@@ -274,7 +274,7 @@
       /* A popover takes focus into its first field, or its first control,
          so the reader can use it at once; when it closes, the browser
          returns focus to the control that opened it. */
-      if (panel.classList.contains('popover') && (!panel.contains(document.activeElement) || document.activeElement.matches('.popover-close'))) {
+      if (panel.classList.contains('popover') && panel.getAttribute('data-popover-focus') !== 'manual' && (!panel.contains(document.activeElement) || document.activeElement.matches('.popover-close'))) {
         var first = panel.querySelector('[autofocus]') ||
           panel.querySelector('input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled)') ||
           panel.querySelector('button:not(.popover-close):not(:disabled), a[href], [tabindex]:not([tabindex="-1"])');
@@ -308,7 +308,7 @@
          does not focus a button when it is pressed does not know, so focus
          left on nothing, or left inside the closed popover, goes back to
          the control that opened it. */
-      if (panel.classList.contains('popover') && (!document.activeElement || document.activeElement === document.body || panel.contains(document.activeElement))) {
+      if (panel.classList.contains('popover') && panel.getAttribute('data-popover-focus') !== 'manual' && (!document.activeElement || document.activeElement === document.body || panel.contains(document.activeElement))) {
         var opener = invokerOf(panel);
         if (opener && opener.isConnected) opener.focus({ preventScroll: true });
       }
@@ -580,13 +580,7 @@
     return Array.prototype.slice.call(panel.querySelectorAll(':scope > .menu-action'));
   }
 
-  function buildContext(rows, at, label, level, parentRow) {
-    var panel = document.createElement('div');
-    panel.className = 'menu-panel context-menu';
-    panel.id = 'pudl-context-' + (++ctxUid);
-    panel.setAttribute('popover', 'manual');
-    panel.setAttribute('role', 'menu');
-    if (label) panel.setAttribute('aria-label', label);
+  function fillContext(panel, rows) {
     rows.forEach(function (c) {
       if (c === '-' || (c && c.separator)) {
         var hr = document.createElement('hr');
@@ -646,6 +640,54 @@
       r._row = c;
       panel.appendChild(r);
     });
+  }
+
+  /* Update an owned context menu without replacing its focused row. Stable
+     row ids also keep open submenus attached when labels or counts change. */
+  function updateContext(rows, mark) {
+    if (!mark || mark.nodeType !== 1 || !ctx.panels.length || ctx.marked !== mark) return false;
+    function update(panel, items) {
+      var oldRows = ctxRows(panel), focus = document.activeElement, index = oldRows.indexOf(focus);
+      var fresh = document.createElement('div'); fresh.id = panel.id + '-refresh-' + (++ctxUid); fillContext(fresh, rowsFrom(items, ctx.owner));
+      var retained = new Set(), cursor = panel.firstChild;
+      Array.from(fresh.children).forEach(function (made) {
+        var model = made._row, prior = model && oldRows.find(function (r) { return !retained.has(r) && (model.id ? r._row.id === model.id : r._row.label === model.label); });
+        var row = prior || made;
+        if (prior) {
+          var id = prior.id, expanded = prior.getAttribute('aria-expanded'), controls = prior.getAttribute('aria-controls');
+          Array.from(prior.attributes).forEach(function (a) { prior.removeAttribute(a.name); });
+          Array.from(made.attributes).forEach(function (a) { prior.setAttribute(a.name, a.value); });
+          prior.id = id; prior.replaceChildren.apply(prior, Array.from(made.childNodes)); prior._row = model;
+          if (expanded === 'true' && model.items && model.items.length) { prior.setAttribute('aria-expanded', 'true'); prior.setAttribute('aria-controls', controls); }
+        }
+        retained.add(row); if (row !== cursor) panel.insertBefore(row, cursor); cursor = row.nextSibling;
+      });
+      Array.from(panel.children).forEach(function (r) { if (!retained.has(r)) r.remove(); });
+      var sub = ctx.panels[panel.__level + 1];
+      if (sub) {
+        if (!retained.has(sub.__parentRow) || !sub.__parentRow._row.items || !sub.__parentRow._row.items.length) {
+          var ownedFocus = ctx.panels.slice(panel.__level + 1).some(function (p) { return p.contains(focus); });
+          var parentIndex = oldRows.indexOf(sub.__parentRow); closeContext(panel.__level + 1);
+          if (ownedFocus) { var surviving = ctxRows(panel); if (surviving.length) surviving[Math.min(Math.max(parentIndex, 0), surviving.length - 1)].focus(); }
+        }
+        else { sub.setAttribute('aria-label', sub.__parentRow._row.label); update(sub, sub.__parentRow._row.items); }
+      }
+      if (index >= 0 && retained.has(focus)) focus.focus({ preventScroll: true });
+      if (index >= 0 && !retained.has(focus)) { var next = ctxRows(panel); if (next.length) next[Math.min(index, next.length - 1)].focus(); }
+      place(panel);
+    }
+    if (!rows || !rows.length) { closeContext(0); return true; }
+    update(ctx.panels[0], rows); return true;
+  }
+
+  function buildContext(rows, at, label, level, parentRow) {
+    var panel = document.createElement('div');
+    panel.className = 'menu-panel context-menu';
+    panel.id = 'pudl-context-' + (++ctxUid);
+    panel.setAttribute('popover', 'manual');
+    panel.setAttribute('role', 'menu');
+    if (label) panel.setAttribute('aria-label', label);
+    fillContext(panel, rows);
     (document.querySelector('dialog[open]:modal') || document.body).appendChild(panel);
     if (parentRow) {
       panel.setAttribute('data-menu-placement', 'beside');
@@ -966,6 +1008,7 @@
     refresh: segMenus,
     place: function (panel) { if (isOpen(panel)) { place(panel); panel.classList.remove('placing'); } },
     openAt: openAt,
+    updateContext: updateContext,
     closeContext: function () { closeContext(0); }
   };
 

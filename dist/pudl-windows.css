@@ -747,6 +747,18 @@
   mask-image: var(--glyph-ring);
 }
 
+.win-stack { cursor: pointer; font-family: inherit; }
+.win-stack::before { display: none; }
+.win-stack-count { flex: none; font-variant-numeric: tabular-nums; }
+.win-stack[aria-expanded="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.win-stack-panel { position: fixed; inset: auto; margin: 0; padding: var(--space-2); width: min(380px, calc(100vw - 8px)); max-height: calc(100vh - 8px); overflow: auto; }
+.win-stack-row { display: flex; align-items: center; gap: var(--space-2); }
+.win-stack-link { display: flex; flex: 1; align-items: center; gap: var(--space-2); min-width: 0; padding: var(--space-2); color: var(--text); text-decoration: none; border-radius: var(--radius-sm); }
+.win-stack-link:hover { background: var(--surface-alt); }
+.win-stack-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.win-stack-close { flex: none; }
+.win-stack-section { margin: var(--space-2) 0; font-size: var(--text-sm); color: var(--text-muted); }
+
 /* === The taskbar (0.79.0) ================================================
    A .win-bar runs along the foot of the window area, or along its head
    with data-win-bar-edge="top": the dock of open windows, which takes the
@@ -829,7 +841,10 @@
   /* The glyphs are masks, painted in the colour the system has set. */
   .win-btn[data-win-action]::before { forced-color-adjust: none; background: ButtonText; }
   .win-tab::before, .md-row-child .md-item::before { forced-color-adjust: none; background: CanvasText; }
-  .win-tab[aria-current="true"]::before { background: HighlightText; }
+  .win-tab[aria-current="true"]::before, .win-tab[aria-current="true"] .win-item-glyph { background: HighlightText; }
+  .win-stack[aria-current="true"] .win-item-attention { color: HighlightText; border-color: HighlightText; background: Highlight; }
+  .win-stack[aria-current="true"] .win-item-running { background: HighlightText; }
+  .win-stack-link:focus-visible, .win-stack[aria-expanded="true"] { outline-color: Highlight; }
 }
 
 /* === Print ===============================================================

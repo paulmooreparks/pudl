@@ -2493,33 +2493,34 @@
     var front = active(state);
     var topRoot = front ? rootOf(state, front) : null;
     document.querySelectorAll('[data-win-dock]').forEach(function (dock) {
-      var have = new Map();
-      Array.prototype.forEach.call(dock.children, function (a) {
-        var k = a.getAttribute('data-win-tab');
-        if (k && !have.has(k)) have.set(k, a); else a.remove();
+      var have = new Map(), entries = stackEntries(dock), focused = document.activeElement;
+      if (stackPopup && stackPopup.button === focused) stackPopup.triggerHadFocus = true;
+      Array.from(dock.children).forEach(function (a) {
+        var id = a.hasAttribute('data-win-stack') ? 'group:' + a.getAttribute('data-win-stack') : a.getAttribute('data-win-tab');
+        if (id && !have.has(id)) have.set(id, a); else a.remove();
       });
-      var want = taskbarKeys(state).filter(function (k) {
-        return !parentOf(state, k) && !(dock.hasAttribute('data-win-dock-omit-docked') && shownEdge(state, k));
-      });
-      have.forEach(function (a, k) { if (want.indexOf(k) < 0) { a.remove(); have.delete(k); } });
-      want.forEach(function (k, i) {
-        var a = have.get(k);
+      have.forEach(function (a, id) { if (!entries.some(function (e) { return e.id === id; })) { a.remove(); have.delete(id); } });
+      entries.forEach(function (entry, i) {
+        var a = have.get(entry.id), k = entry.keys[0];
         if (!a) {
-          a = document.createElement('a');
-          a.setAttribute('data-win-tab', k);
+          a = document.createElement(entry.group ? 'button' : 'a');
+          if (entry.group) { a.setAttribute('data-win-stack', entry.group); setupStack(a); }
+          else a.setAttribute('data-win-tab', k);
         }
         if (dock.children[i] !== a) dock.insertBefore(a, dock.children[i] || null);
-        var cls = 'win-tab' + (state.min[k] ? ' minimized' : '');
+        var cls = 'win-tab' + (entry.group ? ' win-stack' : '') + (entry.keys.every(function (key) { return state.min[key]; }) ? ' minimized' : '');
         if (a.className !== cls) a.className = cls;
-        if (taskbarReorderEnabled() && dock.closest('.win-bar')) {
-          a.draggable = false;
-          setAttr(a, 'aria-keyshortcuts', 'Alt+Shift+ArrowLeft Alt+Shift+ArrowRight');
-        } else a.removeAttribute('aria-keyshortcuts');
-        setAttr(a, 'href', urlFor(tabbed(state, k)));
-        if (k === topRoot) setAttr(a, 'aria-current', 'true'); else if (a.hasAttribute('aria-current')) a.removeAttribute('aria-current');
-        windowMark(a, k, state.min[k] ? text('minimized', '{title} (minimized)').split('{title}').join(fullTitle(k)) : fullTitle(k));
+        if (taskbarReorderEnabled() && dock.closest('.win-bar')) { a.draggable = false; setAttr(a, 'aria-keyshortcuts', 'Alt+Shift+ArrowLeft Alt+Shift+ArrowRight'); }
+        else a.removeAttribute('aria-keyshortcuts');
+        if (entry.keys.indexOf(topRoot) >= 0) setAttr(a, 'aria-current', 'true'); else a.removeAttribute('aria-current');
+        if (entry.group) stackMark(a, entry);
+        else { setAttr(a, 'href', urlFor(tabbed(state, k))); windowMark(a, k, state.min[k] ? text('minimized', '{title} (minimized)').replace('{title}', fullTitle(k)) : fullTitle(k)); }
       });
+      if (focused && !focused.isConnected && focused.hasAttribute('data-win-stack') && !stackPopup) recoverStackFocus(dock, focused.getAttribute('data-win-stack'));
+
     });
+    if (stackPopup) stackPopup.refresh();
+    refreshStackContext();
   }
 
   /* A list row whose link opens a window follows that window: the row of the
@@ -3315,6 +3316,10 @@
     max.addEventListener('pointerleave', leave);
     max.addEventListener('pointerdown', function () { clearTimeout(openTimer); });
     panel.addEventListener('pointerenter', stay);
+    var menuObserver = new MutationObserver(function () { if (!disposed && stackPopup && stackPopup.mode === 'preview') leave(); });
+    menuObserver.observe(panel, { subtree: true, attributes: true, attributeFilter: ['data-menu-for'] });
+    panel.addEventListener('pointerdown', function (e) { if (e.button === 0 && stackPopup) stackPopup.mode = 'pinned'; });
+    panel.addEventListener('focusin', function () { if (stackPopup) stackPopup.mode = 'pinned'; });
     panel.addEventListener('pointerleave', leave);
   }
 
@@ -4104,12 +4109,221 @@
   function taskbarProjection(dock) {
     return taskbarKeys(state).filter(function (k) { return !dock.hasAttribute('data-win-dock-omit-docked') || !shownEdge(state, k); });
   }
+  function validGroupDock(dock) {
+    return !!(layer && layer.isConnected && dock && dock.nodeType === 1 && dock.ownerDocument === document && dock.isConnected && dock.matches('[data-win-dock]'));
+  }
+  function groupKey(key) {
+    var value = wins[key] && wins[key].getAttribute('data-win-group');
+    return value && KEY_RE.test(value) ? value : null;
+  }
+  function groupMembers(key, dock) {
+    if (typeof key !== 'string' || !KEY_RE.test(key) || (arguments.length > 1 && !validGroupDock(dock))) return [];
+    return (arguments.length > 1 ? taskbarProjection(dock) : taskbarKeys(state)).filter(function (k) { return groupKey(k) === key; });
+  }
+  function stackEntries(dock, order) {
+    var keys = (order || taskbarKeys(state)).filter(function (k) { return !dock.hasAttribute('data-win-dock-omit-docked') || !shownEdge(state, k); });
+    var enabled = layer.getAttribute('data-win-taskbar-stacks') === 'always', expanded = layer.getAttribute('data-win-group-open'), seen = new Set();
+    return keys.reduce(function (entries, k) {
+      var group = enabled && groupKey(k), members = group && group !== expanded ? keys.filter(function (m) { return groupKey(m) === group; }) : [k];
+      var stacked = members.length > 1, id = stacked ? 'group:' + group : k;
+      if (!seen.has(id)) { seen.add(id); entries.push({ id: id, group: stacked ? group : null, keys: members }); }
+      return entries;
+    }, []);
+  }
+  var stackWarnings = new Set(), stackPopup = null, stackContext = null;
+  function refreshStackContext() {
+    if (!stackContext || !window.pudlMenu || !window.pudlMenu.updateContext) return;
+    if (!stackContext.owner.hasAttribute('data-menu-for')) { stackContext = null; return; }
+    var context = stackContext, rows = context.owner.isConnected ? context.rows() : [];
+    var ownedFocus = document.activeElement && document.activeElement.closest('.context-menu');
+    window.pudlMenu.updateContext(rows, context.owner);
+    if (!rows.length && ownedFocus && context.dock) recoverStackFocus(context.dock, context.group || '', null);
+  }
+  function stackMetadata(group) {
+    var members = groupMembers(group), leader = wins[members[0]];
+    var label = leader && leader.getAttribute('data-win-group-label') || group;
+    var glyph = leader && leader.getAttribute('data-win-group-glyph') || 'window';
+    if (!/^[a-z][a-z0-9-]*$/.test(glyph)) glyph = 'window';
+    members.forEach(function (k) {
+      var name = wins[k].getAttribute('data-win-group-label'), icon = wins[k].getAttribute('data-win-group-glyph');
+      if ((name && name !== label) || (icon && icon !== glyph)) {
+        var warning = group + ':' + k + ':' + name + ':' + icon;
+        if (!stackWarnings.has(warning)) { stackWarnings.add(warning); console.warn('pudl-windows: conflicting group metadata', group, k); }
+      }
+    });
+    return { label: label, glyph: glyph };
+  }
+  function stackText(name, fallback, values) {
+    return text(name, fallback).replace(/\{([a-z]+)\}/g, function (token, key) {
+      return Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : token;
+    });
+  }
+  function stackMark(button, entry) {
+    var meta = stackMetadata(entry.group), count = 0, running = false;
+    entry.keys.forEach(function (k) { var n = Number(wins[k].getAttribute('data-win-attention')); if (Number.isSafeInteger(n) && n > 0) count += n; running = running || wins[k].hasAttribute('data-win-running'); });
+    if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-running" aria-hidden="true"></span>';
+    styleProp(button.firstChild, '--glyph', 'var(--glyph-' + meta.glyph + ', var(--glyph-window))');
+    setText(button.querySelector('.win-item-title'), meta.label);
+    setText(button.querySelector('.win-stack-count'), String(entry.keys.length));
+    var badge = button.querySelector('.win-item-attention'); setText(badge, String(count)); setHidden(badge, !count);
+    setHidden(button.querySelector('.win-item-running'), !running);
+    var name = stackText('stack-name', '{label}, {n} windows', { label: meta.label, n: entry.keys.length });
+    if (count) name += stackText('stack-attention', ', {attention} needing attention', { attention: count });
+    if (running) name += text('stack-running', ', running');
+    setAttr(button, 'aria-label', name);
+    setAttr(button, 'title', button.getAttribute('aria-label'));
+  }
+  function stackCommand(group, dock, action) {
+    var targets = groupMembers(group, dock).map(function (key) { return { key: key, node: wins[key] }; });
+    function eligible(target) { return validGroupDock(dock) && wins[target.key] === target.node && groupMembers(group, dock).indexOf(target.key) >= 0; }
+    if (action === 'close') { targets.forEach(function (target) { if (eligible(target)) close(target.key, 'group'); }); return; }
+    var st = copy(state), changed = false, keys = [];
+    targets.forEach(function (target) { if (!eligible(target)) return; var k = target.key; keys.push(k); if (!!st.min[k] !== (action === 'minimize')) { changed = true; if (action === 'minimize') st.min[k] = true; else delete st.min[k]; } });
+    if (!changed) return;
+    var front = active(state);
+    if (action === 'minimize' && front && keys.indexOf(rootOf(state, front)) >= 0) st.top = nextTop(st, st.open.filter(function (k) { return keys.indexOf(rootOf(st, k)) >= 0; }));
+    if (action === 'restore' && !front && !active(st)) st.top = nextTop(st, []);
+    commit(st, true);
+  }
+  function stackCommands(group, dock) {
+    var keys = groupMembers(group, dock), n = keys.length;
+    return [
+      { id: 'group-minimize', label: stackText('stack-minimize', 'Minimize these {n} windows', { n: n }), glyph: 'minimize-all', disabled: !keys.some(function (k) { return !state.min[k]; }), run: function () { stackCommand(group, dock, 'minimize'); } },
+      { id: 'group-restore', label: stackText('stack-restore', 'Restore these {n} windows', { n: n }), glyph: 'restore-all', disabled: !keys.some(function (k) { return state.min[k]; }), run: function () { stackCommand(group, dock, 'restore'); } },
+      '-', { id: 'group-close', label: stackText('stack-close', 'Close these {n} windows', { n: n }), danger: true, disabled: !keys.some(function (k) { return ![k].concat(childrenOf(state, k)).some(requiredWindow); }), run: function () { stackCommand(group, dock, 'close'); } }
+    ];
+  }
+  function activateStackRow(key) {
+    if (!wins[key] || state.open.indexOf(key) < 0) return;
+    if (stackPopup) stackPopup.close(false);
+    var st = raised(state, frontOf(state, key)); commit(st, false); if (st.top) focusWindow(st.top);
+  }
+  function recoverStackFocus(dock, group, key) {
+    var bar = dock.closest('.win-bar') || dock, keys = groupMembers(group, dock);
+    var target = Array.from(dock.children).find(function (el) { return el.getAttribute('data-win-stack') === group && el.getClientRects().length; });
+    [key].concat(keys).some(function (k) { if (target) return true; target = Array.from(dock.children).find(function (el) { return el.getAttribute('data-win-tab') === k && el.getClientRects().length; }); return !!target; });
+    target = target || Array.from(bar.querySelectorAll('.win-bar-more, button, a[href]')).find(function (el) { return !el.disabled && el.getClientRects().length; });
+    if (!target && bar.isConnected) { bar.tabIndex = -1; target = bar; }
+    if (target) target.focus({ preventScroll: true });
+  }
+  function openStack(button, mode, keyboard) {
+    var dock = button.parentElement, group = button.getAttribute('data-win-stack');
+    if (stackPopup && stackPopup.button === button) {
+      if (mode === 'pinned' && stackPopup.mode === 'preview') { stackPopup.mode = 'pinned'; if (keyboard) stackPopup.first(); }
+      else if (mode === 'pinned') stackPopup.close(true);
+      return;
+    }
+    if (stackPopup) stackPopup.close(false);
+    var panel = document.createElement('div'); panel.className = 'popover win-stack-panel'; panel.setAttribute('data-popover-focus', 'manual'); panel.setAttribute('popover', 'manual'); panel.setAttribute('role', 'dialog');
+    if (!button.id) button.id = 'pudl-stack-trigger-' + (++statusId); panel.setAttribute('data-menu-anchor', button.id);
+    panel.id = 'pudl-stack-' + (++statusId); button.setAttribute('aria-controls', panel.id); button.setAttribute('aria-expanded', 'true');
+    var rows = document.createElement('div'); rows.className = 'win-stack-rows'; panel.appendChild(rows); document.body.appendChild(panel);
+    var rowMap = new Map(), previous = [], timer = 0, disposed = false;
+    function owned() { return panel.contains(document.activeElement) || (document.activeElement && document.activeElement.closest('.menu-panel:popover-open') && panel.querySelector('[data-menu-for]')); }
+    function place() {
+      if (window.pudlMenu) { window.pudlMenu.place(panel); return; }
+      panel.classList.remove('placing');
+      var r = button.getBoundingClientRect(), width = panel.offsetWidth, height = panel.offsetHeight;
+      var top = r.top >= height + 8 ? r.top - height - 4 : r.bottom + 4;
+      panel.style.left = Math.max(4, Math.min(r.left, innerWidth - width - 4)) + 'px'; panel.style.top = Math.max(4, Math.min(top, innerHeight - height - 4)) + 'px';
+    }
+    function closePanel(recover) {
+      if (disposed) return;
+      var focus = owned() || document.activeElement === button || (stackPopup && stackPopup.triggerHadFocus && document.activeElement === document.body), key = document.activeElement && document.activeElement.closest('[data-stack-row]'); key = key && key.getAttribute('data-stack-row');
+      disposed = true; clearTimeout(timer); menuObserver.disconnect(); if (panel.querySelector('[data-menu-for]') && window.pudlMenu) window.pudlMenu.closeContext(); panel.hidePopover(); panel.remove(); button.setAttribute('aria-expanded', 'false'); button.removeAttribute('aria-controls'); stackPopup = null;
+      document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape, true); window.removeEventListener('resize', place);
+      if (recover && focus) recoverStackFocus(dock, group, key);
+    }
+    function refresh() {
+      if (disposed) return;
+      var entry = stackEntries(dock).find(function (e) { return e.group === group; });
+      if (!validGroupDock(dock) || !entry || !button.isConnected) { closePanel(true); return; }
+      setAttr(panel, 'aria-label', stackText('stack-list', '{label}', { label: stackMetadata(group).label }));
+      var focusNode = document.activeElement, activeRow = focusNode && focusNode.closest('[data-stack-row]'), focusedKey = activeRow && activeRow.getAttribute('data-stack-row'), focusWas = owned();
+      var index = previous.indexOf(focusedKey), section = null;
+      rows.querySelectorAll('.win-stack-section').forEach(function (h) { h.remove(); });
+      rowMap.forEach(function (row, k) { if (entry.keys.indexOf(k) < 0) { row.remove(); rowMap.delete(k); } });
+      var cursor = rows.firstChild;
+      entry.keys.forEach(function (k) {
+        var row = rowMap.get(k);
+        if (!row) {
+          row = document.createElement('div'); row.className = 'win-stack-row'; row.setAttribute('data-stack-row', k);
+          var link = document.createElement('a'); link.className = 'win-stack-link'; link.setAttribute('data-win-tab', k); link.setAttribute('data-win-stack-row', '');
+          link.addEventListener('click', function (e) { if (e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; e.preventDefault(); e.stopPropagation(); activateStackRow(k); });
+          var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'icon-btn win-stack-close'; remove.innerHTML = '<span class="glyph" style="--glyph:var(--glyph-close)" aria-hidden="true"></span>';
+          remove.addEventListener('click', function () { var at = previous.indexOf(k), hadFocus = owned(); close(k, 'taskbar'); if (hadFocus) { if (stackPopup && stackPopup.panel === panel && previous.length) rowMap.get(previous[Math.min(Math.max(at, 0), previous.length - 1)]).firstChild.focus(); else recoverStackFocus(dock, group, k); } });
+          row.append(link, remove); rowMap.set(k, row);
+        }
+        var nextSection = wins[k].getAttribute('data-win-section') || '';
+        if (nextSection !== section) { section = nextSection; if (section) { var heading = document.createElement('h3'); heading.className = 'win-stack-section'; heading.textContent = section; rows.insertBefore(heading, cursor); } }
+        if (row !== cursor) rows.insertBefore(row, cursor); cursor = row.nextSibling;
+        setAttr(row.firstChild, 'href', urlFor(raised(state, frontOf(state, k)))); windowMark(row.firstChild, k);
+        setAttr(row.lastChild, 'aria-label', stackText('stack-close-window', 'Close {title}', { title: fullTitle(k) }));
+        row.lastChild.disabled = [k].concat(childrenOf(state, k)).some(requiredWindow);
+      });
+      if (focusWas && focusedKey && rowMap.has(focusedKey) && focusNode.isConnected) focusNode.focus({ preventScroll: true });
+      if (focusWas && focusedKey && !rowMap.has(focusedKey) && entry.keys.length) rowMap.get(entry.keys[Math.min(Math.max(index, 0), entry.keys.length - 1)]).firstChild.focus();
+      previous = entry.keys.slice(); if (panel.matches(':popover-open')) place();
+      if (stackPopup) stackPopup.triggerHadFocus = false;
+    }
+    function outside(e) { if (!panel.contains(e.target) && !button.contains(e.target) && !e.target.closest('.menu-panel')) closePanel(false); }
+    function escape(e) { if (e.key !== 'Escape' || document.querySelector('.menu-panel:popover-open')) return; e.preventDefault(); e.stopImmediatePropagation(); closePanel(true); }
+    function leave() { clearTimeout(timer); timer = setTimeout(function () { if (stackPopup && stackPopup.mode === 'preview' && !panel.matches(':hover') && !button.matches(':hover') && !panel.querySelector('[data-menu-for]')) closePanel(true); }, 250); }
+    var menuObserver = new MutationObserver(function () { if (!disposed && stackPopup && stackPopup.mode === 'preview') leave(); });
+    menuObserver.observe(panel, { subtree: true, attributes: true, attributeFilter: ['data-menu-for'] });
+    panel.addEventListener('pointerdown', function (e) { if (e.button === 0 && stackPopup) stackPopup.mode = 'pinned'; });
+    panel.addEventListener('focusin', function () { if (stackPopup) stackPopup.mode = 'pinned'; });
+    panel.addEventListener('pointerleave', leave); panel.addEventListener('pointerenter', function () { clearTimeout(timer); });
+    stackPopup = { button: button, panel: panel, mode: mode, refresh: refresh, close: closePanel, leave: leave, first: function () { var link = rows.querySelector('a'); if (link) link.focus(); } };
+    refresh(); var previousFocus = document.activeElement; panel.showPopover(); place(); if (keyboard) stackPopup.first(); else { if (previousFocus && previousFocus.isConnected) previousFocus.focus({ preventScroll: true }); stackPopup.mode = mode; }
+    document.addEventListener('pointerdown', outside, true); document.addEventListener('keydown', escape, true); window.addEventListener('resize', place);
+  }
+  function setupStack(button) {
+    var timer;
+    button.type = 'button'; button.setAttribute('aria-haspopup', 'dialog'); button.setAttribute('aria-expanded', 'false');
+    button.addEventListener('click', function (e) { openStack(button, 'pinned', e.detail === 0); });
+    button.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); if (stackPopup && stackPopup.button === button) { stackPopup.mode = 'pinned'; stackPopup.first(); } else openStack(button, 'pinned', true); } });
+    button.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') timer = setTimeout(function () { if (button.isConnected && button.matches(':hover')) openStack(button, 'preview', false); }, 500); });
+    button.addEventListener('pointerleave', function () { clearTimeout(timer); if (stackPopup && stackPopup.button === button) stackPopup.leave(); });
+  }
   function announceTaskbar(key, order, preview) {
     if (!taskbarLive) { taskbarLive = document.createElement('div'); taskbarLive.className = 'visually-hidden'; taskbarLive.setAttribute('role', 'status'); document.body.appendChild(taskbarLive); }
-    taskbarLive.textContent = text(preview ? 'taskbar-preview-moved' : 'taskbar-moved', preview ? 'Preview places {title} at position {position} of {count}.' : '{title} moved to position {position} of {count}.').replace('{title}', fullTitle(key)).replace('{position}', order.indexOf(key) + 1).replace('{count}', order.length);
+    taskbarLive.textContent = stackText(preview ? 'taskbar-preview-moved' : 'taskbar-moved', preview ? 'Preview places {title} at position {position} of {count}.' : '{title} moved to position {position} of {count}.', { title: entryTitle(key), position: order.indexOf(key) + 1, count: order.length });
+  }
+  function entryId(node) { return node.hasAttribute('data-win-stack') ? 'group:' + node.getAttribute('data-win-stack') : node.getAttribute('data-win-tab'); }
+  function entryTitle(id) { return id && id.indexOf('group:') === 0 ? stackMetadata(id.slice(6)).label : fullTitle(id); }
+  function entryOrder(dock, order) { return stackEntries(dock, order).map(function (entry) { return entry.id; }); }
+  function movedEntryOrder(dock, order, id, destination) {
+    var field = Object.keys(destination)[0], target = destination[field], entries = stackEntries(dock, order);
+    var from = entries.find(function (e) { return e.id === id; }), to = entries.find(function (e) { return e.id === target; });
+    if (!from || !to || from === to || ['before', 'after'].indexOf(field) < 0) return order;
+    var display = entries.map(function (e) { return e.id; }), after = display.filter(function (k) { return k !== id; });
+    after.splice(after.indexOf(target) + (field === 'after' ? 1 : 0), 0, id);
+    if (after.join(',') === display.join(',')) return order;
+    var members = from.group ? order.filter(function (k) { return groupKey(k) === from.group; }) : from.keys;
+    var targets = to.group ? order.filter(function (k) { return groupKey(k) === to.group; }) : to.keys;
+    var result = order.filter(function (k) { return members.indexOf(k) < 0; });
+    var at = field === 'before' ? result.indexOf(targets[0]) : result.indexOf(targets[targets.length - 1]) + 1;
+    result.splice.apply(result, [at, 0].concat(members)); return result;
+  }
+  function reorderEntry(dock, id, destination) {
+    return setTaskbarOrder(movedEntryOrder(dock, taskbarKeys(state), id, destination), id, dock);
+  }
+  function internalOrderCommands(dock, key, group) {
+    return ['earlier', 'later', 'first', 'last'].map(function (kind, n) {
+      var members = groupMembers(group), index = members.indexOf(key);
+      return { label: text('taskbar-' + kind, ['Move earlier', 'Move later', 'Move to beginning', 'Move to end'][n]), disabled: index < 0 || (n === 0 || n === 2 ? index === 0 : index === members.length - 1), run: function () {
+        var order = taskbarKeys(state), live = groupMembers(group), at = live.indexOf(key);
+        if (at < 0) return;
+        var next = n === 2 ? 0 : n === 3 ? live.length - 1 : at + (n === 0 ? -1 : 1);
+        if (next < 0 || next >= live.length || at === next) return;
+        live.splice(at, 1); live.splice(next, 0, key); var i = 0;
+        setTaskbarOrder(order.map(function (k) { return groupKey(k) === group ? live[i++] : k; }), null, null);
+      } };
+    });
   }
   function focusTaskbar(dock, key) {
-    var tab = Array.from(dock.children).find(function (t) { return t.getAttribute('data-win-tab') === key; });
+    var tab = Array.from(dock.children).find(function (t) { return entryId(t) === key; });
     var bar = dock.closest('.win-bar');
     if (bar) fitBar(bar);
     var target = tab && tab.getClientRects().length ? tab : bar && bar.querySelector('.win-bar-more');
@@ -4121,12 +4335,12 @@
     st.taskbarOrder = order;
     st.taskbarOrder = taskbarKeys(st);
     if (st.taskbarOrder.join(',') === before.join(',')) return false;
-    var focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.win-bar [data-win-dock] > [data-win-tab]');
-    var focusedDock = focused && focused.parentElement, focusedKey = focused && focused.getAttribute('data-win-tab');
+    var focused = document.activeElement && document.activeElement.closest && document.activeElement.closest('.win-bar [data-win-dock] > :is([data-win-tab], [data-win-stack])');
+    var focusedDock = focused && focused.parentElement, focusedKey = focused && entryId(focused);
     commit(st, true);
     if (dock) focusTaskbar(dock, key);
     else if (focusedDock) focusTaskbar(focusedDock, focusedKey);
-    if (key) announceTaskbar(key, dock ? taskbarProjection(dock) : taskbarKeys(state));
+    if (key) announceTaskbar(key, dock ? entryOrder(dock) : taskbarKeys(state));
     return true;
   }
   function reorderTaskbar(key, destination, dock) {
@@ -4142,14 +4356,14 @@
   }
   function taskbarOrderCommands(dock, key) {
     function move(kind) {
-      var list = taskbarProjection(dock), i = list.indexOf(key);
+      var list = entryOrder(dock), i = list.indexOf(key);
       if (i < 0) return;
       var other = kind === 'first' ? list[0] : kind === 'last' ? list[list.length - 1] : list[i + (kind === 'earlier' ? -1 : 1)];
       if (!other || other === key) return;
       var destination = {}; destination[kind === 'earlier' || kind === 'first' ? 'before' : 'after'] = other;
-      reorderTaskbar(key, destination, dock);
+      reorderEntry(dock, key, destination);
     }
-    var list = taskbarProjection(dock), index = list.indexOf(key);
+    var list = entryOrder(dock), index = list.indexOf(key);
     return [
       { label: text('taskbar-earlier', 'Move earlier'), disabled: index <= 0, run: function () { move('earlier'); } },
       { label: text('taskbar-later', 'Move later'), disabled: index < 0 || index === list.length - 1, run: function () { move('later'); } },
@@ -4179,7 +4393,7 @@
       var words = document.createElement('span'); words.className = 'toolbar-words'; words.textContent = label; button.append(icon, words); return button;
     }
     var draft = taskbarKeys(state), moves = [], disposed = false, renamedSelection = null;
-    function shownDraft() { var eligible = taskbarProjection(dock); return draft.filter(function (k) { return eligible.indexOf(k) >= 0; }); }
+    function shownDraft() { return entryOrder(dock, draft); }
     function draw() {
       if (disposed) return;
       var value = renamedSelection || list.value || selected, live = taskbarKeys(state);
@@ -4187,7 +4401,7 @@
       draft = draft.filter(function (k) { return live.indexOf(k) >= 0; });
       live.forEach(function (k) { if (draft.indexOf(k) < 0) draft.push(k); });
       var shown = shownDraft(); list.textContent = '';
-      shown.forEach(function (k) { var option = document.createElement('option'); option.value = k; option.textContent = fullTitle(k); list.appendChild(option); });
+      shown.forEach(function (k) { var option = document.createElement('option'); option.value = k; option.textContent = entryTitle(k); list.appendChild(option); });
       if (shown.indexOf(value) >= 0) list.value = value; else if (shown.length) list.selectedIndex = 0;
       var i = shown.indexOf(list.value);
       moves.forEach(function (b, n) { b.disabled = i < 0 || (n === 0 || n === 2 ? i === 0 : i === shown.length - 1); });
@@ -4198,8 +4412,8 @@
         var shown = shownDraft(), key = list.value, i = shown.indexOf(key);
         var target = kind === 'first' ? shown[0] : kind === 'last' ? shown[shown.length - 1] : shown[i + (kind === 'earlier' ? -1 : 1)];
         if (!target || target === key) return;
-        draft.splice(draft.indexOf(key), 1);
-        draft.splice(draft.indexOf(target) + (kind === 'later' || kind === 'last' ? 1 : 0), 0, key);
+        var destination = {}; destination[kind === 'later' || kind === 'last' ? 'after' : 'before'] = target;
+        draft = movedEntryOrder(dock, draft, key, destination);
         draw(); list.focus(); announceTaskbar(key, shownDraft(), true);
       }); moves.push(b); moveGroup.appendChild(b);
     });
@@ -4221,10 +4435,10 @@
     draw(); panel.showPopover(); if (window.pudlToolbar) window.pudlToolbar.enhance(panel); return true;
   }
   function dragTaskbar(e) {
-    var tab = e.target.closest && e.target.closest('.win-bar [data-win-dock] > [data-win-tab]');
+    var tab = e.target.closest && e.target.closest('.win-bar [data-win-dock] > :is([data-win-tab], [data-win-stack])');
     if (!tab || !taskbarReorderEnabled() || e.button !== 0 || e.pointerType === 'touch' || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
-    var dock = tab.parentElement, key = tab.getAttribute('data-win-tab'), start = e.clientX, id = e.pointerId;
-    var targets = Array.from(dock.children).filter(function (t) { return t !== tab && t.hasAttribute('data-win-tab') && t.getClientRects().length; });
+    var dock = tab.parentElement, key = entryId(tab), start = e.clientX, id = e.pointerId;
+    var targets = Array.from(dock.children).filter(function (t) { return t !== tab && (t.hasAttribute('data-win-tab') || t.hasAttribute('data-win-stack')) && t.getClientRects().length; });
     if (!targets.length) return;
     var rtl = getComputedStyle(dock).direction === 'rtl', viewportWidth = innerWidth, viewportHeight = innerHeight;
     var moving = false, marker = null, destination = null, frame = 0, latest = null, ended = false;
@@ -4263,15 +4477,15 @@
       if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) { destination = null; marker.hidden = true; return; }
       var next = targets.find(function (t) { var r = t.getBoundingClientRect(); return rtl ? event.clientX > (r.left + r.right) / 2 : event.clientX < (r.left + r.right) / 2; });
       var target = next || targets[targets.length - 1], rect = target.getBoundingClientRect();
-      destination = {}; destination[next ? 'before' : 'after'] = target.getAttribute('data-win-tab');
-      marker.setAttribute('data-label', text(next ? 'taskbar-before' : 'taskbar-after', next ? 'Before {title}' : 'After {title}').replace('{title}', fullTitle(destination[next ? 'before' : 'after'])));
+      destination = {}; destination[next ? 'before' : 'after'] = entryId(target);
+      marker.setAttribute('data-label', stackText(next ? 'taskbar-before' : 'taskbar-after', next ? 'Before {title}' : 'After {title}', { title: entryTitle(destination[next ? 'before' : 'after']) }));
       marker.setAttribute('data-align', event.clientX > innerWidth / 2 ? 'end' : 'start');
       marker.toggleAttribute('data-below', bounds.top < 40);
       marker.hidden = false; marker.style.left = (next ? (rtl ? rect.right : rect.left) : (rtl ? rect.left : rect.right)) + 'px'; marker.style.top = bounds.top + 'px'; marker.style.height = bounds.height + 'px';
     }
     function clearSuppression() { window.removeEventListener('click', suppressClick, true); window.removeEventListener('pointerdown', clearSuppression, true); }
     function suppressClick(event) { if (event.detail && event.target.closest && event.target.closest('.win-bar') === dock.closest('.win-bar')) { event.preventDefault(); event.stopImmediatePropagation(); } clearSuppression(); }
-    function up(event) { if (event.pointerId !== id) return; if (latest) preview({ clientX: event.clientX, clientY: event.clientY }, true); if (ended) return; var drop = moving && destination; cleanup(); if (drop) reorderTaskbar(key, drop, dock); }
+    function up(event) { if (event.pointerId !== id) return; if (latest) preview({ clientX: event.clientX, clientY: event.clientY }, true); if (ended) return; var drop = moving && destination; cleanup(); if (drop) reorderEntry(dock, key, drop); }
     taskbarDrag = { dock: dock, cancel: cancel };
     document.addEventListener('pointermove', move); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', cancel); document.addEventListener('keydown', escape, true);
     window.addEventListener('blur', cancel); window.addEventListener('resize', cancel); tab.addEventListener('lostpointercapture', cancel);
@@ -4287,7 +4501,7 @@
     } else if (!taskbarReorderEnabled() && arrange) arrange.remove();
     if (!dock || !bar.getClientRects().length) return;
     var more = bar.querySelector(':scope > .win-bar-more');
-    var tabs = Array.prototype.slice.call(dock.querySelectorAll(':scope > [data-win-tab]'));
+    var tabs = Array.prototype.slice.call(dock.querySelectorAll(':scope > :is([data-win-tab], [data-win-stack])'));
     tabs.forEach(function (t) { t.removeAttribute('data-win-tab-over'); t.removeAttribute('data-win-tab-squeeze'); });
     bar.removeAttribute('data-win-bar-compact');
     /* Each button shrinks to 120px, or its own width where that is less,
@@ -4295,15 +4509,23 @@
     dock.setAttribute('data-win-dock-measure', '');
     tabs.forEach(function (t) { t.style.setProperty('--win-tab-natural', Math.ceil(t.getBoundingClientRect().width) + 'px'); });
     dock.removeAttribute('data-win-dock-measure');
+    function finished() {
+      if (more && more.hidden) {
+        var menuFocus = more.hasAttribute('data-menu-for') && document.activeElement && document.activeElement.closest('.context-menu');
+        more.__over = []; refreshStackContext();
+        if (menuFocus) recoverStackFocus(dock, '', null);
+      }
+      if (stackPopup && stackPopup.button.parentElement === dock && !stackPopup.button.getClientRects().length) stackPopup.close(true);
+    }
     if (more) more.hidden = true;
     var over = function () { return dock.scrollWidth > dock.clientWidth + 1; };
-    if (!over()) return;
+    if (!over()) { finished(); return; }
     bar.setAttribute('data-win-bar-compact', '');
     /* A tray item showing its glyph alone keeps its words as its name. */
     bar.querySelectorAll(':scope > .status-area .status-item').forEach(function (it) {
       if (!it.hasAttribute('aria-label') && !it.hasAttribute('title')) it.setAttribute('aria-label', it.textContent.trim());
     });
-    if (!over()) return;
+    if (!over()) { finished(); return; }
     if (!more) {
       more = document.createElement('button');
       more.type = 'button';
@@ -4321,20 +4543,35 @@
        (0.82.1). */
     if (over()) tabs.forEach(function (t) { if (!t.hasAttribute('data-win-tab-over')) t.setAttribute('data-win-tab-squeeze', ''); });
     more.__over = gone;
-    var words = text('more-windows', '{n} more').replace('{n}', gone.length);
+    var stacked = gone.some(function (t) { return t.hasAttribute('data-win-stack'); });
+    var total = gone.reduce(function (n, t) { return n + (t.hasAttribute('data-win-stack') ? groupMembers(t.getAttribute('data-win-stack'), dock).length : 1); }, 0);
+    var words = stacked ? stackText('more-stacks', '{entries} more ({windows} windows)', { entries: gone.length, windows: total }) : text('more-windows', '{n} more').replace('{n}', gone.length);
     more.textContent = words;
-    more.setAttribute('aria-label', text('more-windows-name', '{n} more windows').replace('{n}', gone.length));
+    more.setAttribute('aria-label', stacked ? stackText('more-stacks-name', '{entries} more entries, {windows} windows', { entries: gone.length, windows: total }) : text('more-windows-name', '{n} more windows').replace('{n}', gone.length));
+    refreshStackContext(); finished();
   }
 
   function openMore(more) {
     if (!window.pudlMenu || !window.pudlMenu.openAt) return;
-    var rows = (more.__over || []).map(function (t) {
-      return { label: (t.getAttribute('aria-label') || t.textContent).trim(), run: function () { t.click(); } };
-    });
-    if (taskbarReorderEnabled()) {
-      if (rows.length) rows.push('-');
-      rows.push({ label: text('taskbar-arrange', 'Arrange taskbar'), run: function () { arrangeTaskbar(more.parentElement.querySelector('[data-win-dock]')); } });
+    function moreRows() {
+      if (more.hidden || !more.isConnected) return [];
+      var rows = (more.__over || []).filter(function (t) { return t.isConnected; }).map(function (t) {
+        var label = (t.getAttribute('aria-label') || t.textContent).trim();
+        if (t.hasAttribute('data-win-stack')) {
+          var group = t.getAttribute('data-win-stack'), dock = t.parentElement, items = [];
+          groupMembers(group, dock).forEach(function (k) {
+            var mark = document.createElement('a'); windowMark(mark, k);
+            items.push({ id: 'window-' + k, label: mark.getAttribute('aria-label'), run: function () { activateStackRow(k); } });
+            items.push({ id: 'commands-' + k, label: stackText('stack-window-commands', 'Commands for {title}', { title: fullTitle(k) }), items: menuCommands(k).concat(contentCommands(wins[k], k)) });
+          });
+          return { id: 'group-' + group, label: label, items: items.concat(['-']).concat(stackCommands(group, dock)) };
+        }
+        return { id: t.getAttribute('data-win-tab'), label: label, run: function () { t.click(); } };
+      });
+      if (taskbarReorderEnabled()) { if (rows.length) rows.push('-'); rows.push({ id: 'arrange', label: text('taskbar-arrange', 'Arrange taskbar'), run: function () { arrangeTaskbar(more.parentElement.querySelector('[data-win-dock]')); } }); }
+      return rows;
     }
+    var rows = moreRows(); stackContext = { owner: more, dock: more.parentElement.querySelector('[data-win-dock]'), rows: moreRows };
     var r = more.getBoundingClientRect();
     var low = (r.top + r.bottom) / 2 > window.innerHeight / 2;
     window.pudlMenu.openAt(Math.round(r.left), Math.round(low ? r.top - 4 : r.bottom + 4), rows,
@@ -4562,11 +4799,11 @@
     document.addEventListener('pointerdown', dragTaskbar);
     document.addEventListener('keydown', function (e) {
       if (e.defaultPrevented || !taskbarReorderEnabled() || !e.altKey || !e.shiftKey || e.ctrlKey || e.metaKey || ['ArrowLeft', 'ArrowRight'].indexOf(e.key) < 0) return;
-      var tab = e.target.closest && e.target.closest('.win-bar [data-win-dock] > [data-win-tab]');
+      var tab = e.target.closest && e.target.closest('.win-bar [data-win-dock] > :is([data-win-tab], [data-win-stack])');
       if (!tab) return;
       e.preventDefault();
       var rtl = getComputedStyle(tab.parentElement).direction === 'rtl';
-      taskbarOrderCommands(tab.parentElement, tab.getAttribute('data-win-tab'))[(e.key === 'ArrowLeft') !== rtl ? 0 : 1].run();
+      taskbarOrderCommands(tab.parentElement, entryId(tab))[(e.key === 'ArrowLeft') !== rtl ? 0 : 1].run();
     });
     window.addEventListener('keydown', onSwitchKeyDown, true);
     window.addEventListener('keyup', onSwitchKeyUp, true);
@@ -4582,10 +4819,19 @@
        on the layer or the dock turns it off. */
     document.addEventListener('pudl:contextmenu', function (e) {
       if (e.defaultPrevented || !e.detail || (e.detail.count && e.detail.count())) return;
+      var stack = e.target && e.target.closest && e.target.closest('[data-win-stack]');
+      if (stack && !stack.closest('[data-win-tab-menu="off"]') && layer.getAttribute('data-win-tab-menu') !== 'off') {
+        var stackDock = stack.parentElement, group = stack.getAttribute('data-win-stack'), commands = stackCommands(group, stackDock);
+        if (taskbarReorderEnabled()) commands.push('-', { label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(stackDock, 'group:' + group) });
+        stackContext = { owner: stack, dock: stackDock, group: group, rows: function () { return groupMembers(group, stackDock).length ? stackCommands(group, stackDock).concat(taskbarReorderEnabled() ? ['-', { label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(stackDock, 'group:' + group) }] : []) : []; } };
+        e.detail.add(commands); if (e.detail.mark) e.detail.mark(stack); if (e.detail.anchor) e.detail.anchor(stack); return;
+      }
       var tab = e.target && e.target.closest && e.target.closest('[data-win-tab], [data-dock-key], [data-dock-menu]');
       if (!tab || tab.closest('[data-win-tab-menu="off"]') || layer.getAttribute('data-win-tab-menu') === 'off') return;
       var key = tab.getAttribute('data-win-tab') || tab.getAttribute('data-dock-key') || tab.getAttribute('data-dock-menu');
       if (!wins[key]) return;
+      function windowRows() {
+        if (!wins[key]) return [];
       var all = menuCommands(key);
       var own = all.filter(function (c) { return !c.items && c.id !== 'close'; });
       var lists = all.filter(function (c) { return c.items; });
@@ -4593,13 +4839,18 @@
       var content = contentCommands(wins[key], key);
       var rows = [];
       var taskbarDock = tab.closest('.win-bar [data-win-dock]');
+      if (taskbarReorderEnabled() && tab.hasAttribute('data-win-stack-row') && stackPopup) rows.push({ label: text('taskbar-order', 'Taskbar order'), items: internalOrderCommands(stackPopup.button.parentElement, key, stackPopup.button.getAttribute('data-win-stack')) });
       if (taskbarReorderEnabled() && taskbarDock) rows.push({ label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(taskbarDock, key) });
       [own, lists, content, close].forEach(function (part) {
         if (!part.length) return;
         if (rows.length) rows.push('-');
         rows = rows.concat(part);
       });
+        return rows;
+      }
+      var rows = windowRows();
       if (!rows.length) return;
+      if (tab.hasAttribute('data-win-stack-row')) stackContext = { owner: tab, rows: windowRows };
       e.detail.add(rows);
       if (e.detail.mark) e.detail.mark(tab);
       if (e.detail.anchor) e.detail.anchor(tab);
@@ -4613,7 +4864,7 @@
     document.addEventListener('pudl:contextmenu', function (e) {
       if (e.defaultPrevented || !e.detail || (e.detail.count && e.detail.count())) return;
       var bar = e.target && e.target.closest && e.target.closest('.win-bar');
-      if (!bar || bar.getAttribute('data-win-bar-menu') === 'off' || e.target.closest('[data-win-tab]')) return;
+      if (!bar || bar.getAttribute('data-win-bar-menu') === 'off' || e.target.closest('[data-win-tab], [data-win-stack]')) return;
       if (!bar.querySelector('[data-win-dock]')) return;
       var taskbarRows = [
         { label: text('minimize-all', 'Minimize all'), glyph: 'minimize-all', disabled: !anyShowing(state), run: function () { commit(allMinimized(state), false); } },
@@ -4673,9 +4924,22 @@
       attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height', 'data-win-room'] });
     new MutationObserver(function () {
       document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
-      renderDockGroups();
+      if (taskbarDrag) taskbarDrag.cancel();
+      renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress'] });
+      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+    new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
+    new MutationObserver(function (records) {
+      var changed = records.some(function (record) {
+        return Array.from(record.addedNodes).concat(Array.from(record.removedNodes)).some(function (node) {
+          return node.nodeType === 1 && (node.matches('[data-win-dock]') || node.querySelector('[data-win-dock]'));
+        });
+      });
+      if (!changed) return;
+      if (taskbarDrag) taskbarDrag.cancel();
+      renderDocks(); fitBarsSoon();
+      if (taskbarArrangement) taskbarArrangement.refresh();
+    }).observe(document.body, { subtree: true, childList: true });
     new MutationObserver(function () {
       Object.keys(dockGroups).forEach(function (id) { soonPositionDockMenus(dockGroups[id]); });
     }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['dir'] });
@@ -4718,6 +4982,7 @@
       dockMode: dockMode,
       dockArrange: dockArrange,
       dockRatio: setDockRatio,
+      group: groupMembers,
       reorderTaskbar: reorderTaskbar,
       arrangeTaskbar: function (dock) { return arrangeTaskbar(dock || document.querySelector('.win-bar [data-win-dock]')); },
       dockPresentation: function (edge) { return sharedEdge(edge) ? splitPresentation(state, edge) : null; },
