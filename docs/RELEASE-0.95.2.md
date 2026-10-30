@@ -106,4 +106,12 @@ The archive was built from the pushed tag with `git archive --format=zip --prefi
 
 All 83 CSS and JavaScript files under `dist/` at the tag were fetched from jsDelivr and matched the tagged bytes, with no mismatches; their SHA-384 values are in `tests/output/release-0952-cdn-hashes.txt`. The 24 CDN examples in `README.md` now point at `v0.95.2` with those values. Three of them changed their hash: the core stylesheet, whose source changed in two comment lines, and the windows stylesheet and script. Because the archive comes from the tag, its `README.md` still shows the 0.95.1 CDN examples.
 
-CI results and the PUDL Usage announcement are recorded here when they happen.
+## Continuous integration
+
+GitHub Actions ran the test workflow three times, and every job passed on the first attempt: Chromium, Firefox, WebKit, the minified-copy check and the font-subset check. No rerun was needed.
+
+- Release commit `c280fe0`, tag push: run 41108593795.
+- Release commit `c280fe0`, `main` push: run 41108593483.
+- README commit `8455809`, `main` push: run 41108963307.
+
+The PUDL Usage announcement is recorded here when it happens.
