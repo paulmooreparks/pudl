@@ -75,3 +75,7 @@ The PUDL tag depends on pudl-spec `v0.52.1` being published, because the changel
 The CDN examples in `README.md` still point at 0.94.0; the README update that should have followed 0.95.0 never landed. After the 0.95.1 tag is on jsDelivr and its hashes are verified, the examples move straight to 0.95.1.
 
 The release commit contains this record as it stood before tagging. The commit, tag, GitHub release and jsDelivr hash verification are added below in the follow-up commit that updates the README.
+
+The release commit is `1399389adc63ab2bc530ac7465991dc5f1800f38`, and it contains exactly the 29 paths in the release file list. Before tagging, every one of the 20 frozen files in that commit matched its hash in the freeze file. The annotated tag `v0.95.1` points to that commit, and `main` and the tag were pushed together on 2026-10-31. The GitHub release is at https://github.com/paulmooreparks/pudl/releases/tag/v0.95.1.
+
+All 83 CSS and JavaScript files under `dist/` at the tag were fetched from jsDelivr and matched the tagged bytes, with no mismatches. Their SHA-384 integrity values are in `tests/output/release-0951-cdn-hashes.txt`. The 24 CDN examples in `README.md` now point at `v0.95.1` with those values; seven of them changed their hash, and the rest serve files whose bytes did not change since 0.94.0.
