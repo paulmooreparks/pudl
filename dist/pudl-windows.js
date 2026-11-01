@@ -629,7 +629,10 @@
     var badge = node.querySelector('.win-item-attention');
     setHidden(badge, !count);
     setText(badge, count ? String(count) : '');
-    paintState(node.querySelector('.win-item-running'), execution);
+    var mark = node.querySelector('.win-item-running');
+    /* A stack row's state is the execution-state badge (0.96.4). */
+    if (node.hasAttribute('data-win-stack-row') && !mark.classList.contains('badge')) mark.classList.add('badge');
+    paintState(mark, execution);
     var meter = node.querySelector('.win-item-progress');
     setHidden(meter, progress === null);
     setText(meter, progress === null ? '' : progress + '%');

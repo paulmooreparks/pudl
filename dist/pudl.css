@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.96.3.
+   Version 0.96.4.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -2259,6 +2259,20 @@ button.link {
 .badge.danger::before { content: ""; --glyph: var(--glyph-square); }
 .badge.positive::before, .badge.pr::before { content: ""; --glyph: var(--glyph-circle); }
 .badge.accent::before { content: ""; --glyph: var(--glyph-diamond); }
+/* An execution-state badge (0.96.4): data-state of working, waiting,
+   stuck or idle gives a badge the state's static glyph and colour, the
+   same ones the window system draws on title bars, taskbars and stack
+   rows, so a host's own rows state a thing's execution state with the
+   chip the taskbar uses. The words inside are the host's. */
+.badge[data-state="working"] { --badge-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.badge[data-state="waiting"] { --badge-color: var(--warn); background: color-mix(in srgb, var(--warn) 22%, transparent); }
+.badge[data-state="stuck"] { --badge-color: var(--danger); background: color-mix(in srgb, var(--danger) 18%, transparent); }
+.badge[data-state="idle"] { --badge-color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 18%, transparent); }
+.badge[data-state] { color: color-mix(in srgb, var(--badge-color) 50%, var(--text)); }
+.badge[data-state="working"]::before { content: ""; --glyph: var(--glyph-play); }
+.badge[data-state="waiting"]::before { content: ""; --glyph: var(--glyph-pause); }
+.badge[data-state="stuck"]::before { content: ""; --glyph: var(--glyph-warning); }
+.badge[data-state="idle"]::before { content: ""; --glyph: var(--glyph-square); }
 
 .chip {
   display: inline-flex; align-items: center; gap: var(--space-1);

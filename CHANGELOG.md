@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.96.4
+
+A badge may state an execution state. `.badge` with `data-state` of `working`, `waiting`, `stuck` or `idle` leads with the state's static glyph in the state's colour, the same glyph and colour the window system draws, and the words inside are the host's. A host that lists things that run can now mark each with the chip the taskbar uses.
+
+A taskbar stack's rows draw their state with that badge, at the row's end before Close, in a column of fixed width so a change of state moves nothing else. The rows take a menu row's metrics: the panel sets `text-sm` type of its own instead of inheriting the body's, a row has 6px by 14px padding and a 14px glyph, and so stands 32px tall where it stood 36px. A host that had set the panel's font size itself can remove that rule.
+
 ## 0.96.3
 
 A window may show a picture in place of its glyph. `data-win-icon` on the window gives the address of an image, such as an applet's own icon, and PUDL draws it at 16px on the taskbar button, the dock tab and icon rail, a stack's rows, the switcher and the menu bar's Window list. The glyph stands in until the picture loads and after it fails, the attribute is followed live without taking focus, and `pudlWindows.iconOf(key)` gives a host the address to draw. A taskbar stack keeps its group glyph. Before this release a desktop could put a picture there only by reaching into generated markup.
