@@ -36,13 +36,16 @@ function check(name, ok, extra) {
     await p.evaluate(() => document.querySelector('.win-demo').scrollIntoView({ block: 'center' }));
     await p.click('.win-demo-list a[data-win-open="exp-12"]');
     await p.waitForSelector('.win[data-win="exp-12"].active');
-    await p.keyboard.press('Shift');
+    await p.keyboard.press('Tab');
+    check(theme + ': Tab leaves the window header', await p.evaluate(() =>
+      document.activeElement !== document.querySelector('.win[data-win="exp-12"] .win-head')));
+    await p.keyboard.press('Shift+Tab');
     const head = await p.evaluate(() => {
       const h = document.querySelector('.win[data-win="exp-12"] .win-head');
       const cs = getComputedStyle(h);
       const root = getComputedStyle(document.documentElement);
       return { color: cs.color, bg: cs.backgroundImage, shadow: cs.boxShadow,
-               focused: document.activeElement === h };
+               focused: document.activeElement === h, focusVisible: h.matches(':focus-visible') };
     });
     const txt = await p.evaluate(() => {
       const probe = document.createElement('span');
@@ -54,6 +57,7 @@ function check(name, ok, extra) {
     });
     if (theme === 'light') check('light: active bar is filled, light text', head.color === txt.onAccent, JSON.stringify(head));
     else check('dark: active bar is quiet, normal text, accent rule', head.color === txt.text && /inset/.test(head.shadow), JSON.stringify(head));
+    check(theme + ': keyboard navigation returns to the window header', head.focused && head.focusVisible, JSON.stringify(head));
     check(theme + ': focus ring shows on the active bar', head.focused && /0px 0px 0px 3px/.test(head.shadow), head.shadow);
     await p.locator('.win-demo').screenshot({ path: out('bar-' + theme + '.png') });
     await p.close();
