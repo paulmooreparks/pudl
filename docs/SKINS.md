@@ -81,6 +81,8 @@ Gel uses capsule standalone buttons, rounded window controls with visible action
 
 The compiler accepts the named `gel` treatment and owns its paint mappings. The sample loads its generated stylesheet alongside the other skins, and its selector preserves mounted content while switching. Gel requires its own rendered contrast, focus, surface semantics and preservation checks; Bevel approval does not establish Gel conformance.
 
+Adopter feedback recorded on 2 November 2026, with no change made: Gel's capsule radius turns a square standalone `.btn`, such as a key in a numeric keypad or a square toolbar button, into a circle, and its raised fill gives those circles too little depth to read as pressable on sight. Any revision to Gel's raised treatment should check square buttons as well as wide ones.
+
 ## Host integration
 
 An application with an authoritative appearance store sets `data-pudl-persistence="host"` on the root before loading the theme and skin scripts. Both scripts then avoid all local-storage reads and writes and ignore storage events. Theme initialization reads `data-theme-pref`, falling back to `data-theme` and then dark. Skin initialization reads `data-skin`, falling back to Standard. The host supplies preferences through the existing selection APIs and distributes updates across its pages. This startup setting is fixed for the lifetime of the scripts; changing the attribute afterward does not change ownership. Without it, existing local persistence remains the default.
