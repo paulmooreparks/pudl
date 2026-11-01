@@ -1,6 +1,6 @@
 # Companion colour themes
 
-Bevel, Gel and Glaze each have an optional colour theme with the same name. The themes are working candidates pending independent review. Each supports light and dark forms and can be combined with any skin, including Standard.
+Bevel, Gel and Glaze each have an optional colour theme with the same name. The themes passed [independent admission review](../tests/skins/RELEASE-0.96.0-ADMISSION.md). Each supports light and dark forms and can be combined with any skin, including Standard.
 
 | Theme | Light appearance | Dark appearance |
 | --- | --- | --- |

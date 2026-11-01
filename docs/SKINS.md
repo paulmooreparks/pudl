@@ -8,7 +8,7 @@ A skin is authored as JSON. Its stylesheet is a generated artifact. The definiti
 
 The definition validator rejects unknown properties, invalid types, unsupported treatments and out-of-range values. Passing that validator establishes only that a definition can be compiled. A skin becomes supported only after its generated appearance passes the rendered conformance matrix. The build and release checks must require both stages. A custom stylesheet added by an application is outside this validated mechanism; CSS cannot protect a page against arbitrary styles its author supplies.
 
-The development schema supports the `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy` and `glass` treatment families. Adding another family requires a compiler mapping; release admission additionally requires independent rendered tests. Skin authors cannot bypass this by naming a treatment themselves. The identifier `standard` is reserved for the built-in appearance and cannot be supplied as an external skin definition.
+The schema supports the `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy` and `glass` treatment families. Adding another family requires a compiler mapping; release admission additionally requires independent rendered tests. Skin authors cannot bypass this by naming a treatment themselves. The identifier `standard` is reserved for the built-in appearance and cannot be supplied as an external skin definition.
 
 ## Version 1 definition
 
@@ -35,7 +35,7 @@ The bevel treatment must identify a continuous control boundary separately from 
 
 Independent rendered review found that Standard's translucent focus paint falls below 3:1 on the tested card surfaces. Standard preservation retains that existing appearance and records the defect separately. It does not exempt Bevel from the contrast requirement. Bevel's opaque paint is therefore a required conformance correction within the first increment.
 
-The focus revisions change the three released skin stylesheets and await renewed admission. Their previous published bytes remain admitted in the existing release. Matching Bevel, Gel and Glaze [colour themes](THEMES.md) are selected independently of skins and light/dark mode.
+The focus revisions change the three previously released skin stylesheets and have renewed admission for 0.96.0. Earlier tagged releases retain their original bytes. Matching Bevel, Gel and Glaze [colour themes](THEMES.md) are selected independently of skins and light/dark mode.
 
 The first bevel compiler draws edge lighting with inset shadows inside the existing border. It must not increase border widths or move the content box. Tests compare outer bounds, client dimensions, padding and each border width before and after selection. Any later treatment that needs different border widths requires an explicit geometry contract before it is admitted.
 
@@ -101,7 +101,7 @@ Glaze's initial dark accent failed category separation in independent review. Th
 
 ## Distribution and loading
 
-Matte, Ink, Alloy and Glass are implemented candidates. Their catalogue entries have `admitted: false` until independent rendered admission is complete. The preview offers all four for development comparison. Hosts must continue to filter by admission, and the release check intentionally rejects the candidate registry.
+All seven optional skins are admitted at the exact hashes in the [0.96.0 admission record](../tests/skins/RELEASE-0.96.0-ADMISSION.md). Their catalogue entries have `admitted: true`. Hosts must continue to filter by admission. The release check rejects changed assets whose hashes no longer match the registry.
 
 The [implementation verification record](../tests/skins/MATERIALS-IMPLEMENTATION.md) records the tested hashes, corrected findings, rendered evidence and remaining admission requirements.
 

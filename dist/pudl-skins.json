@@ -12,49 +12,49 @@
       "label": "Bevel",
       "stylesheet": "pudl-skin-bevel.css",
       "sha256": "b53aed80c2ed88019e0431bb1acb151a30d23404d2d0e9b29ab91d91d1125057",
-      "admitted": false
+      "admitted": true
     },
     {
       "id": "gel",
       "label": "Gel",
       "stylesheet": "pudl-skin-gel.css",
       "sha256": "ba5ee07b9342c11620998faf5c8f6d3117660b3fa1ec3978e3270e168c6126a4",
-      "admitted": false
+      "admitted": true
     },
     {
       "id": "glaze",
       "label": "Glaze",
       "stylesheet": "pudl-skin-glaze.css",
       "sha256": "2ed6de7ffc5d8ab7c388414df00613bf13993e969dce4f8a0f54087f039e2b4b",
-      "admitted": false
+      "admitted": true
     },
     {
       "id": "matte",
       "label": "Matte",
       "stylesheet": "pudl-skin-matte.css",
       "sha256": "e9503d2c96d009afa7b4d64638824af5322a3c344fa22760594a638aaa72f2fe",
-      "admitted": false
+      "admitted": true
     },
     {
       "id": "ink",
       "label": "Ink",
       "stylesheet": "pudl-skin-ink.css",
       "sha256": "4365295fd6cdadb961fdc64d09611425a0cc2f40d2034527eccde0120e02e60d",
-      "admitted": false
+      "admitted": true
     },
     {
       "id": "alloy",
       "label": "Alloy",
       "stylesheet": "pudl-skin-alloy.css",
       "sha256": "c62fd11e99c0278664c897dece48bbbda0bf429aba93caaa6beb5b365555e155",
-      "admitted": false
+      "admitted": true
     },
     {
       "id": "glass",
       "label": "Glass",
       "stylesheet": "pudl-skin-glass.css",
       "sha256": "3b89d92a98c57c09c9df2833a006da47332158807cd1f6a9009c675e15711993",
-      "admitted": false
+      "admitted": true
     }
   ]
 }
