@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.96.2
+
+Open menu-bar menus, ribbon dropdowns and command menus preserve their surviving rows, focus and scroll during background command updates and window retitles. Enabled and checked states refresh while the menu remains open. Removed or disabled commands receive a visible, enabled focus fallback. Mixed custom-content menus preserve their input fields while updating surrounding command rows.
+
+Open combo lists follow changes to their source options while preserving typed text and caret position. Disabled options are excluded, and a stale row cannot choose an option that was removed or disabled.
+
+Existing applications need no markup changes. Replace matching readable or minified modules together. Commands added to an already open owner-drawn fold menu appear when it next opens; existing rows update while open. See `docs/RELEASE-0.96.2.md` for evidence and remaining limits. This release implements specification 0.52.3.
+
 ## 0.96.1
 
 This release carries the seven admitted skins, three companion palettes and static execution-state support from the held 0.96.0 prerelease. The application styles and behavior are unchanged; the core stylesheet version comment is updated.
