@@ -182,8 +182,10 @@
     field.setAttribute('aria-controls', panel.id);
     opener.setAttribute('aria-controls', panel.id);
 
+    /* A disabled option is not offered, as a datalist's is not, and cannot
+       be chosen. */
     function options() {
-      return Array.prototype.map.call(source.querySelectorAll('option'), function (o) {
+      return Array.prototype.filter.call(source.querySelectorAll('option'), function (o) { return !o.disabled; }).map(function (o) {
         var text = o.textContent.trim();
         var keys = (o.getAttribute('data-combo-keys') || '').split(',').map(function (k) { return k.trim(); }).filter(Boolean);
         return strict
@@ -292,14 +294,47 @@
           o.keys.some(function (k) { return k.toLowerCase().indexOf(q) >= 0; });
       });
     }
+    var shownQ = '';
     function show(list, q) {
       if (!list.length) { close(); return false; }
+      shownQ = q || '';
       draw(list, q);
       open();
       return true;
     }
+    /* A script may change the options while the list is open: add, remove
+       or disable them, or change their words. The open list follows at
+       once, for what was typed, keeping its scroll and the row the
+       keyboard was on while its option is still there; a list left with
+       no rows closes. The field, what is typed in it, the caret and any
+       composition are not touched. */
+    function same(list) {
+      list = list.slice(0, LIMIT);
+      return list.length === rows.length && list.every(function (o, i) {
+        var r = rows[i].option;
+        return r.value === o.value && r.label === o.label && r.detail === o.detail && r.keys.join() === o.keys.join();
+      });
+    }
+    function follow() {
+      if (!isOpen()) return;
+      var list = shownQ ? matching(shownQ) : options();
+      if (same(list)) return;
+      if (!list.length) { close(); return; }
+      var was = rows[active] ? rows[active].option.value : null, top = panel.scrollTop;
+      draw(list, shownQ);
+      panel.scrollTop = top;
+      place();
+      var at = was == null ? -1 : rows.map(function (r) { return r.option.value; }).indexOf(was);
+      if (at >= 0) setActive(at);
+    }
+    new MutationObserver(follow).observe(source, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'value', 'label', 'data-combo-keys'] });
 
+    /* A row chooses its option as it is now: one removed or disabled since
+       the list was drawn chooses nothing, and the list follows. */
     function choose(o) {
+      var now = options().filter(function (x) { return x.value === o.value; })[0];
+      if (!now) { follow(); return; }
+      o = now;
       close();
       if (tok) { tok.commit([o.value], true); lastQ = ''; return; }
       if (strict) {

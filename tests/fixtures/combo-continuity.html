@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Combo boxes through updates</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-combo.js" defer></script>
+  <style>body { margin: 24px; }</style>
+</head>
+<body>
+  <!-- A test fixture for a searchable select whose options a script
+       changes while its list is open. Gamma starts disabled. -->
+  <label class="form-label" for="pick">Pick</label>
+  <span class="form-select-wrap">
+    <select class="form-select" id="pick" name="pick" data-combo>
+      <option value="alpha">Alpha</option>
+      <option value="beta">Beta</option>
+      <option value="gamma" disabled>Gamma</option>
+      <option value="delta">Delta</option>
+      <option value="eta">Eta</option>
+    </select>
+  </span>
+  <p><button type="button" id="elsewhere">Elsewhere</button></p>
+</body>
+</html>
