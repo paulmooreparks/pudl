@@ -8,32 +8,66 @@
   <script src="../../dist/pudl-menu.js" defer></script>
   <script src="../../dist/pudl-commands.js" defer></script>
   <script src="../../dist/pudl-toolbar.js" defer></script>
-  <style>body { margin: 24px; } .menu-panel { max-height: 240px; }</style>
+  <style>body { margin: 24px; } #folded-wrap { width: 90px; }</style>
 </head>
 <body>
   <!-- A test fixture for a command menu open while its commands change: a
-       toolbar with a menu of choices, enough rows to scroll, and a field
-       the reader can move focus to. -->
+       toolbar with a menu of choices, enough rows to scroll, a field the
+       reader can move focus to, and a second toolbar too narrow for its
+       group, whose menu is folded into the group's fold menu. -->
   <div class="toolbar" role="toolbar" aria-label="Tools">
     <div class="toolbar-group"><button type="button" id="first-tool" data-command="tidy"></button><button type="button" data-command="mode" id="mode-btn"></button></div>
   </div>
   <input class="form-input" id="elsewhere" aria-label="Elsewhere">
+  <div id="folded-wrap">
+    <div class="toolbar" role="toolbar" aria-label="Folded" data-toolbar-fold id="folded">
+      <div class="toolbar-group" data-toolbar-group="Modes" data-toolbar-glyph="list"><button type="button" data-command="tidy"></button><button type="button" data-command="mode" id="fold-mode"></button></div>
+    </div>
+  </div>
   <script>
-    window.__f = { mode: 'a', bOff: false, gone: false, modeOff: false, reverse: false, extra: 20, log: [] };
+    /* Flags a test sets before pudlCommands.changed():
+       mode       the chosen mode, a, b or c
+       bOff       Mode B disabled
+       gone       the Mode menu hidden
+       removed    the Mode menu's command no longer registered
+       modeOff    the Mode menu's command disabled
+       reverse    the three modes in reverse order
+       extra      how many Item rows follow them
+       dropItem   the id of an Item row taken out of the menu
+       dups       two rows labelled Same, with ids dup-a and dup-b
+       dupsSwap   those two rows in the other order
+       dupReplace dup-a replaced by dup-c, also labelled Same
+       withPanel  a command with a panel of its own, a search field, among the rows */
+    window.__f = { mode: 'a', bOff: false, gone: false, removed: false, modeOff: false, reverse: false, extra: 20, dropItem: null,
+      dups: false, dupsSwap: false, dupReplace: false, withPanel: false, panelDraws: 0, log: [] };
     document.addEventListener('DOMContentLoaded', function () {
       pudlCommands.register(document.body, function () {
         var f = window.__f, extra = [];
-        for (var i = 0; i < f.extra; i++) extra.push('item-' + i);
+        for (var i = 0; i < f.extra; i++) if (f.dropItem !== 'item-' + i) extra.push('item-' + i);
         var modes = ['mode-a', 'mode-b', 'mode-c'];
         if (f.reverse) modes.reverse();
+        var dups = f.dups ? (f.dupReplace ? ['dup-c', 'dup-b'] : ['dup-a', 'dup-b']) : [];
+        if (f.dupsSwap) dups.reverse();
+        var lead = f.withPanel ? ['find'] : [];
         var list = [
           { id: 'tidy', label: 'Tidy', run: function () { f.log.push('tidy'); } },
-          { id: 'mode', label: 'Mode', hidden: function () { return f.gone; }, disabled: function () { return f.modeOff; }, items: modes.concat(extra) },
           { id: 'mode-a', label: 'Mode A', choice: 'mode', checked: function () { return f.mode === 'a'; }, run: function () { f.mode = 'a'; f.log.push('a'); } },
           { id: 'mode-b', label: 'Mode B', choice: 'mode', disabled: function () { return f.bOff; }, checked: function () { return f.mode === 'b'; }, run: function () { f.mode = 'b'; f.log.push('b'); } },
-          { id: 'mode-c', label: 'Mode C', choice: 'mode', checked: function () { return f.mode === 'c'; }, run: function () { f.mode = 'c'; f.log.push('c'); } }
+          { id: 'mode-c', label: 'Mode C', choice: 'mode', checked: function () { return f.mode === 'c'; }, run: function () { f.mode = 'c'; f.log.push('c'); } },
+          { id: 'dup-a', label: 'Same', run: function () { f.log.push('dup-a'); } },
+          { id: 'dup-b', label: 'Same', run: function () { f.log.push('dup-b'); } },
+          { id: 'dup-c', label: 'Same', run: function () { f.log.push('dup-c'); } },
+          { id: 'find', label: 'Find', panel: function (box) {
+            f.panelDraws++;
+            var input = document.createElement('input');
+            input.className = 'form-input';
+            input.id = 'menu-find';
+            input.setAttribute('aria-label', 'Find');
+            box.appendChild(input);
+          } }
         ];
-        extra.forEach(function (id, i) { list.push({ id: id, label: 'Item ' + i, run: function () { f.log.push(id); } }); });
+        if (!f.removed) list.push({ id: 'mode', label: 'Mode', hidden: function () { return f.gone; }, disabled: function () { return f.modeOff; }, items: lead.concat(modes, dups, extra) });
+        extra.forEach(function (id) { var n = id.slice(5); list.push({ id: id, label: 'Item ' + n, run: function () { f.log.push(id); } }); });
         return list;
       });
       pudlCommands.changed();

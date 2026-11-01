@@ -261,7 +261,15 @@
     ctl.classList.add('menu-btn');
     ctl.setAttribute('popovertarget', panel.id);
     ctl.__pudlMenu = panel;
-    commandMenus.push({ ctl: ctl, panel: panel });
+    var m = { ctl: ctl, panel: panel, bar: ctl.closest('.toolbar, [role=toolbar]'), focusIn: false };
+    commandMenus.push(m);
+    panel.addEventListener('focusin', function () { m.focusIn = true; });
+    /* Focus leaving with the menu itself, as when its host takes it out of
+       the page, still counts as in it, so it can be given to the toolbar. */
+    panel.addEventListener('focusout', function (e) {
+      if (e.relatedTarget) { if (!panel.contains(e.relatedTarget)) m.focusIn = false; return; }
+      queueMicrotask(function () { if (panel.isConnected && !panel.contains(document.activeElement)) m.focusIn = false; });
+    });
     panel.addEventListener('beforetoggle', function (e) {
       if (e.newState !== 'open') return;
       var now = find(ctl.getAttribute('data-command'), ctl);
@@ -275,7 +283,7 @@
   /* Menu rows for commands: the glyph, the words, the key, a tick or a
      radio for a command that switches or chooses, the badge or the reason
      as a second line, a heading before each set of choices. */
-  function rows(panel, cmds, el, onRun) {
+  function rows(panel, cmds, el, onRun, keepPanels) {
     var lastChoice = null;
     cmds.forEach(function (c) {
       if (c === '-') { var hr = document.createElement('hr'); hr.className = 'menu-sep'; panel.appendChild(hr); lastChoice = null; return; }
@@ -297,8 +305,11 @@
         ph.textContent = val(c, 'label') || c.id;
         var box = document.createElement('div');
         box.className = 'menu-command-panel';
+        box._pudlPanelOf = c;
         panel.append(ph, box);
-        drawPanel(c, box);
+        /* Drawn again for an open menu, a panel already there is kept as
+           the reader has it (redrawOpenMenus); only a new one is drawn. */
+        if (!keepPanels) drawPanel(c, box);
         return;
       }
       panel.appendChild(row(c, el, onRun));
@@ -310,6 +321,7 @@
     b.type = 'button';
     b.className = 'menu-action';
     b._pudlCommand = c;
+    b._pudlScope = el;
     var checked = val(c, 'checked'), choice = val(c, 'choice');
     if (checked != null) {
       b.setAttribute('role', choice ? 'menuitemradio' : 'menuitemcheckbox');
@@ -404,88 +416,161 @@
      says whether the drawing changed the page, so a toolbar measures
      itself again only when it did. */
   /* A command menu open while its commands change stays open and is drawn
-     again in place, so its ticks and disabled rows are current; a menu
-     whose rows read as they did is left untouched. Focus on a row stays on
-     it while its command is there and enabled; when that command has gone
-     or been disabled, focus moves to the menu's first enabled row, then to
+     again in place, so its ticks, words and disabled rows are current and
+     each row runs its command as it is now. Focus on a row stays on it
+     while its command is there and enabled; when that command has gone or
+     been disabled, focus moves to the menu's first enabled row, then to
      the menu's button, never to a row that has left the page. A command's
-     own panel, such as a search field, is the reader's while it is open
-     and is not drawn again; it is drawn afresh as it next opens. */
+     own panel, such as a search field, is kept as the reader has it, with
+     its input, caret and selection, while the rows around it are brought
+     up to date; a panel that comes while the menu is open is drawn, one
+     that goes is removed. When the menu's command goes, is disabled or
+     hidden, or its button leaves the page, the menu closes, and focus that
+     was in it goes to its button or to another enabled control of its
+     toolbar. */
   function openRows(panel) {
     return Array.prototype.filter.call(panel.querySelectorAll(':scope > .menu-action'), function (r) { return r.getClientRects().length > 0; });
   }
-  function enabledRow(r) { return !!r && r.getAttribute('aria-disabled') !== 'true' && !r.disabled; }
+  function enabledRow(r) { return !!r && r.isConnected && r.getAttribute('aria-disabled') !== 'true' && !r.disabled && r.getClientRects().length > 0; }
+  /* A control that can still be used: in the page, shown, enabled, and
+     if it is a command's control, its command still registered. A button
+     whose command has gone is left in the page by its host but does
+     nothing, so focus is never given to it. */
+  function usable(n) {
+    if (!n || !n.isConnected || n.hidden || n.disabled || n.getAttribute('aria-disabled') === 'true' || !n.getClientRects().length) return false;
+    var id = n.getAttribute('data-command');
+    return !id || !!find(id, n);
+  }
+  function spareIn(m) {
+    if (usable(m.ctl)) return m.ctl;
+    var bar = m.bar && m.bar.isConnected ? m.bar : null;
+    return bar ? Array.prototype.filter.call(bar.querySelectorAll('button, a[href], input, select, [tabindex]:not([tabindex="-1"])'), function (n) {
+      return !n.closest('[popover]') && usable(n);
+    })[0] || null : null;
+  }
+  /* Focus moved by the script to a row it chose, shown: a panel whose rows
+     changed has its scroll put back by pudl-menu.js once this task is done
+     (__pudlKeepScroll), so the row is brought into sight after that. */
+  function focusShown(n) {
+    n.focus({ preventScroll: true });
+    queueMicrotask(function () { if (document.activeElement === n && n.scrollIntoView) n.scrollIntoView({ block: 'nearest' }); });
+  }
   function redrawOpenMenus() {
-    commandMenus = commandMenus.filter(function (m) { return m.ctl.isConnected || m.panel.isConnected; });
     commandMenus.forEach(function (m) {
       var panel = m.panel, ctl = m.ctl;
-      if (!panel.isConnected || !panel.matches(':popover-open')) return;
-      var now = find(ctl.getAttribute('data-command'), ctl), list = now && itemsOf(now.cmd, ctl);
-      /* The menu's command has gone, or its button has: the menu closes,
-         and focus that was in it goes to the button, or to another control
-         of its toolbar that is still there. */
+      /* The menu left the page with focus in it: focus goes to a control
+         of its toolbar still there. */
+      if (!panel.isConnected) {
+        if (m.focusIn) {
+          m.focusIn = false;
+          var a0 = document.activeElement;
+          if (!a0 || a0 === document.body) { var s0 = spareIn(m); if (s0) focusShown(s0); }
+        }
+        return;
+      }
+      if (!panel.matches(':popover-open')) return;
+      var now = ctl.isConnected ? find(ctl.getAttribute('data-command'), ctl) : null, list = now && itemsOf(now.cmd, ctl);
       if (!now || !opensMenu(now.cmd, ctl) || !ctl.isConnected || ctl.hidden || ctl.disabled) {
-        var inside = panel.contains(document.activeElement);
+        var inside = panel.contains(document.activeElement) || m.focusIn;
         panel.hidePopover();
-        if (!inside) return;
-        var bar = ctl.isConnected && ctl.closest('.toolbar, [role=toolbar]');
-        var spare = ctl.isConnected && !ctl.hidden && !ctl.disabled && ctl.getClientRects().length ? ctl :
-          bar ? Array.prototype.filter.call(bar.querySelectorAll('button, a[href], input, select, [tabindex]:not([tabindex="-1"])'), function (n) { return !n.disabled && n.getClientRects().length && !n.closest('[popover]'); })[0] : null;
-        if (spare) spare.focus();
+        m.focusIn = false;
+        var a1 = document.activeElement;
+        if (!inside || (a1 && a1 !== document.body && !panel.contains(a1) && a1 !== ctl)) return;
+        var spare = spareIn(m);
+        if (spare) focusShown(spare);
         return;
       }
-      if (typeof now.cmd.panel === 'function' || list.some(function (c) { return c && typeof c.panel === 'function'; })) return;
+      if (typeof now.cmd.panel === 'function') return;
       var fresh = document.createElement('div');
-      rows(fresh, list, ctl);
-      if (fresh.innerHTML === panel.innerHTML) {
-        Array.prototype.forEach.call(panel.children, function (r, i) { if (r._pudlCommand) r._pudlCommand = fresh.children[i]._pudlCommand; });
-        return;
-      }
+      rows(fresh, list, ctl, null, true);
       var a = document.activeElement, had = panel.contains(a);
-      reconcileRows(panel, Array.prototype.slice.call(fresh.childNodes));
+      if (!reconcileRows(panel, Array.prototype.slice.call(fresh.childNodes))) return;
       touched = true;
       a = document.activeElement;
       if (!had || (a && a !== document.body && !panel.contains(a))) return;
-      if (panel.contains(a) && enabledRow(a)) return;
-      var target = openRows(panel).filter(enabledRow)[0] || null;
-      if (!target && ctl.isConnected && !ctl.disabled && ctl.getClientRects().length) target = ctl;
-      if (target) target.focus();
+      if (panel.contains(a) && (!a.classList.contains('menu-action') || enabledRow(a))) return;
+      var target = openRows(panel).filter(enabledRow)[0] || spareIn(m);
+      if (target) focusShown(target);
     });
+    commandMenus = commandMenus.filter(function (m) { return m.ctl.isConnected || m.panel.isConnected; });
+    refreshOtherRows();
+  }
+  /* Rows of commands drawn by pudlCommands.rows into any other popup, such
+     as a folded toolbar group's menu, stay current while it is open: each
+     row's words and state follow its command, a row whose command has gone
+     or been hidden is removed, and focus on a row that went or was
+     disabled moves to the popup's first enabled row. Rows added to the
+     commands while it is open show when it next opens, as its owner draws
+     it then. */
+  function refreshOtherRows() {
+    var mine = new Set(commandMenus.map(function (m) { return m.panel; }));
+    Array.prototype.forEach.call(document.querySelectorAll('[popover]'), function (pop) {
+      if (mine.has(pop) || !pop.matches(':popover-open')) return;
+      var rs = Array.prototype.filter.call(pop.querySelectorAll(':scope > .menu-action'), function (r) { return r._pudlCommand && r._pudlCommand.id; });
+      if (!rs.length) return;
+      var a = document.activeElement, had = pop.contains(a), changed = false;
+      rs.forEach(function (o) {
+        var f = find(o._pudlCommand.id, o._pudlScope || o);
+        if (!f || val(f.cmd, 'hidden')) { o.remove(); changed = true; return; }
+        if (syncRow(o, row(f.cmd, o._pudlScope))) changed = true;
+      });
+      if (!changed) return;
+      touched = true;
+      a = document.activeElement;
+      if (!had || (a && a !== document.body && !pop.contains(a))) return;
+      if (pop.contains(a) && (!a.classList.contains('menu-action') || enabledRow(a))) return;
+      var target = openRows(pop).filter(enabledRow)[0];
+      if (target) focusShown(target);
+    });
+  }
+  /* A row brought to a freshly drawn one in place; whether it changed. */
+  function syncRow(o, f) {
+    var changed = false;
+    Array.prototype.slice.call(f.attributes).forEach(function (at) { if (o.getAttribute(at.name) !== at.value) { o.setAttribute(at.name, at.value); changed = true; } });
+    Array.prototype.slice.call(o.attributes).forEach(function (at) { if (!f.hasAttribute(at.name) && !/^(id|tabindex)$/.test(at.name)) { o.removeAttribute(at.name); changed = true; } });
+    if (o.innerHTML !== f.innerHTML) { o.replaceChildren.apply(o, Array.prototype.slice.call(f.childNodes)); changed = true; }
+    o._pudlCommand = f._pudlCommand;
+    o._pudlScope = f._pudlScope;
+    return changed;
   }
   /* The open panel's nodes brought to fresh in place: a row whose command
      is still there is the same element, its words and state updated, so
-     focus on it and the scroll stay; separators and headings are matched
-     in order. A row with focus is never moved, since moving an element
-     takes focus from it; the nodes around it move instead. */
+     focus on it and the scroll stay; a command's own panel is kept as it
+     is; separators and headings are matched in order. A node holding focus
+     is never moved, since moving an element takes focus from it; the nodes
+     around it move instead. Whether anything changed. */
   function reconcileRows(panel, fresh) {
-    var olds = Array.prototype.slice.call(panel.childNodes), used = new Set(), wanted = [], made = false;
-    function kind(n) { return n.nodeType !== 1 ? '#' : n._pudlCommand ? 'row:' + n._pudlCommand.id : n.tagName + ':' + n.className + ':' + (n.classList.contains('md-section-label') ? n.textContent : ''); }
+    var olds = Array.prototype.slice.call(panel.childNodes), used = new Set(), wanted = [], made = [], changed = false;
+    function kind(n) {
+      if (n.nodeType !== 1) return '#';
+      if (n._pudlCommand) return 'row:' + n._pudlCommand.id;
+      if (n._pudlPanelOf) return 'panel:' + n._pudlPanelOf.id;
+      return n.tagName + ':' + n.className + ':' + (n.classList.contains('md-section-label') ? n.textContent : '');
+    }
     fresh.forEach(function (f) {
       var k = kind(f), o = olds.filter(function (x) { return !used.has(x) && kind(x) === k; })[0];
-      if (!o) { wanted.push(f); made = true; return; }
+      if (!o) { wanted.push(f); made.push(f); return; }
       used.add(o);
-      if (o.nodeType === 1 && o._pudlCommand) {
-        Array.prototype.slice.call(f.attributes).forEach(function (at) { if (o.getAttribute(at.name) !== at.value) o.setAttribute(at.name, at.value); });
-        Array.prototype.slice.call(o.attributes).forEach(function (at) { if (!f.hasAttribute(at.name) && !/^(id|tabindex)$/.test(at.name)) o.removeAttribute(at.name); });
-        if (o.innerHTML !== f.innerHTML) o.replaceChildren.apply(o, Array.prototype.slice.call(f.childNodes));
-        o._pudlCommand = f._pudlCommand;
-      }
+      if (o.nodeType === 1 && o._pudlCommand && syncRow(o, f)) changed = true;
+      if (o.nodeType === 1 && o._pudlPanelOf) o._pudlPanelOf = f._pudlPanelOf;
       wanted.push(o);
     });
     var gone = olds.filter(function (o) { return !used.has(o); });
     var kept = olds.filter(function (o) { return used.has(o); });
-    var moved = made || !kept.every(function (o, i) { return o === wanted[i]; });
-    if (!gone.length && !moved) return;
+    var moved = made.length > 0 || !kept.every(function (o, i) { return o === wanted[i]; });
+    if (!gone.length && !moved) return changed;
     panel.__pudlKeepScroll = panel.scrollTop;
     gone.forEach(function (o) { o.remove(); });
-    if (!moved) return;
-    var a = document.activeElement, pin = wanted.findIndex(function (n) { return n === a || (n.nodeType === 1 && n.contains(a)); });
-    if (pin < 0) {
-      wanted.forEach(function (n, i) { var at = i ? wanted[i - 1].nextSibling : panel.firstChild; if (n !== at) panel.insertBefore(n, at); });
-      return;
+    if (moved) {
+      var a = document.activeElement, pin = wanted.findIndex(function (n) { return n === a || (n.nodeType === 1 && n.contains(a)); });
+      if (pin < 0) wanted.forEach(function (n, i) { var at = i ? wanted[i - 1].nextSibling : panel.firstChild; if (n !== at) panel.insertBefore(n, at); });
+      else {
+        for (var i = pin - 1; i >= 0; i--) if (wanted[i].nextSibling !== wanted[i + 1]) panel.insertBefore(wanted[i], wanted[i + 1]);
+        for (var j = pin + 1; j < wanted.length; j++) if (wanted[j - 1].nextSibling !== wanted[j]) panel.insertBefore(wanted[j], wanted[j - 1].nextSibling);
+      }
     }
-    for (var i = pin - 1; i >= 0; i--) if (wanted[i].nextSibling !== wanted[i + 1]) panel.insertBefore(wanted[i], wanted[i + 1]);
-    for (var j = pin + 1; j < wanted.length; j++) if (wanted[j - 1].nextSibling !== wanted[j]) panel.insertBefore(wanted[j], wanted[j - 1].nextSibling);
+    made.forEach(function (n) { if (n.nodeType === 1 && n._pudlPanelOf) drawPanel(n._pudlPanelOf, n); });
+    return true;
   }
 
   function draw(root) {
