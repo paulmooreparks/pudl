@@ -1,6 +1,6 @@
 # Skin title bars, companion palettes and focus
 
-Paul requested these refinements on 1 November 2026 after reviewing the material previews. They remain separate from the static execution-state release candidate. The canonical architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`.
+Paul requested these refinements on 1 November 2026 after reviewing the material previews. Paul subsequently authorized combining these refinements with the static execution-state changes in 0.96.0. The canonical architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`.
 
 Glass previously painted opaque rectangles behind individual titles and status groups. The revised treatment gives the whole title bar one continuous opaque reading surface while retaining translucent frame paint. It preserves control geometry, supports reduced transparency and avoids filtering the window's containing block.
 

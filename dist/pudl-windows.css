@@ -424,8 +424,6 @@
 .win-state[data-state="waiting"] { color: color-mix(in srgb, var(--warn) 40%, var(--text)); }
 .win-state[data-state="stuck"] { color: color-mix(in srgb, var(--danger) 40%, var(--text)); }
 .win-state[data-state="idle"] { color: var(--text-muted); }
-.win-state[data-state="working"] > .glyph { animation: win-working 1.2s linear infinite; }
-@keyframes win-working { to { transform: rotate(360deg); } }
 .win-item-state .win-state-words, .win-execution .win-state-words { display: none; }
 .win-status.win-execution { box-sizing: border-box; width: 24px; min-width: 24px; height: 22px; padding: 0; justify-content: center; background: var(--surface); }
 .win-stack-link .win-item-state { flex-basis: 10em; width: 10em; max-width: 40%; justify-content: start; }
@@ -444,7 +442,6 @@
 .win-status-popover[data-win-status-rows] .win-status-rows { flex-basis: calc(var(--win-status-count) * var(--win-status-row) + (var(--win-status-count) - 1) * var(--space-2)); }
 .win-status-popover > .btn { flex: none; align-self: start; margin-top: var(--space-2); }
 .win-status-popover li > .glyph { vertical-align: middle; margin-inline-end: var(--space-1); }
-@media (prefers-reduced-motion: reduce) { .win-state[data-state] > .glyph { animation: none; } }
 @media (forced-colors: active) { .win-state[data-state] { forced-color-adjust: none; background: Canvas; color: CanvasText; } }
 
 .win-item-progress { font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }

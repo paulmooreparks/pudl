@@ -350,7 +350,7 @@ The [skin contract](SKINS.md) defines validated definitions, generated treatment
 
 ## Menu and execution-state corrections in 0.95.1
 
-`data-win-state`, `data-win-state-label`, `data-win-state-detail` and `data-win-status-rows` follow [WINDOW-STATUS.md](WINDOW-STATUS.md). All execution marks share the glyph mapping, reserved compact slots, folded words and aggregation rules described there. The legacy running attribute uses the same renderer.
+`data-win-state`, `data-win-state-label`, `data-win-state-detail`, `data-win-state-title` and `data-win-status-rows` follow [WINDOW-STATUS.md](WINDOW-STATUS.md). Since 0.96.0, all execution marks use static Play, Pause, warning and solid square glyphs. `data-win-state-title="none"` suppresses the generated title chip and its folded execution row while retaining host chips and taskbar, dock and stack marks. The legacy running attribute uses the same renderer. Compact slots remain reserved except for the explicitly suppressed title presentation.
 
 `pudlWindows.retitle()` updates the menu bar and emits bubbling `pudl:window-title` with `detail.key`. Menu opening and shortcut lookup read the current front applet's commands. Before invoking a contributed command from an existing menu or ribbon, PUDL resolves its source and menu path again and rejects removed, ambiguous or disabled commands. Explicit command IDs provide stable identity; otherwise the label and containing menu path identify the command.
 

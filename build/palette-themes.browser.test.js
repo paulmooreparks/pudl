@@ -64,7 +64,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
           const probe = document.createElement('span'); document.body.appendChild(probe);
           const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
           const ctx = canvas.getContext('2d');
-          const keys = ['bg', 'surface', 'surface-alt', 'input-bg', 'recess-bg', 'text', 'text-muted', 'accent', 'accent-hover', 'on-accent', 'tb-bg', 'tb-fg', 'focus-ring', 'warn', 'danger', 'positive', ...Array.from({ length: 8 }, (_, i) => 'category-' + (i + 1)), ...syntaxKeys];
+          const keys = ['bg', 'surface', 'surface-alt', 'input-bg', 'recess-bg', 'text', 'text-muted', 'accent', 'accent-hover', 'on-accent', 'tb-bg', 'tb-fg', 'focus-ring', 'warn', 'danger', 'pr', ...Array.from({ length: 8 }, (_, i) => 'category-' + (i + 1)), ...syntaxKeys];
           const values = {};
           for (const key of keys) {
             probe.style.color = 'var(--' + key + ')'; ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = getComputedStyle(probe).color; ctx.fillRect(0, 0, 1, 1);
@@ -76,7 +76,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
         for (const surface of ['bg', 'surface', 'surface-alt', 'input-bg', 'recess-bg']) {
           for (const fg of ['text', 'text-muted', 'accent', ...syntaxKeys]) assert(contrast(colours[fg], colours[surface]) >= 4.5, label + ' ' + fg + '/' + surface + ' ' + contrast(colours[fg], colours[surface]));
           if (skin !== 'standard') assert(contrast(colours['focus-ring'], colours[surface]) >= 3, label + ' focus/' + surface + ' ' + contrast(colours['focus-ring'], colours[surface]));
-          for (const status of ['warn', 'danger', 'positive']) assert(contrast(colours[status], colours[surface]) >= 3, label + ' ' + status + '/' + surface);
+          for (const status of ['warn', 'danger', 'pr']) assert(contrast(colours[status], colours[surface]) >= 3, label + ' ' + status + '/' + surface);
           if (['bg', 'surface', 'input-bg'].includes(surface)) for (let i = 1; i <= 8; i++) assert(contrast(colours['category-' + i], colours[surface]) >= 3, label + ' category ' + i + '/' + surface);
         }
         assert(contrast(colours['on-accent'], colours.accent) >= 4.5, label + ' primary');

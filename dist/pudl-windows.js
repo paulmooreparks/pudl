@@ -515,7 +515,7 @@
   }
 
   var EXECUTION_STATES = ['stuck', 'waiting', 'working', 'idle'];
-  var STATE_GLYPHS = { working: 'working', waiting: 'flag', stuck: 'warning', idle: 'ring' };
+  var STATE_GLYPHS = { working: 'play', waiting: 'pause', stuck: 'warning', idle: 'square' };
   function executionState(win) {
     var explicit = win.getAttribute('data-win-state');
     var state = explicit === null ? (win.hasAttribute('data-win-running') ? 'working' : '') : explicit;
@@ -538,9 +538,15 @@
     setText(mark.lastChild, value ? value.label : '');
     styleProp(mark.firstChild, '--glyph', 'var(--glyph-' + (value ? STATE_GLYPHS[value.state] : 'ring') + ')');
   }
+  function titleExecutionState(win) {
+    return win.getAttribute('data-win-state-title') === 'none' ? null : executionState(win);
+  }
   function titleState(win) {
     var mark = win.querySelector('.win-head > .win-statuses > .win-execution > .win-state');
-    if (mark) paintState(mark, executionState(win));
+    if (mark) {
+      setHidden(mark.parentElement, win.getAttribute('data-win-state-title') === 'none');
+      paintState(mark, titleExecutionState(win));
+    }
   }
   function stackState(keys) {
     var counts = { stuck: 0, waiting: 0, working: 0, idle: 0 };
@@ -2773,7 +2779,7 @@
      has it, by id or by name, and otherwise goes to the new body; a notice
      in the new content is announced. */
   var WINDOW_HEADER = 'X-PUDL-Window';
-  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-status-rows', 'data-win-progress'];
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
   var announceRegion = null;
 
   function announce(words) {
@@ -3006,7 +3012,7 @@
     region.appendChild(list); panel.append(region, close); layer.appendChild(panel);
     button.setAttribute('popovertarget', panel.id); group.appendChild(button);
     var frame = 0, disposed = false, menuReturnTarget = null;
-    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return !s.hidden && (s.classList.contains('win-execution') ? !!executionState(win) : !!s.textContent.trim()); }); }
+    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return s === execution ? !!titleExecutionState(win) : !s.hidden && !!s.textContent.trim(); }); }
     /* data-win-status-rows is a whole number from 1 to 6 in plain decimal
        digits; anything else, including padding or a sign, counts as absent. */
     function reservedRows() { var raw = win.getAttribute('data-win-status-rows'); return raw !== null && /^[1-6]$/.test(raw) ? Number(raw) : 0; }
@@ -3017,10 +3023,10 @@
       list.textContent = '';
       [execution].concat(statuses().filter(function (s) { return s !== execution; })).forEach(function (s) {
         /* A window with no state has no state row, not an empty one. */
-        if (s === execution && !executionState(win)) return;
+        if (s === execution && !titleExecutionState(win)) return;
         var row = document.createElement('li');
         if (s.classList.contains('win-execution')) {
-          var value = executionState(win);
+          var value = titleExecutionState(win);
           row.className = 'win-execution-row';
           var mark = document.createElement('span'); mark.className = 'win-state'; paintState(mark, value); row.appendChild(mark);
         } else {
@@ -3046,6 +3052,8 @@
       if (disposed || !win.isConnected) return;
       var returnFocus = document.activeElement === button || panel.contains(document.activeElement);
       var empty = !statuses().length;
+      /* Without a generated slot or host chips, the group uses no space. */
+      setHidden(group, win.getAttribute('data-win-state-title') === 'none' && empty);
       group.toggleAttribute('data-win-status-empty', empty);
       if (empty) {
         if (panel.matches(':popover-open')) panel.hidePopover();
@@ -3083,8 +3091,13 @@
     if (title) mo.observe(title, { subtree: true, childList: true, characterData: true });
     /* The reservation is the owning window's attribute, so a change to it
        refreshes an open popover directly. */
-    var reservation = new MutationObserver(function () { if (panel.matches(':popover-open')) refresh(); });
-    reservation.observe(win, { attributes: true, attributeFilter: ['data-win-status-rows'] });
+    var reservation = new MutationObserver(function (records) {
+      if (records.some(function (r) { return r.attributeName === 'data-win-state-title'; })) {
+        titleState(win);
+        schedule();
+      } else if (panel.matches(':popover-open')) refresh();
+    });
+    reservation.observe(win, { attributes: true, attributeFilter: ['data-win-status-rows', 'data-win-state-title'] });
     /* Focus goes to the scroll region once the popover is open, not wherever
        the browser would put it, so there is one stable place to start. */
     panel.addEventListener('toggle', function (e) { if (e.newState === 'open' && panel.matches(':popover-open')) region.focus({ preventScroll: true }); });
