@@ -13,7 +13,7 @@ const { launch, ROOT, out } = require('./lib');
     });
     async function frames() { await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))); }
     await frames();
-    for (const skin of ['standard','bevel','gel','glaze']) {
+    for (const skin of ['standard', ...require('../skins/registry.json').map(entry => entry.id)]) {
       if (skin !== 'standard') await p.addStyleTag({url:ROOT+'/dist/pudl-skin-'+skin+'.css'});
       for (const theme of ['light','dark']) {
         await p.evaluate(({skin,theme})=>{document.documentElement.dataset.skin=skin;document.documentElement.dataset.theme=theme;}, {skin,theme});

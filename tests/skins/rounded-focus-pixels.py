@@ -10,6 +10,7 @@ left, top, width, height = [data["bounds"][k] for k in ["x", "y", "width", "heig
 right, bottom = left + width, top + height
 radius = min(data["radius"], width / 2, height / 2)
 two_color = data["twoColor"]
+ring_width = data.get("ringWidth", 3)
 
 def lum(rgb):
     values = [v / 255 for v in rgb[:3]]
@@ -79,5 +80,5 @@ def area(w, h, r):
 print(json.dumps({"radius": radius, "perimeterProfiles": len(profiles), "passingProfiles": sum(p["pass"] for p in profiles),
                   "minimumSurfaceContrast": min((p["surfaceContrast"] for p in profiles if "surfaceContrast" in p), default=0),
                   "minimumEdgeContrast": min((p["edgeContrast"] for p in profiles if "edgeContrast" in p), default=None),
-                  "geometricIndicatorArea": area(width + 6, height + 6, radius + 3) - area(width, height, radius),
+                  "geometricIndicatorArea": area(width + 2 * ring_width, height + 2 * ring_width, radius + ring_width) - area(width, height, radius),
                   "failures": [p for p in profiles if not p["pass"]], "pass": bool(profiles) and all(p["pass"] for p in profiles)}))

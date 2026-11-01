@@ -71,8 +71,16 @@ node tests/skins/environment-review.js <frozen-source> <new-output>
 node tests/skins/host-review.js <frozen-runtime-directory> <new-output>
 ```
 
-The environment harness covers narrow RTL, blocked-font, system-font and enlarged-root-text conditions in both forms for all three skins. Its enlarged-text condition does not emulate browser zoom. The host harness reads both runtime files once and checks host-owned startup, storage suppression and edited-content retention. [ADMISSION-GATES.md](ADMISSION-GATES.md) records the release scope and unresolved requirements.
+The environment harness covers narrow RTL, blocked-font, system-font and enlarged-text conditions in both forms for every skin in the source registry, including candidates. Its enlarged-text condition does not emulate browser zoom. The host harness reads both runtime files once and checks host-owned startup, storage suppression and edited-content retention. [ADMISSION-GATES.md](ADMISSION-GATES.md) records the release scope and unresolved requirements.
 
 The final environment harness enlarges actual computed text sizes; the earlier root-only probes are retained as ineffective enlargement evidence. `field-preservation-review.js` adds default field measurements and raster comparisons, with `--control-original` for the original-versus-original diagnostic. `field-raster-review.py` reports the browser-drawn select separately without modifying the original failed results. [FINAL-ADMISSION.md](FINAL-ADMISSION.md) records that scope and the final admission disposition.
 
 `zoom-session.js` prepares a dedicated headed browser for native menu operation. Its capture endpoint must only be used after the native menu's actual zoom setting has been inspected. The recorded attempt could not operate that menu because the Windows helper failed, so it establishes no zoom pass.
+
+## Material candidates
+
+The catalogue, gradient, focus, live-focus and behavior harnesses accept `--skin matte`, `ink`, `alloy` or `glass`. They read candidate identifiers from the source registry. Running these harnesses during implementation is a self-test and does not replace independent admission.
+
+[MATERIALS-IMPLEMENTATION.md](MATERIALS-IMPLEMENTATION.md) records the candidate hashes and completed self-tests.
+
+`node --test build/skin-materials.browser.test.js` covers runtime selection, preserved geometry and semantics, loaded assets, arbitrary Glass backgrounds and fallback rendering in all three engines. `PUDL_MIN=1` selects minified assets. Its Chromium checks emulate both reduced-transparency preferences through the browser protocol. The unsupported-filter check changes the feature query to an unsupported property; that is a fallback-path test on a current browser. `live-focus-review.js --transparency` additionally requests the translucent path in Chromium. Other engines use the preference reported by the platform. Actual browser zoom and screen-reader interoperability remain separate checks.

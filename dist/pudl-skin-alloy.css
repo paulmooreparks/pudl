@@ -1,0 +1,50 @@
+@media screen and (forced-colors: none) {
+/* Generated candidate skin. Rendered conformance is a separate gate. */
+:root:where([data-skin="alloy"]) {
+  --button-radius: var(--radius-sm);
+  --danger-hover-fill: var(--danger);
+  --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --dismiss-radius: var(--radius-sm);
+  --entry-shadow: inset 0 2px 2px color-mix(in srgb, var(--shade) 30%, transparent), inset 0 -1px 0 var(--light);
+  --focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --focus-ring-width: 2px;
+  --overlay-shadow: 0 6px 16px color-mix(in srgb, var(--shade) 35%, transparent);
+  --primary-active-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent);
+  --primary-fill: var(--accent);
+  --primary-hover-fill: var(--accent-hover);
+  --primary-pressed-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent);
+  --radius: 7px;
+  --radius-pill: 3px;
+  --radius-sm: 3px;
+  --radius-xs: 2px;
+  --raise-active-bg: color-mix(in srgb, var(--accent) 14%, var(--surface-alt));
+  --raise-active-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent);
+  --raise-border: color-mix(in srgb, var(--text) 65%, var(--surface));
+  --raise-border-hover: var(--text);
+  --raise-grad: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--text) 9%, var(--surface-alt)));
+  --raise-grad-hover: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 12%, var(--surface-alt)));
+  --raise-shadow: inset 0 1px 0 var(--light), inset 0 -1px 0 color-mix(in srgb, var(--shade) 35%, transparent), 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent);
+  --recess-shadow: inset 0 1px 2px color-mix(in srgb, var(--shade) 35%, transparent);
+  --shadow-btn-primary: inset 0 1px 0 color-mix(in srgb, var(--light) 50%, transparent), 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent);
+  --shadow-card: 0 1px 0 color-mix(in srgb, var(--light) 70%, transparent), 0 3px 6px color-mix(in srgb, var(--shade) 25%, transparent);
+  --shadow-dialog: 0 12px 30px color-mix(in srgb, var(--shade) 40%, transparent);
+  --surface-edge-shadow: inset 0 1px 0 var(--light);
+  --tb-active-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent);
+  --tb-chip: linear-gradient(to bottom, color-mix(in srgb, var(--tb-fg) 16%, var(--tb-bg)), color-mix(in srgb, var(--tb-fg) 8%, var(--tb-bg)));
+  --tb-chip-shadow: inset 0 1px 0 color-mix(in srgb, var(--tb-fg) 45%, transparent), 0 1px 1px color-mix(in srgb, var(--shade) 35%, transparent);
+  --tb-focus-ring: var(--tb-fg);
+  --tb-grad: linear-gradient(to bottom, color-mix(in srgb, var(--tb-fg) 6%, var(--tb-bg)), var(--tb-bg));
+  --tb-toggle-active-shadow: inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent);
+  --toast-shadow: 0 4px 12px color-mix(in srgb, var(--shade) 35%, transparent);
+  --tooltip-shadow: 0 2px 5px color-mix(in srgb, var(--shade) 35%, transparent);
+  --win-active-bg: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 16%, var(--surface-alt)));
+  --win-active-border: var(--accent);
+  --win-active-fg: var(--text);
+  --win-active-shadow: inset 0 1px 0 var(--light), inset 0 -1px 0 color-mix(in srgb, var(--shade) 35%, transparent);
+  --win-button-radius: var(--radius-sm);
+  --win-chrome-focus-shadow: 0 0 0 2px #fff, 0 0 0 3px #000;
+  --win-shadow: 0 3px 8px color-mix(in srgb, var(--shade) 35%, transparent);
+  --win-shadow-active: 0 8px 24px color-mix(in srgb, var(--shade) 45%, transparent);
+}
+}

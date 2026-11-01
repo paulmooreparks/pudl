@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.96.0
+
+Glass preview title bars now use one continuous opaque reading surface, removing separate title and status backing rectangles while retaining translucent frames. Revised skins use thinner, softer focus shadows. These revisions await renewed independent admission and do not change existing tagged releases.
+
+Optional Bevel, Gel and Glaze companion colour themes add matching historical palettes in light and dark. The skin preview provides an independent Theme selector. See `docs/THEMES.md` for `data-palette` selection and stylesheet loading.
+
+Matte, Ink, Alloy and Glass add four development skin treatments with generated light/dark stylesheets and minified copies. The preview offers all four. Glass includes translucent window chrome with opaque text backing and an opaque fallback for unsupported filtering or reduced transparency. Their catalogue entries remain unadmitted pending independent rendered review. Existing admitted skin files are unchanged.
+
 ## 0.95.2
 
 The Window status popover accepts pointer input again. It is a child of the window layer and inherited that layer's `pointer-events: none`, so a click on Dismiss and the mouse wheel reached whatever lay underneath. The popover now takes both itself.

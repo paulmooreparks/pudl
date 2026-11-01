@@ -7,7 +7,7 @@ const source = path.resolve(process.argv[2] || 'tests/output/skins-bevel-correct
 const output = path.resolve(process.argv[3] || 'tests/output/skins-bevel-focus');
 const skinIndex = process.argv.indexOf('--skin');
 const skinName = skinIndex < 0 ? 'bevel' : process.argv[skinIndex + 1];
-assert.ok(['bevel', 'gel', 'glaze'].includes(skinName), 'unknown focus treatment');
+assert.ok(require('./skin-list')(source).includes(skinName), 'unknown focus treatment');
 const scenarios = [
   { id: 'button-card', wrapper: 'section class="card"', control: '<button class="btn" id="control">Open</button>' },
   { id: 'danger-card', wrapper: 'section class="card"', control: '<button class="btn btn-danger" id="control">Delete</button>' },
@@ -64,7 +64,7 @@ async function main() {
               const s = getComputedStyle(node), r = node.getBoundingClientRect(), canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
               const ctx = canvas.getContext('2d');
               ctx.fillStyle = s.getPropertyValue(scene.startsWith('invalid-') ? '--focus-ring-danger' : scene === 'topbar-status' ? '--tb-focus-ring' : '--focus-ring'); ctx.fillRect(0, 0, 1, 1);
-              return { bounds: { x: r.x, y: r.y, width: r.width, height: r.height }, radius: parseFloat(s.borderTopLeftRadius), twoColor, ringColor: [...ctx.getImageData(0, 0, 1, 1).data] };
+              return { bounds: { x: r.x, y: r.y, width: r.width, height: r.height }, radius: parseFloat(s.borderTopLeftRadius), twoColor, ringWidth: twoColor ? 3 : (parseFloat(s.getPropertyValue('--focus-ring-width')) || 3), ringColor: [...ctx.getImageData(0, 0, 1, 1).data] };
             }, { scene: scene.id, twoColor });
             const meta = path.join(output, name + '-rounded.json'); fs.writeFileSync(meta, JSON.stringify(metadata, null, 2));
             pixels = JSON.parse(execFileSync('python', [path.join(__dirname, 'rounded-focus-pixels.py'), afterFile, meta], { encoding: 'utf8' }));

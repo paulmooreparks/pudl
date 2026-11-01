@@ -1,0 +1,13 @@
+# Skin title bars, companion palettes and focus
+
+Paul requested these refinements on 1 November 2026 after reviewing the material previews. They remain separate from the static execution-state release candidate. The canonical architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`.
+
+Glass previously painted opaque rectangles behind individual titles and status groups. The revised treatment gives the whole title bar one continuous opaque reading surface while retaining translucent frame paint. It preserves control geometry, supports reduced transparency and avoids filtering the window's containing block.
+
+The Bevel colour theme uses warm desktop grey, navy selection and a teal application bar. Gel uses cool silver, blue-white reading surfaces and an aqua-blue accent. Glaze uses warm ivory and pale olive surfaces with a saturated blue application bar. Each theme has a dark counterpart. Theme names match the skins, but selection stays independent through `data-palette`; `data-theme` continues to mean light or dark. The preview records all three choices in its URL. No additional persistence store is introduced.
+
+Companion stylesheets contain palette tokens only and load after the skins and before host overrides. They preserve type, spacing and semantic colour meanings. The generator adjusts existing category and syntax colour families toward the appropriate light or dark endpoint to maintain contrast against the new surfaces. Forced colours and print remain component-owned.
+
+The released skins used fully saturated three-pixel focus rings. The revision uses two-pixel focus shadows and mixes ordinary accent paint with 15% effective surface colour while retaining a continuous opaque indicator. Component shadow expressions accept a skin-owned width with a three-pixel fallback, preserving Standard's existing appearance. Destructive and active-chrome context mappings retain their separate contrast safeguards. Rendered checks must confirm at least 3:1 around keyboard focus; Standard's existing subdued appearance is a visual reference, not an exemption from that requirement.
+
+Changing the three previously admitted stylesheets invalidates their recorded admission hashes. Their working revisions are marked unadmitted, with the earlier hashes retained in the registry as history. This does not change published packages. All revised skins and companion themes require independent review before publication. Earlier material implementation measurements describe the previous CSS and must not be treated as validation of these revisions.

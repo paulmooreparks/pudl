@@ -54,7 +54,7 @@ const { launch, ROOT } = require('./lib');
       for (const value of [1250, 560, 1250, 560, 1250]) { await width(value); seen.add(Math.round((await equalRow('width ' + value, [])) * 10)); }
       assert.equal(seen.size, 1, 'one height throughout: ' + [...seen]);
     });
-    for (const skin of ['standard', 'bevel', 'gel', 'glaze']) {
+    for (const skin of ['standard', ...require('../skins/registry.json').map(entry => entry.id)]) {
       for (const theme of ['light', 'dark']) {
         await scenario(skin + ' ' + theme + ' with execution states', async () => {
           if (skin !== 'standard') await page.addStyleTag({ url: ROOT + '/dist/pudl-skin-' + skin + '.css' });

@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "alloy",
+  "name": "Alloy",
+  "treatment": "alloy",
+  "radii": { "radius": 7, "radius-sm": 3, "radius-xs": 2, "radius-pill": 3 },
+  "palette": { "light": {}, "dark": {} }
+}

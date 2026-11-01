@@ -26,7 +26,7 @@ for (const theme of ['light', 'dark']) {
 }
 async function main() {
   assert.ok(!fs.existsSync(output), 'output must be new'); fs.mkdirSync(output, { recursive: true });
-  const skins = ['standard', 'bevel', 'gel', 'glaze'].filter(s => s === 'standard' || fs.existsSync(path.join(source, 'samples/skins-' + s + '.css')));
+  const skins = ['standard', ...require('./skin-list')(source)].filter(s => s === 'standard' || fs.existsSync(path.join(source, 'samples/skins-' + s + '.css')));
   const server = http.createServer((request, response) => {
     const url = new URL(request.url, 'http://localhost');
     if (url.pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><html><head><link rel="stylesheet" href="/dist/pudl.css">' + skins.filter(s => s !== 'standard').map(s => '<link rel="stylesheet" href="/samples/skins-' + s + '.css">').join('') + '</head><body><span id="probe">Palette probe</span></body></html>'); return; }

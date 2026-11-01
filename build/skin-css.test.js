@@ -33,13 +33,14 @@ test('selection is scoped, palette forms are distinct, and display names cannot 
   assert.ok(!css.includes('!important'));
 });
 
-test('bevel preserves geometry and limits focus changes to opaque paint', () => {
+test('bevel preserves target geometry and bounds its focus paint', () => {
   const css = compile(skin());
   assert.ok(css.includes('--raise-shadow: inset 1px 1px'));
   const properties = [...css.matchAll(/^  --([a-z-]+):/gm)].map(match => match[1]);
-  assert.ok(properties.filter(name => !['focus-ring', 'focus-ring-danger', 'win-chrome-focus-shadow', 'tb-focus-ring'].includes(name)).every(name => !name.split('-').some(part =>
+  assert.ok(properties.filter(name => !['focus-ring', 'focus-ring-width', 'focus-ring-danger', 'win-chrome-focus-shadow', 'tb-focus-ring'].includes(name)).every(name => !name.split('-').some(part =>
     ['width', 'height', 'padding', 'focus', 'font', 'hit', 'order'].includes(part))));
-  assert.ok(css.includes('--focus-ring: var(--accent);'));
+  assert.ok(css.includes('--focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));'));
+  assert.ok(css.includes('--focus-ring-width: 2px;'));
   assert.ok(css.includes('--focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));'));
   assert.ok(!/\n\s+(?!-)[a-z-]+:/.test(css));
 });
@@ -50,4 +51,32 @@ test('invalid input fails before CSS emission and standard treatment leaves pain
   assert.throws(() => compile(input));
   input.treatment = 'standard';
   assert.ok(!compile(input).includes('--raise-shadow'));
+});
+
+test('material treatments retain bounded geometry and distinct surface paints', () => {
+  const paints = new Set();
+  for (const treatment of ['matte', 'ink', 'alloy', 'glass']) {
+    const input = skin(); input.treatment = treatment;
+    const css = compile(input);
+    paints.add(css.match(/--raise-shadow: ([^;]+);/)[1]);
+    assert.ok(css.includes('--entry-shadow: inset'));
+    assert.ok(css.includes('--focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));'));
+    assert.ok(!/--(?:font|space|win-hit|win-band|win-head-docked|win-min)-/.test(css));
+    assert.ok(!/!important|url\(/.test(css));
+  }
+  assert.equal(paints.size, 4);
+});
+
+test('Glass scopes its enhancement to the selected identifier and supplies an opaque fallback', () => {
+  const input = skin(); input.id = 'glass-probe'; input.treatment = 'glass';
+  const css = compile(input);
+  assert.ok(css.startsWith('@media screen and (forced-colors: none)'));
+  assert.ok(css.includes(':where(:root[data-skin="glass-probe"]) .win-head'));
+  assert.ok(!css.includes('[data-skin="glass"]'));
+  assert.ok(css.includes('@supports (backdrop-filter: blur(12px))'));
+  assert.ok(css.includes('@media (prefers-reduced-transparency: reduce)'));
+  assert.ok(css.includes('backdrop-filter: none'));
+  assert.ok(css.includes('.win-head { background: var(--raise-grad); }'));
+  assert.ok(!css.includes('.win-head > :is('), 'titles must not have rectangular backing patches');
+  assert.ok(!/\.win \{[^}]*backdrop-filter/.test(css), 'filter must not change the containing block of window popovers');
 });

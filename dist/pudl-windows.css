@@ -193,7 +193,7 @@
 .win-splitter[aria-orientation="horizontal"]::before { inset: calc((100% - 3px) / 2) 0; }
 .win-splitter:hover::before, .win-splitter.dragging::before, .win-splitter:focus-visible::before { background: var(--accent); }
 .win-splitter:focus-visible { outline: none; }
-.win-splitter:focus-visible::before { box-shadow: 0 0 0 3px var(--focus-ring); }
+.win-splitter:focus-visible::before { box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win-splitter-cross {
   left: calc(var(--dock-left, 0px) + var(--split-x) * (100% - var(--dock-left, 0px) - var(--dock-right, 0px)) - var(--split-target));
   top: calc(var(--dock-top, 0px) + var(--split-y) * (100% - var(--dock-top, 0px) - var(--dock-bottom, 0px)) - var(--split-target));
@@ -468,14 +468,14 @@
   user-select: none;
   touch-action: none;
 }
-.win-head:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.win-head:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win.active .win-head {
   background: var(--win-active-bg);
   border-color: var(--win-active-border);
   box-shadow: var(--win-active-shadow);
   color: var(--win-active-fg);
 }
-.win.active .win-head:focus-visible { box-shadow: var(--win-active-shadow), 0 0 0 3px var(--focus-ring); }
+.win.active .win-head:focus-visible { box-shadow: var(--win-active-shadow), 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 /* The title is usually a heading, so it resets what a page's own heading
    styles might give it. */
 .win-title {
@@ -546,8 +546,8 @@
 }
 .win-btn:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 .win-btn:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
-.win-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
-.win.active > .win-head .win-btn:focus-visible { box-shadow: var(--win-chrome-focus-shadow, 0 0 0 3px var(--focus-ring)); }
+.win-btn:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
+.win.active > .win-head .win-btn:focus-visible { box-shadow: var(--win-chrome-focus-shadow, 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring)); }
 .win-btn[data-win-action="close"]:hover { color: var(--danger); }
 
 /* The glyphs come from here, drawn from pudl.css's glyph masks, so the
@@ -592,14 +592,14 @@
   background: var(--raise-grad); box-shadow: var(--raise-shadow);
 }
 .win-snap .win-snap-zone:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
-.win-snap .win-snap-zone:focus-visible { background: var(--raise-grad-hover); box-shadow: var(--raise-shadow), 0 0 0 3px var(--focus-ring); }
+.win-snap .win-snap-zone:focus-visible { background: var(--raise-grad-hover); box-shadow: var(--raise-shadow), 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win-snap .win-snap-zone:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 .win-snap .win-snap-zone[aria-current="true"] {
   background: var(--accent); border-color: var(--accent-hover);
   box-shadow: var(--snap-current-shadow, inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent));
 }
 .win-snap .win-snap-zone[aria-current="true"]:focus-visible {
-  box-shadow: var(--snap-current-shadow, inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent)), 0 0 0 3px var(--focus-ring);
+  box-shadow: var(--snap-current-shadow, inset 0 1px 3px color-mix(in srgb, var(--shade) calc(var(--depth) * 2), transparent)), 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring);
 }
 @media (forced-colors: active) {
   .win-snap .win-snap-zone { border-color: ButtonText; }
@@ -650,7 +650,7 @@
 
 /* The script makes the body a tab stop, so it can be scrolled from the
    keyboard. It is a large area, so its focus ring is drawn inside it. */
-.win-body:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--focus-ring); }
+.win-body:focus-visible { outline: none; box-shadow: inset 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win[data-win-mode="maximized"] .win-body,
 .win[data-win-mode="left"] .win-body,
 .win[data-win-mode="right"] .win-body,
@@ -766,7 +766,7 @@
   mask: var(--glyph-circle) center / contain no-repeat;
 }
 .win-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
-.win-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.win-tab:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win-tab[aria-current="true"] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 /* A taskbar button whose window menu is open from a right-click keeps the
    hover look and an accent ring, pressed or not, until the menu closes. */

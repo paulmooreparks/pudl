@@ -6,8 +6,9 @@
   --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
   --dismiss-radius: 4px;
   --entry-shadow: inset 0 1px 2px color-mix(in srgb, var(--shade) 25%, transparent);
-  --focus-ring: var(--accent);
+  --focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));
   --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --focus-ring-width: 2px;
   --primary-active-shadow: inset 0 2px 4px color-mix(in srgb, var(--shade) 45%, transparent);
   --primary-fill: linear-gradient(var(--accent), var(--accent-hover));
   --primary-hover-fill: var(--accent-hover);

@@ -8,7 +8,7 @@ A skin is authored as JSON. Its stylesheet is a generated artifact. The definiti
 
 The definition validator rejects unknown properties, invalid types, unsupported treatments and out-of-range values. Passing that validator establishes only that a definition can be compiled. A skin becomes supported only after its generated appearance passes the rendered conformance matrix. The build and release checks must require both stages. A custom stylesheet added by an application is outside this validated mechanism; CSS cannot protect a page against arbitrary styles its author supplies.
 
-The development schema supports the `standard`, `bevel`, `gel` and `glaze` treatment families. Adding another family requires a compiler mapping; release admission additionally requires independent rendered tests. Skin authors cannot bypass this by naming a treatment themselves. The identifier `standard` is reserved for the built-in appearance and cannot be supplied as an external skin definition.
+The development schema supports the `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy` and `glass` treatment families. Adding another family requires a compiler mapping; release admission additionally requires independent rendered tests. Skin authors cannot bypass this by naming a treatment themselves. The identifier `standard` is reserved for the built-in appearance and cannot be supplied as an external skin definition.
 
 ## Version 1 definition
 
@@ -19,7 +19,7 @@ The root object contains exactly these properties. Every property is required.
 | `version` | The integer `1` |
 | `id` | A lowercase ASCII letter followed by lowercase letters, digits or hyphens, at most 40 characters; `standard` is reserved |
 | `name` | A nonempty display name of at most 80 characters, without control characters |
-| `treatment` | `standard`, `bevel`, `gel` or `glaze` |
+| `treatment` | `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy` or `glass` |
 | `radii` | An object containing `radius`, `radius-sm`, `radius-xs` and `radius-pill`, each a finite nonnegative CSS-pixel number |
 | `palette` | An object containing `light` and `dark` override objects with identical token names; empty objects inherit the Standard palette |
 
@@ -31,9 +31,11 @@ Palette override names and types come from the vendored specification's palette 
 
 The first increment keeps the existing type and spacing scales, font faces, window-control order, title-bar heights and hit regions. Skins cannot shrink text or hit targets to copy an earlier interface. Later schema versions may add constrained capabilities after their layout and accessibility contracts are specified. Bevel does not require those capabilities.
 
-The bevel treatment must identify a continuous control boundary separately from decorative edge lighting. Its raised and sunken treatments reverse their lighting, and its pressed treatment remains visibly distinct. A pale highlight alone cannot establish boundary contrast. Focus retains PUDL's existing placement, thickness, keyboard behavior and forced-colour handling. Its paint must meet 3:1 against adjacent surfaces. Bevel uses opaque accent paint for ordinary focus and an opaque danger/text mix for destructive focus. Active title-bar controls use a two-pixel white ring with a one-pixel black outer edge within the existing three-pixel footprint, so the indicator remains distinguishable against both the title fill and the pale frame edge, and topbar status controls use the topbar foreground. Status controls beside a menu bar use the ordinary focus paint because their group has an ordinary raised surface. These context mappings retain Standard fallbacks. The compiler owns these mappings; definitions cannot replace focus rules. A dotted historical treatment is deferred until it has a separately verified mapping. Action glyphs stay visible. Status and category meanings remain unchanged.
+The bevel treatment must identify a continuous control boundary separately from decorative edge lighting. Its raised and sunken treatments reverse their lighting, and its pressed treatment remains visibly distinct. A pale highlight alone cannot establish boundary contrast. Following Paul's preview review, revised skin focus shadows use two pixels instead of three and soften the accent with 15% effective surface colour. Keyboard behavior and forced-colour handling stay component-owned. Focus paint must meet 3:1 against adjacent surfaces. Destructive focus retains its opaque danger/text mix. Active title-bar controls retain a two-pixel white ring with a one-pixel black outer edge, so the indicator remains distinguishable against both title fill and frame edge. Topbar status controls use the topbar foreground; status controls beside a menu bar use ordinary focus paint because their group has a raised surface. Standard retains its original three-pixel fallback and translucent paint. The compiler owns these mappings; definitions cannot replace focus rules. Action glyphs stay visible. Status and category meanings remain unchanged.
 
 Independent rendered review found that Standard's translucent focus paint falls below 3:1 on the tested card surfaces. Standard preservation retains that existing appearance and records the defect separately. It does not exempt Bevel from the contrast requirement. Bevel's opaque paint is therefore a required conformance correction within the first increment.
+
+The focus revisions change the three released skin stylesheets and await renewed admission. Their previous published bytes remain admitted in the existing release. Matching Bevel, Gel and Glaze [colour themes](THEMES.md) are selected independently of skins and light/dark mode.
 
 The first bevel compiler draws edge lighting with inset shadows inside the existing border. It must not increase border widths or move the content box. Tests compare outer bounds, client dimensions, padding and each border width before and after selection. Any later treatment that needs different border widths requires an explicit geometry contract before it is admitted.
 
@@ -98,6 +100,14 @@ Glaze uses the same bounded definition and compiler as the other skins. Independ
 Glaze's initial dark accent failed category separation in independent review. The corrected default is `#80c4ff`, retaining the canonical category colours and providing a minimum separation of 10.15 OKLab units against the required 8. The rendered palette matrix passes across all three engines; the separate gradient and focus results are recorded in the release verification report.
 
 ## Distribution and loading
+
+Matte, Ink, Alloy and Glass are implemented candidates. Their catalogue entries have `admitted: false` until independent rendered admission is complete. The preview offers all four for development comparison. Hosts must continue to filter by admission, and the release check intentionally rejects the candidate registry.
+
+The [implementation verification record](../tests/skins/MATERIALS-IMPLEMENTATION.md) records the tested hashes, corrected findings, rendered evidence and remaining admission requirements.
+
+Matte uses small corners, opaque controls and shallow shadows. Ink uses near-square corners, foreground outlines and hard offset shadows. Alloy uses satin gradients, opposing edge highlights and a stronger window frame. All three retain opaque surfaces in both forms and inherit the host palette.
+
+Glass uses rounded controls, clear edge lighting and broad lifted shadows. Its compiler also emits scoped window paint rules. The frame can be translucent, while the whole title bar provides one opaque reading surface. Titles, details and status groups have no separate background patches. Controls, window bodies, menus, cards and dialogs remain opaque. Without enhancement support, or with a reported reduced-transparency preference, Glass uses an opaque frame too. These rules change no layout properties. All Glass rules are excluded from print and forced-colour rendering. [The material-skins design](proposals/material-skins.md) records the decisions and verification requirements.
 
 Load `pudl.css` and, for windowed pages, `pudl-windows.css`, followed by the offered `pudl-skin-<id>.css` files and then host palette overrides. Both readable and minified skin files are distributed. The optional runtime is `pudl-skins.js`; a server-rendered page can select a loaded skin using `data-skin` without that script. First-paint selection belongs to the host. Use static stylesheet links before a classic external initialization script, or render the chosen identifier directly on the root. The selector never fetches skin files.
 

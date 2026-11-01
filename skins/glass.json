@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "glass",
+  "name": "Glass",
+  "treatment": "glass",
+  "radii": { "radius": 14, "radius-sm": 7, "radius-xs": 4, "radius-pill": 999 },
+  "palette": { "light": {}, "dark": {} }
+}

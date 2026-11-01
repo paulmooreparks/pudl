@@ -6,7 +6,7 @@ const assert = require('assert/strict'), pw = require('playwright');
 const source = path.resolve(process.argv[2]), output = path.resolve(process.argv[3]);
 const skinIndex = process.argv.indexOf('--skin');
 const skin = skinIndex < 0 ? 'bevel' : process.argv[skinIndex + 1];
-assert.ok(['bevel', 'gel', 'glaze'].includes(skin), 'unknown skin');
+assert.ok(require('./skin-list')(source).includes(skin), 'unknown skin');
 async function main() {
   assert.ok(!fs.existsSync(output), 'output must be new'); fs.mkdirSync(output, { recursive: true });
   const server = http.createServer((request, response) => {
@@ -22,6 +22,10 @@ async function main() {
       try {
         for (const theme of ['light', 'dark']) {
           const page = await browser.newPage({ viewport: { width: 1280, height: 1400 } }); page.setDefaultTimeout(10000);
+          if (engine === 'chromium' && process.argv.includes('--transparency')) {
+            const cdp = await page.context().newCDPSession(page);
+            await cdp.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-transparency', value: 'no-preference' }] });
+          }
           await page.goto('http://127.0.0.1:' + server.address().port + '/samples/skins.html?skin=' + skin + '&theme=' + theme);
           await page.waitForFunction(() => document.querySelectorAll('.win').length === 2);
           await page.evaluate(async () => { await document.fonts.ready; });

@@ -11,7 +11,7 @@ const source = path.resolve(process.argv[2] || 'tests/output/skins-bevel-review-
 const output = path.resolve(process.argv[3] || 'tests/output/skins-bevel-review');
 const skinIndex = process.argv.indexOf('--skin');
 const skinName = skinIndex < 0 ? 'bevel' : process.argv[skinIndex + 1];
-assert.ok(['bevel', 'gel', 'glaze'].includes(skinName), 'unsupported review treatment');
+assert.ok(require('./skin-list')(source).includes(skinName), 'unsupported review treatment');
 const catalogue = JSON.parse(fs.readFileSync(path.join(source, 'dist/pudl-components.json')));
 const cases = catalogue.components.flatMap(component => [{ name: 'rest' }]
   .concat((component.variants || []).map((variant, i) => ({ name: 'variant-' + i, variant })))
@@ -140,7 +140,11 @@ async function main() {
           fs.writeFileSync(path.join(output, label + '-surfaces.json'), JSON.stringify(paints, null, 2));
           for (const part of paints) {
             let ok = !part.missing;
-            if (part.surface === 'raised') ok = ok && /inset/.test(part.shadow) && (skinName === 'bevel' ? part.background === 'none' : /gradient/.test(part.background));
+            if (part.surface === 'raised') {
+              const flat = ['bevel', 'matte', 'ink'].includes(skinName);
+              const depth = ['matte', 'ink'].includes(skinName) ? part.shadow !== 'none' : /inset/.test(part.shadow);
+              ok = ok && depth && (flat ? part.background === 'none' : /gradient/.test(part.background));
+            }
             if (part.surface === 'sunken') ok = ok && /inset/.test(part.shadow) && part.background === 'none';
             if (['flat', 'list', 'link', 'handle'].includes(part.surface)) ok = ok && !/inset/.test(part.shadow) && part.background === 'none';
             check(label + ' ' + part.id + ' ' + part.selector + ' retains ' + part.surface + ' surface', ok, ok ? undefined : part);

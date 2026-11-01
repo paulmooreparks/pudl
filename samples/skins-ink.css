@@ -1,0 +1,51 @@
+@media screen and (forced-colors: none) {
+/* Generated candidate skin. Rendered conformance is a separate gate. */
+:root:where([data-skin="ink"]) {
+  --button-radius: var(--radius-sm);
+  --danger-hover-fill: var(--danger);
+  --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --dismiss-radius: var(--radius-sm);
+  --entry-shadow: inset 1px 1px 0 var(--text);
+  --focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --focus-ring-width: 2px;
+  --overlay-shadow: 3px 3px 0 var(--text);
+  --primary-active-shadow: inset 1px 1px 0 var(--text);
+  --primary-fill: var(--accent);
+  --primary-hover-fill: var(--accent-hover);
+  --primary-pressed-shadow: inset 1px 1px 0 var(--text);
+  --radius: 1px;
+  --radius-pill: 0px;
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  --raise-active-bg: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  --raise-active-shadow: inset 1px 1px 0 var(--text);
+  --raise-border: var(--text);
+  --raise-border-hover: var(--text);
+  --raise-grad: var(--surface);
+  --raise-grad-hover: color-mix(in srgb, var(--text) 6%, var(--surface));
+  --raise-shadow: 1px 1px 0 var(--text);
+  --recess-shadow: inset 0 1px 0 var(--text);
+  --shadow-btn-primary: 1px 1px 0 var(--text);
+  --shadow-card: 2px 2px 0 var(--text);
+  --shadow-dialog: 5px 5px 0 var(--text);
+  --snap-current-shadow: inset 1px 1px 0 var(--text);
+  --surface-edge-shadow: 0 1px 0 var(--text);
+  --tb-active-shadow: inset 1px 1px 0 var(--tb-fg);
+  --tb-chip: var(--tb-bg);
+  --tb-chip-shadow: 1px 1px 0 var(--tb-fg);
+  --tb-focus-ring: var(--tb-fg);
+  --tb-grad: var(--tb-bg);
+  --tb-toggle-active-shadow: inset 1px 1px 0 var(--tb-fg);
+  --toast-shadow: 3px 3px 0 var(--text);
+  --tooltip-shadow: 2px 2px 0 var(--text);
+  --win-active-bg: var(--surface);
+  --win-active-border: var(--accent);
+  --win-active-fg: var(--text);
+  --win-active-shadow: inset 0 -2px 0 var(--accent);
+  --win-button-radius: var(--radius-sm);
+  --win-chrome-focus-shadow: 0 0 0 2px #fff, 0 0 0 3px #000;
+  --win-shadow: 3px 3px 0 var(--text);
+  --win-shadow-active: 5px 5px 0 var(--text);
+}
+}

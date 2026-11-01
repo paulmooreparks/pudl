@@ -19,7 +19,7 @@ async function main() {
     for (const engine of ['chromium', 'firefox', 'webkit']) {
       const browser = await pw[engine].launch(); browsers[engine] = browser.version();
       try {
-        for (const theme of ['light', 'dark']) for (const skin of ['bevel', 'gel', 'glaze']) for (const condition of conditions) {
+        for (const theme of ['light', 'dark']) for (const skin of require('./skin-list')(source)) for (const condition of conditions) {
           const page = await browser.newPage({ viewport: { width: 360, height: 900 }, reducedMotion: 'reduce' });
           const errors = []; page.on('pageerror', error => errors.push(error.message));
           let blockedFonts = 0;
@@ -54,7 +54,7 @@ async function main() {
       } finally { await browser.close(); }
     }
   } finally { await new Promise(resolve => server.close(resolve)); }
-  const inputs = Object.fromEntries(['dist/pudl.css', 'dist/pudl-windows.css', 'samples/skins-bevel.css', 'samples/skins-gel.css', 'samples/skins-glaze.css'].map(f => [f, crypto.createHash('sha256').update(fs.readFileSync(path.join(source, f))).digest('hex')]));
+  const inputs = Object.fromEntries(['dist/pudl.css', 'dist/pudl-windows.css', ...require('./skin-list')(source).map(skin => 'samples/skins-' + skin + '.css')].map(f => [f, crypto.createHash('sha256').update(fs.readFileSync(path.join(source, f))).digest('hex')]));
   fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify({ source, browsers, inputs, results }, null, 2));
   process.exitCode = results.some(r => !r.pass) ? 1 : 0;
 }

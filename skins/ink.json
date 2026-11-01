@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "id": "ink",
+  "name": "Ink",
+  "treatment": "ink",
+  "radii": { "radius": 1, "radius-sm": 0, "radius-xs": 0, "radius-pill": 0 },
+  "palette": { "light": {}, "dark": {} }
+}

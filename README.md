@@ -1674,7 +1674,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.95.2, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.96.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1701,6 +1701,10 @@ See the [stack contract](docs/TASKBAR-STACKS.md) for query, filtering, lifecycle
 
 PUDL offers Standard, Bevel, Gel and Glaze through generated skin stylesheets. Load an offered `dist/pudl-skin-<id>.css` after the component stylesheets and select its identifier with `data-skin` on the root. Standard needs no extra stylesheet. The catalogue `dist/pudl-skins.json` identifies which skins are admitted in the distribution; development candidates must not be treated as approved skins.
 
+Matte, Ink, Alloy and Glass are implemented development candidates in the [skin preview](samples/skins.html). They have readable and minified stylesheets and remain unadmitted pending independent rendered review. See [the skin contract](docs/SKINS.md) for their surface treatments and Glass's opaque fallback.
+
 The optional `dist/pudl-skins.js` provides registration, selection and saved preference with Standard fallback. Hosts with their own appearance store set `data-pudl-persistence="host"` before loading PUDL's theme and skin scripts, then supply preferences through their public APIs. This disables PUDL storage access and storage-event following for both choices. See [the skin contract](docs/SKINS.md) and [the live sample](samples/skins.html).
+
+Optional Bevel, Gel and Glaze colour themes strengthen the corresponding historical styles. Each has light and dark forms and can be paired with any skin through `data-palette`. See [companion themes](docs/THEMES.md) for loading and host-owned selection. These themes and the revised skin focus treatments remain candidates pending independent review.
 
 Execution states use `data-win-state` and optional `data-win-state-label`, with consistent glyphs, colours and stable compact slots. Since 0.95.2, an optional `data-win-state-detail` adds a longer explanation to the state's accessible names and tooltips without drawing it, and `data-win-status-rows` reserves one to six rows in the Window status popover so Dismiss stays still. See [Window status](docs/WINDOW-STATUS.md) for rendering, localization, sizing and legacy running compatibility.

@@ -13,7 +13,7 @@ async function main() {
       try {
         const zoomed = await measure(), results = [];
         const actualTwoHundred = Math.abs(zoomed.dpr / baseline.dpr - 2) < .01 && Math.abs(baseline.innerWidth / zoomed.innerWidth - 2) < .03 && Math.abs(zoomed.visualScale - 1) < .01;
-        for (const skin of ['bevel', 'gel', 'glaze']) for (const theme of ['light', 'dark']) {
+        for (const skin of require('./skin-list')(source)) for (const theme of ['light', 'dark']) {
           await page.locator('#skin').selectOption(skin); await page.locator('#theme').selectOption(theme);
           await page.evaluate(async () => { await document.fonts.ready; });
           const field = page.locator('main input').first(); await field.fill('Zoom review edited value'); await field.focus();
@@ -26,7 +26,7 @@ async function main() {
           results.push({ name: skin + '-' + theme, pass, observation });
           await page.screenshot({ path: path.join(output, skin + '-' + theme + '-200.png'), fullPage: true, caret: 'hide' });
         }
-        const inputs = Object.fromEntries(['dist/pudl.css', 'dist/pudl-windows.css', ...['bevel', 'gel', 'glaze'].map(s => 'samples/skins-' + s + '.css')].map(f => [f, crypto.createHash('sha256').update(fs.readFileSync(path.join(source, f))).digest('hex')]));
+        const inputs = Object.fromEntries(['dist/pudl.css', 'dist/pudl-windows.css', ...require('./skin-list')(source).map(s => 'samples/skins-' + s + '.css')].map(f => [f, crypto.createHash('sha256').update(fs.readFileSync(path.join(source, f))).digest('hex')]));
         const record = { source, method: 'Native browser zoom command through Windows Computer Use; no emulation or CSS transform', browser: browser.version(), baseline, zoomed, actualTwoHundred, inputs, results };
         fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify(record, null, 2)); completed = true;
         res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(record));

@@ -1,0 +1,33 @@
+{
+  "name": "Bevel",
+  "light": {
+    "bg": "#d4d0c8",
+    "surface": "#f5f4ee",
+    "surface-alt": "#d4d0c8",
+    "text": "#151515",
+    "text-muted": "#52504c",
+    "accent": "#000080",
+    "accent-hover": "#000060",
+    "on-accent": "#ffffff",
+    "tb-bg": "#005858",
+    "tb-fg": "#ffffff",
+    "positive": "#005020",
+    "category-3": "#641b50"
+  },
+  "dark": {
+    "bg": "#202626",
+    "surface": "#293030",
+    "surface-alt": "#373f3f",
+    "text": "#f4f4ec",
+    "text-muted": "#bec7c1",
+    "accent": "#b2c4ff",
+    "accent-hover": "#c5d3ff",
+    "on-accent": "#111b36",
+    "tb-bg": "#003f3f",
+    "tb-fg": "#f4f4ec",
+    "positive": "#8af7ac",
+    "category-4": "#749c54",
+    "lit": 0.01,
+    "category-8": "#df1896"
+  }
+}

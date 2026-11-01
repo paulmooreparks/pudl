@@ -1,0 +1,31 @@
+{
+  "name": "Gel",
+  "light": {
+    "bg": "#e9eef4",
+    "surface": "#f8fbff",
+    "surface-alt": "#d5e0ef",
+    "text": "#172337",
+    "text-muted": "#4c607c",
+    "accent": "#0042a3",
+    "accent-hover": "#00327f",
+    "on-accent": "#ffffff",
+    "tb-bg": "#c6d5e8",
+    "tb-fg": "#172337",
+    "positive": "#005020"
+  },
+  "dark": {
+    "bg": "#192532",
+    "surface": "#202e3e",
+    "surface-alt": "#2d4055",
+    "text": "#edf5ff",
+    "text-muted": "#b6c8df",
+    "accent": "#87c7ff",
+    "accent-hover": "#b0d9ff",
+    "on-accent": "#122638",
+    "tb-bg": "#263c54",
+    "tb-fg": "#edf5ff",
+    "positive": "#8af7ac",
+    "category-4": "#7c9c54",
+    "lit": 0.01
+  }
+}

@@ -5,7 +5,7 @@ const assert = require('assert/strict'), pw = require('playwright');
 const source = path.resolve(process.argv[2]), output = path.resolve(process.argv[3]);
 const original = path.resolve('tests/output/skins-source-20261030-1702');
 const controlOriginal = process.argv.includes('--control-original');
-const html = '<!doctype html><html><head><link rel="stylesheet" href="/dist/pudl.css">' + ['bevel', 'gel', 'glaze'].map(s => '<link rel="stylesheet" href="/samples/skins-' + s + '.css">').join('') + '</head><body><main style="padding:24px;display:grid;gap:12px;width:360px">' + ['text', 'password', 'number', 'search', 'date', 'time', 'email'].map(t => '<input aria-label="' + t + '" class="form-input" type="' + t + '" value="' + (t === 'number' ? '12' : t === 'date' ? '2026-10-30' : t === 'time' ? '12:30' : 'Example') + '">').join('') + '<select aria-label="native" class="form-select"><option>Location</option></select><span class="form-select-wrap"><select aria-label="wrapped" class="form-select"><option>Location</option></select></span></main></body></html>';
+const html = '<!doctype html><html><head><link rel="stylesheet" href="/dist/pudl.css">' + require('./skin-list')(source).map(s => '<link rel="stylesheet" href="/samples/skins-' + s + '.css">').join('') + '</head><body><main style="padding:24px;display:grid;gap:12px;width:360px">' + ['text', 'password', 'number', 'search', 'date', 'time', 'email'].map(t => '<input aria-label="' + t + '" class="form-input" type="' + t + '" value="' + (t === 'number' ? '12' : t === 'date' ? '2026-10-30' : t === 'time' ? '12:30' : 'Example') + '">').join('') + '<select aria-label="native" class="form-select"><option>Location</option></select><span class="form-select-wrap"><select aria-label="wrapped" class="form-select"><option>Location</option></select></span></main></body></html>';
 async function main() {
   assert.ok(!fs.existsSync(output), 'output must be new'); fs.mkdirSync(output, { recursive: true });
   const server = http.createServer((req, res) => {
@@ -33,7 +33,7 @@ async function main() {
             await page.evaluate(async ({ theme, direction }) => { document.documentElement.dataset.theme = theme; document.documentElement.dir = direction; await document.fonts.load('14px Inter', 'Location Example'); await document.fonts.ready; await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); }, { theme, direction });
             observations.push(await read(page)); images.push(await page.screenshot({ caret: 'hide' }));
             fs.writeFileSync(path.join(output, engine + '-' + theme + '-' + direction + '-' + mode + '.png'), images.at(-1));
-            if (mode === 'candidate' && !controlOriginal) for (const skin of ['standard', 'bevel', 'gel', 'glaze']) {
+            if (mode === 'candidate' && !controlOriginal) for (const skin of ['standard', ...require('./skin-list')(source)]) {
               await page.evaluate(skin => { document.documentElement.dataset.skin = skin; document.querySelectorAll('input,select').forEach(n => { n.style.fontSize = '28px'; }); }, skin);
               const enlarged = await read(page);
               const pass = enlarged.every(o => { const s = o.styles, requiredLine = s.lineHeight === 'normal' ? 1.25 * parseFloat(s.fontSize) : parseFloat(s.lineHeight); return o.bounds[3] >= 53 && o.bounds[3] - ['paddingTop', 'paddingBottom', 'borderTopWidth', 'borderBottomWidth'].reduce((sum, p) => sum + parseFloat(s[p]), 0) + 1 >= requiredLine; });

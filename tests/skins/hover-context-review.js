@@ -19,7 +19,7 @@ async function main() {
     for (const engine of ['chromium', 'firefox', 'webkit']) {
       const browser = await pw[engine].launch();
       try {
-        for (skin of ['standard', 'bevel', 'gel', 'glaze']) {
+        for (skin of ['standard', ...require('./skin-list')(source)]) {
           const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
           await page.goto('http://127.0.0.1:' + server.address().port + '/tests/fixtures/taskbar-stacks.html');
           await page.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.includes('child'));

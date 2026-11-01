@@ -1,0 +1,32 @@
+{
+  "name": "Glaze",
+  "light": {
+    "bg": "#e7eddb",
+    "surface": "#fffdf2",
+    "surface-alt": "#e4e8d0",
+    "text": "#182510",
+    "text-muted": "#4e6342",
+    "accent": "#184da8",
+    "accent-hover": "#123b87",
+    "on-accent": "#ffffff",
+    "tb-bg": "#1c56b0",
+    "tb-fg": "#ffffff",
+    "positive": "#005020"
+  },
+  "dark": {
+    "bg": "#1c2627",
+    "surface": "#263333",
+    "surface-alt": "#354644",
+    "text": "#f6f7e8",
+    "text-muted": "#c4d0bd",
+    "accent": "#a6c6ff",
+    "accent-hover": "#c7daff",
+    "on-accent": "#162344",
+    "tb-bg": "#183773",
+    "tb-fg": "#f6f7e8",
+    "positive": "#8af7ac",
+    "category-4": "#84a060",
+    "lit": 0.01,
+    "category-8": "#df1896"
+  }
+}

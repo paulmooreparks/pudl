@@ -5,7 +5,7 @@ const { execFileSync } = require('child_process');
 const pw = require('playwright'), assert = require('assert/strict');
 const source = path.resolve(process.argv[2]), output = path.resolve(process.argv[3]);
 const skin = process.argv.includes('--skin') ? process.argv[process.argv.indexOf('--skin') + 1] : 'gel';
-if (!['gel', 'glaze'].includes(skin)) throw new Error('skin must be gel or glaze');
+if (!require('./skin-list')(source).includes(skin)) throw new Error('unknown skin');
 async function settle(page) {
   await page.evaluate(async () => { await document.fonts.ready; await Promise.all(document.getAnimations().filter(a => a.effect && Number.isFinite(a.effect.getComputedTiming().endTime)).map(a => a.finished.catch(() => {}))); });
 }

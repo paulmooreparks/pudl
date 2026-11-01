@@ -27,7 +27,8 @@ const BEVEL = {
   'primary-hover-fill': 'var(--accent-hover)',
   'danger-hover-fill': 'var(--danger)',
   'danger-rest-fg': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
-  'focus-ring': 'var(--accent)',
+  'focus-ring': 'color-mix(in srgb, var(--accent) 85%, var(--surface))',
+  'focus-ring-width': '2px',
   'win-chrome-focus-shadow': '0 0 0 2px #fff, 0 0 0 3px #000',
   'tb-focus-ring': 'var(--tb-fg)',
   'focus-ring-danger': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
@@ -65,7 +66,8 @@ const GEL = {
   'primary-pressed-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 55%, transparent)',
   'danger-hover-fill': 'var(--danger)',
   'danger-rest-fg': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
-  'focus-ring': 'var(--accent)',
+  'focus-ring': 'color-mix(in srgb, var(--accent) 85%, var(--surface))',
+  'focus-ring-width': '2px',
   'focus-ring-danger': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
   'win-chrome-focus-shadow': '0 0 0 2px #fff, 0 0 0 3px #000',
   'tb-focus-ring': 'var(--tb-fg)',
@@ -95,7 +97,8 @@ const GLAZE = {
   'primary-pressed-shadow': 'inset 0 2px 4px color-mix(in srgb, var(--shade) 45%, transparent)',
   'danger-hover-fill': 'var(--danger)',
   'danger-rest-fg': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
-  'focus-ring': 'var(--accent)',
+  'focus-ring': 'color-mix(in srgb, var(--accent) 85%, var(--surface))',
+  'focus-ring-width': '2px',
   'focus-ring-danger': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
   'win-chrome-focus-shadow': '0 0 0 2px #fff, 0 0 0 3px #000',
   'tb-focus-ring': 'var(--tb-fg)',
@@ -107,6 +110,157 @@ const GLAZE = {
   'win-button-radius': '4px',
   'dismiss-radius': '4px'
 };
+
+/* New treatments share contrast-safe boundaries and focus paint. Each owns
+   its depth cues; none changes the component's box or semantic palette. */
+const MATERIAL = {
+  'raise-border': 'color-mix(in srgb, var(--text) 65%, var(--surface))',
+  'raise-border-hover': 'var(--text)',
+  'primary-fill': 'var(--accent)',
+  'primary-hover-fill': 'var(--accent-hover)',
+  'danger-hover-fill': 'var(--danger)',
+  'danger-rest-fg': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
+  'focus-ring': 'color-mix(in srgb, var(--accent) 85%, var(--surface))',
+  'focus-ring-width': '2px',
+  'focus-ring-danger': 'color-mix(in srgb, var(--danger) 80%, var(--text))',
+  'win-chrome-focus-shadow': '0 0 0 2px #fff, 0 0 0 3px #000',
+  'tb-focus-ring': 'var(--tb-fg)',
+  'win-active-fg': 'var(--text)',
+  'win-active-border': 'var(--accent)',
+  'button-radius': 'var(--radius-sm)',
+  'win-button-radius': 'var(--radius-sm)',
+  'dismiss-radius': 'var(--radius-sm)'
+};
+
+const MATTE = {
+  ...MATERIAL,
+  'raise-grad': 'var(--surface-alt)',
+  'raise-grad-hover': 'color-mix(in srgb, var(--text) 6%, var(--surface-alt))',
+  'raise-active-bg': 'color-mix(in srgb, var(--accent) 12%, var(--surface-alt))',
+  'raise-shadow': '0 1px 1px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'raise-active-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 28%, transparent)',
+  'entry-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 22%, transparent)',
+  'recess-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 18%, transparent)',
+  'surface-edge-shadow': '0 1px 1px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'shadow-card': '0 2px 5px color-mix(in srgb, var(--shade) 16%, transparent)',
+  'shadow-dialog': '0 8px 24px color-mix(in srgb, var(--shade) 26%, transparent)',
+  'overlay-shadow': '0 4px 14px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'toast-shadow': '0 3px 10px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'tooltip-shadow': '0 2px 5px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'shadow-btn-primary': '0 1px 1px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'primary-active-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent)',
+  'primary-pressed-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent)',
+  'win-active-bg': 'color-mix(in srgb, var(--accent) 12%, var(--surface-alt))',
+  'win-active-shadow': 'none',
+  'win-shadow': '0 4px 12px color-mix(in srgb, var(--shade) 22%, transparent)',
+  'win-shadow-active': '0 8px 24px color-mix(in srgb, var(--shade) 32%, transparent)',
+  'tb-grad': 'var(--tb-bg)',
+  'tb-chip': 'color-mix(in srgb, var(--tb-fg) 10%, var(--tb-bg))',
+  'tb-chip-shadow': '0 1px 1px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'tb-active-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent)',
+  'tb-toggle-active-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent)'
+};
+
+const INK = {
+  ...MATERIAL,
+  'raise-grad': 'var(--surface)',
+  'raise-grad-hover': 'color-mix(in srgb, var(--text) 6%, var(--surface))',
+  'raise-active-bg': 'color-mix(in srgb, var(--accent) 12%, var(--surface))',
+  'raise-border': 'var(--text)',
+  'raise-shadow': '1px 1px 0 var(--text)',
+  'raise-active-shadow': 'inset 1px 1px 0 var(--text)',
+  'entry-shadow': 'inset 1px 1px 0 var(--text)',
+  'recess-shadow': 'inset 0 1px 0 var(--text)',
+  'surface-edge-shadow': '0 1px 0 var(--text)',
+  'shadow-card': '2px 2px 0 var(--text)',
+  'shadow-dialog': '5px 5px 0 var(--text)',
+  'overlay-shadow': '3px 3px 0 var(--text)',
+  'toast-shadow': '3px 3px 0 var(--text)',
+  'tooltip-shadow': '2px 2px 0 var(--text)',
+  'shadow-btn-primary': '1px 1px 0 var(--text)',
+  'primary-active-shadow': 'inset 1px 1px 0 var(--text)',
+  'primary-pressed-shadow': 'inset 1px 1px 0 var(--text)',
+  'win-active-bg': 'var(--surface)',
+  'win-active-shadow': 'inset 0 -2px 0 var(--accent)',
+  'win-shadow': '3px 3px 0 var(--text)',
+  'win-shadow-active': '5px 5px 0 var(--text)',
+  'snap-current-shadow': 'inset 1px 1px 0 var(--text)',
+  'tb-grad': 'var(--tb-bg)',
+  'tb-chip': 'var(--tb-bg)',
+  'tb-chip-shadow': '1px 1px 0 var(--tb-fg)',
+  'tb-active-shadow': 'inset 1px 1px 0 var(--tb-fg)',
+  'tb-toggle-active-shadow': 'inset 1px 1px 0 var(--tb-fg)'
+};
+
+const ALLOY = {
+  ...MATERIAL,
+  'raise-grad': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--text) 9%, var(--surface-alt)))',
+  'raise-grad-hover': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 12%, var(--surface-alt)))',
+  'raise-active-bg': 'color-mix(in srgb, var(--accent) 14%, var(--surface-alt))',
+  'raise-shadow': 'inset 0 1px 0 var(--light), inset 0 -1px 0 color-mix(in srgb, var(--shade) 35%, transparent), 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent)',
+  'raise-active-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent)',
+  'entry-shadow': 'inset 0 2px 2px color-mix(in srgb, var(--shade) 30%, transparent), inset 0 -1px 0 var(--light)',
+  'recess-shadow': 'inset 0 1px 2px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'surface-edge-shadow': 'inset 0 1px 0 var(--light)',
+  'shadow-card': '0 1px 0 color-mix(in srgb, var(--light) 70%, transparent), 0 3px 6px color-mix(in srgb, var(--shade) 25%, transparent)',
+  'shadow-dialog': '0 12px 30px color-mix(in srgb, var(--shade) 40%, transparent)',
+  'overlay-shadow': '0 6px 16px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'toast-shadow': '0 4px 12px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'tooltip-shadow': '0 2px 5px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'shadow-btn-primary': 'inset 0 1px 0 color-mix(in srgb, var(--light) 50%, transparent), 0 1px 2px color-mix(in srgb, var(--shade) 30%, transparent)',
+  'primary-active-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent)',
+  'primary-pressed-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent)',
+  'win-active-bg': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 16%, var(--surface-alt)))',
+  'win-active-shadow': 'inset 0 1px 0 var(--light), inset 0 -1px 0 color-mix(in srgb, var(--shade) 35%, transparent)',
+  'win-shadow': '0 3px 8px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'win-shadow-active': '0 8px 24px color-mix(in srgb, var(--shade) 45%, transparent)',
+  'tb-grad': 'linear-gradient(to bottom, color-mix(in srgb, var(--tb-fg) 6%, var(--tb-bg)), var(--tb-bg))',
+  'tb-chip': 'linear-gradient(to bottom, color-mix(in srgb, var(--tb-fg) 16%, var(--tb-bg)), color-mix(in srgb, var(--tb-fg) 8%, var(--tb-bg)))',
+  'tb-chip-shadow': 'inset 0 1px 0 color-mix(in srgb, var(--tb-fg) 45%, transparent), 0 1px 1px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'tb-active-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent)',
+  'tb-toggle-active-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent)'
+};
+
+const GLASS = {
+  ...MATERIAL,
+  'raise-grad': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 6%, var(--surface-alt)))',
+  'raise-grad-hover': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 14%, var(--surface-alt)))',
+  'raise-active-bg': 'color-mix(in srgb, var(--accent) 16%, var(--surface-alt))',
+  'raise-shadow': 'inset 0 1px 0 var(--light), inset 0 -1px 0 color-mix(in srgb, var(--light) 30%, transparent), 0 2px 4px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'raise-active-shadow': 'inset 0 1px 4px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'entry-shadow': 'inset 0 1px 3px color-mix(in srgb, var(--shade) 28%, transparent)',
+  'recess-shadow': 'inset 0 1px 3px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'surface-edge-shadow': 'inset 0 1px 0 var(--light)',
+  'shadow-card': '0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 4px 12px color-mix(in srgb, var(--shade) 18%, transparent)',
+  'shadow-dialog': '0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 18px 48px color-mix(in srgb, var(--shade) 35%, transparent)',
+  'overlay-shadow': '0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 10px 32px color-mix(in srgb, var(--shade) 30%, transparent)',
+  'toast-shadow': '0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 6px 18px color-mix(in srgb, var(--shade) 28%, transparent)',
+  'tooltip-shadow': '0 3px 10px color-mix(in srgb, var(--shade) 28%, transparent)',
+  'shadow-btn-primary': 'inset 0 1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 2px 4px color-mix(in srgb, var(--shade) 24%, transparent)',
+  'primary-active-shadow': 'inset 0 1px 4px color-mix(in srgb, var(--shade) 40%, transparent)',
+  'primary-pressed-shadow': 'inset 0 1px 4px color-mix(in srgb, var(--shade) 40%, transparent)',
+  'win-active-bg': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 12%, var(--surface-alt)))',
+  'win-active-shadow': 'inset 0 1px 0 var(--light)',
+  'win-shadow': 'inset 0 1px 0 var(--light), 0 8px 24px color-mix(in srgb, var(--shade) 28%, transparent)',
+  'win-shadow-active': 'inset 0 1px 0 var(--light), 0 18px 48px color-mix(in srgb, var(--shade) 40%, transparent)'
+};
+
+const TREATMENTS = { bevel: BEVEL, gel: GEL, glaze: GLAZE, matte: MATTE, ink: INK, alloy: ALLOY, glass: GLASS };
+
+function glassChrome(condition) {
+  const root = ':where(:root' + condition + ')';
+  /* One opaque reading surface avoids separate rectangular title patches.
+     Translucency belongs to the frame and never to text or controls. */
+  const opaque = root + ' .win-head { background: var(--raise-grad); }\n' +
+    root + ' .win.active .win-head { background: var(--win-active-bg); }\n';
+  const chrome = root + ' .win { background: color-mix(in srgb, var(--surface-alt) 72%, transparent); }\n' +
+    root + ' .win-head { backdrop-filter: none; }\n';
+  const fallback = root + ' .win { background: var(--surface-alt); }\n' +
+    root + ' .win-head { background: var(--raise-grad); backdrop-filter: none; }\n' +
+    root + ' .win.active .win-head { background: var(--win-active-bg); }\n';
+  return opaque + '@supports (backdrop-filter: blur(12px)) {\n' + chrome + '}\n' +
+    '@media (prefers-reduced-transparency: reduce) {\n' + fallback + '}\n';
+}
 
 function rule(selector, values) {
   const names = Object.keys(values).sort();
@@ -121,9 +275,7 @@ function compile(input) {
   const condition = '[data-skin="' + skin.id + '"]';
   const shape = {};
   Object.keys(skin.radii).forEach(key => { shape[key] = skin.radii[key] + 'px'; });
-  if (skin.treatment === 'bevel') Object.assign(shape, BEVEL);
-  if (skin.treatment === 'gel') Object.assign(shape, GEL);
-  if (skin.treatment === 'glaze') Object.assign(shape, GLAZE);
+  Object.assign(shape, TREATMENTS[skin.treatment]);
   let css = '/* Generated candidate skin. Rendered conformance is a separate gate. */\n';
   css += rule(':root:where(' + condition + ')', shape);
   ['light', 'dark'].forEach(form => {
@@ -137,6 +289,7 @@ function compile(input) {
     const theme = form === 'dark' ? '[data-theme="dark"]' : ':not([data-theme="dark"])';
     css += rule(':root:where(' + condition + theme + ')', palette);
   });
+  if (skin.treatment === 'glass') css += glassChrome(condition);
   /* System-colour and print rendering remain entirely component-owned.
      A later skin file must not override their palette resets. */
   return '@media screen and (forced-colors: none) {\n' + css + '}\n';

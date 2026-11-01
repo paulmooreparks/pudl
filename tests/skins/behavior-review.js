@@ -7,7 +7,7 @@ const source = path.resolve(process.argv[2] || 'tests/output/skins-bevel-correct
 const output = path.resolve(process.argv[3] || 'tests/output/skins-bevel-behavior');
 const skinIndex = process.argv.indexOf('--skin');
 const skin = skinIndex < 0 ? 'bevel' : process.argv[skinIndex + 1];
-assert.ok(['bevel', 'gel', 'glaze'].includes(skin), 'unknown skin');
+assert.ok(require('./skin-list')(source).includes(skin), 'unknown skin');
 const suites = ['context-menu', 'taskbar-stacks', 'snap', 'docked'];
 let theme = 'light', injected = 0, skinRequests = 0;
 async function main() {

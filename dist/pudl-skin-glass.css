@@ -1,0 +1,56 @@
+@media screen and (forced-colors: none) {
+/* Generated candidate skin. Rendered conformance is a separate gate. */
+:root:where([data-skin="glass"]) {
+  --button-radius: var(--radius-sm);
+  --danger-hover-fill: var(--danger);
+  --danger-rest-fg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --dismiss-radius: var(--radius-sm);
+  --entry-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) 28%, transparent);
+  --focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));
+  --focus-ring-danger: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --focus-ring-width: 2px;
+  --overlay-shadow: 0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 10px 32px color-mix(in srgb, var(--shade) 30%, transparent);
+  --primary-active-shadow: inset 0 1px 4px color-mix(in srgb, var(--shade) 40%, transparent);
+  --primary-fill: var(--accent);
+  --primary-hover-fill: var(--accent-hover);
+  --primary-pressed-shadow: inset 0 1px 4px color-mix(in srgb, var(--shade) 40%, transparent);
+  --radius: 14px;
+  --radius-pill: 999px;
+  --radius-sm: 7px;
+  --radius-xs: 4px;
+  --raise-active-bg: color-mix(in srgb, var(--accent) 16%, var(--surface-alt));
+  --raise-active-shadow: inset 0 1px 4px color-mix(in srgb, var(--shade) 35%, transparent);
+  --raise-border: color-mix(in srgb, var(--text) 65%, var(--surface));
+  --raise-border-hover: var(--text);
+  --raise-grad: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 6%, var(--surface-alt)));
+  --raise-grad-hover: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 14%, var(--surface-alt)));
+  --raise-shadow: inset 0 1px 0 var(--light), inset 0 -1px 0 color-mix(in srgb, var(--light) 30%, transparent), 0 2px 4px color-mix(in srgb, var(--shade) 24%, transparent);
+  --recess-shadow: inset 0 1px 3px color-mix(in srgb, var(--shade) 24%, transparent);
+  --shadow-btn-primary: inset 0 1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 2px 4px color-mix(in srgb, var(--shade) 24%, transparent);
+  --shadow-card: 0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 4px 12px color-mix(in srgb, var(--shade) 18%, transparent);
+  --shadow-dialog: 0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 18px 48px color-mix(in srgb, var(--shade) 35%, transparent);
+  --surface-edge-shadow: inset 0 1px 0 var(--light);
+  --tb-focus-ring: var(--tb-fg);
+  --toast-shadow: 0 -1px 0 color-mix(in srgb, var(--light) 65%, transparent), 0 6px 18px color-mix(in srgb, var(--shade) 28%, transparent);
+  --tooltip-shadow: 0 3px 10px color-mix(in srgb, var(--shade) 28%, transparent);
+  --win-active-bg: linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 12%, var(--surface-alt)));
+  --win-active-border: var(--accent);
+  --win-active-fg: var(--text);
+  --win-active-shadow: inset 0 1px 0 var(--light);
+  --win-button-radius: var(--radius-sm);
+  --win-chrome-focus-shadow: 0 0 0 2px #fff, 0 0 0 3px #000;
+  --win-shadow: inset 0 1px 0 var(--light), 0 8px 24px color-mix(in srgb, var(--shade) 28%, transparent);
+  --win-shadow-active: inset 0 1px 0 var(--light), 0 18px 48px color-mix(in srgb, var(--shade) 40%, transparent);
+}
+:where(:root[data-skin="glass"]) .win-head { background: var(--raise-grad); }
+:where(:root[data-skin="glass"]) .win.active .win-head { background: var(--win-active-bg); }
+@supports (backdrop-filter: blur(12px)) {
+:where(:root[data-skin="glass"]) .win { background: color-mix(in srgb, var(--surface-alt) 72%, transparent); }
+:where(:root[data-skin="glass"]) .win-head { backdrop-filter: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+:where(:root[data-skin="glass"]) .win { background: var(--surface-alt); }
+:where(:root[data-skin="glass"]) .win-head { background: var(--raise-grad); backdrop-filter: none; }
+:where(:root[data-skin="glass"]) .win.active .win-head { background: var(--win-active-bg); }
+}
+}
