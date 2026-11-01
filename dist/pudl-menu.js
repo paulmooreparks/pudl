@@ -253,7 +253,7 @@
   document.addEventListener('beforetoggle', function (e) {
     var panel = e.target;
     if (!placed(panel)) return;
-    if (e.newState === 'open') openPanels.add(panel); else openPanels.delete(panel);
+    if (e.newState === 'open') openPanels.add(panel); else { openPanels.delete(panel); panel.__pudlKeepScroll = null; }
     /* The filter starts empty every time the panel opens. beforetoggle
        fires for every opening, whereas the toggle events of a quick close
        and reopen can be merged into one, so the clearing belongs here. */
@@ -291,7 +291,12 @@
               Array.prototype.some.call(r.removedNodes, function (n) { return !n.classList || !n.classList.contains('menu-panel'); });
           });
           if (!records.length) return;
-          if (records.some(function (r) { return r.type === 'childList' && r.target === panel; })) panel.scrollTop = 0;
+          /* Rows drawn again for the same menu, while it stays open, keep
+             the place the reader had scrolled to; the script that drew
+             them says so with __pudlKeepScroll. Other new rows start at the
+             top. */
+          if (records.some(function (r) { return r.type === 'childList' && r.target === panel; })) panel.scrollTop = panel.__pudlKeepScroll != null ? panel.__pudlKeepScroll : 0;
+          panel.__pudlKeepScroll = null;
           place(panel);
         });
         watchers.set(panel, observer);
