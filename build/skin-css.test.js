@@ -79,6 +79,8 @@ test('Glass scopes its enhancement to the selected identifier and supplies an op
   assert.ok(css.includes('.win::before'));
   assert.ok(css.includes('prefers-reduced-transparency: no-preference'));
   assert.ok(css.includes('pointer-events: none'));
+  assert.ok(css.includes('text-shadow:'));
+  assert.ok(css.includes('drop-shadow(0 0 1px var(--surface))'));
   assert.ok(css.includes('.win-head { background: var(--raise-grad); }'));
   assert.ok(!css.includes('.win-head > :is('), 'titles must not have rectangular backing patches');
   assert.ok(!/\.win \{[^}]*backdrop-filter/.test(css), 'filter must not change the containing block of window popovers');

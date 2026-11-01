@@ -10,7 +10,7 @@ Ink uses nearly square corners, foreground outlines and hard offset shadows. Pre
 
 Alloy uses broad satin gradients and narrow opposing edge highlights. Its square-ended controls, inset fields and stronger frame shadows distinguish it from the split gloss of Gel and Glaze. No texture crosses text.
 
-Glass uses rounded controls, clear edge highlights and broad lifted shadows. Window frames may be translucent when the enhancement is supported and the reader has not requested reduced transparency. Following Paul's final preview approval, a shared decorative layer applies the same 2px backdrop blur and 35% tint beneath both frame and title bar. Individual titles and status groups have no rectangular backing patches. Menus, dialogs, cards and window bodies retain opaque reading surfaces with glass edge lighting. This keeps their contrast independent of the page behind them.
+Glass uses rounded controls, clear edge highlights and broad lifted shadows. Window frames may be translucent when the enhancement is supported and the reader has not requested reduced transparency. Following Paul's final preview approval, a shared decorative layer applies the same 2px backdrop blur and 35% tint beneath both frame and title bar. Individual titles and status groups have no rectangular backing patches. A surface-coloured glyph-shaped halo preserves lettering contrast over transmitted content, including title detail and host-status words. Menus, dialogs, cards and window bodies retain opaque reading surfaces with glass edge lighting. This keeps their contrast independent of the page behind them.
 
 ## Boundaries
 

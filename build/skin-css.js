@@ -271,6 +271,10 @@ ${root} .win::before {
 ${root} .win-head {
   background: transparent;
   backdrop-filter: none;
+  text-shadow: -1px -1px 0 var(--surface), 0px -1px 0 var(--surface), 1px -1px 0 var(--surface), -1px 0px 0 var(--surface), 0px 0px 0 var(--surface), 1px 0px 0 var(--surface), -1px 1px 0 var(--surface), 0px 1px 0 var(--surface), 1px 1px 0 var(--surface), 0 0 2px var(--surface), 0 0 2px var(--surface), 0 0 2px var(--surface), 0 0 2px var(--surface);
+}
+${root} .win-head :is(.win-title, .win-title-detail, .win-status) {
+  filter: drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface)) drop-shadow(0 0 1px var(--surface));
 }
 ${root} .win.active .win-head {
   background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 6%, transparent));

@@ -88,3 +88,14 @@ The catalogue, gradient, focus, live-focus and behavior harnesses accept `--skin
 ## Release run evidence
 
 Set `PUDL_RUN_OUTPUT` to a new directory when running `tests/run.js` to retain complete per-suite output, result metadata and separate screenshot directories. The runner refuses an existing directory so later runs cannot overwrite evidence. Browser fixtures that use `tests/lib.js` and the skin and palette browser checks honor the supplied `PUDL_OUTPUT_DIR`. Set `PUDL_SUITE_TIMEOUT` explicitly when the release needs a longer suite budget; the default remains 120 seconds.
+
+## Glass lettering contrast
+
+`glass-text-review.js` captures the rendered lettering, its text-hidden halo backing and a neutral opaque glyph mask. `glass-text-pixels.py` uses the mask to locate solid glyph samples, then measures the actual painted colours against backing at each core and its nearest clear edge samples. This includes detail text with component opacity, rather than excluding it when its pixels differ from the computed uncomposited colour. Both measurements must reach 4.5:1 and contain samples. The original no-halo failures remain a separate admission input.
+
+```powershell
+node tests/skins/glass-text-review.js <frozen-source> <new-output> chromium standard normal
+node tests/skins/glass-text-review.js <frozen-source> <new-output> chromium gel min
+```
+
+The optional engine is chromium, firefox or webkit; the palette is standard, bevel, gel or glaze. The final argument chooses normal or min assets. Every output directory must be new. Chromium explicitly emulates the documented no-preference value through its browser protocol. Other engines use their reported preference; the harness refuses to certify translucency when that path is unavailable. An opaque fallback is verified separately by the material browser checks. [GLASS-READABILITY.md](GLASS-READABILITY.md) records the correction and evidence limits.
