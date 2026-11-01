@@ -32,7 +32,7 @@ async function routeAssets(page, fallback = false) {
     if (file.endsWith('.css')) {
       body = body.toString().replace(/url\((["']?)\.\.\//g, (_, quote) => 'url(' + quote + 'http://materials.test/dist/');
       /* Exercise the opaque feature-query path in a browser that supports blur. */
-      if (fallback) body = body.replace(/@supports\s*\(backdrop-filter:\s*blur\(12px\)\)/g, '@supports (pudl-unsupported-filter: blur(12px))');
+      if (fallback) body = body.replace(/@supports\s*\(backdrop-filter:\s*blur\(2px\)\)/g, '@supports (pudl-unsupported-filter: blur(2px))');
     }
     return route.fulfill({ body, contentType: ({ '.css': 'text/css', '.js': 'text/javascript', '.woff2': 'font/woff2', '.json': 'application/json' })[path.extname(file)] || 'text/html' });
   });
@@ -161,7 +161,7 @@ for (const engine of engines) {
     const browser = await pw[engine].launch();
     try {
       for (const fallback of [false, true]) {
-        const page = await browser.newPage({ reducedMotion: 'reduce' });
+        const page = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 1440, height: 1120 } });
         let cdp;
         if (engine === 'chromium') {
           cdp = await page.context().newCDPSession(page);
@@ -170,20 +170,40 @@ for (const engine of engines) {
         await routeAssets(page, fallback);
         await page.goto('http://materials.test/samples/skins.html?skin=glass');
         await page.waitForFunction(() => document.querySelectorAll('.win').length === 2);
+        const darkBackdrop = new Map();
         for (const theme of ['light', 'dark']) for (const background of ['#000000', '#ffffff', 'repeating-linear-gradient(45deg, #000 0px 8px, #fff 8px 16px)']) {
           await page.selectOption('#theme', theme);
           await page.locator('.win-host').evaluate((n, background) => { n.style.background = background; }, background);
           await settle(page);
           const paints = await page.locator('.win.active').evaluate(win => {
             const head = getComputedStyle(win.querySelector('.win-head'));
-            return { skin: document.documentElement.dataset.skin, supported: CSS.supports('backdrop-filter', 'blur(12px)'), reduced: matchMedia('(prefers-reduced-transparency: reduce)').matches, filter: head.backdropFilter, title: getComputedStyle(win.querySelector('.win-title')).backgroundColor, titleFill: head.backgroundImage,
+            return { skin: document.documentElement.dataset.skin, supported: CSS.supports('backdrop-filter', 'blur(2px)'), reduced: matchMedia('(prefers-reduced-transparency: reduce)').matches, filter: head.backdropFilter, title: getComputedStyle(win.querySelector('.win-title')).backgroundColor, titleFill: head.backgroundImage, glass: getComputedStyle(win, '::before').backdropFilter, glassContent: getComputedStyle(win, '::before').content, enhanced: matchMedia('(prefers-reduced-transparency: no-preference)').matches,
               body: getComputedStyle(win.querySelector('.win-body')).backgroundColor, frame: getComputedStyle(win).backgroundColor, containingBlockFilter: getComputedStyle(win).backdropFilter };
           });
           assert.equal(paints.title, 'rgba(0, 0, 0, 0)', 'title text has no separate backing rectangle');
           assert.match(paints.body, /^rgb\(/, 'body reading surface is opaque');
-          assert.match(paints.titleFill, /linear-gradient/, 'whole title bar has one opaque reading surface');
+          if (!fallback && paints.supported && paints.enhanced) {
+            assert.equal(paints.glass, 'blur(2px)', 'frame and header share one decorative blur layer');
+            assert.equal(paints.glassContent, '""');
+            assert.equal(paints.frame, 'rgba(0, 0, 0, 0)', 'window fill does not mask the backdrop');
+            if (background === '#000000' || background === '#ffffff') {
+              for (const state of ['active', 'inactive']) {
+                const window = page.locator(state === 'active' ? '.win.active' : '.win:not(.active)').first();
+                const head = await window.locator('.win-head').boundingBox();
+                for (const region of ['header', 'frame']) {
+                  const clip = region === 'header'
+                    ? { x: head.x + head.width - 110, y: head.y + 12, width: 20, height: 12 }
+                    : { x: head.x + head.width + 1, y: head.y + 12, width: 2, height: 12 };
+                  const raster = await page.screenshot({ clip });
+                  const key = theme + state + region;
+                  if (background === '#000000') darkBackdrop.set(key, raster);
+                  else assert(!raster.equals(darkBackdrop.get(key)), state + ' ' + region + ' transmits the changed backdrop');
+                }
+              }
+            }
+          } else assert.match(paints.titleFill, /linear-gradient/, 'fallback title bar is opaque');
           assert.equal(paints.containingBlockFilter, 'none', 'window menus keep their viewport containing block');
-          assert.equal(paints.filter, 'none', 'opaque title chrome needs no backdrop filtering');
+          assert.equal(paints.filter, 'none', 'the header does not blur the shared backdrop twice');
           if (fallback) assert.match(paints.frame, /^rgb\(/, 'fallback frame is opaque');
           if (!fallback && background.startsWith('repeating-')) {
             fs.mkdirSync(output, { recursive: true });

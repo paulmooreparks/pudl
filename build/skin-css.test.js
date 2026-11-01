@@ -73,9 +73,12 @@ test('Glass scopes its enhancement to the selected identifier and supplies an op
   assert.ok(css.startsWith('@media screen and (forced-colors: none)'));
   assert.ok(css.includes(':where(:root[data-skin="glass-probe"]) .win-head'));
   assert.ok(!css.includes('[data-skin="glass"]'));
-  assert.ok(css.includes('@supports (backdrop-filter: blur(12px))'));
+  assert.ok(css.includes('@supports (backdrop-filter: blur(2px))'));
   assert.ok(css.includes('@media (prefers-reduced-transparency: reduce)'));
   assert.ok(css.includes('backdrop-filter: none'));
+  assert.ok(css.includes('.win::before'));
+  assert.ok(css.includes('prefers-reduced-transparency: no-preference'));
+  assert.ok(css.includes('pointer-events: none'));
   assert.ok(css.includes('.win-head { background: var(--raise-grad); }'));
   assert.ok(!css.includes('.win-head > :is('), 'titles must not have rectangular backing patches');
   assert.ok(!/\.win \{[^}]*backdrop-filter/.test(css), 'filter must not change the containing block of window popovers');

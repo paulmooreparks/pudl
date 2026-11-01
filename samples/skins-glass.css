@@ -44,9 +44,31 @@
 }
 :where(:root[data-skin="glass"]) .win-head { background: var(--raise-grad); }
 :where(:root[data-skin="glass"]) .win.active .win-head { background: var(--win-active-bg); }
-@supports (backdrop-filter: blur(12px)) {
-:where(:root[data-skin="glass"]) .win { background: color-mix(in srgb, var(--surface-alt) 72%, transparent); }
-:where(:root[data-skin="glass"]) .win-head { backdrop-filter: none; }
+@media (prefers-reduced-transparency: no-preference) {
+@supports (backdrop-filter: blur(2px)) {
+:where(:root[data-skin="glass"]) .win {
+  background: transparent;
+}
+/* One decorative layer filters the backdrop behind the whole frame.
+   Content and controls stay above it, with their own opaque surfaces. */
+:where(:root[data-skin="glass"]) .win::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 35%, transparent), color-mix(in srgb, var(--surface-alt) 35%, transparent));
+  backdrop-filter: blur(2px);
+}
+:where(:root[data-skin="glass"]) .win-head {
+  background: transparent;
+  backdrop-filter: none;
+}
+:where(:root[data-skin="glass"]) .win.active .win-head {
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 6%, transparent));
+}
+}
 }
 @media (prefers-reduced-transparency: reduce) {
 :where(:root[data-skin="glass"]) .win { background: var(--surface-alt); }

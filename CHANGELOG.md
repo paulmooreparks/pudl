@@ -4,11 +4,11 @@
 
 Execution states use static Play, Pause, solid square and warning-triangle glyphs on every surface, with their existing semantic colours. Working no longer rotates under either motion preference. The optional `data-win-state-title="none"` suppresses the generated title execution chip and folded execution row while preserving host chips and taskbar, dock and stack marks. Changing the setting live refits the title bar. See `docs/WINDOW-STATUS.md`.
 
-Glass preview title bars now use one continuous opaque reading surface, removing separate title and status backing rectangles while retaining translucent frames. Revised skins use thinner, softer focus shadows. These revisions await renewed independent admission and do not change existing tagged releases.
+Glass shares one translucent surface and blur across frame and title bar, with opaque contents and controls and no separate title backing rectangles. Reduced transparency or unsupported filtering retains opaque chrome. Revised skins use thinner, softer focus shadows. These revisions await renewed independent admission and do not change existing tagged releases.
 
 Optional Bevel, Gel and Glaze companion colour themes add matching historical palettes in light and dark. The skin preview provides an independent Theme selector. See `docs/THEMES.md` for `data-palette` selection and stylesheet loading.
 
-Matte, Ink, Alloy and Glass add four development skin treatments with generated light/dark stylesheets and minified copies. The preview offers all four. Glass includes translucent window chrome with opaque text backing and an opaque fallback for unsupported filtering or reduced transparency. Their catalogue entries remain unadmitted pending independent rendered review. Existing admitted skin files are unchanged.
+Matte, Ink, Alloy and Glass add four development skin treatments with generated light/dark stylesheets and minified copies. The preview offers all four. Glass includes translucent window chrome and an opaque fallback for unsupported filtering or reduced transparency. Their catalogue entries remain unadmitted pending independent rendered review. Bevel, Gel and Glaze also change to use the revised focus treatment; their new bytes require renewed admission.
 
 This release implements specification 0.52.3.
 

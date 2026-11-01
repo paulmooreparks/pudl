@@ -249,16 +249,38 @@ const TREATMENTS = { bevel: BEVEL, gel: GEL, glaze: GLAZE, matte: MATTE, ink: IN
 
 function glassChrome(condition) {
   const root = ':where(:root' + condition + ')';
-  /* One opaque reading surface avoids separate rectangular title patches.
-     Translucency belongs to the frame and never to text or controls. */
+  /* One decorative layer shares the backdrop across frame and header.
+     Filtering the window itself would change descendant positioning. */
   const opaque = root + ' .win-head { background: var(--raise-grad); }\n' +
     root + ' .win.active .win-head { background: var(--win-active-bg); }\n';
-  const chrome = root + ' .win { background: color-mix(in srgb, var(--surface-alt) 72%, transparent); }\n' +
-    root + ' .win-head { backdrop-filter: none; }\n';
+  const chrome = `${root} .win {
+  background: transparent;
+}
+/* One decorative layer filters the backdrop behind the whole frame.
+   Content and controls stay above it, with their own opaque surfaces. */
+${root} .win::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 35%, transparent), color-mix(in srgb, var(--surface-alt) 35%, transparent));
+  backdrop-filter: blur(2px);
+}
+${root} .win-head {
+  background: transparent;
+  backdrop-filter: none;
+}
+${root} .win.active .win-head {
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--accent) 6%, transparent));
+}
+`;
   const fallback = root + ' .win { background: var(--surface-alt); }\n' +
     root + ' .win-head { background: var(--raise-grad); backdrop-filter: none; }\n' +
     root + ' .win.active .win-head { background: var(--win-active-bg); }\n';
-  return opaque + '@supports (backdrop-filter: blur(12px)) {\n' + chrome + '}\n' +
+  return opaque + '@media (prefers-reduced-transparency: no-preference) {\n' +
+    '@supports (backdrop-filter: blur(2px)) {\n' + chrome + '}\n}\n' +
     '@media (prefers-reduced-transparency: reduce) {\n' + fallback + '}\n';
 }
 
