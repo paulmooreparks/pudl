@@ -33,3 +33,5 @@ Paul reenabled workstation motion and transparency and requested a translucent t
 ## Publication
 
 No tag, archive, checksum or release page has been published for this candidate. Final results and immutable identifiers will be recorded here.
+
+The second preview still appeared solid to Paul in an ordinary overlap. Preview 3 reduces title tint from 72% to 35% and blur from 12px to 2px. It includes a visible Glass-only status explaining the browser's transparency preference and fallback state. It does not override that preference. A capture with Notes over the Editor textarea visibly shows the existing document words through the Notes header; that capture is `tests/output/glass-title-translucent-preview-v3/real-text-overlap.png`. All six engine/form checks pass again, including Chromium's opaque fallback and unchanged bounds. The stronger preview has not passed independent contrast admission and remains a visual experiment.
