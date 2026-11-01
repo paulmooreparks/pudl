@@ -243,6 +243,7 @@
 
   /* A command with items is a menu button: its panel is made beside it
      once, and its rows are drawn as it opens. */
+  var commandMenus = [];
   function menuFor(ctl, cmd) {
     if (ctl.__pudlMenu) return;
     var wrap = ctl.parentElement && ctl.parentElement.classList.contains('menu') ? ctl.parentElement : null;
@@ -260,6 +261,7 @@
     ctl.classList.add('menu-btn');
     ctl.setAttribute('popovertarget', panel.id);
     ctl.__pudlMenu = panel;
+    commandMenus.push({ ctl: ctl, panel: panel });
     panel.addEventListener('beforetoggle', function (e) {
       if (e.newState !== 'open') return;
       var now = find(ctl.getAttribute('data-command'), ctl);
@@ -307,6 +309,7 @@
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'menu-action';
+    b._pudlCommand = c;
     var checked = val(c, 'checked'), choice = val(c, 'choice');
     if (checked != null) {
       b.setAttribute('role', choice ? 'menuitemradio' : 'menuitemcheckbox');
@@ -335,11 +338,14 @@
     if (key) { var k = document.createElement('span'); k.className = 'menu-row-key'; k.textContent = shown(key); b.appendChild(k); }
     if (val(c, 'danger')) b.classList.add('danger');
     if (val(c, 'disabled')) b.setAttribute('aria-disabled', 'true');
+    /* The row runs its command as it is now: a menu kept open through an
+       update gives the row the command read then (redrawOpenMenus). */
     b.addEventListener('click', function () {
-      if (val(c, 'disabled')) return;
+      var cur = b._pudlCommand || c;
+      if (val(cur, 'disabled')) return;
       var panel = b.closest('[popover]');
       if (panel && panel.hidePopover) panel.hidePopover();
-      if (onRun) onRun(c); else runCmd(c, val(c, 'value')).catch(function () {});
+      if (onRun) onRun(cur); else runCmd(cur, val(cur, 'value')).catch(function () {});
     });
     return b;
   }
@@ -397,11 +403,97 @@
   /* pudl:commands-change fires after every drawing, and its detail.changed
      says whether the drawing changed the page, so a toolbar measures
      itself again only when it did. */
+  /* A command menu open while its commands change stays open and is drawn
+     again in place, so its ticks and disabled rows are current; a menu
+     whose rows read as they did is left untouched. Focus on a row stays on
+     it while its command is there and enabled; when that command has gone
+     or been disabled, focus moves to the menu's first enabled row, then to
+     the menu's button, never to a row that has left the page. A command's
+     own panel, such as a search field, is the reader's while it is open
+     and is not drawn again; it is drawn afresh as it next opens. */
+  function openRows(panel) {
+    return Array.prototype.filter.call(panel.querySelectorAll(':scope > .menu-action'), function (r) { return r.getClientRects().length > 0; });
+  }
+  function enabledRow(r) { return !!r && r.getAttribute('aria-disabled') !== 'true' && !r.disabled; }
+  function redrawOpenMenus() {
+    commandMenus = commandMenus.filter(function (m) { return m.ctl.isConnected || m.panel.isConnected; });
+    commandMenus.forEach(function (m) {
+      var panel = m.panel, ctl = m.ctl;
+      if (!panel.isConnected || !panel.matches(':popover-open')) return;
+      var now = find(ctl.getAttribute('data-command'), ctl), list = now && itemsOf(now.cmd, ctl);
+      /* The menu's command has gone, or its button has: the menu closes,
+         and focus that was in it goes to the button, or to another control
+         of its toolbar that is still there. */
+      if (!now || !opensMenu(now.cmd, ctl) || !ctl.isConnected || ctl.hidden || ctl.disabled) {
+        var inside = panel.contains(document.activeElement);
+        panel.hidePopover();
+        if (!inside) return;
+        var bar = ctl.isConnected && ctl.closest('.toolbar, [role=toolbar]');
+        var spare = ctl.isConnected && !ctl.hidden && !ctl.disabled && ctl.getClientRects().length ? ctl :
+          bar ? Array.prototype.filter.call(bar.querySelectorAll('button, a[href], input, select, [tabindex]:not([tabindex="-1"])'), function (n) { return !n.disabled && n.getClientRects().length && !n.closest('[popover]'); })[0] : null;
+        if (spare) spare.focus();
+        return;
+      }
+      if (typeof now.cmd.panel === 'function' || list.some(function (c) { return c && typeof c.panel === 'function'; })) return;
+      var fresh = document.createElement('div');
+      rows(fresh, list, ctl);
+      if (fresh.innerHTML === panel.innerHTML) {
+        Array.prototype.forEach.call(panel.children, function (r, i) { if (r._pudlCommand) r._pudlCommand = fresh.children[i]._pudlCommand; });
+        return;
+      }
+      var a = document.activeElement, had = panel.contains(a);
+      reconcileRows(panel, Array.prototype.slice.call(fresh.childNodes));
+      touched = true;
+      a = document.activeElement;
+      if (!had || (a && a !== document.body && !panel.contains(a))) return;
+      if (panel.contains(a) && enabledRow(a)) return;
+      var target = openRows(panel).filter(enabledRow)[0] || null;
+      if (!target && ctl.isConnected && !ctl.disabled && ctl.getClientRects().length) target = ctl;
+      if (target) target.focus();
+    });
+  }
+  /* The open panel's nodes brought to fresh in place: a row whose command
+     is still there is the same element, its words and state updated, so
+     focus on it and the scroll stay; separators and headings are matched
+     in order. A row with focus is never moved, since moving an element
+     takes focus from it; the nodes around it move instead. */
+  function reconcileRows(panel, fresh) {
+    var olds = Array.prototype.slice.call(panel.childNodes), used = new Set(), wanted = [], made = false;
+    function kind(n) { return n.nodeType !== 1 ? '#' : n._pudlCommand ? 'row:' + n._pudlCommand.id : n.tagName + ':' + n.className + ':' + (n.classList.contains('md-section-label') ? n.textContent : ''); }
+    fresh.forEach(function (f) {
+      var k = kind(f), o = olds.filter(function (x) { return !used.has(x) && kind(x) === k; })[0];
+      if (!o) { wanted.push(f); made = true; return; }
+      used.add(o);
+      if (o.nodeType === 1 && o._pudlCommand) {
+        Array.prototype.slice.call(f.attributes).forEach(function (at) { if (o.getAttribute(at.name) !== at.value) o.setAttribute(at.name, at.value); });
+        Array.prototype.slice.call(o.attributes).forEach(function (at) { if (!f.hasAttribute(at.name) && !/^(id|tabindex)$/.test(at.name)) o.removeAttribute(at.name); });
+        if (o.innerHTML !== f.innerHTML) o.replaceChildren.apply(o, Array.prototype.slice.call(f.childNodes));
+        o._pudlCommand = f._pudlCommand;
+      }
+      wanted.push(o);
+    });
+    var gone = olds.filter(function (o) { return !used.has(o); });
+    var kept = olds.filter(function (o) { return used.has(o); });
+    var moved = made || !kept.every(function (o, i) { return o === wanted[i]; });
+    if (!gone.length && !moved) return;
+    panel.__pudlKeepScroll = panel.scrollTop;
+    gone.forEach(function (o) { o.remove(); });
+    if (!moved) return;
+    var a = document.activeElement, pin = wanted.findIndex(function (n) { return n === a || (n.nodeType === 1 && n.contains(a)); });
+    if (pin < 0) {
+      wanted.forEach(function (n, i) { var at = i ? wanted[i - 1].nextSibling : panel.firstChild; if (n !== at) panel.insertBefore(n, at); });
+      return;
+    }
+    for (var i = pin - 1; i >= 0; i--) if (wanted[i].nextSibling !== wanted[i + 1]) panel.insertBefore(wanted[i], wanted[i + 1]);
+    for (var j = pin + 1; j < wanted.length; j++) if (wanted[j - 1].nextSibling !== wanted[j]) panel.insertBefore(wanted[j], wanted[j - 1].nextSibling);
+  }
+
   function draw(root) {
     touched = false;
     (root || document).querySelectorAll('[data-command-choice]').forEach(fillChoice);
     (root || document).querySelectorAll('[data-command]').forEach(function (c) { if (!c.closest('[data-command-choice]')) fill(c); });
     emptyGroups(root);
+    redrawOpenMenus();
     document.dispatchEvent(new CustomEvent('pudl:commands-change', { detail: { changed: touched } }));
   }
 

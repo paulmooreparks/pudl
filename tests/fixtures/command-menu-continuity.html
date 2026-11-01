@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Command menus through updates</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-commands.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <style>body { margin: 24px; } .menu-panel { max-height: 240px; }</style>
+</head>
+<body>
+  <!-- A test fixture for a command menu open while its commands change: a
+       toolbar with a menu of choices, enough rows to scroll, and a field
+       the reader can move focus to. -->
+  <div class="toolbar" role="toolbar" aria-label="Tools">
+    <div class="toolbar-group"><button type="button" id="first-tool" data-command="tidy"></button><button type="button" data-command="mode" id="mode-btn"></button></div>
+  </div>
+  <input class="form-input" id="elsewhere" aria-label="Elsewhere">
+  <script>
+    window.__f = { mode: 'a', bOff: false, gone: false, modeOff: false, reverse: false, extra: 20, log: [] };
+    document.addEventListener('DOMContentLoaded', function () {
+      pudlCommands.register(document.body, function () {
+        var f = window.__f, extra = [];
+        for (var i = 0; i < f.extra; i++) extra.push('item-' + i);
+        var modes = ['mode-a', 'mode-b', 'mode-c'];
+        if (f.reverse) modes.reverse();
+        var list = [
+          { id: 'tidy', label: 'Tidy', run: function () { f.log.push('tidy'); } },
+          { id: 'mode', label: 'Mode', hidden: function () { return f.gone; }, disabled: function () { return f.modeOff; }, items: modes.concat(extra) },
+          { id: 'mode-a', label: 'Mode A', choice: 'mode', checked: function () { return f.mode === 'a'; }, run: function () { f.mode = 'a'; f.log.push('a'); } },
+          { id: 'mode-b', label: 'Mode B', choice: 'mode', disabled: function () { return f.bOff; }, checked: function () { return f.mode === 'b'; }, run: function () { f.mode = 'b'; f.log.push('b'); } },
+          { id: 'mode-c', label: 'Mode C', choice: 'mode', checked: function () { return f.mode === 'c'; }, run: function () { f.mode = 'c'; f.log.push('c'); } }
+        ];
+        extra.forEach(function (id, i) { list.push({ id: id, label: 'Item ' + i, run: function () { f.log.push(id); } }); });
+        return list;
+      });
+      pudlCommands.changed();
+    });
+  </script>
+</body>
+</html>
