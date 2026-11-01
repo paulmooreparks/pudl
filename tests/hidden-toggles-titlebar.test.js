@@ -60,4 +60,5 @@ function check(name, ok, extra) {
   }
   await b.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');
-})();
+  process.exitCode = failures ? 1 : 0;
+})().catch(error => { console.error(error); process.exitCode = 1; });
