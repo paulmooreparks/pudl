@@ -709,10 +709,62 @@
     });
   }
 
+  /* Whether two rows are the same command, read at different times: a
+     contributed command by its source and menu path, any other by its id
+     or its label. */
+  function sameItem(a, b) {
+    if (!a || !b) return false;
+    if (a.owner || b.owner) return !!(a.owner && b.owner) && sameSource(a.owner, b.owner) && JSON.stringify(a.commandPath) === JSON.stringify(b.commandPath);
+    if (a.id || b.id) return a.id === b.id;
+    return a.label === b.label;
+  }
+
+  /* An open menu outlasts the page's updates. Its rows are read again,
+     but an open submenu opens again beside the same row, and focus that
+     was in the menu goes back to the same command. When that command has
+     gone or has been disabled, focus goes to the nearest enabled row where
+     it was, then to the submenu's own row, then to the menu's title, and
+     never to a row that is no longer in the page. Focus the reader moved
+     out of the menu stays where it is. Only what the reader does closes a
+     menu. */
+  function openMenuState() {
+    if (!panel || !panel.matches(':popover-open')) return null;
+    var a = document.activeElement, subOpen = !!(sub && sub.parentNode === panel && sub.matches(':popover-open'));
+    var inSub = subOpen && sub.contains(a);
+    return { sub: subOpen && sub._from ? sub._from._item : null, focus: a && panel.contains(a) ? a._item || null : null,
+      at: Math.max(0, items(inSub ? sub : panel).indexOf(a)), inSub: inSub, had: panel.contains(a), keyboard: panel.hasAttribute('data-keyboard') };
+  }
+  function enabledRow(r) { return !!r && r.getAttribute('aria-disabled') !== 'true'; }
+  function nearestEnabled(rows, at) {
+    for (var d = 0; d < rows.length; d++) {
+      if (enabledRow(rows[at + d])) return rows[at + d];
+      if (enabledRow(rows[at - d])) return rows[at - d];
+    }
+    return null;
+  }
+  function restoreMenu(s) {
+    if (!s || !panel.matches(':popover-open')) return;
+    panel.toggleAttribute('data-keyboard', s.keyboard);
+    var rows = items(panel);
+    var from = s.sub ? rows.find(function (r) { return r._item && r._item.items && sameItem(r._item, s.sub); }) : null;
+    var beside = from && !panel.classList.contains('sheet') && !(openTitle && openTitle._menu.all);
+    if (beside) openSub(from, false);
+    /* Focus the bar moved itself, to a title while it was built again, is
+       still the menu's to give back. */
+    var a = document.activeElement;
+    if (!s.had || (a && a !== document.body && !panel.contains(a) && !built.contains(a))) return;
+    var here = s.inSub && beside ? items(sub) : rows;
+    var same = here.find(function (r) { return sameItem(r._item, s.focus); });
+    var target = enabledRow(same) ? same : nearestEnabled(here, same ? here.indexOf(same) : Math.min(s.at, here.length - 1)) ||
+      (s.inSub && enabledRow(from) ? from : null) || nearestEnabled(rows, 0) || (openTitle && openTitle.isConnected ? openTitle : null);
+    if (target) target.focus();
+  }
+
   /* force builds it again whatever it reads as: after the pins change, the
      bar collapses or opens out, or the page's regions or policy change. */
   function render(force) {
     if (!bar) return;
+    var kept = openMenuState();
     var previous = openTitle && panel && panel.matches(':popover-open') ? openTitle._menu : null;
     var previousSource = frontSrc;
     var panelFocus = panel && panel.contains(document.activeElement);
@@ -751,16 +803,12 @@
       rebind(); syncRibbon();
       if (previous) {
         var surviving = survivingTitle();
-        var selectedLabel = document.activeElement && document.activeElement._item && document.activeElement._item.label;
         if (!surviving) {
           closeAll(false);
           if (panelFocus) focusFront();
         } else {
           open(surviving, null);
-          if (panelFocus) {
-            var row = items(panel).find(function (r) { return r._item && r._item.label === selectedLabel; }) || items(panel)[0];
-            if (row) row.focus();
-          }
+          restoreMenu(kept);
         }
       }
       return;
@@ -811,7 +859,7 @@
     if (focusedIndex >= 0 && keep) keep.focus();
     syncRibbon();
     var reopen = survivingTitle();
-    if (reopen) open(reopen, panelFocus ? 'first' : null);
+    if (reopen) { open(reopen, null); restoreMenu(kept); }
     else if (panelFocus) focusFront(keep);
   }
 
@@ -1506,7 +1554,7 @@
      folded, and the Pins menu stays a menu. Each side keeps the tab chosen
      on it, so going back to a site's tab, or to an applet's, finds the one
      left there. */
-  var ribbonOn = false, ribbonRow = null, ribbonToggle = null, ribbonUid = 0;
+  var ribbonOn = false, ribbonRow = null, ribbonToggle = null, ribbonUid = 0, pendingDrop = null;
   var chosen = { host: null, front: {}, last: 'front' };
   function frontName(t) { return t._menu.menu.name || ''; }
   function ribbonKey() { return 'pudl-menubar-ribbon:' + (bar.getAttribute('aria-label') || location.pathname); }
@@ -1679,6 +1727,17 @@
        it arrives. Focus inside it stays on the same control. */
     var old = ribbonRow.querySelector(':scope > .toolbar');
     var focusedCommand = old && old.contains(document.activeElement) ? document.activeElement._item : null;
+    /* A dropdown open in the row opens again in the new row, under the
+       same command, with focus on the same row in it (openMenuState). */
+    var drop = old && old.querySelector('.menu > .menu-panel:popover-open');
+    var dropButton = drop && drop.parentNode.querySelector(':scope > .menu-btn');
+    var dropState = drop && dropButton && dropButton._item ? { item: dropButton._item, focus: drop.contains(document.activeElement) ? document.activeElement._item : null,
+      at: Math.max(0, items(drop).indexOf(document.activeElement)), had: drop.contains(document.activeElement) } : null;
+    /* Updates can come faster than a reopened panel is placed; focus still
+       on its way into one goes to the next. */
+    if (dropState && !dropState.had && pendingDrop && pendingDrop.panel === drop && document.activeElement === document.body) dropState = Object.assign({}, pendingDrop.state, { item: dropState.item });
+    if (pendingDrop) { pendingDrop.done = true; pendingDrop = null; }
+    if (dropState) focusedCommand = null;
     menus = assemble();
     var label = t._menu.title.label;
     var fresh = findTitle(t._menu.menu.kind, label);
@@ -1690,6 +1749,33 @@
         return n._item && (focusedCommand.owner ? sameSource(n._item.owner, focusedCommand.owner) && JSON.stringify(n._item.commandPath) === JSON.stringify(focusedCommand.commandPath) : n._item.label === focusedCommand.label);
       });
       if (again) again.focus(); else t.focus();
+    }
+    if (dropState) {
+      var button = Array.from(tb.querySelectorAll('.menu > .menu-btn')).find(function (n) { return sameItem(n._item, dropState.item); });
+      var reopened = button && button.getClientRects().length && !button.disabled ? document.getElementById(button.getAttribute('popovertarget')) : null;
+      var kept = dropState;
+      var refocus = function () {
+        if (!kept.had || (document.activeElement && document.activeElement !== document.body)) return;
+        var open = reopened && reopened.isConnected && reopened.matches(':popover-open');
+        var rows = open ? items(reopened) : [];
+        var same = rows.find(function (r) { return sameItem(r._item, kept.focus); });
+        var target = enabledRow(same) ? same : nearestEnabled(rows, same ? rows.indexOf(same) : Math.min(kept.at, rows.length - 1)) || (open ? button : null) || (t.isConnected ? t : null);
+        if (target) target.focus();
+      };
+      /* A panel is hidden until pudl-menu.js has placed it, which it does
+         as the panel opens, so focus goes in once it has. */
+      if (reopened) {
+        var waiting = { panel: reopened, state: kept };
+        if (kept.had) pendingDrop = waiting;
+        reopened.addEventListener('toggle', function opened(e) {
+          reopened.removeEventListener('toggle', opened);
+          if (waiting.done) return;
+          waiting.done = true;
+          if (pendingDrop === waiting) pendingDrop = null;
+          if (e.newState === 'open') refocus();
+        });
+        reopened.showPopover();
+      } else refocus();
     }
   }
 
@@ -1759,6 +1845,7 @@
       var id = 'menubar-ribbon-menu-' + (++ribbonUid);
       var b = el('button', 'btn btn-sm menu-btn', { type: 'button', popovertarget: id });
       ribbonLook(b, c);
+      b._item = c;
       var p = el('div', 'menu-panel', { popover: '', id: id, role: 'menu', 'aria-label': c.label });
       /* A submenu's own submenus stand in it under their names. */
       var flat = [];
