@@ -1,6 +1,6 @@
 # PUDL 0.96.0 release record
 
-Paul requested publication of the new skins and themes on 1 November 2026 after approving their preview appearance. This release includes Matte, Ink, Alloy and Glass, revised Bevel, Gel and Glaze focus treatment, the Glass title-bar correction, and the three companion colour themes. It implements specification 0.52.2. The separate static execution-state candidate is excluded and must receive a later implementation version if published afterwards.
+Paul requested publication of the new skins and themes on 1 November 2026 after approving their preview appearance. This release includes Matte, Ink, Alloy and Glass, revised Bevel, Gel and Glaze focus treatment, the Glass title-bar correction, and the three companion colour themes. Paul subsequently authorized combining the static execution-state candidate into 0.96.0. The combined release requires specification 0.52.3 and renewed integration review before publication.
 
 ## Candidate and ownership
 
@@ -17,6 +17,14 @@ Independent source and rendered review must close before admission is recorded. 
 The final test runner retains complete per-suite output and unique screenshot directories so isolated reruns cannot overwrite failure evidence. A token-suite smoke run passed and saved its full log and result metadata in `tests/output/release-0960-harness-smoke`; a second invocation with that same directory was rejected as intended. This smoke check started no browser. The suite timeout is raised explicitly for this release because the expanded Firefox skin suite passed in isolation in 186.7 seconds, exceeding the normal 120-second budget. The ordinary timeout and earlier failed results remain documented.
 
 Build and Release independently audited the package roots against `c24f534`. The selected set contains 316 files before adding the final admission report. It includes the definitions, generators, pinned build dependencies, vendored tokens and preview copies needed by the documented regeneration commands. All seven registry entries still require new admission hashes. The audit also identified stale candidate wording and an incorrect claim that the older skin files were unchanged; these must be corrected before publication.
+
+## Dinah execution-state dependency
+
+On 1 November Paul asked whether this release covers Dinah's outstanding static glyphs and title-marker suppression. Dinah confirmed that the existing implementation matches its consumer requirements and that a later release would be acceptable. Paul then explicitly authorized inclusion in 0.96.0, and PUDL Team Lead chose to combine the candidates so Dinah can adopt one reviewed package.
+
+The state implementation is committed as `ec301060a4392244d1eed1286f6e0865fb1e4246`, with validation recorded at `5d78b1c`, in the sibling `pudl-state-release` worktree. Its affected readable and minified matrices each passed 72 of 72. These results precede integration with the new skins. Waiting uses the `pause` glyph and warning semantic token `warn`; Stuck uses the warning-triangle glyph `warning` and semantic token `danger`. The title-only suppression contract preserves host chips and other execution markers and refits the title when changed live.
+
+The lead requested that Verification stop at a safe boundary and return the browser slot before shared source changes. Independent review of the state implementation and specification 0.52.3, integration with the skins, final broad checks and immutable publication remain required. Earlier skin asset hashes can support their own admission, but earlier rendering results do not establish conformance of the combined runtime. No duplicate state implementation is assigned.
 
 ## Publication
 
