@@ -308,7 +308,7 @@ A settings panel is a column of cards, one for each group of settings, 12px apar
 
 ## Badges, chips and filter chips
 
-- A **badge** (`.badge` with `warn`, `danger`, `positive` or `accent`) states an entity's state, and always leads with its glyph. `.badge.pr` is the old name for `.badge.positive`.
+- A **badge** (`.badge` with `warn`, `danger`, `positive` or `accent`) states an entity's state, and always leads with its glyph. `.badge.pr` is the old name for `.badge.positive`. A badge with `data-state="working"`, `waiting`, `stuck` or `idle` (0.96.4) is an execution-state badge: it leads with the state's static glyph (Play, Pause, the warning triangle, the solid square) in the state's colour, the same glyphs and colours the window system draws on title bars, taskbars and stack rows, so a host's own list of things that run states each one's state with the chip the taskbar uses. The words inside are the host's, such as `<span class="badge" data-state="working">Background work</span>`.
 - A **chip** (`.chip`) names an attribute the thing carries, a tag or a trip, and is a plain neutral label.
 - A **filter chip** (`.filter-chip`) is a filter in force. It is outlined, it may lead with a `.filter-chip-kind` label (formerly `.fc-kind`), and its `.filter-chip-x` is a small raised button that removes the filter.
 
@@ -1676,7 +1676,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.96.3, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.96.4, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
