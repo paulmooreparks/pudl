@@ -6,7 +6,7 @@ const { ids, palette, contrast } = require('./palette-themes');
 const { validate } = require('./skin-definition');
 const root = path.resolve(__dirname, '..');
 const { execFileSync } = require('node:child_process');
-const output = path.join(root, 'tests/output/palette-refinements');
+const output = process.env.PUDL_OUTPUT_DIR || path.join(root, 'tests/output/palette-refinements');
 test('companion palettes remain valid complete opaque palette definitions', () => {
   for (const id of ids) validate({ version: 1, id, name: id, treatment: 'standard', radii: { radius: 0, 'radius-sm': 0, 'radius-xs': 0, 'radius-pill': 0 }, palette: { light: palette(id, 'light'), dark: palette(id, 'dark') } });
 });

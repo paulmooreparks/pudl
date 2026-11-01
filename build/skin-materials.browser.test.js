@@ -11,7 +11,7 @@ const skins = ['matte', 'ink', 'alloy', 'glass'];
 const engines = process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['chromium', 'firefox', 'webkit'];
 const min = process.env.PUDL_MIN === '1';
 const asset = name => fs.readFileSync(path.join(root, 'dist', min ? 'min' : '', name), 'utf8');
-const output = path.join(root, 'tests/output/material-skins', min ? 'minified' : 'normal');
+const output = process.env.PUDL_OUTPUT_DIR || path.join(root, 'tests/output/material-skins', min ? 'minified' : 'normal');
 
 async function settle(page) {
   await page.evaluate(async () => {

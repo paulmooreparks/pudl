@@ -84,3 +84,7 @@ The catalogue, gradient, focus, live-focus and behavior harnesses accept `--skin
 [MATERIALS-IMPLEMENTATION.md](MATERIALS-IMPLEMENTATION.md) records the candidate hashes and completed self-tests.
 
 `node --test build/skin-materials.browser.test.js` covers runtime selection, preserved geometry and semantics, loaded assets, arbitrary Glass backgrounds and fallback rendering in all three engines. `PUDL_MIN=1` selects minified assets. Its Chromium checks emulate both reduced-transparency preferences through the browser protocol. The unsupported-filter check changes the feature query to an unsupported property; that is a fallback-path test on a current browser. `live-focus-review.js --transparency` additionally requests the translucent path in Chromium. Other engines use the preference reported by the platform. Actual browser zoom and screen-reader interoperability remain separate checks.
+
+## Release run evidence
+
+Set `PUDL_RUN_OUTPUT` to a new directory when running `tests/run.js` to retain complete per-suite output, result metadata and separate screenshot directories. The runner refuses an existing directory so later runs cannot overwrite evidence. Browser fixtures that use `tests/lib.js` and the skin and palette browser checks honor the supplied `PUDL_OUTPUT_DIR`. Set `PUDL_SUITE_TIMEOUT` explicitly when the release needs a longer suite budget; the default remains 120 seconds.

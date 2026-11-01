@@ -30,7 +30,7 @@ for(const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['c
  assert.equal(standard.width,gel.w);assert.equal(standard.height,gel.h);
  assert.equal(await field.inputValue(),'Retained edits');
  await page.selectOption('#skin','gel');
- if(engine==='chromium'){fs.mkdirSync('tests/output',{recursive:true});await page.screenshot({path:'tests/output/gel-preview-'+theme+'.png',fullPage:true});}
+ if(engine==='chromium'){const directory=process.env.PUDL_OUTPUT_DIR||'tests/output';fs.mkdirSync(directory,{recursive:true});await page.screenshot({path:path.join(directory,'gel-preview-'+theme+'.png'),fullPage:true});}
  }
  await page.close();
  } finally {await browser.close();}

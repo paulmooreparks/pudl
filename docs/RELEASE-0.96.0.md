@@ -14,7 +14,9 @@ Prior focused verification passed the companion palette and material browser che
 
 Independent source and rendered review must close before admission is recorded. The release then requires generated-asset checks, a source freeze, full normal and minified browser matrices, reference-page review, exact-path commit and immutable tag, a tag-derived archive and checksum, downloaded archive verification, CDN byte verification and CI. Native browser zoom and manual screen-reader interoperability remain unperformed unless later evidence states otherwise.
 
-The final test runner will retain complete per-suite output and unique screenshot directories so isolated reruns cannot overwrite failure evidence. The suite timeout is raised explicitly for this release because the expanded Firefox skin suite passed in isolation in 186.7 seconds, exceeding the normal 120-second budget. The ordinary timeout and earlier failed results remain documented.
+The final test runner retains complete per-suite output and unique screenshot directories so isolated reruns cannot overwrite failure evidence. A token-suite smoke run passed and saved its full log and result metadata in `tests/output/release-0960-harness-smoke`; a second invocation with that same directory was rejected as intended. This smoke check started no browser. The suite timeout is raised explicitly for this release because the expanded Firefox skin suite passed in isolation in 186.7 seconds, exceeding the normal 120-second budget. The ordinary timeout and earlier failed results remain documented.
+
+Build and Release independently audited the package roots against `c24f534`. The selected set contains 316 files before adding the final admission report. It includes the definitions, generators, pinned build dependencies, vendored tokens and preview copies needed by the documented regeneration commands. All seven registry entries still require new admission hashes. The audit also identified stale candidate wording and an incorrect claim that the older skin files were unchanged; these must be corrected before publication.
 
 ## Publication
 

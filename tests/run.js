@@ -24,6 +24,13 @@ const PORT = Number(process.env.PUDL_PORT || 8765);
 const ENGINES = ['chromium', 'firefox', 'webkit'];
 const JOBS = Math.max(1, Number(process.env.PUDL_JOBS) || Math.min(8, Math.floor(os.cpus().length / 2) || 1));
 const SUITE_TIMEOUT = 1000 * (Number(process.env.PUDL_SUITE_TIMEOUT) || 120);
+/* Optional immutable run directory. Keep complete output and isolate each
+   suite's screenshots so later diagnostic runs cannot overwrite evidence. */
+const RUN_OUTPUT = process.env.PUDL_RUN_OUTPUT ? path.resolve(process.env.PUDL_RUN_OUTPUT) : null;
+if (RUN_OUTPUT) {
+  if (fs.existsSync(RUN_OUTPUT)) throw new Error('PUDL_RUN_OUTPUT must be a new directory');
+  fs.mkdirSync(RUN_OUTPUT, { recursive: true });
+}
 
 const args = process.argv.slice(2);
 const engines = args.filter(a => ENGINES.includes(a));
@@ -53,17 +60,24 @@ function serve() {
 
 function runSuite(file, engine) {
   return new Promise(resolve => {
+    const directory = RUN_OUTPUT && path.join(RUN_OUTPUT, engine, file.replace(/\.test\.js$/, ''));
+    if (directory) fs.mkdirSync(directory, { recursive: true });
+    const log = directory && path.join(directory, 'output.log');
+    const env = Object.assign({}, process.env, { PUDL_BROWSER: engine, PUDL_ROOT: 'http://127.0.0.1:' + PORT });
+    if (directory) env.PUDL_OUTPUT_DIR = path.join(directory, 'screenshots');
     const child = spawn(process.execPath, [path.join(__dirname, file)], {
-      env: Object.assign({}, process.env, { PUDL_BROWSER: engine, PUDL_ROOT: 'http://127.0.0.1:' + PORT }),
+      env,
       stdio: ['ignore', 'pipe', 'pipe']
     });
     let outText = '', timedOut = false;
-    child.stdout.on('data', d => { outText += d; });
-    child.stderr.on('data', d => { outText += d; });
+    function retain(d) { outText += d; if (log) fs.appendFileSync(log, d); }
+    child.stdout.on('data', retain);
+    child.stderr.on('data', retain);
     const timer = setTimeout(() => { timedOut = true; child.kill(); }, SUITE_TIMEOUT);
     child.on('close', code => {
       clearTimeout(timer);
-      if (timedOut) outText += '\nFAIL the suite ran longer than ' + SUITE_TIMEOUT / 1000 + 's and was stopped';
+      if (timedOut) retain('\nFAIL the suite ran longer than ' + SUITE_TIMEOUT / 1000 + 's and was stopped');
+      if (directory) fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify({ engine, suite: file, code, timedOut }, null, 2) + '\n');
       resolve({ code: timedOut ? 1 : code, outText });
     });
   });
@@ -99,6 +113,7 @@ function runSuite(file, engine) {
   server.close();
 
   const bad = results.filter(r => r.code !== 0);
+  if (RUN_OUTPUT) fs.writeFileSync(path.join(RUN_OUTPUT, 'results.json'), JSON.stringify({ jobs: JOBS, suiteTimeoutSeconds: SUITE_TIMEOUT / 1000, minified: process.env.PUDL_MIN === '1', results }, null, 2) + '\n');
   const slow = results.slice().sort((a, b) => b.secs - a.secs).slice(0, 5)
     .map(r => r.engine + ' ' + r.suite.replace('.test.js', '') + ' ' + r.secs.toFixed(1) + 's').join(', ');
   console.log('\nSlowest: ' + slow);

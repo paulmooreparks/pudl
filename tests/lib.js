@@ -7,7 +7,7 @@ const pw = require('playwright');
 
 const engine = process.env.PUDL_BROWSER || 'chromium';
 const ROOT = process.env.PUDL_ROOT || 'http://127.0.0.1:8765';
-const OUT = path.join(__dirname, 'output');
+const OUT = process.env.PUDL_OUTPUT_DIR || path.join(__dirname, 'output');
 
 /* Firefox does not emulate mobile devices, so phone-sized pages there are
    just narrow pages, which is what the phone checks measure anyway. */
