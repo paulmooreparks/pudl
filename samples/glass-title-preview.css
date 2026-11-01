@@ -1,0 +1,12 @@
+/* Glass title-bar experiment for the preview. System transparency wins. */
+@media screen and (forced-colors: none) and (prefers-reduced-transparency: no-preference) {
+  @supports (backdrop-filter: blur(12px)) {
+    :root[data-skin="glass"] .win-head {
+      background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 35%, transparent), color-mix(in srgb, var(--surface-alt) 35%, transparent));
+      backdrop-filter: blur(12px);
+    }
+    :root[data-skin="glass"] .win.active .win-head {
+      background: linear-gradient(to bottom, color-mix(in srgb, var(--surface) 35%, transparent), color-mix(in srgb, color-mix(in srgb, var(--accent) 16%, var(--surface-alt)) 35%, transparent));
+    }
+  }
+}
