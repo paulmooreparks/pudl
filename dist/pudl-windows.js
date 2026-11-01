@@ -558,12 +558,52 @@
     }).join(', ') };
   }
 
+  /* A window's picture (0.96.3): data-win-icon is the address of an image,
+     such as an applet's own icon, drawn at 16px in the glyph's place on
+     the dock tab, the taskbar button, a stack's rows, the Window list's
+     rows and the switcher. The glyph stands in while the picture has not
+     loaded and after it fails, so a window is never left without a mark.
+     An address that failed once is not asked for again by any surface. */
+  var failedIcons = new Set();
+  function iconOf(key) {
+    var win = wins[key], src = win && (win.getAttribute('data-win-icon') || '').trim();
+    return src && !failedIcons.has(src) ? src : '';
+  }
+  function glyphOf(key) {
+    var glyph = wins[key] && wins[key].getAttribute('data-win-glyph') || 'app';
+    return /^[a-z][a-z0-9-]*$/.test(glyph) ? glyph : 'app';
+  }
+  /* An img for a window's picture; when it fails, every mark falls back
+     to the glyph together. */
+  function iconImg(src, cls) {
+    var img = document.createElement('img');
+    img.className = cls;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.decoding = 'async';
+    img.addEventListener('error', function () {
+      if (failedIcons.has(src)) return;
+      failedIcons.add(src);
+      markAll();
+    });
+    img.src = src;
+    return img;
+  }
+  function markAll() {
+    document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
+    renderDocks(); fitBarsSoon(); renderDockGroups();
+    if (picking && switchPanel && switchPanel.matches(':popover-open')) switchRows();
+    /* The menu bar's Window list draws the mark too, and redraws on this. */
+    Object.keys(wins).forEach(function (k) {
+      if (failedIcons.has((wins[k].getAttribute('data-win-icon') || '').trim())) wins[k].dispatchEvent(new CustomEvent('pudl:window-title', { bubbles: true, detail: { key: k } }));
+    });
+  }
+
   /* title, when given, is the tooltip in place of the spoken name. */
   function windowMark(node, key, title) {
     var win = wins[key];
     if (!win) return;
-    var glyph = win.getAttribute('data-win-glyph') || 'app';
-    if (!/^[a-z][a-z0-9-]*$/.test(glyph)) glyph = 'app';
+    var glyph = glyphOf(key), src = iconOf(key);
     var count = Number(win.getAttribute('data-win-attention'));
     count = Number.isSafeInteger(count) && count > 0 ? count : 0;
     var execution = executionState(win);
@@ -576,7 +616,13 @@
       icon = node.firstChild;
     }
     styleProp(icon, '--glyph', 'var(--glyph-' + glyph + ')');
-    setHidden(icon, !win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key'));
+    var picture = node.querySelector('.win-item-icon');
+    if (src && !(picture && picture.getAttribute('src') === src)) {
+      if (picture) picture.remove();
+      picture = iconImg(src, 'win-item-icon');
+      icon.before(picture);
+    } else if (!src && picture) { picture.remove(); picture = null; }
+    setHidden(icon, !!picture || (!win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key')));
     setText(node.querySelector('.win-item-title'), titleOf(key));
     var detail = node.querySelector('.win-item-detail');
     if (detail) { setText(detail, detailOf(key)); setHidden(detail, !detailOf(key)); }
@@ -2016,18 +2062,21 @@
     var list = switchPanel.querySelector('ul');
     list.textContent = '';
     picking.list.forEach(function (k, i) {
-      var win = wins[k], glyph = (win && win.getAttribute('data-win-glyph')) || 'app';
-      if (!/^[a-z][a-z0-9-]*$/.test(glyph)) glyph = 'app';
+      var glyph = glyphOf(k), src = iconOf(k);
       var row = document.createElement('li');
       row.className = 'md-row';
       row.setAttribute('role', 'option');
       row.setAttribute('data-switch-key', k);
       var item = document.createElement('span');
       item.className = 'md-item';
-      var icon = document.createElement('span');
-      icon.className = 'glyph';
-      icon.setAttribute('aria-hidden', 'true');
-      icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
+      var icon;
+      if (src) icon = iconImg(src, 'win-item-icon');
+      else {
+        icon = document.createElement('span');
+        icon.className = 'glyph';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.style.setProperty('--glyph', 'var(--glyph-' + glyph + ')');
+      }
       var name = document.createElement('span');
       name.textContent = titleOf(k);
       item.appendChild(icon);
@@ -2779,7 +2828,7 @@
      has it, by id or by name, and otherwise goes to the new body; a notice
      in the new content is announced. */
   var WINDOW_HEADER = 'X-PUDL-Window';
-  var STATUS_ATTRS = ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
   var announceRegion = null;
 
   function announce(words) {
@@ -5118,7 +5167,7 @@
       if (taskbarDrag) taskbarDrag.cancel();
       renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-glyph', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
       var changed = records.some(function (record) {
@@ -5185,6 +5234,10 @@
       },
       retitle: retitle,
       detailOf: detailOf,
+      /* The address of a window's picture, or '' when it has none or its
+         picture failed to load, for a host drawing the window's mark in a
+         list of its own (0.96.3). */
+      iconOf: iconOf,
       openMenu: function (key) { if (wins[key]) openMenu(key); },
       /* The switcher's keys, for a host's listing of keys, when it is on. */
       switcherKeys: function () {

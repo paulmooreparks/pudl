@@ -447,7 +447,10 @@
 .win-item-progress { font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
 .win-tab .win-item-glyph { flex: none; }
 .win-tab .win-item-title { overflow: hidden; text-overflow: ellipsis; }
-.win-tab:has(.win-item-glyph:not([hidden]))::before { display: none; }
+.win-tab:has(.win-item-glyph:not([hidden]), .win-item-icon)::before { display: none; }
+/* A window's picture (data-win-icon) stands where its glyph would, at the
+   glyph's size, on every surface that draws the mark. */
+.win-item-icon { flex: none; width: var(--glyph-size, 16px); height: var(--glyph-size, 16px); object-fit: contain; vertical-align: middle; }
 
 /* === Title bar ============================================================
    The title bar is what you drag, so it is raised. The active window's

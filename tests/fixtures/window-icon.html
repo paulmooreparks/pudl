@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window pictures</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-menubar.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 600px; position: relative; } .win-bar { position: fixed; inset-inline: 0; bottom: 0; }</style>
+</head>
+<body>
+  <!-- A test fixture for data-win-icon: a window with a picture that
+       loads, one whose picture does not exist, and one with a glyph only,
+       on a taskbar, in a shared dock, in the switcher and in a menu bar's
+       Window list. -->
+  <header class="topbar">
+    <nav class="menubar" data-menubar aria-label="Pictures" data-menubar-host="desktop" data-menubar-key="">
+      <ul data-menubar-source hidden>
+        <li>Pictures<ul><li><button type="button" id="about">About</button></li></ul></li>
+        <li data-menubar-if="windows" data-menubar-windows>Window<ul></ul></li>
+      </ul>
+    </nav>
+    <div class="topbar-chrome"></div>
+  </header>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="pic,broken,plain,side" data-win-switcher data-win-menu data-win-dock-tabs>
+      <section class="win" data-win="pic" data-win-glyph="document" data-win-icon="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23c33'/%3E%3C/svg%3E" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Pictured</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>A window with a picture.</p></div>
+      </section>
+      <section class="win" data-win="broken" data-win-glyph="comments" data-win-icon="/tests/fixtures/no-such-icon.svg" style="--win-x: 0.3; --win-y: 0.2; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Broken</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>A window whose picture does not load.</p></div>
+      </section>
+      <section class="win" data-win="plain" data-win-glyph="folder" style="--win-x: 0.5; --win-y: 0.3; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Plain</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>A window with a glyph only.</p></div>
+      </section>
+      <section class="win" data-win="side" data-win-mode="dock-left" data-win-glyph="branch" data-win-icon="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2336c'/%3E%3C/svg%3E" style="--win-dock-size: .2">
+        <header class="win-head"><h2 class="win-title">Side</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>A docked window with a picture.</p></div>
+      </section>
+    </div>
+  </div>
+  <footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></footer>
+  <script>
+    document.querySelectorAll('.win-layer > .win').forEach(function (win) { var t = document.createElement('template'); t.id = 'tpl-' + win.dataset.win; t.content.appendChild(win.cloneNode(true)); document.body.appendChild(t); });
+  </script>
+</body>
+</html>

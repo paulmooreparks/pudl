@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.96.3
+
+A window may show a picture in place of its glyph. `data-win-icon` on the window gives the address of an image, such as an applet's own icon, and PUDL draws it at 16px on the taskbar button, the dock tab and icon rail, a stack's rows, the switcher and the menu bar's Window list. The glyph stands in until the picture loads and after it fails, the attribute is followed live without taking focus, and `pudlWindows.iconOf(key)` gives a host the address to draw. A taskbar stack keeps its group glyph. Before this release a desktop could put a picture there only by reaching into generated markup.
+
+The contract's list of glyph tokens now includes `--glyph-play` and `--glyph-pause`, which have shipped since 0.96.0, and `--glyph-working`, which has shipped since 0.95.1. The tokens are unchanged; only the list was short. The Gel skin's notes record adopter feedback that its capsule radius turns square buttons into circles with too little depth; no style has changed.
+
 ## 0.96.2
 
 Open menu-bar menus, ribbon dropdowns and command menus preserve their surviving rows, focus and scroll during background command updates and window retitles. Enabled and checked states refresh while the menu remains open. Removed or disabled commands receive a visible, enabled focus fallback. Mixed custom-content menus preserve their input fields while updating surrounding command rows.

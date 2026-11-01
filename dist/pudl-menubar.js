@@ -489,9 +489,19 @@
       var title = w.node.querySelector('.win-title');
       var detail = (w.node.getAttribute('data-win-detail') || '').trim();
       var layer = document.querySelector('[data-win-layer]'), sep = (layer && layer.getAttribute('data-win-text-title-sep')) || ' · ';
-      result.push({ label: (i + 1) + '. ' + (title ? title.textContent.trim() : w.key) + (detail ? sep + detail : ''), checked: w.key === st.top && !st.min[w.key], run: function () {
+      var item = { label: (i + 1) + '. ' + (title ? title.textContent.trim() : w.key) + (detail ? sep + detail : ''), checked: w.key === st.top && !st.min[w.key], run: function () {
         if (w.node.isConnected && document.querySelector('.win[data-win="' + CSS.escape(w.key) + '"]') === w.node) api.raise(w.key);
-      } });
+      } };
+      /* The window's picture, as its taskbar button shows it (0.96.3). A
+         window with no picture, or whose picture failed, keeps the row as
+         it was. */
+      var src = api.iconOf ? api.iconOf(w.key) : '';
+      if (src) {
+        var img = document.createElement('img');
+        img.src = src; img.alt = ''; img.className = 'win-item-icon';
+        item.icon = [img];
+      }
+      result.push(item);
     });
     return result;
   }
