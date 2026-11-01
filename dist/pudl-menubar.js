@@ -739,6 +739,13 @@
     return !!r && r.isConnected && !r.disabled && r.getAttribute('aria-disabled') !== 'true' && r.getClientRects().length > 0;
   }
   function firstEnabled(host) { return host ? items(host).filter(function (r) { return !r._back && enabledRow(r); })[0] || null : null; }
+  /* Focus moved by the bar to a row it chose, shown: a panel whose rows
+     changed has its scroll put back by pudl-menu.js once this task is done
+     (__pudlKeepScroll), so the row is brought into sight after that. */
+  function focusShown(n) {
+    n.focus({ preventScroll: true });
+    queueMicrotask(function () { if (document.activeElement === n && n.scrollIntoView) n.scrollIntoView({ block: 'nearest' }); });
+  }
   function rowTag(c) { return c.href != null && !c.items ? 'A' : 'BUTTON'; }
 
   /* A row brought to its command's state now, as row() would draw it. */
@@ -886,7 +893,7 @@
     else if (inSub) target = enabledRow(subFrom) && panel.contains(subFrom) ? subFrom : null;
     else if (cut) target = items(panel).filter(function (r) { return r._item && sameItem(r._item, cut) && enabledRow(r); })[0] || null;
     target = target || firstEnabled(panel) || (title.isConnected && !title.disabled ? title : null);
-    if (target) target.focus();
+    if (target) focusShown(target);
   }
 
   /* Back from a submenu shown in the panel's place: the level above,
@@ -897,7 +904,7 @@
     if (path && !path.length) panel.__path = null;
     if (openTitle) refreshOpen(openTitle);
     var r = left && items(panel).filter(function (x) { return x._item && sameItem(x._item, left); })[0];
-    (enabledRow(r) ? r : firstEnabled(panel) || openTitle).focus();
+    focusShown(enabledRow(r) ? r : firstEnabled(panel) || openTitle);
   }
 
   /* force builds it again whatever it reads as: after the pins change, the
@@ -1946,7 +1953,7 @@
     if (drop && drop.isConnected && drop.matches(':popover-open')) target = firstEnabled(drop);
     else if (drop && enabledRow(owner)) target = owner;
     target = target || (t.isConnected ? t : null);
-    if (target) target.focus();
+    if (target) focusShown(target);
   }
 
   /* A menu's rows as the groups of a folding toolbar. */
