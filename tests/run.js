@@ -18,6 +18,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
+const { suiteResult } = require('./suite-result');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PUDL_PORT || 8765);
@@ -77,8 +78,9 @@ function runSuite(file, engine) {
     child.on('close', code => {
       clearTimeout(timer);
       if (timedOut) retain('\nFAIL the suite ran longer than ' + SUITE_TIMEOUT / 1000 + 's and was stopped');
-      if (directory) fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify({ engine, suite: file, code, timedOut }, null, 2) + '\n');
-      resolve({ code: timedOut ? 1 : code, outText });
+      const result = suiteResult(code, outText, timedOut);
+      if (directory) fs.writeFileSync(path.join(directory, 'result.json'), JSON.stringify({ engine, suite: file, code: result.code, exitCode: code, printedFailure: result.printedFailure, timedOut }, null, 2) + '\n');
+      resolve({ code: result.code, outText });
     });
   });
 }
