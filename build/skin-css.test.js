@@ -60,7 +60,8 @@ test('material treatments retain bounded geometry and distinct surface paints', 
     const css = compile(input);
     paints.add(css.match(/--raise-shadow: ([^;]+);/)[1]);
     assert.ok(css.includes('--entry-shadow: inset'));
-    assert.ok(css.includes('--focus-ring: color-mix(in srgb, var(--accent) 85%, var(--surface));'));
+    const accentAmount = treatment === 'glass' ? 90 : 85;
+    assert.ok(css.includes('--focus-ring: color-mix(in srgb, var(--accent) ' + accentAmount + '%, var(--surface));'));
     assert.ok(!/--(?:font|space|win-hit|win-band|win-head-docked|win-min)-/.test(css));
     assert.ok(!/!important|url\(/.test(css));
   }

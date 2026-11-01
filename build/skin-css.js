@@ -223,6 +223,7 @@ const ALLOY = {
 
 const GLASS = {
   ...MATERIAL,
+  'focus-ring': 'color-mix(in srgb, var(--accent) 90%, var(--surface))',
   'raise-grad': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 6%, var(--surface-alt)))',
   'raise-grad-hover': 'linear-gradient(to bottom, var(--surface), color-mix(in srgb, var(--accent) 14%, var(--surface-alt)))',
   'raise-active-bg': 'color-mix(in srgb, var(--accent) 16%, var(--surface-alt))',
