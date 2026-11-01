@@ -186,10 +186,14 @@ const { launch, ROOT } = require('./lib');
     check('menu: an update leaves focus the reader left elsewhere', (await p.evaluate(() => document.activeElement.id)) === 'note' && (await state()).panel);
     await p.mouse.click(700, 700); await settle();
 
-    /* A narrow window: the panel is a sheet and a submenu takes its place. */
-    await p.setViewportSize({ width: 600, height: 800 });
+    /* A narrow window: the panel is a sheet and a submenu takes its place.
+       At 600 pixels the bar keeps its titles; at 420 it collapses to one
+       menu, whose titles are rows leading to their commands. */
+    for (const [width, mode] of [[600, 'b'], [420, 'a']]) {
+    await p.setViewportSize({ width, height: 800 });
     await settle();
     const collapsed = await p.evaluate(() => !!document.querySelector('.menubar-one .menubar-title') && document.querySelector('.menubar-one .menubar-title').getClientRects().length > 0);
+    check(width + 'px: the bar is ' + (width === 420 ? 'collapsed' : 'not collapsed'), collapsed === (width === 420));
     if (collapsed) {
       await p.locator('.menubar-one .menubar-title').focus();
       await p.keyboard.press('ArrowDown');
@@ -205,24 +209,25 @@ const { launch, ROOT } = require('./lib');
     await p.keyboard.press('ArrowRight');
     for (let i = 0; i < 10 && (await state()).focus !== 'Lower case'; i++) await p.keyboard.press('ArrowDown');
     s = await state();
-    check('narrow (' + (collapsed ? 'collapsed bar' : 'sheet') + '): the keyboard reaches Lower case in a submenu shown in the panel\'s place', s.panel && s.sheet && s.back && s.focus === 'Lower case', s);
+    check(width + 'px narrow (' + (collapsed ? 'collapsed bar' : 'sheet') + '): the keyboard reaches Lower case in a submenu shown in the panel\'s place', s.panel && s.sheet && s.back && s.focus === 'Lower case', s);
     let allNarrow = true, lastNarrow;
     await marked();
     for (const fn of [noop, retitle, noop]) { lastNarrow = await update(fn, ++n); allNarrow = allNarrow && keepsAll(lastNarrow); }
     s = await state();
-    check('narrow: updates and a retitle keep the submenu in the panel\'s place with focus on Lower case', allNarrow && s.back && s.focus === 'Lower case', { lastNarrow, s });
-    await p.evaluate(() => { __flags.mode = 'b'; pudlCommands.changed(); }); await settle();
-    check('narrow: a changed tick shows there', JSON.stringify((await state()).checked) === '["Mode B"]');
+    check(width + 'px narrow: updates and a retitle keep the submenu in the panel\'s place with focus on Lower case', allNarrow && s.back && s.focus === 'Lower case', { lastNarrow, s });
+    await p.evaluate(mode => { __flags.mode = mode; pudlCommands.changed(); }, mode); await settle();
+    check(width + 'px narrow: a changed tick shows there', JSON.stringify((await state()).checked) === JSON.stringify([mode === 'a' ? 'Mode A' : 'Mode B']));
     await p.keyboard.press('ArrowLeft'); await settle();
     s = await state();
-    check('narrow: Back after the updates shows the level above with focus on Change case', s.panel && s.focus === 'Change case' && (collapsed ? s.back : !s.back), s);
+    check(width + 'px narrow: Back after the updates shows the level above with focus on Change case', s.panel && s.focus === 'Change case' && (collapsed ? s.back : !s.back), s);
     await p.keyboard.press('ArrowRight'); await settle();
     for (let i = 0; i < 10 && (await state()).focus !== 'Lower case'; i++) await p.keyboard.press('ArrowDown');
     await p.evaluate(() => { __flags.caseOff = true; pudlCommands.changed(); }); await settle();
     s = await state();
-    check('narrow: when the submenu\'s command is disabled, its row\'s menu shows with focus on its first enabled row', s.panel && !s.focusDisabled && s.focusConnected && s.focus === s.firstPanel && s.focus !== 'Back', s);
+    check(width + 'px narrow: when the submenu\'s command is disabled, its row\'s menu shows with focus on its first enabled row', s.panel && !s.focusDisabled && s.focusConnected && s.focus === s.firstPanel && s.focus !== 'Back', s);
     await p.evaluate(() => { __flags.caseOff = false; pudlCommands.changed(); }); await settle();
     await p.keyboard.press('Escape'); await p.keyboard.press('Escape'); await p.keyboard.press('Escape'); await settle();
+    }
     await p.setViewportSize({ width: 1400, height: 900 });
     await settle();
 
