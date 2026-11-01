@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.96.1
+
+This release carries the seven admitted skins, three companion palettes and static execution-state support from the held 0.96.0 prerelease. The application styles and behavior are unchanged; the core stylesheet version comment is updated.
+
+Release checks now reject printed assertion failures even when a test process exits zero. The title-bar focus test uses real Tab navigation and verifies departure, return and the existing focus ring. CI fetches the history required for palette comparison, and the test preloads the pinned baseline before launching a browser, reporting missing history as a setup failure.
+
+The earlier 0.96.0 process totals concealed failed assertions and were withdrawn. That tag remains immutable and held. See `docs/RELEASE-0.96.1.md` for corrected validation and publication status. This release implements specification 0.52.3.
+
 ## 0.96.0
 
 Execution states use static Play, Pause, solid square and warning-triangle glyphs on every surface, with their existing semantic colours. Working no longer rotates under either motion preference. The optional `data-win-state-title="none"` suppresses the generated title execution chip and folded execution row while preserving host chips and taskbar, dock and stack marks. Changing the setting live refits the title bar. See `docs/WINDOW-STATUS.md`.

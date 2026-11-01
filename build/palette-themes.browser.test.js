@@ -5,7 +5,8 @@ const pw = require('playwright');
 const { ids, palette, contrast } = require('./palette-themes');
 const { validate } = require('./skin-definition');
 const root = path.resolve(__dirname, '..');
-const { execFileSync } = require('node:child_process');
+const { loadBaseline } = require('./palette-baseline');
+const baseline = loadBaseline(root);
 const output = process.env.PUDL_OUTPUT_DIR || path.join(root, 'tests/output/palette-refinements');
 test('companion palettes remain valid complete opaque palette definitions', () => {
   for (const id of ids) validate({ version: 1, id, name: id, treatment: 'standard', radii: { radius: 0, 'radius-sm': 0, 'radius-xs': 0, 'radius-pill': 0 }, palette: { light: palette(id, 'light'), dark: palette(id, 'dark') } });
@@ -19,7 +20,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
     let original = true;
     await p.route('http://palette.test/**', async route => {
       let name = new URL(route.request().url()).pathname.slice(1);
-      if (original && ['dist/pudl.css', 'dist/pudl-windows.css'].includes(name)) return route.fulfill({ contentType: 'text/css', body: execFileSync('git', ['show', 'cab552a:' + name], { cwd: root }) });
+      if (original && baseline.has(name)) return route.fulfill({ contentType: 'text/css', body: baseline.get(name) });
       if (process.env.PUDL_MIN === '1' && name.startsWith('dist/') && /\.(css|js)$/.test(name)) name = name.replace('dist/', 'dist/min/');
       if (process.env.PUDL_MIN === '1' && /^samples\/skins-[a-z]+\.css$/.test(name)) name = 'dist/min/pudl-skin-' + name.match(/skins-(.*)\.css$/)[1] + '.css';
       const file = path.join(root, name);
