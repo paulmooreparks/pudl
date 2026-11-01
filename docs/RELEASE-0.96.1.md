@@ -1,6 +1,6 @@
 # PUDL 0.96.1 release record
 
-Paul authorized completing the skins/themes release and its fixes. PUDL 0.96.1 is the successor candidate to the held immutable 0.96.0 prerelease at 95725bc. Publication remains pending corrected validation. The prior record and raw failures are retained in [the 0.96.0 record](RELEASE-0.96.0.md).
+Paul authorized completing the skins/themes release and its fixes. PUDL 0.96.1 is the published successor to the held immutable 0.96.0 prerelease at 95725bc. Publication completed after corrected validation and the documented risk decision below. The prior record and raw failures are retained in [the 0.96.0 record](RELEASE-0.96.0.md).
 
 ## Scope and admission
 
@@ -69,3 +69,5 @@ The lead owns follow-up on failure-safe underlay cleanup, observable bounded whe
 PUDL 0.96.1 is published at https://github.com/paulmooreparks/pudl/releases/tag/v0.96.1 from immutable commit 6ac2906930c0232f464ccdd689cc8881d598530c and annotated tag object 594f97a18b0b06d619dd395a2c5b26e2c66827a8. The reproducible archive has 400 files, including all 180 dist files, and is 6148327 bytes. SHA-256 is d6868e709dd21fa62d183ca93fc773dac7812c3c75df459edff3acd1bdc11611. The public archive/checksum pair was downloaded to a fresh directory and every packaged blob and the ZIP commit comment matched the tag. All 97 versioned CDN CSS/JS files matched tagged bytes, with an independent second fetch audit. All 97 vendored specification files match v0.52.3 at 4917bf70a097fcefb8c42645504b30c03e6105c7.
 
 Publication evidence is retained under tests/output/release-0961-publication, including inventory.json, cdn.json, spec-verification.json and public-download/verified.json. The prior 0.96.0 tag remains unchanged and its release remains prerelease with adoption held. Consumer integration and acceptance belong to Dinah and have not been claimed by this publication.
+
+Direct consumer handoffs were sent as messages 2865 (Dinah Release), 2866 (Dinah Front End) and 2867 (Dinah Engine), with full inventory, archive/spec identities and intermittent-risk disposition attached. Coordinator notice is 2868. These are delivery receipts; consumer integration and acceptance are pending their responses. Independent final public-state audit was requested from Build and Release in message 2869.
