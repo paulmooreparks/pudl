@@ -863,6 +863,13 @@
 .status-fold[data-tone="waiting"] > .glyph, .status-fold[data-tone="warn"] > .glyph { color: var(--warn); }
 .status-fold[data-tone="working"] > .glyph, .status-fold[data-tone="accent"] > .glyph { color: var(--accent); }
 .status-fold[data-tone="positive"] > .glyph { color: var(--positive); }
+/* The Status item's badge stands as wide as its reserve, the widest text
+   it will show, with the reserve laid invisibly under the count, and a
+   blank badge keeps its room (0.97.4). */
+.status-fold > .badge[data-status-reserve] { display: inline-grid; justify-items: center; }
+.status-fold > .badge[data-status-reserve] > .status-fold-count, .status-fold > .badge[data-status-reserve]::after { grid-area: 1 / 1; }
+.status-fold > .badge[data-status-reserve]::after { content: attr(data-status-reserve); visibility: hidden; }
+.status-fold > .badge[data-status-blank] { visibility: hidden; }
 .win-bar [hidden] { display: none; }
 .win-bar .icon-btn > .glyph { --glyph-size: 16px; }
 .win-bar .icon-btn > :is(svg, img) { width: 16px; height: 16px; flex: none; object-fit: contain; }

@@ -72,6 +72,18 @@ function check(name, ok, detail) {
   await p.evaluate(() => { document.querySelector('#queue .badge').textContent = '3'; document.querySelector('#runs .badge').textContent = '2'; const m = document.querySelector('#mail .badge'); m.hidden = true; m.textContent = ''; });
   await settle();
 
+  /* The Status item holds its width whatever its total reads. */
+  const fw = () => p.evaluate(() => document.querySelector('#tray-all > .status-fold').getBoundingClientRect().width);
+  const widths = [];
+  for (const v of ['0', '7', '42', '99+', '']) {
+    await p.evaluate(v => { const q = document.querySelector('#queue .badge'); const r = document.querySelector('#runs .badge'); r.textContent = '0'; if (v === '') { q.textContent = ''; q.setAttribute('data-status-pending', ''); } else { q.removeAttribute('data-status-pending'); q.textContent = v; } }, v);
+    await settle();
+    widths.push(await fw());
+  }
+  check('the Status item keeps one width as its total goes from 0 to 99+ and to blank', new Set(widths.map(w => Math.round(w * 10))).size === 1, widths);
+  await p.evaluate(() => { const q = document.querySelector('#queue .badge'); q.removeAttribute('data-status-pending'); q.textContent = '3'; document.querySelector('#runs .badge').textContent = '2'; });
+  await settle();
+
   /* A hidden item is not folded, listed, named or toned, and joins when shown. */
   let h = await tray('tray-all');
   check('an item the host hides is not folded, named or toned', !h.folded.includes('update') && !/newer build/.test(h.name) && h.tone !== 'accent', h);

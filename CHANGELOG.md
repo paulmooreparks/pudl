@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.4
+
+A folding status area's Status item no longer changes width as its total changes. Its badge held the widest reserve among the folded badges only when the taskbar was fitted, so the total growing from 0 to two digits widened the item and moved the controls beside it. The badge now holds that width on screen, with the reserve laid invisibly under the count, and keeps it while blank.
+
 ## 0.97.3
 
 A folding status area leaves out an item the page has hidden. Since 0.97.0 such an item was folded with the rest, listed in the Status menu, counted in the Status item's name and able to give it its tone, though it was not shown. It now joins the fold only once it is shown, and leaves it again when hidden.

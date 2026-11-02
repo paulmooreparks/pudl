@@ -4806,7 +4806,7 @@
       f.className = 'status-item status-fold';
       f.setAttribute('aria-haspopup', 'menu');
       f.hidden = true;
-      f.innerHTML = '<span class="glyph" aria-hidden="true"></span><span class="status-fold-words"></span><span class="badge" aria-hidden="true"></span>';
+      f.innerHTML = '<span class="glyph" aria-hidden="true"></span><span class="status-fold-words"></span><span class="badge" aria-hidden="true"><span class="status-fold-count"></span></span>';
       f.addEventListener('click', function () { openStatusFold(area, f); });
       /* A folded item's badge or name changing takes no room, so nothing
          is fitted again; the Status item's tone, total and name follow it
@@ -4868,10 +4868,14 @@
     var pending = badges.some(function (b) { return b.hasAttribute('data-status-pending'); });
     var counted = badges.some(function (b) { return !b.hidden && /^\d+\+?$/.test(b.textContent.trim()); });
     var show = !pending && counted;
-    setText(badge, show ? (sum > 99 ? '99+' : String(sum)) : '');
-    setHidden(badge, !show);
+    setText(badge.firstElementChild, show ? (sum > 99 ? '99+' : String(sum)) : '');
     var reserve = folded.map(function (it) { var b = badgeOf(it); return b && b.getAttribute('data-status-reserve'); }).filter(Boolean).sort(function (x, y) { return y.length - x.length; })[0];
     if (reserve) setAttr(badge, 'data-status-reserve', reserve); else if (badge.hasAttribute('data-status-reserve')) badge.removeAttribute('data-status-reserve');
+    /* With a reserve the badge holds its widest width on screen, blank or
+       not, so the Status item never changes width as its total changes
+       (0.97.4); without one it shows only with a total, as before. */
+    if (reserve) { setHidden(badge, false); if (badge.hasAttribute('data-status-blank') === show) badge.toggleAttribute('data-status-blank', !show); }
+    else { setHidden(badge, !show); if (badge.hasAttribute('data-status-blank')) badge.removeAttribute('data-status-blank'); }
     var name = text('status', 'Status') + ': ' + folded.map(itemName).join(', ');
     setAttr(f, 'aria-label', name);
     setAttr(f, 'title', name);
