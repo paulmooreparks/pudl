@@ -668,7 +668,7 @@ A tree is a hierarchy of places, such as folders or nested categories, written a
 </ul>
 ```
 
-The server marks each node that has children with `aria-expanded` on its link, `"true"` or `"false"`, and the current node with `aria-current`. Without script every branch shows. The optional `pudl-tree.js` turns the list into the ARIA tree pattern, following the WAI-ARIA navigation tree: the links become tree items and the tree one stop in the Tab order; Up and Down move between the nodes showing; Right opens a node or moves into it and Left closes it or moves to its parent, mirrored on a right-to-left page; Home and End go to the ends; typing a node's first letters moves to it; and Enter follows the link. Each node with children gains a small raised toggle that opens and closes it by pointer. `pudl:tree-toggle` fires on a node's link as it opens or closes, with `detail.open`, so a host can remember which nodes are open, or fill in a branch as it opens and call `pudlTree.enhance(tree)` to take the new nodes in.
+The server marks each node that has children with `aria-expanded` on its link, `"true"` or `"false"`, and the current node with `aria-current`. Without script every branch shows. The optional `pudl-tree.js` turns the list into the ARIA tree pattern, following the WAI-ARIA navigation tree: the links become tree items and the tree one stop in the Tab order; Up and Down move between the nodes showing; Right opens a node or moves into it and Left closes it or moves to its parent, mirrored on a right-to-left page; Home and End go to the ends; typing a node's first letters moves to it; and Enter follows the link. Each node with children gains a small raised toggle that opens and closes it by pointer. `pudl:tree-toggle` fires on a node's link as it opens or closes, with `detail.open`, so a host can remember which nodes are open, or fill in a branch as it opens and call `pudlTree.enhance(tree)` to take the new nodes in. A host lines a tree up with what stands around it by setting two properties on it (0.96.8): `--tree-indent`, the step each nested level moves in by, which defaults to `var(--space-4)`, and `--tree-row-pad-start`, the space before a row's toggle or glyph, which defaults to 6px; the toggle, glyph and gap are PUDL's.
 
 The nodes are flat, as list rows are, because they are places to go, and the current node carries the current row's accent edge and bold.
 
@@ -1676,7 +1676,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.96.7, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.96.8, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
