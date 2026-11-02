@@ -1503,6 +1503,19 @@ button.link {
   text-transform: uppercase; color: var(--text-muted);
 }
 .listbox [role="group"] > .listbox-row { padding-inline-start: 24px; }
+/* A rich list box's row (0.97.0) holds a title, a second line in muted
+   small text, and a badge at its end, each held to one line; the check
+   box or radio button stands beside both lines. */
+.listbox:has(.listbox-title) { --listbox-row: 44px; }
+.listbox-row:has(> .listbox-title) {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: var(--space-2); row-gap: 0; align-content: center; padding-block: 4px;
+}
+.listbox-row:has(> .listbox-title) > input { grid-column: 1; grid-row: 1 / span 2; }
+.listbox-title, .listbox-detail { grid-column: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.listbox-detail { font-size: var(--text-xs); color: var(--text-muted); }
+.listbox-row > .badge { grid-column: 3; grid-row: 1 / span 2; justify-self: end; }
+.listbox-row[aria-disabled="true"] > :is(.listbox-title, .listbox-detail, .badge) { opacity: .55; }
 .listbox[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
 .listbox[aria-disabled="true"] .listbox-row { cursor: not-allowed; }
 .listbox[aria-disabled="true"] .listbox-row:hover { background: none; }

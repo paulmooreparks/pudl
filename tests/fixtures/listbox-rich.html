@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rich list boxes</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-listbox.js" defer></script>
+  <style>body { margin: 24px; max-width: 420px; } .form-group { margin-bottom: 16px; }</style>
+</head>
+<body>
+  <!-- A test fixture for rich list boxes: a multiple list in two groups,
+       with titles, second lines and badges, a disabled row, a find field
+       that hides rows, and a form field that takes the choice; and a
+       single list. -->
+  <form id="form">
+    <div class="form-group">
+      <input class="form-input" id="find" aria-label="Find" placeholder="Find">
+    </div>
+    <div class="listbox" id="members" data-listbox="multiple" aria-label="Members" data-listbox-rows="6" data-listbox-for="picked">
+      <div class="listbox-group">Open</div>
+      <div class="listbox-row" data-value="atlas" aria-selected="true"><span class="listbox-title">Atlas</span><span class="listbox-detail">Studio</span><span class="badge" data-state="working">Working</span></div>
+      <div class="listbox-row" data-value="beacon"><span class="listbox-title">Beacon</span><span class="listbox-detail">Studio</span><span class="badge" data-state="waiting">Waiting</span></div>
+      <div class="listbox-row" data-value="cobalt" data-disabled><span class="listbox-title">Cobalt</span><span class="listbox-detail">Engine</span><span class="badge" data-state="idle">Idle</span></div>
+      <div class="listbox-group">Closed</div>
+      <div class="listbox-row" data-value="delta"><span class="listbox-title">Delta</span><span class="listbox-detail">Studio</span><span class="badge">Closed</span></div>
+      <div class="listbox-row" data-value="ember"><span class="listbox-title">Ember</span><span class="listbox-detail">Docs</span><span class="badge">Closed</span></div>
+    </div>
+    <select id="picked" name="picked" multiple hidden>
+      <option value="atlas">Atlas</option><option value="beacon">Beacon</option><option value="cobalt">Cobalt</option><option value="delta">Delta</option><option value="ember">Ember</option>
+    </select>
+  </form>
+  <div class="listbox" id="single" data-listbox="single" aria-label="Lead">
+    <div class="listbox-row" data-value="x"><span class="listbox-title">Xenon</span></div>
+    <div class="listbox-row" data-value="y" aria-selected="true"><span class="listbox-title">Yttrium</span></div>
+    <div class="listbox-row" data-value="z"><span class="listbox-title">Zinc</span></div>
+  </div>
+  <script>
+    window.__changes = [];
+    document.addEventListener('pudl:listbox-change', function (e) { __changes.push(e.target.id + ':' + e.detail.values.join(',')); });
+    document.getElementById('find').addEventListener('input', function (e) {
+      var q = e.target.value.toLowerCase();
+      document.querySelectorAll('#members .listbox-row').forEach(function (r) { r.hidden = q && r.querySelector('.listbox-title').textContent.toLowerCase().indexOf(q) < 0; });
+    });
+  </script>
+</body>
+</html>
