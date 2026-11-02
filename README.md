@@ -416,6 +416,10 @@ A `.avatar` is a person's or an agent's initials, or an `img` with empty `alt`, 
 
 A list box (0.74.0) is a native `<select class="form-select" multiple size="6">`, or one without `multiple` and with a `size` above 1, marked `data-listbox`. Without a script it is the browser's list. With the optional `pudl-listbox.js` the select is hidden, keeps the value, the name, `required` and `disabled`, and is what the form sends, and a sunken list stands in its place, as many rows tall as `size`, each row carrying a check box where several may be chosen and a radio button where one may. An `optgroup` heads its rows. A press or Space switches one row and leaves the rest, so nobody needs Ctrl to choose several; Shift with a press or a key sets a range; Ctrl+A, or Command+A, chooses all, or none when all are chosen. In a single-choice list the choice follows the arrow keys. Letters jump to the rows they begin. `pudlListbox.refresh(select)` shows a choice a script has set.
 
+A **rich list box** (0.97.0) holds rows the page writes, for a choice whose rows say more than a line: a `<div class="listbox" data-listbox="multiple">`, or `"single"`, of `.listbox-row` elements, each with a `data-value` and holding a `.listbox-title`, optionally a `.listbox-detail` second line and a `.badge`, such as an execution-state badge, with `.listbox-group` headings between them. A row with `aria-selected="true"` starts chosen, and one with `data-disabled` can be reached but not chosen. The keys and presses are the list box's. A row or heading the page hides with `hidden`, as a find field filtering the list does, is out of every key, the arrows, Home and End, type-ahead, Shift ranges and Ctrl+A, and keeps its choice; a heading whose rows are all hidden hides with them. Each heading and its rows stand in a group a screen reader announces. `pudl:listbox-change` fires with `detail.values`, `pudlListbox.value(list)` reads the choice, and `data-listbox-for` gives the id of a form field that takes it, so a form posts it.
+
+A **reorderable list** (0.97.0), with the optional `pudl-reorder.js`, is any element marked `data-reorder` whose child elements are its items; the reader puts them in order while `data-reorder="on"`, or after `pudlReorder.on(list)`. Each item that may move gains a flat grip at its start, or in an element of the item marked `data-reorder-grip`, named "Move" and the item's `data-reorder-label` or else its visible words. It is dragged by the grip, with a line where it will land, and with a grip focused Up and Down move it one place (Left and Right in a row, mirrored right to left), Home and End to the ends; each move is announced and focus stays on the grip. An item marked `data-reorder-fixed` keeps its place. While the mode is on the list carries `data-reorder-active`, under which the page hides whatever it wants hidden, such as each item's body; Escape on a grip, or the control whose id is in `data-reorder-done`, ends it. Before each move a cancelable `pudl:reorder` gives `detail.order`, the items' `data-reorder-id` values in the new order, for the page to save; a page that draws the list from its own model cancels it and draws again. `pudl:reorder-mode` fires as the mode starts and ends.
+
 ## Token fields
 
 A token field (0.74.0) is a combo box marked `data-combo-tokens`, whose values `pudl-combo.js` gathers as chips below the field, each with its remove key. The form receives the values joined by `data-combo-separator`, a comma unless it says otherwise, which is also what a reader types without the script.
@@ -1354,7 +1358,7 @@ A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar 
 </footer>
 ```
 
-PUDL keeps the three links pointed at the state they produce and marks them `aria-disabled` while they would change nothing. Minimize all and Restore all share one place, showing whichever is useful. Close all closes every window the reader may close, each as its own Close would, so a window that refuses through `pudl:window-closing` stays; `pudlWindows.closeAll()` does the same. An icon link left empty takes the `minimize-all`, `restore-all` or `close-all` glyph, and one holding a `.glyph`, `svg` or `img` keeps its own, at 16px. A `.status-area` in the bar is its tray. A press in the bar's padding or between its controls goes to the nearest one, so the screen's edge is part of every button on the bar, and a right-click away from a window's button opens the bar's menu of Minimize all, Restore all and Close all windows, which `data-win-bar-menu="off"` turns off. Toasts stand above a taskbar along the foot, from the room PUDL keeps as `--win-bar-clear` on the root (0.80.0), so they never cover its tray.
+PUDL keeps the three links pointed at the state they produce and marks them `aria-disabled` while they would change nothing. Minimize all and Restore all share one place, showing whichever is useful. Close all closes every window the reader may close, each as its own Close would, so a window that refuses through `pudl:window-closing` stays; `pudlWindows.closeAll()` does the same. An icon link left empty takes the `minimize-all`, `restore-all` or `close-all` glyph, and one holding a `.glyph`, `svg` or `img` keeps its own, at 16px. A `.status-area` in the bar is its tray; marked `data-status-fold` (0.97.0), it folds its items into one Status item when the bar runs short, `"all"` at once or else as many as it must from the first, never an item marked `data-status-keep`, and decides only on reserved widths, so a badge carrying `data-status-reserve="99+"` is measured as reading that and a count that grows never folds anything. The Status item's glyph takes the most urgent tone of what it holds, its badge their total, and its menu lists them; a folded item's popover opens against it, and `pudl:status-fold` fires when the folded set changes. A press in the bar's padding or between its controls goes to the nearest one, so the screen's edge is part of every button on the bar, and a right-click away from a window's button opens the bar's menu of Minimize all, Restore all and Close all windows, which `data-win-bar-menu="off"` turns off. Toasts stand above a taskbar along the foot, from the room PUDL keeps as `--win-bar-clear` on the root (0.80.0), so they never cover its tray.
 
 ### Child windows
 
@@ -1635,10 +1639,11 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-tabs.js`, the optional script for tabs within a page
   - `pudl-combo.js`, the optional script for combo boxes, searchable selects and token fields
   - `pudl-date.js`, the optional script for date and time fields with PUDL's calendar
-  - `pudl-listbox.js`, the optional script for list boxes
+  - `pudl-listbox.js`, the optional script for list boxes and rich list boxes
   - `pudl-fields.js`, the optional script for meters, sliders, number fields, password fields, and failed pictures in figures and avatars
   - `pudl-tooltip.js`, the optional script that shows tooltips on glyph-only controls
   - `pudl-tree.js`, the optional script that makes nested lists of links into trees
+  - `pudl-reorder.js`, the optional script for lists a reader puts in order
   - `pudl-grid.js`, the optional script for tables whose rows are choices
   - `pudl-hljs.css`, the optional stylesheet that colours highlight.js's classes from the syntax tokens
   - `pudl-code.js`, the optional script that gives code blocks Copy and Download
@@ -1676,7 +1681,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.96.10, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.97.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
