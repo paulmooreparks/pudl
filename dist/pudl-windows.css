@@ -429,11 +429,13 @@
 /* A stack row's state is the execution-state badge (0.96.4), at the row's
    end before Close, in a column of fixed width so a change of state moves
    nothing else in the row. */
-.win-stack-link .win-item-state { flex: none; width: 12em; max-width: 50%; margin-inline-start: auto; justify-content: end; }
+.win-stack-link .win-item-state { flex: none; width: var(--win-stack-state, auto); max-width: 50%; justify-content: end; }
 .win-stack-link .win-state-words { display: block; }
 .win-state.badge { gap: var(--space-1); }
 .win-state.badge > .glyph { display: none; }
-.win-state.badge[data-state] { color: color-mix(in srgb, var(--badge-color) 50%, var(--text)); }
+.win-state.badge:is([data-state="working"], [data-state="waiting"], [data-state="stuck"], [data-state="idle"]) { color: color-mix(in srgb, var(--badge-color) 50%, var(--text)); }
+/* A lifecycle word is a plain badge with no glyph (0.96.5). */
+.win-state.badge[data-lifecycle] { color: var(--text); }
 /* The popover is a child of the window layer, which lets the pointer through to the content beneath it, so the popover takes the pointer back. */
 .win-status-popover { --win-status-row: max(22px, 1.5em); width: min(24rem, calc(100vw - 24px)); pointer-events: auto; }
 .win-status-popover li { min-height: var(--win-status-row); overflow-wrap: anywhere; }
@@ -795,9 +797,18 @@
 /* The list has a menu's metrics (0.96.4): the panel sets its own text
    size rather than taking the body's, and a row has a menu row's padding,
    type and 14px glyph. */
-.win-stack-panel { position: fixed; inset: auto; margin: 0; padding: var(--space-2); width: min(380px, calc(100vw - 8px)); max-height: calc(100vh - 8px); overflow: auto; font-size: var(--text-sm); }
+/* The list sizes to its longest title, up to a cap, as it opens (0.96.5),
+   and keeps that width while open, so Close stands still. A row is the
+   window's glyph, title and counts, then its state, then Close. The
+   state column is as wide as the widest badge in the list, which the
+   script measures into --win-stack-state, so every row's badge ends in
+   one line before Close and a row with no state keeps the column. The
+   title takes what is left and truncates last. */
+.win-stack-panel { position: fixed; inset: auto; margin: 0; padding: var(--space-2); width: fit-content; min-width: min(280px, calc(100vw - 8px)); max-width: min(560px, calc(100vw - 8px)); max-height: calc(100vh - 8px); overflow: auto; font-size: var(--text-sm); }
 .win-stack-row { display: flex; align-items: center; gap: var(--space-2); }
 .win-stack-link { display: flex; flex: 1; align-items: center; gap: var(--space-2); min-width: 0; padding: 6px 14px; font: var(--text-sm)/1.5 var(--font); color: var(--text); text-decoration: none; border-radius: var(--radius-sm); }
+.win-stack-main { display: flex; flex: 1; align-items: center; gap: var(--space-2); min-width: 0; }
+.win-stack-main .win-item-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .win-stack-link .win-item-glyph { --glyph-size: 14px; }
 .win-stack-link .win-item-icon { width: 14px; height: 14px; }
 .win-stack-link:hover { background: var(--surface-alt); }

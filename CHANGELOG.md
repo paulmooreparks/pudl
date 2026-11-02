@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.96.5
+
+A taskbar stack's list sizes to its longest title as it opens, up to 560px or the viewport less 8px, instead of a fixed 380px, and keeps that width while open so Close stands still. The state column is as wide as the widest badge in the list and no wider, every row's badge ends in one line before Close, a row with no state keeps the column, and the title takes the rest and truncates last. This replaces the fixed 12em column of 0.96.4, which cut titles short while the screen had room. A popover placed by the menu script may now carry `data-menu-size="own"` to keep the width its own stylesheet gives it.
+
+A window with no execution state may give a lifecycle word. `data-win-lifecycle="Closed"` is drawn as a plain badge with no glyph where a stack row and the folded Window status draw the state. It is nothing to the compact marks on the title bar, taskbar and docks, adds nothing to a stack's count of states, and gives way to an execution state while one is set.
+
 ## 0.96.4
 
 A badge may state an execution state. `.badge` with `data-state` of `working`, `waiting`, `stuck` or `idle` leads with the state's static glyph in the state's colour, the same glyph and colour the window system draws, and the words inside are the host's. A host that lists things that run can now mark each with the chip the taskbar uses.

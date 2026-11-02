@@ -526,17 +526,28 @@
     return { state: state, label: win.getAttribute('data-win-state-label') || text('state-' + state, state.charAt(0).toUpperCase() + state.slice(1)), detail: detail };
   }
   function stateName(value) { return value.detail ? value.label + ': ' + value.detail : value.label; }
+  /* A window's lifecycle word (0.96.5): data-win-lifecycle gives words for
+     a window that has no execution state, such as Closed, drawn as a plain
+     badge with no glyph where a stack row and the folded Window status
+     draw the state. It is nothing to the compact marks and to a stack's
+     count of states, and an execution state takes its place. */
+  function lifecycleOf(win) {
+    if (!win || executionState(win)) return null;
+    var words = (win.getAttribute('data-win-lifecycle') || '').trim();
+    return words ? { state: '', label: words, detail: '', lifecycle: true } : null;
+  }
   function paintState(mark, value) {
     if (!mark.firstChild) mark.innerHTML = '<span class="glyph" aria-hidden="true"></span><span class="win-state-words"></span>';
     var name = value ? stateName(value) : '';
     setAttr(mark, 'role', 'img');
     setHidden(mark, !value);
     setAttr(mark, 'data-state', value ? value.state : '');
+    if (mark.hasAttribute('data-lifecycle') !== !!(value && value.lifecycle)) mark.toggleAttribute('data-lifecycle', !!(value && value.lifecycle));
     setAttr(mark, 'aria-label', name);
     setAttr(mark, 'title', name);
     setAttr(mark, 'data-tooltip', name);
     setText(mark.lastChild, value ? value.label : '');
-    styleProp(mark.firstChild, '--glyph', 'var(--glyph-' + (value ? STATE_GLYPHS[value.state] : 'ring') + ')');
+    styleProp(mark.firstChild, '--glyph', 'var(--glyph-' + (value && value.state ? STATE_GLYPHS[value.state] : 'ring') + ')');
   }
   function titleExecutionState(win) {
     return win.getAttribute('data-win-state-title') === 'none' ? null : executionState(win);
@@ -546,6 +557,10 @@
     if (mark) {
       setHidden(mark.parentElement, win.getAttribute('data-win-state-title') === 'none');
       paintState(mark, titleExecutionState(win));
+      /* The folded status watches its chips, so the lifecycle word is
+         written on the chip for it to see, though the chip draws nothing. */
+      var life = lifecycleOf(win);
+      setAttr(mark.parentElement, 'data-lifecycle', life ? life.label : '');
     }
   }
   function stackState(keys) {
@@ -629,14 +644,16 @@
     var badge = node.querySelector('.win-item-attention');
     setHidden(badge, !count);
     setText(badge, count ? String(count) : '');
-    var mark = node.querySelector('.win-item-running');
-    /* A stack row's state is the execution-state badge (0.96.4). */
-    if (node.hasAttribute('data-win-stack-row') && !mark.classList.contains('badge')) mark.classList.add('badge');
-    paintState(mark, execution);
+    var mark = node.querySelector('.win-item-running'), stackRow = node.hasAttribute('data-win-stack-row');
+    /* A stack row's state is the execution-state badge (0.96.4), and shows
+       the lifecycle word when there is no state (0.96.5). */
+    if (stackRow && !mark.classList.contains('badge')) mark.classList.add('badge');
+    var life = stackRow ? lifecycleOf(win) : null;
+    paintState(mark, execution || life);
     var meter = node.querySelector('.win-item-progress');
     setHidden(meter, progress === null);
     setText(meter, progress === null ? '' : progress + '%');
-    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (execution ? ', ' + stateName(execution) : '') + (progress === null ? '' : ', ' + progress + '%');
+    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (execution ? ', ' + stateName(execution) : life ? ', ' + life.label : '') + (progress === null ? '' : ', ' + progress + '%');
     setAttr(node, 'aria-label', label);
     setAttr(node, 'title', title ? title + (execution ? ', ' + stateName(execution) : '') : label);
   }
@@ -2831,7 +2848,7 @@
      has it, by id or by name, and otherwise goes to the new body; a notice
      in the new content is announced. */
   var WINDOW_HEADER = 'X-PUDL-Window';
-  var STATUS_ATTRS = ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
   var announceRegion = null;
 
   function announce(words) {
@@ -3064,7 +3081,10 @@
     region.appendChild(list); panel.append(region, close); layer.appendChild(panel);
     button.setAttribute('popovertarget', panel.id); group.appendChild(button);
     var frame = 0, disposed = false, menuReturnTarget = null;
-    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return s === execution ? !!titleExecutionState(win) : !s.hidden && !!s.textContent.trim(); }); }
+    /* The generated row shows the execution state, or the lifecycle word
+       when there is none (0.96.5); neither when the title mark is off. */
+    function titleRowState() { return win.getAttribute('data-win-state-title') === 'none' ? null : executionState(win) || lifecycleOf(win); }
+    function statuses() { return Array.prototype.filter.call(group.querySelectorAll(':scope > .win-status'), function (s) { return s === execution ? !!titleRowState() : !s.hidden && !!s.textContent.trim(); }); }
     /* data-win-status-rows is a whole number from 1 to 6 in plain decimal
        digits; anything else, including padding or a sign, counts as absent. */
     function reservedRows() { var raw = win.getAttribute('data-win-status-rows'); return raw !== null && /^[1-6]$/.test(raw) ? Number(raw) : 0; }
@@ -3075,12 +3095,12 @@
       list.textContent = '';
       [execution].concat(statuses().filter(function (s) { return s !== execution; })).forEach(function (s) {
         /* A window with no state has no state row, not an empty one. */
-        if (s === execution && !titleExecutionState(win)) return;
+        if (s === execution && !titleRowState()) return;
         var row = document.createElement('li');
         if (s.classList.contains('win-execution')) {
-          var value = titleExecutionState(win);
+          var value = titleRowState();
           row.className = 'win-execution-row';
-          var mark = document.createElement('span'); mark.className = 'win-state'; paintState(mark, value); row.appendChild(mark);
+          var mark = document.createElement('span'); mark.className = value && value.lifecycle ? 'win-state badge' : 'win-state'; paintState(mark, value); row.appendChild(mark);
         } else {
           var foreground = getComputedStyle(s).color;
           var inherited = foreground === getComputedStyle(head).color;
@@ -3138,7 +3158,7 @@
     var mo = new MutationObserver(function (records) {
       if (records.some(function (r) { return r.target !== button && !(r.target === group && r.type === 'attributes'); })) schedule();
     });
-    mo.observe(group, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style', 'data-state', 'aria-label'] });
+    mo.observe(group, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'style', 'data-state', 'data-lifecycle', 'aria-label'] });
     mo.observe(head, { childList: true });
     if (title) mo.observe(title, { subtree: true, childList: true, characterData: true });
     /* The reservation is the owning window's attribute, so a change to it
@@ -4390,6 +4410,9 @@
     }
     if (stackPopup) stackPopup.close(false);
     var panel = document.createElement('div'); panel.className = 'popover win-stack-panel'; panel.setAttribute('data-popover-focus', 'manual'); panel.setAttribute('popover', 'manual'); panel.setAttribute('role', 'dialog');
+    /* The panel's width is its stylesheet's and this script's, not the
+       menu script's (0.96.5). */
+    panel.setAttribute('data-menu-size', 'own');
     if (!button.id) button.id = 'pudl-stack-trigger-' + (++statusId); panel.setAttribute('data-menu-anchor', button.id);
     panel.id = 'pudl-stack-' + (++statusId); button.setAttribute('aria-controls', panel.id); button.setAttribute('aria-expanded', 'true');
     var rows = document.createElement('div'); rows.className = 'win-stack-rows'; panel.appendChild(rows); document.body.appendChild(panel);
@@ -4409,6 +4432,18 @@
       document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape, true); window.removeEventListener('resize', place);
       if (recover && focus) recoverStackFocus(dock, group, key);
       fitBarsSoon();
+    }
+    function sizeColumn() {
+      if (!panel.matches(':popover-open')) return;
+      var widest = 0;
+      rowMap.forEach(function (row) {
+        var mark = row.firstChild.querySelector('.win-state');
+        if (!mark || mark.hidden) return;
+        var words = mark.querySelector('.win-state-words');
+        widest = Math.max(widest, Math.ceil(mark.getBoundingClientRect().width - (words ? words.getBoundingClientRect().width - words.scrollWidth : 0)));
+      });
+      styleProp(panel, '--win-stack-state', widest ? widest + 'px' : null);
+      if (!panel.style.width && panel.offsetWidth) panel.style.width = panel.offsetWidth + 'px';
     }
     function refresh() {
       if (disposed) return;
@@ -4432,6 +4467,13 @@
           var remove = document.createElement('button'); remove.type = 'button'; remove.className = 'icon-btn win-stack-close'; remove.innerHTML = '<span class="glyph" style="--glyph:var(--glyph-close)" aria-hidden="true"></span>';
           remove.addEventListener('click', function () { var at = previous.indexOf(k), hadFocus = owned(); close(k, 'taskbar'); if (hadFocus) { if (stackPopup && stackPopup.panel === panel && previous.length) rowMap.get(previous[Math.min(Math.max(at, 0), previous.length - 1)]).firstChild.focus(); else recoverStackFocus(dock, group, k); } });
           row.append(link, remove); rowMap.set(k, row);
+          /* The row's glyph, title and counts stand in one cell and its
+             state in another, so every row's state column is as wide as
+             the widest badge in the list (0.96.5). */
+          windowMark(link, k);
+          var main = document.createElement('span'); main.className = 'win-stack-main';
+          Array.prototype.slice.call(link.childNodes).forEach(function (n) { if (!(n.classList && n.classList.contains('win-item-state'))) main.appendChild(n); });
+          link.insertBefore(main, link.firstChild);
         }
         var nextSection = wins[k].getAttribute('data-win-section') || '';
         if (nextSection !== section) { section = nextSection; if (section) { var heading = document.createElement('h3'); heading.className = 'win-stack-section'; heading.textContent = section; rows.insertBefore(heading, cursor); } }
@@ -4440,6 +4482,12 @@
         setAttr(row.lastChild, 'aria-label', stackText('stack-close-window', 'Close {title}', { title: fullTitle(k) }));
         row.lastChild.disabled = [k].concat(childrenOf(state, k)).some(requiredWindow);
       });
+      /* The state column is as wide as the widest badge (0.96.5): each
+         badge's natural width is its box less the clipped words plus the
+         words' full width. Then the panel's width, sized to its longest
+         title as it opened, is kept, so Close stands still while a title
+         or a state changes. */
+      sizeColumn();
       if (focusWas && focusedKey && rowMap.has(focusedKey) && focusNode.isConnected) focusNode.focus({ preventScroll: true });
       if (focusWas && focusedKey && !rowMap.has(focusedKey) && entry.keys.length) rowMap.get(entry.keys[Math.min(Math.max(index, 0), entry.keys.length - 1)]).firstChild.focus();
       previous = entry.keys.slice(); if (panel.matches(':popover-open')) place();
@@ -4454,7 +4502,7 @@
     panel.addEventListener('focusin', function () { if (stackPopup) stackPopup.mode = 'pinned'; });
     panel.addEventListener('pointerleave', leave); panel.addEventListener('pointerenter', function () { clearTimeout(timer); });
     stackPopup = { button: button, panel: panel, mode: mode, refresh: refresh, close: closePanel, leave: leave, first: function () { var link = rows.querySelector('a'); if (link) link.focus(); } };
-    refresh(); var previousFocus = document.activeElement; panel.showPopover(); place(); if (keyboard) stackPopup.first(); else { if (previousFocus && previousFocus.isConnected) previousFocus.focus({ preventScroll: true }); stackPopup.mode = mode; }
+    refresh(); var previousFocus = document.activeElement; panel.showPopover(); sizeColumn(); place(); if (keyboard) stackPopup.first(); else { if (previousFocus && previousFocus.isConnected) previousFocus.focus({ preventScroll: true }); stackPopup.mode = mode; }
     document.addEventListener('pointerdown', outside, true); document.addEventListener('keydown', escape, true); window.addEventListener('resize', place);
   }
   function setupStack(button) {
@@ -5170,7 +5218,7 @@
       if (taskbarDrag) taskbarDrag.cancel();
       renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-group', 'data-win-group-label', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
       var changed = records.some(function (record) {

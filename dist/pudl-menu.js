@@ -98,10 +98,14 @@
     panel.classList.toggle('sheet', narrow);
     panel.style.margin = '0';
     panel.style.inset = 'auto';
-    panel.style.width = narrow ? vw + 'px' : '';
     panel.style.left = narrow ? v.left + 'px' : '';
-    panel.style.minWidth = 'min(14rem, ' + vw + 'px)';
-    panel.style.maxWidth = narrow ? vw + 'px' : 'min(22rem, ' + vw + 'px)';
+    /* A panel marked data-menu-size="own" keeps the width its stylesheet
+       and its own script give it (0.96.5); any other takes a menu's. */
+    if (panel.getAttribute('data-menu-size') !== 'own') {
+      panel.style.width = narrow ? vw + 'px' : '';
+      panel.style.minWidth = 'min(14rem, ' + vw + 'px)';
+      panel.style.maxWidth = narrow ? vw + 'px' : 'min(22rem, ' + vw + 'px)';
+    }
 
     var bottomAnchor = Math.max(v.top, Math.min(v.bottom, r.bottom + GAP));
     var topAnchor = Math.max(v.top, Math.min(v.bottom, r.top - GAP));

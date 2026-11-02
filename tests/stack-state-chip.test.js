@@ -60,12 +60,14 @@ function check(name, ok, detail) {
   check('a stuck row shows the warning glyph', a2 && a2.state === 'stuck' && is(a2.beforeGlyph, 'warning'), a2);
   check('a row with no state keeps its column and shows no badge', a3 && a3.hidden && a3.stateCol === a1.stateCol && a3.stateCol > 0, a3);
 
-  /* Geometry holds as the state changes. */
-  await p.evaluate(() => { const w = document.querySelector('.win[data-win="a1"]'); w.setAttribute('data-win-state', 'waiting'); w.setAttribute('data-win-state-label', 'W'); });
-  await p.waitForFunction(() => document.querySelector('.win-stack-panel [data-stack-row="a1"] .win-state').getAttribute('data-state') === 'waiting');
-  const after = await p.evaluate(() => { const link = document.querySelector('.win-stack-panel [data-stack-row="a1"]').firstChild; return { titleRight: Math.round(link.querySelector('.win-item-title').getBoundingClientRect().right), stateCol: Math.round(link.querySelector('.win-item-state').getBoundingClientRect().width), h: Math.round(link.getBoundingClientRect().height), glyph: getComputedStyle(link.querySelector('.win-state'), '::before').getPropertyValue('--glyph').trim() }; });
-  check('a change of state and words moves nothing else in the row', after.titleRight === a1.titleRight && after.stateCol === a1.stateCol && after.h === 32 && is(after.glyph, 'pause'), { before: [a1.titleRight, a1.stateCol], after });
-  const name = await p.evaluate(() => document.querySelector('.win-stack-panel [data-stack-row="a1"]').firstChild.getAttribute('aria-label'));
+  /* Geometry holds as a state changes: the column is as wide as the
+     widest badge in the list (0.96.5), so another row's change within it
+     moves nothing. */
+  await p.evaluate(() => { const w = document.querySelector('.win[data-win="a2"]'); w.setAttribute('data-win-state', 'waiting'); w.setAttribute('data-win-state-label', 'W'); });
+  await p.waitForFunction(() => document.querySelector('.win-stack-panel [data-stack-row="a2"] .win-state').getAttribute('data-state') === 'waiting');
+  const after = await p.evaluate(() => { const link = document.querySelector('.win-stack-panel [data-stack-row="a2"]').firstChild; return { titleRight: Math.round(link.querySelector('.win-item-title').getBoundingClientRect().right), stateCol: Math.round(link.querySelector('.win-item-state').getBoundingClientRect().width), h: Math.round(link.getBoundingClientRect().height), glyph: getComputedStyle(link.querySelector('.win-state'), '::before').getPropertyValue('--glyph').trim() }; });
+  check('a change of state and words moves nothing else in the row', after.titleRight === a2.titleRight && after.stateCol === a2.stateCol && after.h === 32 && is(after.glyph, 'pause'), { before: [a2.titleRight, a2.stateCol], after });
+  const name = await p.evaluate(() => document.querySelector('.win-stack-panel [data-stack-row="a2"]').firstChild.getAttribute('aria-label'));
   check('the row\'s name still says the state', /W$|Waiting|W\b/.test(name), name);
 
   /* The taskbar button and title bar are untouched by the badge. */

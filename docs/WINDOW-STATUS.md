@@ -46,6 +46,8 @@ Compact marks expose state words through an accessible name and tooltip. Stack p
 
 Stacks use the highest-priority represented state: Stuck, Waiting, Working, then Idle. Their accessible names and tooltips give counts for all represented states. Unmarked windows contribute no state. Layer attributes `data-win-text-state-working`, `-state-waiting`, `-state-stuck` and `-state-idle` localize default names. `data-win-text-state-count-working` and the corresponding other three names localize count phrases using `{n}`. These replace the old stack-running text override.
 
+A window that has no execution state may still have something to say about itself, such as that its session is closed. `data-win-lifecycle` (0.96.5) gives that word. A stack row and the folded Window status draw it as a plain badge with no glyph, in the place the state would take, and the row's accessible name and tooltip include it. The compact marks on the title bar, taskbar and docks draw nothing for it, and it adds nothing to a stack's count of states. An execution state, explicit or legacy running, takes its place while it is set; removing the state gives the word back. Changing or removing the attribute is followed live.
+
 The folded popover preserves a host chip's decorative glyph and words. An inherited title-bar foreground becomes the popover foreground; a distinct custom chip or glyph foreground is retained. It creates read-only output without copying IDs, event handlers or interactive controls. Hosts remain responsible for a custom chip foreground's contrast against the popover surface.
 
 ## Plain rows, state detail and the status region (0.95.2)

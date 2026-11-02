@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.96.4.
+   Version 0.96.5.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -2268,7 +2268,7 @@ button.link {
 .badge[data-state="waiting"] { --badge-color: var(--warn); background: color-mix(in srgb, var(--warn) 22%, transparent); }
 .badge[data-state="stuck"] { --badge-color: var(--danger); background: color-mix(in srgb, var(--danger) 18%, transparent); }
 .badge[data-state="idle"] { --badge-color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 18%, transparent); }
-.badge[data-state] { color: color-mix(in srgb, var(--badge-color) 50%, var(--text)); }
+.badge:is([data-state="working"], [data-state="waiting"], [data-state="stuck"], [data-state="idle"]) { color: color-mix(in srgb, var(--badge-color) 50%, var(--text)); }
 .badge[data-state="working"]::before { content: ""; --glyph: var(--glyph-play); }
 .badge[data-state="waiting"]::before { content: ""; --glyph: var(--glyph-pause); }
 .badge[data-state="stuck"]::before { content: ""; --glyph: var(--glyph-warning); }
