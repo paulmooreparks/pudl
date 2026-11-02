@@ -640,7 +640,9 @@
     setHidden(icon, !!picture || (!win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key')));
     setText(node.querySelector('.win-item-title'), titleOf(key));
     var detail = node.querySelector('.win-item-detail');
-    if (detail) { setText(detail, detailOf(key)); setHidden(detail, !detailOf(key)); }
+    /* A detail that repeats the title says nothing, so it is not drawn
+       (0.96.9); the name and tooltip still carry both. */
+    if (detail) { setText(detail, detailOf(key)); setHidden(detail, !detailOf(key) || detailOf(key) === titleOf(key)); }
     var badge = node.querySelector('.win-item-attention');
     setHidden(badge, !count);
     setText(badge, count ? String(count) : '');

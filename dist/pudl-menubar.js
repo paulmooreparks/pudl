@@ -1171,6 +1171,9 @@
     if (panel) return;
     panel = el('div', 'menu-panel menubar-panel', { popover: '', role: 'menu', id: 'menubar-panel' });
     panel.addEventListener('toggle', function (e) {
+      /* The bar says when a menu opens and closes (0.96.9), so a host does
+         not redraw a menu's source while a reader is in it. */
+      if (e.newState === 'open') bar.dispatchEvent(new CustomEvent('pudl:menubar-open', { bubbles: true }));
       /* A close whose event arrives after the panel was opened again, by
          a key pressed within the same tick, must not undo the reopening. */
       if (e.newState === 'closed' && openTitle && !panel.matches(':popover-open')) {
@@ -1182,6 +1185,7 @@
         openTitle = null;
         soon();
       }
+      if (e.newState === 'closed' && !panel.matches(':popover-open')) bar.dispatchEvent(new CustomEvent('pudl:menubar-close', { bubbles: true }));
     });
     bar.appendChild(panel);
   }
@@ -2215,6 +2219,8 @@
        again only when its menus, titles or pins read differently (0.69.3);
        an applet may call it whenever its commands change. */
     refresh: function () { if (bar) render(); },
+    /* Whether a menu of the bar is open now (0.96.9). */
+    isOpen: function () { return !!(panel && panel.matches(':popover-open')); },
     /* Unfold the bar into a ribbon, or fold it back (0.79.0). */
     ribbon: function (on) { if (bar && ribbonRow) { if (on == null) return ribbonOn; setRibbon(!!on, true); } return ribbonOn; },
     /* Every key bound in the bar now: its key in PUDL's spelling and as

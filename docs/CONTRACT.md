@@ -197,7 +197,8 @@ The `hidden` attribute always hides, on any component, except `hidden="until-fou
 | `data-win-text-copy-link`, `data-win-text-copy-link-manual` | the window layer | `pudl-windows.js` | The share command label and manual-copy prompt |
 | `data-win-edge` | a docked window | the stylesheet, `pudl-windows.js` | The edge it shows on, `top`, `bottom`, `left` or `right`, which the server renders and the script keeps |
 | `data-menu-key`, `data-menu-empty` | a menu panel | `pudl-menu.js` | Its summoning key, its "nothing matches" text |
-| `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against |
+| `data-menu-anchor` | a menu panel with no button | `pudl-menu.js` | The id of the element a script opens it from, which it is placed against. An anchor, or a panel's own button, that a folding toolbar has folded away is stood in for by the control that shows it: its group's fold button, else the toolbar's More button (0.96.9) |
+| `data-menu-detail` | a row's link or button in a menu bar's source list | `pudl-menubar.js` | A second line under the row's words, in muted small text, wrapping to as many lines as it needs; an applet's item says the same with `detail` (0.64.0, in this table since 0.96.9) |
 | `data-menu-placement` | a menu panel | `pudl-menu.js` | `beside` places a submenu beside its anchor, using the same visible viewport bounds and overflow cues |
 | `data-menu-size` | a menu panel or popover the menu script places | `pudl-menu.js` | `own` keeps the width the panel's own stylesheet or script gives it; otherwise the panel takes a menu's width limits as it is placed (0.96.5) |
 | `data-menu-for` | the element a context menu acts on | the stylesheet | Set by `pudl-menu.js` to the open menu's id where the page marks the element, and removed when the menu closes; the element keeps its pointed-at look (0.76.0) |
@@ -236,6 +237,7 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:windows-policy` | the window layer, bubbles | none | After responsive presentation changes; the URL state is unchanged |
 | `pudl:regions-swap` | the document | `url`, `regions` | After regions are swapped |
 | `pudl:tree-toggle` | a tree node's link, bubbles | `open` | After a node opens or closes |
+| `pudl:menubar-open`, `pudl:menubar-close` | the menu bar, bubbles | | As a menu of the bar opens, and once none is open (0.96.9) |
 | `pudl:split` | a splitter's handle, bubbles | `size` in pixels, or null after a reset | When a change to the split ends |
 | `pudl:toolbar-fit` | a folding toolbar, bubbles | | When it has folded to its row (0.69.1) |
 | `pudl:ribbon-fold` | a `.ribbon`, bubbles | `folded` | When the ribbon folds into menus or shows again (0.78.0) |
@@ -280,10 +282,11 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudlToolbar.enhance(root)`, `pudlToolbar.fit(bar)` | `pudl-toolbar.js` | Enhance toolbars, command bars and ribbons added by other means; fold a toolbar now |
 | `pudlCombo.enhance(root)`, `pudlCombo.refresh(select)` | `pudl-combo.js` | Take in combo boxes and searchable selects added later; show a searchable select's value after a script has set it |
 | `pudlCombo.tokens(input)` | `pudl-combo.js` | A token field's values, given its input: `.values()`, `.set(list)`, `.add(value)` and `.remove(value)`, each change checked as the reader's is, firing no change event; `add` and `remove` answer whether they changed anything, `set` whether nothing was refused; null for any other element (0.80.0) |
-| `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means |
+| `pudlTree.enhance(tree)` | `pudl-tree.js` | Take in nodes added to a tree by other means. A tree marked `data-tree-toggles="buttons"` (0.96.9) gives each toggle a role of button, out of the Tab order, named "Expand" or "Collapse" and the node's name, from `data-tree-label` on the node's link or else its words; `data-tree-text-expand` and `data-tree-text-collapse` on the tree give the words. Without the attribute the toggles stay decorative |
 | `pudlGrid.enhance(table)` | `pudl-grid.js` | Take in rows added to a grid by other means |
 | `pudlWindows.menuCommands(key)` | `pudl-windows.js` | Fresh standard command descriptors for a window, or the visible front window when omitted; missing windows return `[]`. Each has `id`, `label`, and `run` or nested `items`, with optional `checked`, `disabled`, or `danger`. Callbacks bind to the original element and recheck capabilities; applet commands and extension hooks are excluded. IDs and generated-menu rules are listed in the migration guide. |
 | `pudlMenubar.refresh()` | `pudl-menubar.js` | Rebuild the menu bar after a change the script did not see |
+| `pudlMenubar.isOpen()` | `pudl-menubar.js` | Whether a menu of the bar is open now; the bar fires bubbling `pudl:menubar-open` as a menu opens and `pudl:menubar-close` once none is open (0.96.9) |
 | `pudlNative.attach(topbar, options)` | `pudl-native.js` | Return a native window controller with `update(snapshot)`, `run(action)`, `focusMenu()` and `destroy()`; [NATIVE-WINDOWS.md](NATIVE-WINDOWS.md) defines callbacks, state, focus/error events and native integration boundaries. |
 | `pudlMenubar.focus({ returnTo })` | `pudl-menubar.js` | Focus the first available title, returning a boolean; defaults to the previous active element. A supplied return target must be a usable element in this document outside the menu. Repeated entry retains the original excursion. Actual restoration emits bubbling `pudl:menubar-return-focus` on the bar with `detail.target` and `detail.reason` (`escape` or `command`), before a command runs. Hosts own restoration within frames. |
 | `pudlAnnotations.enhance(root)`, `.refresh()`, `.destroy(root)`, `.setRange(container, note, range)` | `pudl-annotations.js` | Optional scoped selection actions and aligned margin notes; see [ANNOTATIONS.md](ANNOTATIONS.md) for markup, event payloads and lifecycle. |

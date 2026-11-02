@@ -89,6 +89,7 @@
         mark.setAttribute('aria-hidden', 'true');
         a.insertBefore(mark, a.firstChild);
       }
+      nameToggle(tree, a);
       /* A link is focusable by default, so a node new to the tree is taken
          out of the Tab order by its missing attribute, not its tabIndex. */
       if (!a.hasAttribute('tabindex')) a.tabIndex = -1;
@@ -113,9 +114,34 @@
     a.focus();
   }
 
+  /* On a tree marked data-tree-toggles="buttons" (0.96.9) each toggle is a
+     named button for assistive technology and the pointer: a role of
+     button, out of the Tab order since the node's keys open and close it,
+     named "Expand" or "Collapse" and the node's name, from data-tree-label
+     on the link or else its words. data-tree-text-expand and -collapse on
+     the tree give the words. Elsewhere the toggle stays decorative. */
+  function nameToggle(tree, a) {
+    var mark = a.firstElementChild;
+    if (!mark || !mark.classList.contains('tree-toggle')) return;
+    if (tree.getAttribute('data-tree-toggles') !== 'buttons') {
+      if (mark.getAttribute('aria-hidden') !== 'true') { mark.setAttribute('aria-hidden', 'true'); mark.removeAttribute('role'); mark.removeAttribute('tabindex'); mark.removeAttribute('aria-label'); mark.removeAttribute('aria-expanded'); }
+      return;
+    }
+    var open = a.getAttribute('aria-expanded') === 'true';
+    var words = tree.getAttribute(open ? 'data-tree-text-collapse' : 'data-tree-text-expand') || (open ? 'Collapse' : 'Expand');
+    var name = a.getAttribute('data-tree-label') || Array.prototype.filter.call(a.childNodes, function (n) { return n !== mark; }).map(function (n) { return n.textContent; }).join('').replace(/\s+/g, ' ').trim();
+    mark.removeAttribute('aria-hidden');
+    mark.setAttribute('role', 'button');
+    mark.setAttribute('tabindex', '-1');
+    mark.setAttribute('aria-expanded', String(open));
+    mark.setAttribute('aria-label', words + (name ? ' ' + name : ''));
+  }
+
   function toggle(a, open) {
     if (!a.hasAttribute('aria-expanded') || (a.getAttribute('aria-expanded') === 'true') === open) return;
     a.setAttribute('aria-expanded', String(open));
+    var tree = a.closest('.tree');
+    if (tree) nameToggle(tree, a);
     a.dispatchEvent(new CustomEvent('pudl:tree-toggle', { bubbles: true, detail: { open: open } }));
   }
 

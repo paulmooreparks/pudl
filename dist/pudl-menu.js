@@ -28,8 +28,21 @@
   function invokerOf(panel) {
     var anchor = panel.getAttribute('data-menu-anchor');
     var explicit = anchor ? document.getElementById(anchor) : null;
-    if (explicit) return explicit;
-    return panel.id ? document.querySelector('[popovertarget="' + CSS.escape(panel.id) + '"]') : null;
+    if (explicit) return shownFor(explicit);
+    var btn = panel.id ? document.querySelector('[popovertarget="' + CSS.escape(panel.id) + '"]') : null;
+    return btn ? shownFor(btn) : null;
+  }
+  /* A control folded away by its toolbar (0.96.9) is stood in for by the
+     control that shows it: its group's fold button, else the toolbar's
+     More button. A control that is showing, or that no toolbar folded,
+     is its own anchor. */
+  function shownFor(ctl) {
+    if (ctl.getClientRects().length || !ctl.closest('.toolbar')) return ctl;
+    var group = ctl.closest('[data-toolbar-group], .toolbar-group');
+    var fold = group && group.querySelector(':scope > .toolbar-fold > .menu-btn');
+    if (fold && fold.getClientRects().length) return fold;
+    var more = ctl.closest('.toolbar').querySelector(':scope > .toolbar-more > .menu-btn');
+    return more && more.getClientRects().length ? more : ctl;
   }
 
   function isOpen(panel) { return panel.matches(':popover-open'); }

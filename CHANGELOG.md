@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.96.9
+
+Five places a host had to reach into generated markup now have a documented way. A popover anchored to a control that a folding toolbar has folded away is placed against the control that shows it, the group's fold button or the toolbar's More button. `pudlMenubar.isOpen()` says whether a menu of the bar is open, and the bar fires `pudl:menubar-open` and `pudl:menubar-close`. A menu row's `data-menu-detail`, a second line that wraps as it needs, is now in the contract table. A taskbar or stack row whose detail repeats its title leaves the detail undrawn. A tree marked `data-tree-toggles="buttons"` gives each toggle a button role and a name, "Expand" or "Collapse" and the node's name from `data-tree-label` or its words, out of the Tab order since the node's keys do the same; without the attribute the toggles stay decorative as before.
+
 ## 0.96.8
 
 A tree takes two custom properties from its host. `--tree-indent`, defaulting to the spacing token it used before, is the step each nested level moves in by, and `--tree-row-pad-start`, defaulting to 6px, is the space before a row's toggle or glyph. A host sets them on the tree to line its toggles up with the content around it. The toggle, glyph and gap metrics are unchanged, and a tree that sets neither looks as it did.

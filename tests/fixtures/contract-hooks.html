@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contract hooks</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <script src="../../dist/pudl-menubar.js" defer></script>
+  <script src="../../dist/pudl-tree.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 16px; } .wrap { border: 1px solid #999; margin-bottom: 16px; } .win-host { height: 420px; position: relative; } .win-bar { position: fixed; inset-inline: 0; bottom: 0; }</style>
+</head>
+<body>
+  <!-- A test fixture for 0.96.9's documented hooks: a folding toolbar whose
+       control anchors a popover, a menu bar with a row that has a detail,
+       two trees (toggles as buttons, and as before), and windows whose
+       detail repeats the title. -->
+  <header class="topbar">
+    <nav class="menubar" data-menubar aria-label="Hooks" data-menubar-host="desktop" data-menubar-key="">
+      <ul data-menubar-source hidden>
+        <li>Hooks<ul><li><button type="button" id="about">About</button></li><li><button type="button" id="recent-1" data-menu-detail="C:\Users\someone\Documents\A folder with a rather long path that wraps onto more than one line in a menu">Recent one</button></li></ul></li>
+      </ul>
+    </nav>
+    <div class="topbar-chrome"></div>
+  </header>
+
+  <div class="wrap" id="tb-wrap" style="width: 900px">
+    <div class="toolbar" role="toolbar" aria-label="Tools" data-toolbar-fold id="tb">
+      <div class="toolbar-group" data-toolbar-group="Edit" data-toolbar-glyph="pencil" data-toolbar-priority="30">
+        <button class="btn btn-sm" type="button" id="cut"><span class="glyph" style="--glyph: var(--glyph-strike)" aria-hidden="true"></span><span class="toolbar-words">Cut</span></button>
+        <button class="btn btn-sm" type="button" id="copy"><span class="glyph" style="--glyph: var(--glyph-copy)" aria-hidden="true"></span><span class="toolbar-words">Copy</span></button>
+      </div>
+      <div class="toolbar-group" data-toolbar-group="Share" data-toolbar-glyph="link" data-toolbar-priority="10">
+        <button class="btn btn-sm" type="button" id="share" popovertarget="share-pop"><span class="glyph" style="--glyph: var(--glyph-link)" aria-hidden="true"></span><span class="toolbar-words">Share this document with people</span></button>
+        <button class="btn btn-sm" type="button" id="print"><span class="glyph" style="--glyph: var(--glyph-document)" aria-hidden="true"></span><span class="toolbar-words">Print the whole thing</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="popover" id="share-pop" popover data-menu-anchor="share"><p>Share options.</p><input class="form-input" aria-label="Who"></div>
+
+  <ul class="tree" id="named" data-tree-toggles="buttons" aria-label="Named">
+    <li><a href="#a" aria-expanded="true" data-tree-label="Documents folder">Documents</a>
+      <ul><li><a href="#b" aria-expanded="false">Reports</a><ul><li><a href="#c">Q3</a></li></ul></li></ul>
+    </li>
+  </ul>
+  <ul class="tree" id="plain" aria-label="Plain">
+    <li><a href="#d" aria-expanded="true">Documents</a><ul><li><a href="#e">Q3</a></li></ul></li>
+  </ul>
+
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="s1,s2,lone" data-win-taskbar-stacks="always">
+      <section class="win" data-win="s1" data-win-group="g" data-win-group-label="Chats" data-win-detail="Alpha" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Alpha</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>Alpha.</p></div>
+      </section>
+      <section class="win" data-win="s2" data-win-group="g" data-win-group-label="Chats" data-win-detail="Customers" style="--win-x: 0.3; --win-y: 0.2; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Beta</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>Beta.</p></div>
+      </section>
+      <section class="win" data-win="lone" data-win-detail="Gamma" style="--win-x: 0.5; --win-y: 0.3; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Gamma</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><p>Gamma.</p></div>
+      </section>
+    </div>
+  </div>
+  <footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></footer>
+  <script>
+    document.querySelectorAll('.win-layer > .win').forEach(function (win) { var t = document.createElement('template'); t.id = 'tpl-' + win.dataset.win; t.content.appendChild(win.cloneNode(true)); document.body.appendChild(t); });
+    window.__bar = []; document.addEventListener('pudl:menubar-open', function () { __bar.push('open'); }); document.addEventListener('pudl:menubar-close', function () { __bar.push('close'); });
+  </script>
+</body>
+</html>
