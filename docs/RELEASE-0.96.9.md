@@ -1,6 +1,6 @@
 # PUDL 0.96.9
 
-This point release gives documented ways to five things an adopter had been doing by reaching into generated markup. Paul approved them on 2 November 2026 as the first two groups of a seven-item review, and the lead implemented, reviewed and published them from the primary checkout. The remaining two items, a status area that folds its own items and a rich list box, are scheduled for the next release with the reorderable list.
+This point release gives documented ways to five things a host had to do by reaching into generated markup. Two related pieces, a status area that folds its own items and a rich list box, are scheduled for the next release with the reorderable list.
 
 The five are these. A popover whose anchor, or whose own button, a folding toolbar has folded away is placed against the control that shows it, the group's fold button or else the toolbar's More button; `pudl-menu.js` resolves that as it places the panel. `pudlMenubar.isOpen()` says whether a menu of the bar is open, and the bar fires bubbling `pudl:menubar-open` as a menu opens and `pudl:menubar-close` once none is open. `data-menu-detail`, documented in the README since 0.64.0, is now in the contract table with its wrapping. A taskbar or stack row whose detail repeats its title does not draw the detail; its name and tooltip are unchanged. A tree marked `data-tree-toggles="buttons"` gives each toggle a role of button, out of the Tab order, named "Expand" or "Collapse" and the node's name, from `data-tree-label` on the link or its words, with `data-tree-text-expand` and `-collapse` for other words; the name follows the node as it opens and closes, and without the attribute the toggles stay decorative.
 
@@ -8,7 +8,7 @@ The five are these. A popover whose anchor, or whose own button, a folding toolb
 
 The new suite tests/contract-hooks.test.js checks each: a popover anchored to a folded control placed against the fold button and then the More button, and against the control itself when it shows; the menu bar's open query and both events around opening and closing a menu; a row's detail drawn as a second line; a stack row and taskbar button with a detail equal to the title drawing no detail while a different detail is drawn; and the tree toggles' role, name, Tab exclusion and name change on toggle, with the decorative default unchanged. It passed with the menu-fit, menubar, tree-indent, row-actions, taskbar-stacks and popover suites in Chromium, Firefox and WebKit. Generated minified copies pass the freshness check.
 
-Under Paul's minimal-testing direction no whole-project matrix or independent second review was run. GitHub CI runs the full suites on the push; its result is follow-up evidence and publication does not wait for it.
+No whole-project matrix or independent second review was run. GitHub CI runs the full suites on the push; its result is follow-up evidence and publication does not wait for it.
 
 ## Publication
 
