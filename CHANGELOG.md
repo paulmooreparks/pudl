@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.5
+
+A destructive button's words at rest now meet 4.5:1 in the dark theme. They had fallen below it against the raised fill under them: Standard at 3.79:1, and every skin used with a companion palette between 3.56:1 and 3.93:1. The dark theme now mixes them 55% danger with 45% text, which keeps them red and gives at least 4.73:1 across every skin, palette and theme, measured where the words sit. The light theme is unchanged.
+
 ## 0.97.4
 
 A folding status area's Status item no longer changes width as its total changes. Its badge held the widest reserve among the folded badges only when the taskbar was fitted, so the total growing from 0 to two digits widened the item and moved the controls beside it. The badge now holds that width on screen, with the reserve laid invisibly under the count, and keeps it while blank.
