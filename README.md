@@ -1676,7 +1676,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.96.4, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.96.5, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1709,4 +1709,4 @@ The optional `dist/pudl-skins.js` provides registration, selection and saved pre
 
 Optional Bevel, Gel and Glaze colour themes strengthen the corresponding historical styles. Each has light and dark forms and can be paired with any skin through `data-palette`. See [companion themes](docs/THEMES.md) for loading and host-owned selection. The themes and revised skin focus treatments passed [independent admission review](tests/skins/RELEASE-0.96.0-ADMISSION.md).
 
-Execution states use `data-win-state` and optional `data-win-state-label`, with consistent glyphs, colours and stable compact slots. Since 0.96.0, Working uses static Play, Waiting uses Pause, Idle uses a solid square and Stuck uses the warning triangle. Set `data-win-state-title="none"` when a host chip replaces the generated title mark and its status-popup row; taskbar, dock and stack marks remain. Since 0.95.2, an optional `data-win-state-detail` adds a longer explanation to the state's accessible names and tooltips without drawing it, and `data-win-status-rows` reserves one to six rows in the Window status popover so Dismiss stays still. See [Window status](docs/WINDOW-STATUS.md) for rendering, localization, sizing and legacy running compatibility.
+Execution states use `data-win-state` and optional `data-win-state-label`, with consistent glyphs, colours and stable compact slots. Since 0.96.0, Working uses static Play, Waiting uses Pause, Idle uses a solid square and Stuck uses the warning triangle. Set `data-win-state-title="none"` when a host chip replaces the generated title mark and its status-popup row; taskbar, dock and stack marks remain. Since 0.95.2, an optional `data-win-state-detail` adds a longer explanation to the state's accessible names and tooltips without drawing it, and `data-win-status-rows` reserves one to six rows in the Window status popover so Dismiss stays still. A window with no execution state may give a lifecycle word instead, `data-win-lifecycle="Closed"` (0.96.5), which a stack row and the folded Window status draw as a plain badge with no glyph in the state's place; it is nothing to the compact marks or a stack's count of states, and an execution state takes its place while set. See [Window status](docs/WINDOW-STATUS.md) for rendering, localization, sizing and legacy running compatibility.
