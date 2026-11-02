@@ -1,7 +1,10 @@
 'use strict';
 const { execFileSync } = require('node:child_process');
 
-const revision = 'cab552a9131950ec502906d0c187f354d6a1874f';
+/* The Standard rendering the palettes must leave unchanged. It moves only
+   with a deliberate change to Standard's own paint, such as the dark
+   destructive button's words in 0.97.5. */
+const revision = 'ed5e790a28f56b53bc3bfbe092e567318fb640ec';
 const files = ['dist/pudl.css', 'dist/pudl-windows.css'];
 
 function loadBaseline(root) {
