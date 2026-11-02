@@ -4806,6 +4806,13 @@
       f.hidden = true;
       f.innerHTML = '<span class="glyph" aria-hidden="true"></span><span class="status-fold-words"></span><span class="badge" aria-hidden="true"></span>';
       f.addEventListener('click', function () { openStatusFold(area, f); });
+      /* A folded item's badge or name changing takes no room, so nothing
+         is fitted again; the Status item's tone, total and name follow it
+         (0.97.1). */
+      new MutationObserver(function (records) {
+        if (f.hidden || !records.some(function (r) { return !f.contains(r.target); })) return;
+        paintStatusFold(area, f, foldable(area).filter(function (it) { return it.hasAttribute('data-status-folded'); }));
+      }).observe(area, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'data-state', 'data-status-pending', 'aria-label', 'title'] });
     }
     var items = foldable(area), last = items[items.length - 1];
     if (last && last.nextElementSibling !== f) last.after(f);
@@ -4840,8 +4847,17 @@
     styleProp(glyph, '--glyph', 'var(--glyph-' + (tone ? TONE_GLYPHS[tone.state || tone.cls] : 'more') + ')');
     setAttr(f, 'data-tone', tone ? (tone.state || tone.cls) : '');
     setText(f.querySelector('.status-fold-words'), text('status', 'Status'));
-    setText(badge, sum ? (sum > 99 ? '99+' : String(sum)) : '');
-    setHidden(badge, !sum);
+    /* The total is shown when it is known (0.97.1): not while any folded
+       badge says its count is not known yet with data-status-pending, and
+       not when no folded badge reads a number. A total of 0 that every
+       counting badge reads is shown, plainly, so known-none and not-yet
+       look different. */
+    var badges = folded.map(badgeOf).filter(Boolean);
+    var pending = badges.some(function (b) { return b.hasAttribute('data-status-pending'); });
+    var counted = badges.some(function (b) { return !b.hidden && /^\d+\+?$/.test(b.textContent.trim()); });
+    var show = !pending && counted;
+    setText(badge, show ? (sum > 99 ? '99+' : String(sum)) : '');
+    setHidden(badge, !show);
     var reserve = folded.map(function (it) { var b = badgeOf(it); return b && b.getAttribute('data-status-reserve'); }).filter(Boolean).sort(function (x, y) { return y.length - x.length; })[0];
     if (reserve) setAttr(badge, 'data-status-reserve', reserve); else if (badge.hasAttribute('data-status-reserve')) badge.removeAttribute('data-status-reserve');
     var name = text('status', 'Status') + ': ' + folded.map(itemName).join(', ');

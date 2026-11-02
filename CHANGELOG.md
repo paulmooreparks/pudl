@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.97.1
+
+A folding status area's Status item shows its total only when the total is known. A badge whose count has not arrived yet carries `data-status-pending`, and while any folded badge does, the total is blank; a total of 0 that every counting badge reads shows as 0, so none and not-yet look different. An empty or hidden badge without the marker still means nothing to say. The Status item's tone, total and name now follow a folded item's badge as it changes; in 0.97.0 they waited for the next time the taskbar was fitted.
+
+`pudlListbox.activate(list, rowOrValue)` puts the keyboard on a row of a list box, as a page wants for a row it has just added, without changing the choice; the list keeps it when it next takes focus.
+
+Release records and proposals no longer name people, adopting applications or the agents that worked on them.
+
 ## 0.97.0
 
 A list's items can be put in order by the reader. The optional `pudl-reorder.js` takes any element marked `data-reorder` whose child elements are the items; while `data-reorder="on"` each movable item gains a grip it is dragged by, with a line where it will land, and moved by the arrow keys, Home and End, with each move announced and focus kept on the grip. A fixed item keeps its place. A cancelable `pudl:reorder` gives the new order before each move, for the page to save, and the page hides what it wants hidden under `data-reorder-active` while the mode is on.

@@ -47,7 +47,7 @@ Some controls belong to the host's content rather than to the design language, a
 
 ## How to close it
 
-Each control is designed in the specification first, then built with its test, its entry in the component list and a place on the reference page, as the combo box was. All of them go in one release, PUDL 0.74.0 with specification 0.31.0, rather than four, to keep the number of deliveries down. After that, the "worth having" list is decided item by item, and the component list's section on what Studio lacks can be closed.
+Each control is designed in the specification first, then built with its test, its entry in the component list and a place on the reference page, as the combo box was. All of them go in one release, PUDL 0.74.0 with specification 0.31.0, rather than four, to keep the number of deliveries down. After that, the "worth having" list is decided item by item, and the component list's section on what PUDL still lacks can be closed.
 
 ## What every new control must be
 

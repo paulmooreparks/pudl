@@ -1,6 +1,6 @@
 # Material skin implementation verification
 
-The measurements below describe the initial candidate. Paul's subsequent title-bar and focus refinements changed these stylesheet bytes; this record does not validate the revised candidates. See [the refinement design](../../docs/proposals/skin-palette-refinements.md) for the current contract.
+The measurements below describe the initial candidate. Later title-bar and focus refinements changed these stylesheet bytes; this record does not validate the revised candidates. See [the refinement design](../../docs/proposals/skin-palette-refinements.md) for the current contract.
 
 Matte, Ink, Alloy and Glass were implemented and self-tested on Windows on 1 November 2026. Their definitions, compiler mappings, readable and minified CSS, preview choices and documentation are complete. All four remain unadmitted candidates. This record reports implementation evidence; it does not grant independent admission or authorize publication.
 

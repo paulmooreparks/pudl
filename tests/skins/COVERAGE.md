@@ -1,12 +1,12 @@
 # Skin verification coverage and Standard baseline plan
 
-This inventory belongs to independent verification. It defines the evidence required before the shape-token sweep changes shipped styles. It does not approve a skin design or claim that a baseline has been captured. The architectural source remains [Architectural Principles](<C:/Users/paul/OneDrive/Documents/Architectural Principles.md>).
+This inventory belongs to independent verification. It defines the evidence required before the shape-token sweep changes shipped styles. It does not approve a skin design or claim that a baseline has been captured. PUDL's architectural principles remain the design source.
 
 ## Capture status and source identity
 
-The accompanying `baseline-inputs.json` records the observed checkout, hashes, font files and declared Playwright browser builds. These are input observations for planning. They are not rendered baseline results. The checkout contains unfinished full-mode taskbar changes, so its HEAD alone does not identify its rendered behavior. Verification must select and record the source snapshot used for the real capture before any skin-related stylesheet edit begins. Full-mode work remains untouched.
+The accompanying `baseline-inputs.json` records the observed checkout, hashes, font files and declared Playwright browser builds. These are input observations for planning. They are not rendered baseline results. The checkout contains unfinished full-mode taskbar changes, so its HEAD alone does not identify its rendered behavior. Independent verification must select and record the source snapshot used for the real capture before any skin-related stylesheet edit begins. Full-mode work remains untouched.
 
-The capture manifest must hash every loaded stylesheet, script, font and fixture, the component catalogue, the package lock and the capture/comparison code. It must record the commit and dirty paths. Verification must check the hashes again after capture and reject a run whose inputs changed. An immutable copy of those inputs must remain available so that a failed comparison can be reproduced against the earlier source.
+The capture manifest must hash every loaded stylesheet, script, font and fixture, the component catalogue, the package lock and the capture/comparison code. It must record the commit and dirty paths. The hashes must be checked again after capture, and a run whose inputs changed must be rejected. An immutable copy of those inputs must remain available so that a failed comparison can be reproduced against the earlier source.
 
 ## Component inventory
 
@@ -60,10 +60,10 @@ Target dimensions and readable reflow use specification requirements captured se
 
 The capture sequence is as follows.
 
-1. Verification completes the fixture/state inventory and freezes its capture code with the selected source snapshot.
-2. Verification captures each environment twice without source changes, checks repeatability and inspects representative images before accepting expected artifacts.
-3. Verification records any existing failures explicitly; baseline capture cannot silently approve a conformance defect.
-4. The architect performs the token sweep after the baseline is accepted, while verification compares Standard against the frozen results and exercises token changes across the inventory.
-5. Verification checks Bevel against its approved surface treatment and the shared independent requirements before broader skin implementation proceeds.
+1. Independent verification completes the fixture/state inventory and freezes its capture code with the selected source snapshot.
+2. Each environment is captured twice without source changes, and repeatability is checked and representative images inspected before expected artifacts are accepted.
+3. Any existing failures are recorded explicitly; baseline capture cannot silently approve a conformance defect.
+4. The token sweep happens after the baseline is accepted, while independent verification compares Standard against the frozen results and exercises token changes across the inventory.
+5. Bevel is checked against its approved surface treatment and the shared independent requirements before broader skin implementation proceeds.
 
-Palette precedence, persisted-skin fallback, type-scale changes and chrome-order behavior are architect-owned contracts recorded in `docs/SKINS.md`. Every skin must conform to PUDL; faithful exceptions are excluded. New-skin assertions must follow the approved versioned boundaries.
+Palette precedence, persisted-skin fallback, type-scale changes and chrome-order behavior are design contracts recorded in `docs/SKINS.md`. Every skin must conform to PUDL; faithful exceptions are excluded. New-skin assertions must follow the approved versioned boundaries.

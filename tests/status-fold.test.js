@@ -57,12 +57,26 @@ function check(name, ok, detail) {
   await p.evaluate(() => { document.querySelector('#queue .badge').textContent = '7'; });
   await width('wrap-all', w - 2);
   check('folded, a count changing leaves it folded', (await tray('tray-all')).fold);
+  check('and its total follows the count at once', (await tray('tray-all')).badge === '9', await tray('tray-all'));
+
+  /* A known zero reads 0; a count not known yet leaves the total blank. */
+  await p.evaluate(() => { document.querySelector('#queue .badge').textContent = '0'; document.querySelector('#runs .badge').textContent = '0'; });
+  await settle();
+  check('when every counting badge reads 0, the total reads 0, plainly', (await tray('tray-all')).badge === '0', await tray('tray-all'));
+  await p.evaluate(() => { const m = document.querySelector('#mail .badge'); m.hidden = false; m.textContent = ''; m.setAttribute('data-status-pending', ''); });
+  await settle();
+  check('while a badge\'s count is pending, the total is blank', (await tray('tray-all')).badge === '', await tray('tray-all'));
+  await p.evaluate(() => { const m = document.querySelector('#mail .badge'); m.removeAttribute('data-status-pending'); m.textContent = '4'; });
+  await settle();
+  check('once it arrives, the total counts it', (await tray('tray-all')).badge === '4', await tray('tray-all'));
+  await p.evaluate(() => { document.querySelector('#queue .badge').textContent = '3'; document.querySelector('#runs .badge').textContent = '2'; const m = document.querySelector('#mail .badge'); m.hidden = true; m.textContent = ''; });
+  await settle();
 
   /* The Status item's menu. */
   await p.locator('#tray-all > .status-fold').click();
   await p.waitForSelector('.context-menu:popover-open');
   const menu = await p.evaluate(() => [...document.querySelectorAll('.context-menu:popover-open .menu-action')].map(r => r.textContent.replace(/\s+/g, ' ').trim()));
-  check('its menu lists the folded items, each with its badge as a second line', menu.length === 4 && /Queue: 3 waiting|Queue: 7 waiting/.test(menu[0]) && /7/.test(menu[0]) && /Runs: 2 stuck\s*2/.test(menu[1]), menu);
+  check('its menu lists the folded items, each with its badge as a second line', menu.length === 4 && /^Queue: 3 waiting\s*3$/.test(menu[0]) && /^Runs: 2 stuck\s*2$/.test(menu[1]) && menu[2] === 'Mail: nothing new', menu);
   await p.locator('.context-menu:popover-open .menu-action', { hasText: 'Tasks' }).click();
   await p.waitForSelector('#tasks-pop:popover-open:not(.placing)');
   const placed = await p.evaluate(() => { const pop = document.getElementById('tasks-pop').getBoundingClientRect(), f = document.querySelector('#tray-all > .status-fold').getBoundingClientRect(); return { near: pop.left <= f.right + 2 && pop.right >= f.left - 2, popL: pop.left, fL: f.left }; });
@@ -94,7 +108,7 @@ function check(name, ok, detail) {
   await p.locator(dock + ' [data-win-stack="chats"]').click();
   await p.waitForSelector('.win-stack-panel:popover-open');
   const rows = await p.evaluate(() => [...document.querySelectorAll('.win-stack-panel [data-stack-row]')].map(r => ({ key: r.getAttribute('data-stack-row'), hidden: r.firstChild.querySelector('.win-item-detail').hidden, name: r.firstChild.getAttribute('aria-label') })));
-  check('a stack row whose detail repeats data-win-group-detail draws no detail, and one that differs does', rows.find(r => r.key === 'c').hidden && !rows.find(r => r.key === 'd').hidden && /Studio/.test(rows.find(r => r.key === 'c').name), rows);
+  check('a stack row whose detail repeats data-win-group-detail draws no detail, and one that differs does', rows.find(r => r.key === 'c').hidden && !rows.find(r => r.key === 'd').hidden && /Harbour/.test(rows.find(r => r.key === 'c').name), rows);
   await p.keyboard.press('Escape');
 
   check('no page errors', !errors.length, errors);

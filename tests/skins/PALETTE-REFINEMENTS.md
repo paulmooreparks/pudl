@@ -1,6 +1,6 @@
 # Skin and palette refinement verification
 
-Paul requested the changes on 1 November 2026 and approved the visual direction after seeing the updated previews. The design is in [skin-palette-refinements.md](../../docs/proposals/skin-palette-refinements.md). This record describes implementation and self-verification. Independent admission and publication remain outstanding.
+The changes were made on 1 November 2026, and the visual direction was settled after the updated previews had been evaluated. The design is in [skin-palette-refinements.md](../../docs/proposals/skin-palette-refinements.md). This record describes implementation and self-verification. Independent admission and publication remain outstanding.
 
 Glass now gives the whole title bar one opaque reading surface, removing the individual title and status background patches. Its frame can remain translucent. Revised skins use two-pixel focus shadows with opaque accent paint softened by 15% surface colour. Standard retains its prior three-pixel translucent fallback. The Bevel, Gel and Glaze colour themes each provide light and dark forms and can be selected independently of the skin through `data-palette`.
 
@@ -18,13 +18,13 @@ The companion browser suite checks all three themes in both forms against every 
 
 The final companion browser suite passed 4 of 4 against readable files and 4 of 4 against minified files (`tests/output/palette-refinements-themes-verified-normal.log` and `-min.log`). Each browser checked all 48 theme/form/skin combinations, along with Standard preservation, live selection and media exclusions.
 
-PUDL Team Lead inspected the Glass title-bar screenshots and all three matching themes in light and dark. The images are in `tests/output/palette-refinements/`. This is self-review and does not replace independent rendered admission.
+The Glass title-bar screenshots and all three matching themes were inspected in light and dark. The images are in `tests/output/palette-refinements/`. This is self-review and does not replace independent rendered admission.
 
 The integration matrix passed 9 of 9 against minified files (`tests/output/palette-refinements-integration-min.log`). The normal matrix passed 7 of 9, with Firefox `skins` and `window-states` stopped at the runner's 120-second limit (`tests/output/palette-refinements-integration-normal.log`). Both passed isolated normal-file runs. The skin suite passed all ten checks in 186.7 seconds; its final unchanged runtime test alone took 80.6 seconds. The state suite passed its geometry, aggregation, compatibility and folded-status checks. Complete output is retained in `tests/output/palette-refinements-firefox-{skins,states}-isolated.log`. The longer successful runs do not establish the timeout causes or make the aggregate run clean. Matrix screenshot files were copied into `tests/output/palette-refinements-matrix-screenshots/` before the isolated reruns.
 
 The companion generator freshness, semantic palette units and browser checks are included in the ordinary runner through `tests/palette-themes.test.js`. The source, definitions and generated-asset hashes are recorded in `tests/output/palette-refinements-candidate-hashes.json`; this mutable evidence record is excluded. These are review artifacts, not a release freeze.
 
-The new ordinary-runner entry passed all three engines against readable files and all three against minified files (`tests/output/palette-refinements-ci-{normal,min}.log`). The normal Firefox run took 74.6 seconds, below the runner limit. The temporary lead-owned preview-test server and all verification jobs have exited. The execution-state candidate's review hashes were checked again and remain unchanged.
+The new ordinary-runner entry passed all three engines against readable files and all three against minified files (`tests/output/palette-refinements-ci-{normal,min}.log`). The normal Firefox run took 74.6 seconds, below the runner limit. The temporary preview-test server and all verification jobs have exited. The execution-state candidate's review hashes were checked again and remain unchanged.
 
 ## Admission and release boundary
 

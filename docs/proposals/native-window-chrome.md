@@ -1,6 +1,6 @@
 # Native full-screen window controls
 
-Paul requested native application controls at the physical corners of a full-screen topbar for the release following 0.85.0. The application window menu stands at the top left, before the site menu. Minimize, Restore and Close stand at the top right, after Show as ribbon. These controls act on the native application window, separately from PUDL content windows.
+The release following 0.85.0 adds native application controls at the physical corners of a full-screen topbar. The application window menu stands at the top left, before the site menu. Minimize, Restore and Close stand at the top right, after Show as ribbon. These controls act on the native application window, separately from PUDL content windows.
 
 ## Host boundary
 

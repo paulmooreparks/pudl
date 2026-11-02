@@ -1,6 +1,6 @@
 # Taskbar stacks: design review and implementation plan
 
-This document records the design review for taskbar stacks. Implementation was authorized on 30 October 2026. The approved rules now live in [TASKBAR-STACKS.md](../TASKBAR-STACKS.md). Skins remain deferred. The cross-project [Architectural Principles](<C:/Users/paul/OneDrive/Documents/Architectural Principles.md>) apply.
+This document records the design review for taskbar stacks. The design was settled for implementation on 30 October 2026. The resulting rules now live in [TASKBAR-STACKS.md](../TASKBAR-STACKS.md). Skins remain deferred. PUDL's architectural principles apply.
 
 ## Scope and ownership
 
@@ -89,7 +89,7 @@ The transition rule holds the dock's current projection while its preview, pinne
 
 Deferral does not freeze live membership, command eligibility or viewport-safe popup placement. Existing removal and cancellation rules still apply if an interaction's target disappears. When the deferred projection removes a focused trigger, use the existing taskbar focus-recovery rules; a pointer preview must not take focus from an outside editor. The fit itself writes no history and does not activate a window.
 
-Verification must cover both threshold directions, repeated near-threshold changes, filtered and mirrored docks, long localized labels, font arrival, RTL, and stacks that still require More. It must also cover nested interactions, closing the last interaction without a width change, cancellation, target removal and pending changes superseded before dismissal. Implementation was authorized on 30 October 2026.
+Verification must cover both threshold directions, repeated near-threshold changes, filtered and mirrored docks, long localized labels, font arrival, RTL, and stacks that still require More. It must also cover nested interactions, closing the last interaction without a width change, cancellation, target removal and pending changes superseded before dismissal. This design was settled for implementation on 30 October 2026.
 
 ## Proposed presentation refinements after 0.94.0
 

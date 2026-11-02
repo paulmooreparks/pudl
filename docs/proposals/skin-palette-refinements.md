@@ -1,8 +1,8 @@
 # Skin title bars, companion palettes and focus
 
-Paul requested these refinements on 1 November 2026 after reviewing the material previews. Paul subsequently authorized combining these refinements with the static execution-state changes in 0.96.0. The canonical architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`.
+These refinements followed a review of the material previews on 1 November 2026. They were later combined with the static execution-state changes in 0.96.0.
 
-Glass previously painted opaque rectangles behind individual titles and status groups. The first correction gave the whole title bar a continuous opaque reading surface. Paul subsequently approved one shared translucent frame and header with a 2px blur and 35% tint; opaque headers remain the reduced-transparency fallback. It preserves control geometry, supports reduced transparency and avoids filtering the window's containing block.
+Glass previously painted opaque rectangles behind individual titles and status groups. The first correction gave the whole title bar a continuous opaque reading surface. The design then moved to one shared translucent frame and header with a 2px blur and 35% tint; opaque headers remain the reduced-transparency fallback. It preserves control geometry, supports reduced transparency and avoids filtering the window's containing block.
 
 The Bevel colour theme uses warm desktop grey, navy selection and a teal application bar. Gel uses cool silver, blue-white reading surfaces and an aqua-blue accent. Glaze uses warm ivory and pale olive surfaces with a saturated blue application bar. Each theme has a dark counterpart. Theme names match the skins, but selection stays independent through `data-palette`; `data-theme` continues to mean light or dark. The preview records all three choices in its URL. No additional persistence store is introduced.
 

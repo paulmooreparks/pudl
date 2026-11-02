@@ -1,6 +1,6 @@
 # PUDL 0.95.1 menu and execution-state corrections
 
-Paul authorized implementation, validation and publication on 30 October 2026. The canonical architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`.
+This change was implemented, validated and published on 30 October 2026.
 
 ## Menu freshness
 
@@ -20,4 +20,4 @@ Every entry in one taskbar row is the same height: a stack, an ordinary window a
 
 ## Acceptance
 
-Tests cover front-window changes, same-chat running and queued state changes, retitling, stale invocation, keyboard shortcuts, ribbon controls, open-menu refresh and focus. Status tests cover all states, legacy compatibility, aggregate priority/counts, mutation, compact and folded rendering, RTL, reduced motion, forced colours, stable controls and skin/theme combinations. Chromium, Firefox and WebKit must pass before the release is published. Dinah removes its workaround only after its parked integration regression passes against the release.
+Tests cover front-window changes, same-chat running and queued state changes, retitling, stale invocation, keyboard shortcuts, ribbon controls, open-menu refresh and focus. Status tests cover all states, legacy compatibility, aggregate priority/counts, mutation, compact and folded rendering, RTL, reduced motion, forced colours, stable controls and skin/theme combinations. Chromium, Firefox and WebKit must pass before the release is published. A host application that worked around the old behavior should remove its workaround only after its own integration regression passes against the release.

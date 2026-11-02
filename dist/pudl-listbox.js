@@ -64,7 +64,7 @@
        <div class="listbox-group">Open</div>
        <div class="listbox-row" data-value="a1" aria-selected="true">
          <span class="listbox-title">Atlas</span>
-         <span class="listbox-detail">Studio</span>
+         <span class="listbox-detail">Finance</span>
          <span class="badge" data-state="working">Working</span>
        </div>
        …
@@ -86,7 +86,9 @@
    gives the id of a field in a form that takes the choice: a select's
    options are chosen to match, an input's value is the values joined by
    commas, and either hears input and change. data-disabled on the list
-   disables it. */
+   disables it. pudlListbox.activate(list, rowOrValue) puts the keyboard
+   on a row, as for one the page has just added, leaving the choice alone
+   (0.97.1). */
 (function () {
   'use strict';
 
@@ -313,7 +315,11 @@
         paint();
       },
       activeEl: function () { return a.rows[active] ? a.rows[active].el : null; },
-      reset: function () { anchor = -1; before = null; }
+      reset: function () { anchor = -1; before = null; },
+      /* Puts the keyboard on row i, showing it within the list only and
+         leaving the choice alone; the list keeps it when it next takes
+         focus (0.97.1). */
+      activate: function (i) { if (!a.rows[i]) return false; setActive(i); setAnchor(i); return true; }
     };
   }
 
@@ -454,6 +460,11 @@
     var form = select.form;
     if (form) form.addEventListener('reset', function () { setTimeout(function () { core.reset(); core.paint(); core.showChosen(); }, 0); });
     select.__pudlListboxSync = build;
+    select.__pudlListboxActivate = function (which) {
+      var i = -1;
+      a.rows.forEach(function (r, k) { if (r.el === which || r.option === which || (typeof which === 'string' && r.option.value === which)) i = k; });
+      return core.activate(i);
+    };
 
     label();
     build();
@@ -583,6 +594,12 @@
 
     box.__pudlListboxSync = build;
     box.__pudlListboxValue = value;
+    box.__pudlListboxActivate = function (which) {
+      build();
+      var i = -1;
+      a.rows.forEach(function (r, k) { if (r.el === which || (typeof which === 'string' && r.el.getAttribute('data-value') === which)) i = k; });
+      return core.activate(i);
+    };
     build();
     core.showChosen();
   }
@@ -611,7 +628,12 @@
     refresh: function (el) { if (el && el.__pudlListboxSync) el.__pudlListboxSync(); },
     /* The choice in a rich list box: an array for a multiple list, a value
        or null for a single one (0.97.0). */
-    value: function (el) { return el && el.__pudlListboxValue ? el.__pudlListboxValue() : null; }
+    value: function (el) { return el && el.__pudlListboxValue ? el.__pudlListboxValue() : null; },
+    /* Puts the keyboard on a row, given the row or its value, as for a row
+       the page has just added; the choice is left alone, the row is shown
+       within the list only, and the list keeps it when it next takes
+       focus. Whether the row was found (0.97.1). */
+    activate: function (el, which) { return !!(el && el.__pudlListboxActivate && el.__pudlListboxActivate(which)); }
   };
   document.addEventListener('pudl:window-open', function (e) { enhance(e.target); });
   document.addEventListener('pudl:regions-swap', function () { enhance(); });

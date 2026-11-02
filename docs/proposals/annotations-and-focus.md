@@ -1,6 +1,6 @@
 # PUDL 0.85.0 scope
 
-Paul authorized this release to address open issues 22, 23, 26 and 27 and adopt the menubar focus candidate from Dinah commit bdb0f8c27f48a3c6eac0681135ab174c45506397.
+This release addresses open issues 22, 23, 26 and 27 and adopts a menubar focus fix first written and tested in a host application.
 
 Selection actions are an optional script. A content element names an action bar by ID. PUDL keeps a cloned selection range, positions the ordinary buttons beside its final line, preserves the offer while its controls have focus, and emits a cancelable action event. The application owns quoting, sharing and persistence. Invalid or detached ranges dismiss the offer. Escape dismisses without consuming the key.
 

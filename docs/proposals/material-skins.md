@@ -1,6 +1,6 @@
 # Matte, Ink, Alloy and Glass
 
-Paul authorized implementation of these four skins on 1 November 2026. The architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`. This change extends the constrained treatment compiler and keeps the version 1 definition format.
+Implementation of these four skins began on 1 November 2026. This change extends the constrained treatment compiler and keeps the version 1 definition format.
 
 ## Appearance
 
@@ -10,11 +10,11 @@ Ink uses nearly square corners, foreground outlines and hard offset shadows. Pre
 
 Alloy uses broad satin gradients and narrow opposing edge highlights. Its square-ended controls, inset fields and stronger frame shadows distinguish it from the split gloss of Gel and Glaze. No texture crosses text.
 
-Glass uses rounded controls, clear edge highlights and broad lifted shadows. Window frames may be translucent when the enhancement is supported and the reader has not requested reduced transparency. Following Paul's final preview approval, a shared decorative layer applies the same 2px backdrop blur and 35% tint beneath both frame and title bar. Individual titles and status groups have no rectangular backing patches. A surface-coloured glyph-shaped halo preserves lettering contrast over transmitted content, including title detail and host-status words. Menus, dialogs, cards and window bodies retain opaque reading surfaces with glass edge lighting. This keeps their contrast independent of the page behind them.
+Glass uses rounded controls, clear edge highlights and broad lifted shadows. Window frames may be translucent when the enhancement is supported and the reader has not requested reduced transparency. After the final preview was evaluated, a shared decorative layer applies the same 2px backdrop blur and 35% tint beneath both frame and title bar. Individual titles and status groups have no rectangular backing patches. A surface-coloured glyph-shaped halo preserves lettering contrast over transmitted content, including title detail and host-status words. Menus, dialogs, cards and window bodies retain opaque reading surfaces with glass edge lighting. This keeps their contrast independent of the page behind them.
 
 ## Boundaries
 
-All four skins inherit the existing light and dark palettes. Host overrides remain last in the cascade. Type, spacing, border widths, target sizes, chrome order and component semantics stay fixed. Standard remains byte-identical. The initial implementation preserved the three released skins; Paul's later focus refinement changes their working revisions, which now await renewed admission as described in [the refinement design](skin-palette-refinements.md). Skin changes preserve mounted content, focus, input values, window state and history.
+All four skins inherit the existing light and dark palettes. Host overrides remain last in the cascade. Type, spacing, border widths, target sizes, chrome order and component semantics stay fixed. Standard remains byte-identical. The initial implementation preserved the three released skins; the later focus refinement changes their working revisions, which now await renewed admission as described in [the refinement design](skin-palette-refinements.md). Skin changes preserve mounted content, focus, input values, window state and history.
 
 The Glass compiler owns the additional window selectors. Definitions cannot author CSS. Its selection condition has zero specificity, and all generated rules remain inside the screen and ordinary-colour media guard. Glass starts opaque. A feature query and an explicit no-preference transparency query enable the shared decorative layer. Reduced transparency or unsupported filtering leaves both frame and header opaque. The decorative layer ignores pointer input and does not change the window containing block. Geometry never changes. Print and forced-colour rendering remain component-owned.
 

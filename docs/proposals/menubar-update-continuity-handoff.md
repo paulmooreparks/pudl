@@ -1,6 +1,6 @@
-# Dropdown continuity: Front End's handoff
+# Dropdown continuity: implementation notes
 
-This is Dinah Front End's record of the audit and the implementation decisions for the dropdown continuity work on branch fix/menubar-survives-updates. The contract itself is in the primary checkout's docs/proposals/menubar-update-continuity.md, which the PUDL lead maintains; this file does not restate or amend it.
+This file records the audit and the implementation decisions for the dropdown continuity work on branch fix/menubar-survives-updates. The contract itself is in docs/proposals/menubar-update-continuity.md; this file does not restate or amend it.
 
 ## Commits
 
@@ -21,7 +21,7 @@ The branch is based on main d0a61cb.
 
 ## Audit
 
-Each family was opened, then put through the update paths that reach it in practice: command redraws (pudlCommands.changed), menu bar refreshes, window retitles and window state changes. The Dinah runs used Dinah's bundled PUDL 0.96.1 with real chat updates; the PUDL runs used fixtures in this branch.
+Each family was opened, then put through the update paths that reach it in practice: command redraws (pudlCommands.changed), menu bar refreshes, window retitles and window state changes. The host-application runs used that application's bundled copy of PUDL 0.96.1 with its real background updates; the PUDL runs used fixtures in this branch.
 
 | Family | Update path tried | Finding | Action |
 | --- | --- | --- | --- |
@@ -32,10 +32,10 @@ Each family was opened, then put through the update paths that reach it in pract
 | Command choice (data-command-choice) | Command redraw | A segmented control, not a dropdown; buttons rebuilt only when the set of commands changes | No action |
 | Combo box (pudl-combo) | Options added, removed, disabled and renamed while the list was open; the supported update is changing the select's or datalist's option elements, as the module documents no other | Stayed open, but offered disabled options and kept stale rows, one of which could choose a removed option and leave the select with no valid value | Fixed in e790173 |
 | Listbox (pudl-listbox) | None | An inline list with no popup | Out of scope |
-| Window status popover (pudl-windows) | Chat state changes in Dinah | Stayed open, focus kept | No defect |
-| Taskbar stack list (pudl-windows) | Chat state changes and retitles in Dinah, pointer and keyboard | Stayed open, focus kept | No defect |
-| Title bar context menu (pudl-windows) | Chat state changes in Dinah | Stayed open, focus kept | No defect |
-| Toolbar fold menus (pudl-toolbar) | Chat state changes in Dinah | Stayed open, focus kept | No defect |
+| Window status popover (pudl-windows) | Window state changes in a host application | Stayed open, focus kept | No defect |
+| Taskbar stack list (pudl-windows) | Window state changes and retitles in a host application, pointer and keyboard | Stayed open, focus kept | No defect |
+| Title bar context menu (pudl-windows) | Window state changes in a host application | Stayed open, focus kept | No defect |
+| Toolbar fold menus (pudl-toolbar) | Window state changes in a host application | Stayed open, focus kept | No defect |
 
 ## Decisions
 
@@ -51,13 +51,13 @@ The fallback order follows the clarified contract: first enabled row of the menu
 
 ## Evidence
 
-Raw output is under the Dinah worktree at .diagnostics/fix8. Each run used a fresh PUDL_RUN_OUTPUT and a 300 second suite timeout. The historical run directories do not record the revision or the hashes of the files they served, so the files as they are now cannot prove what those runs served; the final evidence below records both.
+Raw output is kept outside this repository, under .diagnostics/fix8. Each run used a fresh PUDL_RUN_OUTPUT and a 300 second suite timeout. The historical run directories do not record the revision or the hashes of the files they served, so the files as they are now cannot prove what those runs served; the final evidence below records both.
 
 - run-23: both new suites pass in Chromium, Firefox and WebKit with one job, at the tree that became 063fa90. That covers 41 menu bar checks and 14 command menu checks per engine.
 - run-24-min: the same with PUDL_MIN=1 after build/minify.js; `node build/minify.js --check` agrees.
 - run-19-family: 87 of 87 suite runs pass across the three engines for the menubar, ribbon, menu, command, toolbar, context-menu, combo and applet suites. This run used three jobs, not one, and ran before the final test-only commit, when the menu bar suite had 34 checks rather than 41.
 - run-20-unfixed: with the three scripts taken back to d0a61cb, 16 checks fail in Chromium. The menu bar suite then stopped at a caught locator timeout and never reached its narrow and ribbon sections, so 16 is a floor, not a count of every check that would fail.
-- Final evidence at 9a77efc, each run directory holding served.txt with the revision and SHA-256 values for selected inputs (13 in each focused manifest and four readable scripts in the family manifest): run-40 passes all three continuity suites in Chromium, Firefox and WebKit with one job (41 menu bar, 32 command menu and 11 combo checks per engine); run-41-min passes the same with PUDL_MIN=1; run-42-family passes 99 of 99 suite runs, one job, for the menubar, ribbon, menu, command, toolbar, context-menu, combo, applet, token and listbox suites. Under Paul's minimal-testing instruction no negative control was run for the combo and command follow-up; wider coverage is left for the batch-end regression.
+- Final evidence at 9a77efc, each run directory holding served.txt with the revision and SHA-256 values for selected inputs (13 in each focused manifest and four readable scripts in the family manifest): run-40 passes all three continuity suites in Chromium, Firefox and WebKit with one job (41 menu bar, 32 command menu and 11 combo checks per engine); run-41-min passes the same with PUDL_MIN=1; run-42-family passes 99 of 99 suite runs, one job, for the menubar, ribbon, menu, command, toolbar, context-menu, combo, applet, token and listbox suites. Because testing for this batch was kept minimal, no negative control was run for the combo and command follow-up; wider coverage is left for the batch-end regression.
 - menu-probe.js and pudl-dropdown-probe.js are the original reproductions; ribbon-focus-trace.js, command-menu-trace.js, zz-dbg3.js and zz-dbg4.js are the traces used while debugging.
 
 The suites read state in the same task as each update and again after it settles, and record every popup close and every focus loss from a menu row in between; a redundant or state-only update must produce none. They cover renames and reorders under stable ids, a scrolled long submenu and a scrolled long dropdown, the pointer resting on a row during an update, a submenu in the panel's place at 600 pixels (a sheet under the File title) and at 420 pixels (the collapsed bar's single menu, two levels down) with Back after updates, the focused command and the submenu or dropdown command being disabled or removed, and Escape or a press outside followed at once by an update.
@@ -67,4 +67,4 @@ The suites read state in the same task as each update and again after it settles
 - Two rows with the same label and no id are matched in order rather than rejected as ambiguous. Rows with ids are always matched by id.
 - In a folded group's menu, or any other popup drawn with pudlCommands.rows, rows follow their commands while it is open and a row whose command goes is removed, but a command added while it is open shows only when it next opens. That popup is drawn by its owner, pudl-toolbar.js, which this branch does not edit.
 - A menu whose button or whole menu is taken out of the page by its host gets its focus moved when the commands are next drawn, since that is when pudl-commands.js looks; a host that removes a command's control is expected to call pudlCommands.changed(), as for any change to its commands.
-- Dinah's own dropdowns, such as the chat list's group actions and the group chat member menus, are Dinah code and are not part of this branch.
+- Dropdowns that a host application draws with its own code are not part of this branch.

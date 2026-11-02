@@ -21,7 +21,7 @@ The final package must pass definition/compiler rejection tests, skin asset fres
 
 Host-owned persistence requires independent startup and storage-event checks for both theme and skin scripts, including unavailable preferences and preservation of mounted content. The final source hashes must be recorded after integration freezes.
 
-The full-mode taskbar feature was last handed to verification as an intermediate candidate with a WebKit focus investigation open. Its final disposition and normal/minified `taskbar-stacks-full` results are required if it is included in this release.
+The full-mode taskbar feature was last verified as an intermediate candidate with a WebKit focus investigation open. Its final disposition and normal/minified `taskbar-stacks-full` results are required if it is included in this release.
 
 ## Supplemental work
 
@@ -45,11 +45,11 @@ Actual browser zoom and manual screen-reader interoperability remain unverified.
 | Linux alternate environments | 54 RTL/blocked-font/system-font profiles passed in skins-environments-linux |
 | Doubled rendered text | 18 profiles per platform passed bounds/retention checks, but visual inspection found selector text clipping; these are not complete enlarged-text conformance passes |
 
-The original Gel failure involved a delayed hover preview covering an open group context command. The independent regression reproduced it in every engine with Standard and all three skins. Architecture added a guard at delayed preview execution. The corrected source then passed every isolation case. Both snapshots and the original failure log remain available. This establishes the tested boundary without discarding the earlier failure.
+The original Gel failure involved a delayed hover preview covering an open group context command. The independent regression reproduced it in every engine with Standard and all three skins. A guard was then added at delayed preview execution. The corrected source then passed every isolation case. Both snapshots and the original failure log remain available. This establishes the tested boundary without discarding the earlier failure.
 
 The host review verifies that a loaded declarative skin is the first effective skin event, and that an unavailable declaration falls back to Standard while retaining the preference. It also verifies zero storage access, storage-event suppression, explicit later registration and retained edited field identity/value/focus/selection/URL/history. The first declarative probe incorrectly assumed synchronous stylesheet readiness after re-enabling a disabled link. That probe is retained at skins-host-boot-independent. The corrected harness waits for actual readiness before registration.
 
-The first environment runs also included 18 root-font-size-only probes per platform. Inspection showed that the fixed-size PUDL text was not enlarged by those probes, so they are excluded from enlargement evidence. Separate runs in skins-large-text-independent and skins-large-text-linux verify doubled computed field font size. Their automated bounds checks pass, but the compact preview theme selector visibly clips its selected text. The screenshot is retained and the issue was sent to Architecture. Actual browser zoom is still queued.
+The first environment runs also included 18 root-font-size-only probes per platform. Inspection showed that the fixed-size PUDL text was not enlarged by those probes, so they are excluded from enlargement evidence. Separate runs in skins-large-text-independent and skins-large-text-linux verify doubled computed field font size. Their automated bounds checks pass, but the compact preview theme selector visibly clips its selected text. The screenshot is retained and the issue is recorded for correction. Actual browser zoom has not yet been tested.
 
 The Linux runs used Node 24.20.0 and Playwright 1.63.0 in `mcr.microsoft.com/playwright:v1.63.0-noble`, digest `sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27`. Browser versions, loaded paint hashes and individual observations are in the result files. The checks use narrow 360px pages with reduced motion and explicit light/dark forms. They check retained input and viewport/control bounds; they do not certify every text or glyph clipping state. Representative RTL and doubled-text images were inspected.
 
@@ -67,6 +67,6 @@ The reviewed skin paints match these distribution hashes:
 
 The integration manifest is `tests/output/skins-final-integration-hashes.json`. Its component CSS differs from the frozen supplemental CSS only in the version comment, from 0.94.0 to 0.95.0. The fixed window script hash is `4611f3668983a69ad8a255858182fcf2418fc7ffa5277f27f681fd96c247bbfe`. The frozen supplemental source and runtime files remain separate from the live checkout.
 
-Final admission remains conditional on the full normal/minified gates, release asset freshness and explicit disposition of the clipping/zoom/manual-interoperability limitations. Architecture supplied an intermediate 18/18 focused full-mode result in message 1383; final full-mode coverage still belongs in both broad gates. This report does not mark registry entries admitted.
+Final admission remains conditional on the full normal/minified gates, release asset freshness and explicit disposition of the clipping/zoom/manual-interoperability limitations. An intermediate focused full-mode run passed 18/18; final full-mode coverage still belongs in both broad gates. This report does not mark registry entries admitted.
 
-The paragraph above records the pre-final status. [FINAL-ADMISSION.md](FINAL-ADMISSION.md) supersedes that pending disposition with the final packaged hashes, field/native-widget evidence, broad-gate results and explicit unperformed checks. Verification approves the three listed skin hashes for admission within that recorded scope; Architecture owns registry edits and release operations.
+The paragraph above records the pre-final status. [FINAL-ADMISSION.md](FINAL-ADMISSION.md) supersedes that pending disposition with the final packaged hashes, field/native-widget evidence, broad-gate results and explicit unperformed checks. Independent verification approves the three listed skin hashes for admission within that recorded scope; registry edits and release operations are separate steps.

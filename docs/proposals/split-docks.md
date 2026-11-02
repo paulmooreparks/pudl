@@ -1,8 +1,8 @@
 # Split docked panes
 
-Status: implemented locally, 24 October 2026, awaiting release. Paul accepted support for additional panes along each dock's long axis and approved implementation on all four edges. The contract and implementation notes below record the resulting decisions. Cross-axis nesting and named layouts remain future proposals.
+Status: implemented locally, 24 October 2026, awaiting release. The design supports additional panes along each dock's long axis, on all four edges. The contract and implementation notes below record the resulting decisions. Cross-axis nesting and named layouts remain future proposals.
 
-This proposal follows the cross-project [Architectural Principles](<C:/Users/paul/OneDrive/Documents/Architectural Principles.md>) and extends the [shared dock contract](../SHARED-DOCKS.md).
+This proposal follows PUDL's architectural principles and extends the [shared dock contract](../SHARED-DOCKS.md).
 
 ## Recommended behavior
 
@@ -156,7 +156,7 @@ The first release flattens the whole edge temporarily when its split tree cannot
 
 Touch retains native scrolling within tab strips and uses tab menus for pane placement. Mouse and pen support tab dragging. This keeps overflowed tabs reachable on a narrow pinned dock without introducing a competing touch-drag gesture.
 
-Paul approved publication on 24 October 2026 after trying the local sample. The release is PUDL 0.83.0 with specification 0.40.0. Consumer upgrades and native Desktop deployment remain separate work.
+Publication followed on 24 October 2026, after the local sample had been tried by hand. The release is PUDL 0.83.0 with specification 0.40.0. Consumer upgrades and native Desktop deployment remain separate work.
 
 ## Verification, 24 October 2026
 

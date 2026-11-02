@@ -93,6 +93,13 @@ function check(name, ok, detail) {
   await p.waitForFunction(() => document.querySelector('#single .listbox-row[data-value="w"][role=option] input'));
   check('a row the host adds is taken in', true);
 
+  /* The page puts the keyboard on a row it has just added. */
+  await p.evaluate(() => { const l = document.getElementById('members'); const r = document.createElement('div'); r.className = 'listbox-row'; r.dataset.value = 'fresh'; r.setAttribute('aria-selected', 'true'); r.innerHTML = '<span class="listbox-title">Fresh</span>'; l.querySelector('.listbox-section:last-child').appendChild(r); });
+  const before = await value('members');
+  const found = await p.evaluate(() => pudlListbox.activate(document.getElementById('members'), 'fresh'));
+  await p.focus('#members');
+  check('activate puts the keyboard on the row given, leaves the choice alone, and the list keeps it on focus', found && await activeRow() === 'fresh' && JSON.stringify(await value('members')) === JSON.stringify(before), { found, active: await activeRow(), before, after: await value('members') });
+  check('activate with a value no row has says so', await p.evaluate(() => pudlListbox.activate(document.getElementById('members'), 'nobody')) === false);
   check('no page errors', !errors.length, errors);
   await b.close();
   console.log(failures ? failures + ' check(s) failed' : 'all checks passed');

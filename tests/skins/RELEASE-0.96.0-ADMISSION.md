@@ -1,6 +1,6 @@
 # Independent PUDL 0.96.0 admission review
 
-PUDL Team Lead records admission on 1 November 2026 for the exact hashes below following the completed independent review. No concrete blocker remains in those checks. Bevel, Gel, Glaze, Matte, Ink, Alloy and Glass, and the Bevel/Gel/Glaze companion palettes, are eligible for admission at the exact hashes below within the tested Windows scope. Verification has not stamped the registry or published anything. Final release-owner gates and explicit disposition of the recorded environment limits remain required.
+Admission was recorded on 1 November 2026 for the exact hashes below, following the completed independent review. No concrete blocker remains in those checks. Bevel, Gel, Glaze, Matte, Ink, Alloy and Glass, and the Bevel/Gel/Glaze companion palettes, are eligible for admission at the exact hashes below within the tested Windows scope. The review itself did not change the registry or publish anything. Final release gates and explicit disposition of the recorded environment limits remain required.
 
 The reviewed runtime/assets are commit `c379900ba0326438d4032aadc87b8cefe5c5be69`. Subsequent commits changed the excluded release record. All 108 entries in `release-0960-focus-correction-hashes.json` matched before the final run and after it. Its SHA-256 is `43f368975e63d0b20580b6574fdd668e219f7f026a0cd661f5916e29936432e8`. The complete 97-file vendor set matches immutable specification v0.52.3 at `4917bf70a097fcefb8c42645504b30c03e6105c7`. Candidate generators, token freshness, all 44 minified copies and whitespace checks pass; the source-unit run passes 16/16.
 
@@ -18,7 +18,7 @@ The reviewed runtime/assets are commit `c379900ba0326438d4032aadc87b8cefe5c5be69
 | Targeted combined integration | 24/24 normal and 24/24 minified | release-0960-admission-resume/integration-normal/ and integration-min/ |
 | Emitted positive paint and later host overrides | 126 combinations each | release-0960-admission-resume/extra-settled.log |
 
-All browser matrices include Chromium, Firefox and WebKit unless explicitly limited below. Targeted integration ran one suite at a time with a recorded 300-second timeout. It covers palette themes, taskbar row height, state presentation, title layout, existing state geometry/aggregation/forced-colour contrast, detail, hidden-dock refresh, status reservation, real pointer/wheel behavior and focus return. These are the affected admission suites, not the complete repository release matrices. I also inspected representative final narrow/doubled-text Glass and RTL Ink captures, in addition to the earlier full-size skin, title and halo captures. The material tests cover geometry and semantics, mounted edits, request-free selection, host precedence, media exclusion, nested-root selection, opaque fallback, Chromium reduced-transparency emulation, actual frame/header transmission and viewport-contained menus.
+All browser matrices include Chromium, Firefox and WebKit unless explicitly limited below. Targeted integration ran one suite at a time with a recorded 300-second timeout. It covers palette themes, taskbar row height, state presentation, title layout, existing state geometry/aggregation/forced-colour contrast, detail, hidden-dock refresh, status reservation, real pointer/wheel behavior and focus return. These are the affected admission suites, not the complete repository release matrices. The review also inspected representative final narrow/doubled-text Glass and RTL Ink captures, in addition to the earlier full-size skin, title and halo captures. The material tests cover geometry and semantics, mounted edits, request-free selection, host precedence, media exclusion, nested-root selection, opaque fallback, Chromium reduced-transparency emulation, actual frame/header transmission and viewport-contained menus.
 
 The per-skin catalogue and rendered-text checks combine earlier unchanged-paint evidence with completed follow-up runs. Each catalogue covers all 154 declared cases in both forms across the three engines. Required focus excludes Standard controls and CSS-only inactive-window diagnostics. The existing Standard low-contrast halo is preserved as a diagnostic and is not relabelled as a new-skin pass. The companion browser checks compare Standard focused paint/geometry against cab552a in both forms.
 
@@ -32,7 +32,7 @@ The per-skin catalogue and rendered-text checks combine earlier unchanged-paint 
 | Alloy | 1170/1170 | 96/96 | 66/66 | 6/6 |
 | Glass | 912/912 | 96/96 plus dedicated halo checks | 66/66 corrected | 6/6 |
 
-The earlier results are retained under release-0960-independent/, release-0960-independent-combined/ and release-0960-independent-final/. Their source limits and interruptions remain in release-0960-independent-review-focus-blocker.md and its linked predecessor records. Skin/theme asset hashes were checked across handoffs. The current Glass correction changes only its ordinary focus mix; the lettering, other paints and shared runtime remain unchanged. New combined material and integration checks bind the final integrated bytes.
+The earlier results are retained under release-0960-independent/, release-0960-independent-combined/ and release-0960-independent-final/. Their source limits and interruptions remain in release-0960-independent-review-focus-blocker.md and its linked predecessor records. Skin/theme asset hashes were checked at every stage. The current Glass correction changes only its ordinary focus mix; the lettering, other paints and shared runtime remain unchanged. New combined material and integration checks bind the final integrated bytes.
 
 ## Findings resolved and evidence retained
 
@@ -40,17 +40,17 @@ The transmitted-header lettering failure is closed for Chromium with explicit no
 
 The separate Glass dark input-background focus failure is closed by the unchanged strict 66-case gate on the 90% accent/10% surface paint, retaining 2px width. Firefox and WebKit now pass all 196 profiles with minima 3.2387988342:1 and 3.1986939535:1. Their original 2.983300/2.983919 failures remain preserved with exact image/helper hashes in release-0960-independent-final/focus-failure-provenance.json. The focused closure record is release-0960-focus-rendered-closure.md.
 
-Earlier Glaze and Alloy runs stopped on Firefox page.close protocol errors. Their partial records are retained, with cause unproven. Completed unchanged-candidate repeats supply the required gates; incomplete runs were not counted as passes. Earlier Ink/Alloy and broader behavior runs interrupted for scope or slot changes remain partial evidence.
+Earlier Glaze and Alloy runs stopped on Firefox page.close protocol errors. Their partial records are retained, with cause unproven. Completed unchanged-candidate repeats supply the required gates; incomplete runs were not counted as passes. Earlier Ink/Alloy and broader behavior runs interrupted for scope or scheduling changes remain partial evidence.
 
 The supplemental host-precedence probe initially sampled an active background-colour transition and failed. Its original extra.log remains. The separate extra-settled.log records the correct host accent during that transition, the active transition properties, and the expected settled component paint; the corrected probe passes all three engines in both forms. This is a demonstrated probe-timing defect, not a repaired runtime defect. The original stage summary still contains its failed exit status. Also, the earlier suggestion that --positive sampling missed --pr is withdrawn: core CSS already aliases --positive to --pr, including at c24f534. Explicit --pr measurements are additional coverage.
 
-The lead overwrote the initial independent no-halo raster pairs during experiments. The report, messages and script survive, and the replacement no-halo reproduction is labelled replacement evidence. The new independent halo captures and negative control do not recover those original pairs.
+The initial independent no-halo raster pairs were overwritten during experiments. The report and script survive, and the replacement no-halo reproduction is labelled replacement evidence. The new independent halo captures and negative control do not recover those original pairs.
 
 ## Limits and release boundary
 
 Independent rendering was on Windows. Chromium explicitly exercised the enhanced translucency path. Firefox and WebKit do not report the transparency preference on this workstation, so their results certify the opaque fallback rather than enhanced translucency. Unsupported-filter checks simulate an unavailable feature query on current engines; they do not establish old-browser compatibility. Native browser zoom, manual screen-reader interoperability and a complete Linux rendered admission matrix were not performed. Actual computed text enlargement is recorded separately from native zoom. Arbitrary host palettes still require host validation.
 
-The release owner must record admission for these exact hashes, regenerate the catalogue as required, freeze the final release metadata/assets and complete the full normal/minified repository matrices, package/reference review, immutable archive/checksum, public-download/CDN integrity and CI. This review does not label those future gates complete or introduce a new permission request.
+The release must record admission for these exact hashes, regenerate the catalogue as required, freeze the final release metadata/assets and complete the full normal/minified repository matrices, package/reference review, immutable archive/checksum, public-download/CDN integrity and CI. This review does not label those future gates complete.
 
 ## Exact reviewed assets
 
@@ -83,6 +83,6 @@ The release owner must record admission for these exact hashes, regenerate the c
 | dist/pudl-theme-glaze.css | `1b9b6a9049074a2ab342d2bb8cf7de82bbb8351a98ec586f5a60bc8e3f5dd44f` |
 | dist/min/pudl-theme-glaze.css | `f1c7f78ff195a0447fbc350b592b53f4df1095c183aba40cba5821e13ca6b0ac` |
 
-## Ownership
+## Cleanup
 
-All verification runners, browsers and temporary servers exited normally after the final checks. No owned process remains. Human preview server 8787 was untouched. Browser ownership is explicitly returned to PUDL Team Lead so the global slot can pass to Front End. No source, asset, registry, commit or publication was changed by Verification.
+All verification runners, browsers and temporary servers exited normally after the final checks, and no review process remains. The manual preview server on 8787 was untouched. The review changed no source, asset, registry, commit or publication.

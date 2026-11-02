@@ -1,6 +1,6 @@
 # PUDL 0.95.2 window status corrections
 
-Paul confirmed implementation, validation and publication of this change on 31 October 2026. The canonical architectural principles remain at `C:/Users/paul/OneDrive/Documents/Architectural Principles.md`. The behavior below needs specification 0.52.2, which is published, and PUDL 0.95.2 vendors it.
+This change was implemented, validated and published on 31 October 2026. The behavior below needs specification 0.52.2, which is published, and PUDL 0.95.2 vendors it.
 
 ## Plain rows
 
