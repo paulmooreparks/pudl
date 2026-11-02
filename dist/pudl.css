@@ -519,6 +519,12 @@
 }
 
 :root[data-theme="dark"] { color-scheme: dark; }
+/* A destructive button's words at rest, in the dark theme, lean nearly
+   half way to the text colour (0.97.5), so they keep 4.5:1 against the
+   lightest of every skin's raised fill under them in every palette; the
+   lighter red alone falls below it. The rule outranks a skin's own, which
+   still sets the light theme's. */
+:root[data-theme="dark"], :root [data-theme="dark"] { --danger-rest-fg: color-mix(in srgb, var(--danger) 55%, var(--text)); }
 :root[data-theme="light"] { color-scheme: light; }
 
 * { box-sizing: border-box; }
