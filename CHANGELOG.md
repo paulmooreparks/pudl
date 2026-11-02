@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.96.7
+
+A command shortcut pressed with nothing focused now reaches the front window's applet. The dispatcher in `pudl-commands.js` looks up scopes along the chain from the focused element, and with focus on the body, as it is after a window is activated by its title bar, a fullscreen show ends or a page is drawn, that chain held only the page's scopes, so a window's applet never saw its key and a key the browser also binds went to the browser. With focus on the body the front window's scopes are tried first, then the page's; on a page with no window layer and one applet, that applet's. Two applets on a page and nothing focused is still no one's key, a focused field anywhere keeps its own lookup, and a modal dialog still keeps every key.
+
 ## 0.96.6
 
 A taskbar stack's list no longer cuts its longest title or its widest badge by a fraction of a pixel. The 0.96.5 sizing took the panel's width from a whole-pixel `offsetWidth` and the badge words' width from a whole-pixel `scrollWidth`, either of which can fall a fraction short of the text, and a box a fraction short shows an ellipsis. Both are now measured fractionally, from the panel's rectangle and the words' own text rectangle, and rounded up with a pixel to spare.

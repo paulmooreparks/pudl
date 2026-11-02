@@ -611,10 +611,28 @@
     return (m.mod ? 'Mod+' : '') + (m.alt ? 'Alt+' : '') + (m.shift ? 'Shift+' : '') + (key.length === 1 ? key.toUpperCase() : key);
   }
 
+  /* The scopes a key goes to when nothing is focused (0.96.7): the page's
+     focus is on the body after a window is activated by its title bar, a
+     fullscreen show ends or a page is drawn, and the chain from the body
+     holds only the page's scopes, so a window's applet never saw its key.
+     The front window's scopes come first then, or, on a page with no
+     window layer and one applet, that applet's; two applets and nothing
+     focused is no one's key. */
+  function unfocusedScopes() {
+    var front = document.querySelector('.win.active');
+    var within = [], tables = new Set();
+    scopes.forEach(function (get, s) {
+      if (s === document.body || s === document.documentElement) return;
+      if (front ? front.contains(s) : !document.querySelector('[data-win-layer]')) { within.push(s); tables.add(get); }
+    });
+    return front || tables.size === 1 ? within : [];
+  }
+
   document.addEventListener('keydown', function (e) {
     if (e.defaultPrevented || e.repeat || document.querySelector('dialog:modal')) return;
     var pressed = spelling(e), el = document.activeElement || document.body;
     var list = chain(el);
+    if (el === document.body || el === document.documentElement) list = unfocusedScopes().concat(list);
     for (var i = 0; i < list.length; i++) {
       var cmds = index(list[i]).flat;
       for (var j = 0; j < cmds.length; j++) {

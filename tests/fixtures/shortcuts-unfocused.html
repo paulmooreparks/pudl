@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shortcuts with nothing focused</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-commands.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 600px; position: relative; }</style>
+</head>
+<body>
+  <!-- A test fixture for a shortcut pressed with nothing focused: two
+       windows, each with a command scope on its mount binding F9 and
+       Mod+S, a page scope binding F8, a field outside the windows, and a
+       modal dialog. The query ?page gives a page with no window layer and
+       one mount; ?two gives one with two mounts. -->
+  <input class="form-input" id="outside" aria-label="Outside">
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="a,b">
+      <section class="win" data-win="a" style="--win-x: 0.02; --win-y: 0.05; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Alpha</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div class="mount" id="mount-a"><input class="form-input" id="field-a" aria-label="Alpha field"></div></div>
+      </section>
+      <section class="win" data-win="b" style="--win-x: 0.5; --win-y: 0.3; --win-w: 0.4; --win-h: 0.5">
+        <header class="win-head"><h2 class="win-title">Beta</h2><nav class="win-chrome" aria-label="Window"><a class="win-btn" data-win-action="close" href="?" aria-label="Close"></a></nav></header>
+        <div class="win-body"><div class="mount" id="mount-b"><p>Beta.</p></div></div>
+      </section>
+    </div>
+  </div>
+  <dialog id="modal"><p>A modal dialog.</p><button type="button" id="modal-close">Close</button></dialog>
+  <script>
+    window.__ran = []; window.__prevented = [];
+    var q = new URLSearchParams(location.search);
+    if (q.has('page') || q.has('two')) {
+      document.querySelector('.win-host').remove();
+      var m1 = document.createElement('div'); m1.className = 'mount'; m1.id = 'mount-p1'; m1.textContent = 'One.'; document.body.appendChild(m1);
+      if (q.has('two')) { var m2 = document.createElement('div'); m2.className = 'mount'; m2.id = 'mount-p2'; m2.textContent = 'Two.'; document.body.appendChild(m2); }
+    } else {
+      document.querySelectorAll('.win-layer > .win').forEach(function (win) { var t = document.createElement('template'); t.id = 'tpl-' + win.dataset.win; t.content.appendChild(win.cloneNode(true)); document.body.appendChild(t); });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      function table(name) { return function () { return [
+        { id: name + '-show', label: 'Show', shortcut: 'F9', run: function () { __ran.push(name + ':F9'); } },
+        { id: name + '-save', label: 'Save', shortcut: 'Mod+S', run: function () { __ran.push(name + ':Mod+S'); } }
+      ]; }; }
+      document.querySelectorAll('.mount').forEach(function (m) { pudlCommands.register(m, table(m.id)); });
+      pudlCommands.register(document.body, function () { return [{ id: 'page-help', label: 'Help', shortcut: 'F8', run: function () { __ran.push('page:F8'); } }]; });
+      document.addEventListener('keydown', function (e) { __prevented.push(e.key + ':' + e.defaultPrevented); });
+      document.getElementById('modal-close').addEventListener('click', function () { document.getElementById('modal').close(); });
+    });
+  </script>
+</body>
+</html>
