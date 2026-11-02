@@ -12,4 +12,4 @@ Under Paul's minimal-testing direction no whole-project matrix or independent se
 
 ## Publication
 
-Publication identity follows the immutable tag. The archive, its checksum, the public download and the versioned CDN files must match the tag before adoption handoff. Main receives verified 0.96.9 CDN examples after publication.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.96.9. Its immutable commit is 34d2426baef39a325c7762429d7deee2b5de3ec9 and its annotated tag object is 8af6460a18e31ba56c43bf97039e6568002e253d. The reproducible archive contains 410 files including all 180 dist files, occupies 6204544 bytes, and has SHA-256 60a611953f18c52b80716797251114a7b3a9a6827451f32e92657d31a55649aa. The unauthenticated public downloads of the archive and checksum match, every archived blob and the ZIP commit comment match the tag, and all 97 versioned CDN CSS and JS files match their tagged bytes. Main's 24 CDN examples now use those verified hashes. The package closure check at the release commit found no missing reference.
