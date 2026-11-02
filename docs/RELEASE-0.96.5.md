@@ -18,4 +18,4 @@ A title that arrives longer than the list while it is open truncates until the l
 
 ## Publication
 
-Publication identity follows the immutable tag. The archive, its checksum, the public download and the versioned CDN files must match the tag before adoption handoff. Main receives verified 0.96.5 CDN examples after publication.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.96.5. Its immutable commit is d303186dfa15453eadc234d1697ee615e7f3a5e5 and its annotated tag object is 712aacb8bf977502b3c8522fa8892019a5e335b4. The reproducible archive contains 406 files including all 180 dist files, occupies 6193568 bytes, and has SHA-256 0910a0584cdafc4ad248f9f2ddd1f1f2e5e0ad451ca3b767d127ed3d3d8530d0. The unauthenticated public downloads of the archive and checksum match, every archived blob and the ZIP commit comment match the tag, and all 97 versioned CDN CSS and JS files match their tagged bytes. Main's 24 CDN examples now use those verified hashes. The package closure check at the release commit found no missing reference.
