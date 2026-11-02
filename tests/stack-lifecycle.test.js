@@ -29,7 +29,11 @@ function check(name, ok, detail) {
     const rows = [...panel.querySelectorAll('[data-stack-row]')].map(r => {
       const link = r.firstChild, mark = link.querySelector('.win-state'), title = link.querySelector('.win-item-title'), close = r.lastChild;
       const mr = mark.getBoundingClientRect(), tr = title.getBoundingClientRect(), cr = close.getBoundingClientRect();
-      return { key: r.getAttribute('data-stack-row'), title: title.textContent, titleW: Math.round(tr.width), titleScroll: title.scrollWidth, clipped: title.scrollWidth > title.clientWidth + 1,
+      /* Clipping is judged on the text's own fractional rectangle against
+         its box, since whole-pixel scrollWidth cannot see a sub-pixel cut. */
+      const textW = el => { const rg = document.createRange(); rg.selectNodeContents(el); return rg.getBoundingClientRect().width; };
+      const words = mark.querySelector('.win-state-words');
+      return { key: r.getAttribute('data-stack-row'), title: title.textContent, titleW: tr.width, textW: textW(title), clipped: textW(title) > tr.width + 0.01, wordsClipped: !mark.hidden && words && textW(words) > words.getBoundingClientRect().width + 0.01,
         badge: mark.classList.contains('badge'), state: mark.getAttribute('data-state'), lifecycle: mark.hasAttribute('data-lifecycle'), hidden: mark.hidden, words: mark.textContent.trim(),
         markW: Math.round(mr.width), colW: Math.round(link.querySelector('.win-item-state').getBoundingClientRect().width), colLeft: Math.round(link.querySelector('.win-item-state').getBoundingClientRect().left), colRight: Math.round(link.querySelector('.win-item-state').getBoundingClientRect().right),
         beforeClose: mr.right <= cr.left, before: getComputedStyle(mark, '::before').content, bg: getComputedStyle(mark).backgroundColor, color: getComputedStyle(mark).color, name: link.getAttribute('aria-label') };
@@ -39,10 +43,11 @@ function check(name, ok, detail) {
   let s = await read();
   const a1 = s.rows.find(r => r.key === 'a1'), a2 = s.rows.find(r => r.key === 'a2'), a3 = s.rows.find(r => r.key === 'a3');
   check('the list grows to its longest title, up to the cap', s.panelW > 380 && s.panelW <= 560, s.panelW);
-  check('a long title is shown whole, or truncates only at the cap', a1 && (!a1.clipped || s.panelW === 560), a1 && [a1.clipped, s.panelW]);
+  check('a long title is shown whole, or truncates only at the cap', a1 && (!a1.clipped || s.panelW >= 560), a1 && [a1.clipped, a1.titleW, a1.textW, s.panelW]);
   check('shorter titles are not cut short', a2 && !a2.clipped && a3 && !a3.clipped, [a2 && a2.clipped, a3 && a3.clipped]);
+  check('no badge\'s words are cut, the widest included', s.rows.every(r => !r.wordsClipped), s.rows.map(r => [r.key, r.wordsClipped]));
   const widest = Math.max(...s.rows.map(r => r.markW));
-  check('the state column is as wide as the widest badge and no wider', s.rows.every(r => Math.abs(r.colW - widest) <= 1) && widest > 0, s.rows.map(r => [r.key, r.markW, r.colW]));
+  check('the state column is as wide as the widest badge, with a pixel to spare and no more', s.rows.every(r => r.colW >= widest && r.colW <= widest + 2) && widest > 0, s.rows.map(r => [r.key, r.markW, r.colW]));
   check('every row\'s state column ends in one line before Close', new Set(s.rows.map(r => r.colRight)).size === 1 && s.rows.every(r => r.beforeClose), s.rows.map(r => [r.key, r.colRight]));
   check('a window with no state and a lifecycle word shows it as a plain badge with no glyph', a3 && a3.badge && a3.lifecycle && a3.state === '' && !a3.hidden && a3.words === 'Closed' && a3.before === 'none', a3);
   check('the plain badge is neutral, not a state colour', a3 && a1 && a3.bg !== a1.bg && a3.color !== a1.color, a3 && [a3.bg, a1.bg]);

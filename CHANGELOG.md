@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.96.6
+
+A taskbar stack's list no longer cuts its longest title or its widest badge by a fraction of a pixel. The 0.96.5 sizing took the panel's width from a whole-pixel `offsetWidth` and the badge words' width from a whole-pixel `scrollWidth`, either of which can fall a fraction short of the text, and a box a fraction short shows an ellipsis. Both are now measured fractionally, from the panel's rectangle and the words' own text rectangle, and rounded up with a pixel to spare.
+
 ## 0.96.5
 
 A taskbar stack's list sizes to its longest title as it opens, up to 560px or the viewport less 8px, instead of a fixed 380px, and keeps that width while open so Close stands still. The state column is as wide as the widest badge in the list and no wider, every row's badge ends in one line before Close, a row with no state keeps the column, and the title takes the rest and truncates last. This replaces the fixed 12em column of 0.96.4, which cut titles short while the screen had room. A popover placed by the menu script may now carry `data-menu-size="own"` to keep the width its own stylesheet gives it.

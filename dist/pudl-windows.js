@@ -4439,11 +4439,16 @@
       rowMap.forEach(function (row) {
         var mark = row.firstChild.querySelector('.win-state');
         if (!mark || mark.hidden) return;
-        var words = mark.querySelector('.win-state-words');
-        widest = Math.max(widest, Math.ceil(mark.getBoundingClientRect().width - (words ? words.getBoundingClientRect().width - words.scrollWidth : 0)));
+        /* Fractional widths throughout (0.96.6): a whole-pixel scrollWidth
+           or offsetWidth can fall a fraction short of the text, and a
+           column or panel a fraction short shows an ellipsis. The words'
+           natural width is their text's own rectangle. */
+        var words = mark.querySelector('.win-state-words'), natural = 0;
+        if (words) { var range = document.createRange(); range.selectNodeContents(words); natural = range.getBoundingClientRect().width; range.detach(); }
+        widest = Math.max(widest, Math.ceil(mark.getBoundingClientRect().width - (words ? words.getBoundingClientRect().width - natural : 0)) + 1);
       });
       styleProp(panel, '--win-stack-state', widest ? widest + 'px' : null);
-      if (!panel.style.width && panel.offsetWidth) panel.style.width = panel.offsetWidth + 'px';
+      if (!panel.style.width) { var w = panel.getBoundingClientRect().width; if (w) panel.style.width = (Math.ceil(w) + 1) + 'px'; }
     }
     function refresh() {
       if (disposed) return;
