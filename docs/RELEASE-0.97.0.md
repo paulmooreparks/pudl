@@ -22,4 +22,4 @@ A reorderable list does not scroll itself while an item is dragged near its edge
 
 ## Publication
 
-Publication identity follows the immutable tag. The archive, its checksum, the public download and the versioned CDN files must match the tag before adoption handoff. Main receives verified 0.97.0 CDN examples after publication.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.97.0. Its immutable commit is 3acf67968582d1d6b7ca1b28e5339a271aa107d9 and its annotated tag object is 98143ffe32b6b4bf9b83f3fc913b313817b4f898. The reproducible archive contains 418 files including all 183 dist files, occupies 6247236 bytes, and has SHA-256 02c4feb553056f5cb3fe9b48caa4a6f64d38d1d45e47a50527f73f332c7950f6. The unauthenticated public downloads of the archive and checksum match, every archived blob and the ZIP commit comment match the tag, and all 99 versioned CDN CSS and JS files match their tagged bytes. Main's 24 CDN examples now use those verified hashes, and a 25th for `pudl-reorder.js` is added with its verified hash. The package closure check at the release commit found no missing reference.
