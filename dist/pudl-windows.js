@@ -4791,9 +4791,11 @@
      shown or not, so a count that grows never folds anything. */
   var STATE_RANK = { stuck: 4, waiting: 3, working: 2, idle: 0 };
   var CLASS_RANK = { danger: 4, warn: 3, accent: 2, positive: 1 };
+  /* An item the host hides is not in the tray at all, so it is never
+     folded, listed, named or toned, and joins again when shown (0.97.3). */
   function foldable(area) {
     return Array.prototype.filter.call(area.children, function (c) {
-      return c.classList.contains('status-item') && !c.classList.contains('status-fold') && !c.hasAttribute('data-status-keep');
+      return c.classList.contains('status-item') && !c.classList.contains('status-fold') && !c.hasAttribute('data-status-keep') && !c.hidden;
     });
   }
   function statusFoldItem(area) {
@@ -4810,6 +4812,9 @@
          is fitted again; the Status item's tone, total and name follow it
          (0.97.1). */
       new MutationObserver(function (records) {
+        /* An item shown or hidden changes what may fold, so the bar is
+           fitted again; anything else only repaints the summary. */
+        if (records.some(function (r) { return r.attributeName === 'hidden' && r.target.parentElement === area && r.target !== f; })) { fitBarsSoon(); return; }
         if (f.hidden || !records.some(function (r) { return !f.contains(r.target); })) return;
         paintStatusFold(area, f, foldable(area).filter(function (it) { return it.hasAttribute('data-status-folded'); }));
       }).observe(area, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'data-state', 'data-status-pending', 'data-status-tone', 'aria-label', 'title'] });
@@ -4917,6 +4922,8 @@
       }
     }
     var was = items.filter(function (it) { return it.hasAttribute('data-status-folded'); });
+    /* An item hidden while folded leaves the fold. */
+    Array.prototype.forEach.call(area.querySelectorAll(':scope > .status-item[hidden][data-status-folded]'), function (it) { it.removeAttribute('data-status-folded'); });
     items.forEach(function (it) {
       var on = folded.indexOf(it) >= 0;
       if (it.hasAttribute('data-status-folded') !== on) it.toggleAttribute('data-status-folded', on);

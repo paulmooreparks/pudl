@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.3
+
+A folding status area leaves out an item the page has hidden. Since 0.97.0 such an item was folded with the rest, listed in the Status menu, counted in the Status item's name and able to give it its tone, though it was not shown. It now joins the fold only once it is shown, and leaves it again when hidden.
+
 ## 0.97.2
 
 A status item may give a tone its badge does not show. `data-status-tone` on a `.status-item`, an execution state or `danger`, `warn`, `accent` or `positive`, is ranked with the folded badges' tones when a folding status area picks the Status item's tone, so an item whose count reads 0 but which needs attention still warns once folded. The badge is unchanged.

@@ -72,6 +72,18 @@ function check(name, ok, detail) {
   await p.evaluate(() => { document.querySelector('#queue .badge').textContent = '3'; document.querySelector('#runs .badge').textContent = '2'; const m = document.querySelector('#mail .badge'); m.hidden = true; m.textContent = ''; });
   await settle();
 
+  /* A hidden item is not folded, listed, named or toned, and joins when shown. */
+  let h = await tray('tray-all');
+  check('an item the host hides is not folded, named or toned', !h.folded.includes('update') && !/newer build/.test(h.name) && h.tone !== 'accent', h);
+  await p.evaluate(() => { document.getElementById('update').hidden = false; });
+  await settle();
+  h = await tray('tray-all');
+  check('shown again, it folds with the others and is named', h.folded.includes('update') && /newer build/.test(h.name), h);
+  await p.evaluate(() => { document.getElementById('update').hidden = true; });
+  await settle();
+  h = await tray('tray-all');
+  check('hidden again, it leaves the fold', !h.folded.includes('update') && !/newer build/.test(h.name) && !(await p.evaluate(() => document.getElementById('update').hasAttribute('data-status-folded'))), h);
+
   /* An item may give a tone its badge does not show. */
   await p.evaluate(() => { const q = document.querySelector('#queue .badge'); q.classList.remove('warn'); const r = document.querySelector('#runs .badge'); r.removeAttribute('data-state'); document.getElementById('tasks').setAttribute('data-status-tone', 'waiting'); });
   await settle();
