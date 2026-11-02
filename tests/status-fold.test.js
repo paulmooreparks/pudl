@@ -72,6 +72,16 @@ function check(name, ok, detail) {
   await p.evaluate(() => { document.querySelector('#queue .badge').textContent = '3'; document.querySelector('#runs .badge').textContent = '2'; const m = document.querySelector('#mail .badge'); m.hidden = true; m.textContent = ''; });
   await settle();
 
+  /* An item may give a tone its badge does not show. */
+  await p.evaluate(() => { const q = document.querySelector('#queue .badge'); q.classList.remove('warn'); const r = document.querySelector('#runs .badge'); r.removeAttribute('data-state'); document.getElementById('tasks').setAttribute('data-status-tone', 'waiting'); });
+  await settle();
+  check('an item\'s data-status-tone gives the Status item its tone when no badge is more urgent', (await tray('tray-all')).tone === 'waiting' && /glyph-pause/.test((await tray('tray-all')).glyph), await tray('tray-all'));
+  await p.evaluate(() => { document.querySelector('#runs .badge').setAttribute('data-state', 'stuck'); });
+  await settle();
+  check('and a more urgent badge still wins', (await tray('tray-all')).tone === 'stuck', await tray('tray-all'));
+  await p.evaluate(() => { document.querySelector('#queue .badge').classList.add('warn'); document.getElementById('tasks').removeAttribute('data-status-tone'); });
+  await settle();
+
   /* The Status item's menu. */
   await p.locator('#tray-all > .status-fold').click();
   await p.waitForSelector('.context-menu:popover-open');

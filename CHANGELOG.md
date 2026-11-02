@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.2
+
+A status item may give a tone its badge does not show. `data-status-tone` on a `.status-item`, an execution state or `danger`, `warn`, `accent` or `positive`, is ranked with the folded badges' tones when a folding status area picks the Status item's tone, so an item whose count reads 0 but which needs attention still warns once folded. The badge is unchanged.
+
 ## 0.97.1
 
 A folding status area's Status item shows its total only when the total is known. A badge whose count has not arrived yet carries `data-status-pending`, and while any folded badge does, the total is blank; a total of 0 that every counting badge reads shows as 0, so none and not-yet look different. An empty or hidden badge without the marker still means nothing to say. The Status item's tone, total and name now follow a folded item's badge as it changes; in 0.97.0 they waited for the next time the taskbar was fitted.

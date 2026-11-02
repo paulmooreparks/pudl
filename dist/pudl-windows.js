@@ -4812,7 +4812,7 @@
       new MutationObserver(function (records) {
         if (f.hidden || !records.some(function (r) { return !f.contains(r.target); })) return;
         paintStatusFold(area, f, foldable(area).filter(function (it) { return it.hasAttribute('data-status-folded'); }));
-      }).observe(area, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'data-state', 'data-status-pending', 'aria-label', 'title'] });
+      }).observe(area, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'data-state', 'data-status-pending', 'data-status-tone', 'aria-label', 'title'] });
     }
     var items = foldable(area), last = items[items.length - 1];
     if (last && last.nextElementSibling !== f) last.after(f);
@@ -4831,12 +4831,19 @@
      warn, accent, positive. */
   function toneOf(items) {
     var best = null, rank = -1;
+    function take(t) {
+      if (!t) return;
+      if (Object.prototype.hasOwnProperty.call(STATE_RANK, t) && STATE_RANK[t] > rank) { rank = STATE_RANK[t]; best = { state: t }; }
+      else if (Object.prototype.hasOwnProperty.call(CLASS_RANK, t) && CLASS_RANK[t] > rank) { rank = CLASS_RANK[t]; best = { cls: t }; }
+    }
     items.forEach(function (it) {
+      /* An item may give a tone its badge does not show, such as a
+         warning on an item whose count is 0 (0.97.2). */
+      take(it.getAttribute('data-status-tone'));
       var b = badgeOf(it);
       if (!b || b.hidden || !b.textContent.trim() && !b.hasAttribute('data-state')) return;
-      var s = b.getAttribute('data-state');
-      if (s && Object.prototype.hasOwnProperty.call(STATE_RANK, s) && STATE_RANK[s] > rank) { rank = STATE_RANK[s]; best = { state: s }; }
-      Object.keys(CLASS_RANK).forEach(function (c) { if (b.classList.contains(c) && CLASS_RANK[c] > rank) { rank = CLASS_RANK[c]; best = { cls: c }; } });
+      take(b.getAttribute('data-state'));
+      Object.keys(CLASS_RANK).forEach(function (c) { if (b.classList.contains(c)) take(c); });
     });
     return best;
   }
