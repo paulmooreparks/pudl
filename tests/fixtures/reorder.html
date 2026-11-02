@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reorderable lists</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-reorder.js" defer></script>
+  <style>
+    body { margin: 24px; }
+    .rlist { list-style: none; margin: 0 0 24px; padding: 0; width: 360px; border: 1px solid var(--border); }
+    .rlist > li { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 2px 8px; border-bottom: 1px solid var(--border); }
+    .rlist > li > .body { color: var(--text-muted); }
+    .rlist[data-reorder-active] > li > .body { display: none; }
+    .rlist .toggle { display: inline-block; width: 16px; }
+    .rlist[data-reorder-active] .toggle { display: none; }
+    .row { display: flex; gap: 8px; list-style: none; margin: 0 0 24px; padding: 0; }
+    .row > li { padding: 4px 8px; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <!-- A test fixture for reorderable lists: a list with a fixed first item,
+       items with and without ids, an item whose grip goes into a slot, a
+       Done button, a list whose host cancels moves, and a row of items in a
+       right-to-left section. -->
+  <button type="button" id="done">Done</button>
+  <ul class="rlist" id="list" data-reorder="off" data-reorder-done="done" aria-label="Sections">
+    <li data-reorder-id="pinned" data-reorder-fixed>Pinned</li>
+    <li data-reorder-id="sources"><span data-reorder-grip></span><span class="toggle">▸</span>Sources <button type="button" class="btn btn-sm" id="open-sources">Open</button><span class="body">Body of sources</span></li>
+    <li data-reorder-id="chats" data-reorder-label="Chats">Chats <span class="body">Body of chats</span></li>
+    <li>Files <span class="body">Body of files</span></li>
+  </ul>
+  <ul class="rlist" id="modelled" data-reorder="on" aria-label="Modelled">
+    <li data-reorder-id="a">Alpha</li>
+    <li data-reorder-id="b">Beta</li>
+    <li data-reorder-id="c">Gamma</li>
+  </ul>
+  <section dir="rtl">
+    <ul class="row" id="row" data-reorder="on" aria-label="Row">
+      <li data-reorder-id="one">One</li>
+      <li data-reorder-id="two">Two</li>
+      <li data-reorder-id="three">Three</li>
+    </ul>
+  </section>
+  <script>
+    window.__events = []; window.__modes = [];
+    document.addEventListener('pudl:reorder', function (e) { __events.push({ list: e.target.id, order: e.detail.order.slice(), item: e.detail.item.textContent.trim().split(/\s+/)[0] }); });
+    document.addEventListener('pudl:reorder-mode', function (e) { __modes.push(e.target.id + ':' + e.detail.on); });
+    document.getElementById('modelled').addEventListener('pudl:reorder', function (e) { e.preventDefault(); });
+  </script>
+</body>
+</html>

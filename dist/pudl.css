@@ -3819,6 +3819,40 @@ a.seg-choice { text-decoration: none; }
 }
 .drop-zone[data-drop-over]:dir(rtl) > .drop-hint { translate: 50% 0; }
 
+/* === Reorderable lists (0.97.0) =========================================
+   pudl-reorder.js gives each movable item of a list in reorder mode a
+   grip, the handle it is dragged by and moved with the keys. The grip is
+   a handle, like a splitter's, so it is flat and carries the grip glyph
+   at rest, taking the accent when hovered, focused or dragged. In such a
+   list the drop mark is a line where the item will land rather than a
+   ring, since it lands between items, not on one: at the start of the
+   item it will land before, or at the end of the list. The list's
+   data-reorder-active says its axis, x or y. */
+.reorder-grip {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; margin: 0; margin-inline-end: var(--space-1); padding: 0;
+  border: 0; border-radius: var(--radius-sm); background: none; color: var(--text-muted);
+  vertical-align: middle; cursor: grab; touch-action: none;
+}
+.reorder-grip::before {
+  content: ""; width: 16px; height: 16px; background: currentColor;
+  -webkit-mask: var(--glyph-grip) center / 16px 16px no-repeat;
+  mask: var(--glyph-grip) center / 16px 16px no-repeat;
+}
+.reorder-grip:hover, .reorder-grip:focus-visible, .dragging .reorder-grip { color: var(--accent); }
+.reorder-grip:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
+[data-reorder-active] > .dragging {
+  position: relative; z-index: 2; cursor: grabbing;
+  background: var(--surface); box-shadow: var(--shadow-card);
+}
+[data-reorder-active] > [data-drop-target], [data-reorder-active][data-drop-target] { background-color: transparent; }
+[data-reorder-active="y"] > [data-drop-target] { box-shadow: inset 0 2px 0 var(--accent); }
+[data-reorder-active="x"] > [data-drop-target] { box-shadow: inset 2px 0 0 var(--accent); }
+[data-reorder-active="x"]:dir(rtl) > [data-drop-target] { box-shadow: inset -2px 0 0 var(--accent); }
+[data-reorder-active="y"][data-drop-target] { box-shadow: inset 0 -2px 0 var(--accent); }
+[data-reorder-active="x"][data-drop-target] { box-shadow: inset -2px 0 0 var(--accent); }
+[data-reorder-active="x"][data-drop-target]:dir(rtl) { box-shadow: inset 2px 0 0 var(--accent); }
+
 /* === Reduced motion ======================================================
    A reader who has asked their system for less motion gets none: every
    transition and animation completes at once. */
@@ -3974,6 +4008,8 @@ del.diff-word { text-decoration-color: var(--diff-del); }
   .tree-toggle::before, .card-toggle::before { forced-color-adjust: none; background: ButtonText; }
   .glyph, .path li + li::before { forced-color-adjust: none; background: CanvasText; }
   .drop-zone[data-drop-over], [data-drop-target] { outline: 2px dashed Highlight; outline-offset: -2px; }
+  .reorder-grip::before { forced-color-adjust: none; background: ButtonText; }
+  .reorder-grip:focus-visible { outline: 2px solid Highlight; }
   .drop-zone[data-drop-over] > .drop-hint { forced-color-adjust: none; background: Highlight; color: HighlightText; }
   .doc-tab-dirty { forced-color-adjust: none; background: CanvasText; }
   .doc-tab-close { border: 1px solid ButtonText; }
