@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.96.10
+
+A taskbar stack's row whose detail repeats the stack's label leaves the detail undrawn, as 0.96.9 did for a detail that repeats the title. A stack's button already shows its label, so a row saying it again says nothing; the row's name and tooltip still carry it. Taskbar buttons outside a stack are unchanged.
+
 ## 0.96.9
 
 Five places a host had to reach into generated markup now have a documented way. A popover anchored to a control that a folding toolbar has folded away is placed against the control that shows it, the group's fold button or the toolbar's More button. `pudlMenubar.isOpen()` says whether a menu of the bar is open, and the bar fires `pudl:menubar-open` and `pudl:menubar-close`. A menu row's `data-menu-detail`, a second line that wraps as it needs, is now in the contract table. A taskbar or stack row whose detail repeats its title leaves the detail undrawn. A tree marked `data-tree-toggles="buttons"` gives each toggle a button role and a name, "Expand" or "Collapse" and the node's name from `data-tree-label` or its words, out of the Tab order since the node's keys do the same; without the attribute the toggles stay decorative as before.

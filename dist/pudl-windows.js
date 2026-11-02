@@ -641,8 +641,13 @@
     setText(node.querySelector('.win-item-title'), titleOf(key));
     var detail = node.querySelector('.win-item-detail');
     /* A detail that repeats the title says nothing, so it is not drawn
-       (0.96.9); the name and tooltip still carry both. */
-    if (detail) { setText(detail, detailOf(key)); setHidden(detail, !detailOf(key) || detailOf(key) === titleOf(key)); }
+       (0.96.9), nor, in a stack's row, one that repeats the stack's label,
+       which the stack's button already shows (0.96.10); the name and
+       tooltip still carry both. */
+    if (detail) {
+      var d = detailOf(key), groupLabel = node.hasAttribute('data-win-stack-row') && win.getAttribute('data-win-group') ? stackMetadata(win.getAttribute('data-win-group')).label : null;
+      setText(detail, d); setHidden(detail, !d || d === titleOf(key) || d === groupLabel);
+    }
     var badge = node.querySelector('.win-item-attention');
     setHidden(badge, !count);
     setText(badge, count ? String(count) : '');

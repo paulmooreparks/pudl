@@ -15,7 +15,7 @@ function check(name, ok, detail) {
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
   await p.goto(ROOT + '/tests/fixtures/contract-hooks.html');
-  await p.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length === 3 && document.querySelector('.tree-ready') && document.querySelector('#tb .toolbar-more'));
+  await p.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length === 4 && document.querySelector('.tree-ready') && document.querySelector('#tb .toolbar-more'));
   const settle = () => p.evaluate(() => new Promise(r => requestAnimationFrame(() => setTimeout(r, 150))));
 
   /* 4. A popover anchored to a control the toolbar folds. */
@@ -68,8 +68,10 @@ function check(name, ok, detail) {
   check('a taskbar button whose detail repeats its title draws no detail, and its name still says both', tabs.lone.detailHidden && /Gamma.*Gamma/.test(tabs.lone.name), tabs);
   await p.locator('.win-bar [data-win-stack="g"]').click();
   await p.waitForSelector('.win-stack-panel:popover-open');
-  const rows = await p.evaluate(() => [...document.querySelectorAll('.win-stack-panel [data-stack-row]')].map(r => ({ key: r.getAttribute('data-stack-row'), detailHidden: r.firstChild.querySelector('.win-item-detail').hidden, detail: r.firstChild.querySelector('.win-item-detail').textContent })));
+  const rows = await p.evaluate(() => [...document.querySelectorAll('.win-stack-panel [data-stack-row]')].map(r => ({ key: r.getAttribute('data-stack-row'), detailHidden: r.firstChild.querySelector('.win-item-detail').hidden, detail: r.firstChild.querySelector('.win-item-detail').textContent, name: r.firstChild.getAttribute('aria-label') })));
   check('a stack row whose detail repeats its title draws no detail; one whose detail differs draws it', rows.find(r => r.key === 's1').detailHidden && !rows.find(r => r.key === 's2').detailHidden && rows.find(r => r.key === 's2').detail === 'Customers', rows);
+  check('a stack row whose detail repeats the stack\'s label draws no detail, and its name still says it', rows.find(r => r.key === 's3').detailHidden && /Delta.*Chats/.test(rows.find(r => r.key === 's3').name), rows.find(r => r.key === 's3'));
+  check('the same window\'s taskbar presence outside a stack is not affected by the stack rule', await p.evaluate(() => { const t = document.querySelector('.win-bar [data-win-tab="s3"]'); return !t || !t.querySelector('.win-item-detail').hidden; }));
   await p.keyboard.press('Escape');
   await p.evaluate(() => pudlWindows.retitle('lone', 'Gamma', 'Elsewhere'));
   await p.waitForFunction(() => !document.querySelector('.win-bar [data-win-tab="lone"] .win-item-detail').hidden);
