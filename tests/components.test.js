@@ -44,7 +44,7 @@ const KNOWN = {};
     'Applets': 'applet', 'Regions': 'region', 'Grid': 'grid', 'Tree': 'tree', 'Path bar': 'path-bar', 'Glyph': 'glyph',
     'Document tabs': 'document-tabs', 'Code': 'code-block', 'Visually hidden': 'visually-hidden', 'Splitter': 'splitter',
     'Drop target': 'drop-zone', 'Numbers and time': null,
-    'Popover': 'popover', 'Split button': 'split-button', 'Stepper': 'stepper', 'Date and time fields': 'date-field', 'List box': 'list-box', 'Token field': 'token-field',
+    'Popover': 'popover', 'Split button': 'split-button', 'Stepper': 'stepper', 'Date and time fields': 'date-field', 'List box': 'list-box', 'Rich list box': 'rich-list-box', 'Reorderable list': 'reorderable-list', 'Token field': 'token-field',
     'Progress bar': 'progress-bar', 'Meter': 'meter', 'Slider': 'slider', 'Number field': 'number-field', 'Password field': 'password-field', 'Figure': 'figure', 'Avatar': 'avatar',
     'Toolbar': 'toolbar', 'Folding toolbar': 'toolbar', 'Command bar': 'toolbar', 'Ribbon': 'ribbon', 'Taskbar': 'taskbar'
   };

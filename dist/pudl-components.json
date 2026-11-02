@@ -260,6 +260,28 @@
       ]
     },
     {
+      "id": "rich-list-box",
+      "name": "Rich list box",
+      "kind": "sunken",
+      "spec": "08-components/fields.md",
+      "requires": ["pudl-listbox.js"],
+      "template": "<div class=\"listbox\" data-listbox=\"multiple\" aria-label=\"Reviewers\" data-listbox-rows=\"4\"><div class=\"listbox-group\">Available</div><div class=\"listbox-row\" data-value=\"ana\" aria-selected=\"true\"><span class=\"listbox-title\">Ana Reyes</span><span class=\"listbox-detail\">Finance</span><span class=\"badge\" data-state=\"working\">Reviewing</span></div><div class=\"listbox-row\" data-value=\"jun\"><span class=\"listbox-title\">Jun Reyes</span><span class=\"listbox-detail\">Operations</span><span class=\"badge\" data-state=\"idle\">Idle</span></div></div>",
+      "parts": [
+        { "selector": ".listbox", "surface": "sunken" }
+      ],
+      "states": [
+        { "name": "Disabled", "attribute": "data-disabled", "on": ".listbox" },
+        { "name": "Chosen", "attribute": "aria-selected", "on": ".listbox-row" },
+        { "name": "Row disabled", "attribute": "data-disabled", "on": ".listbox-row" },
+        { "name": "Row hidden", "attribute": "hidden", "on": ".listbox-row" }
+      ],
+      "properties": [
+        { "name": "Several may be chosen", "attribute": "data-listbox", "on": ".listbox" },
+        { "name": "Rows tall", "attribute": "data-listbox-rows", "on": ".listbox" },
+        { "name": "Form field", "attribute": "data-listbox-for", "on": ".listbox" }
+      ]
+    },
+    {
       "id": "token-field",
       "name": "Token field",
       "kind": "sunken",
@@ -762,6 +784,26 @@
       "requires": ["pudl-tree.js"],
       "template": "<ul class=\"tree\" aria-label=\"Folders\"><li><a href=\"?f=site\" aria-expanded=\"true\">site</a><ul><li><a href=\"?f=site/articles\" aria-current=\"page\">articles</a></li></ul></li></ul>",
       "parts": [{ "selector": ".tree a", "surface": "list" }]
+    },
+    {
+      "id": "reorderable-list",
+      "name": "Reorderable list",
+      "kind": "list",
+      "spec": "08-components/lists.md",
+      "requires": ["pudl-reorder.js"],
+      "template": "<ul class=\"row-list\" data-reorder=\"on\" aria-label=\"Sections\"><li class=\"md-row\" data-reorder-id=\"inbox\" data-reorder-fixed><span class=\"md-item\">Inbox</span></li><li class=\"md-row\" data-reorder-id=\"projects\"><span class=\"md-item\">Projects</span></li><li class=\"md-row\" data-reorder-id=\"reports\"><span class=\"md-item\">Reports</span></li></ul>",
+      "parts": [
+        { "selector": ".md-row", "surface": "list" }
+      ],
+      "states": [
+        { "name": "Reordering", "attribute": "data-reorder", "on": "[data-reorder]" },
+        { "name": "Fixed", "attribute": "data-reorder-fixed", "on": "[data-reorder] > *" }
+      ],
+      "properties": [
+        { "name": "Identity", "attribute": "data-reorder-id", "on": "[data-reorder] > *" },
+        { "name": "Name", "attribute": "data-reorder-label", "on": "[data-reorder] > *" },
+        { "name": "Done control", "attribute": "data-reorder-done", "on": "[data-reorder]" }
+      ]
     },
     {
       "id": "path-bar",

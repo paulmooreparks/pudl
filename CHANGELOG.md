@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.97.0
+
+A list's items can be put in order by the reader. The optional `pudl-reorder.js` takes any element marked `data-reorder` whose child elements are the items; while `data-reorder="on"` each movable item gains a grip it is dragged by, with a line where it will land, and moved by the arrow keys, Home and End, with each move announced and focus kept on the grip. A fixed item keeps its place. A cancelable `pudl:reorder` gives the new order before each move, for the page to save, and the page hides what it wants hidden under `data-reorder-active` while the mode is on.
+
+A rich list box holds rows the page writes, each with a title, a second line and a badge, under group headings. It takes the list box's keys and presses, which both kinds of list now share, passes over rows a find field has hidden while keeping their choice, hides a heading whose rows are all hidden, and fires `pudl:listbox-change`; `pudlListbox.value()` reads the choice and `data-listbox-for` hands it to a form field. In both kinds of list, a key that moves or chooses now ends a run of typed letters, so a Space after it chooses rather than types.
+
+A taskbar's status area marked `data-status-fold` folds its items into one Status item when the bar runs short, all at once or as few as will do, never one marked `data-status-keep`. It decides only on reserved widths: a badge carrying `data-status-reserve` is measured as reading it, so a count that grows never folds or unfolds anything. The Status item takes the most urgent tone of what it holds in its glyph and their total in its badge, lists them in its menu, and stands in for a folded item's popover.
+
+A window's `data-win-group-detail` gives the text its stack row's detail may repeat, so a stack whose label says the same thing in its own form shows no repeated detail. Existing pages need no change.
+
 ## 0.96.10
 
 A taskbar stack's row whose detail repeats the stack's label leaves the detail undrawn, as 0.96.9 did for a detail that repeats the title. A stack's button already shows its label, so a row saying it again says nothing; the row's name and tooltip still carry it. Taskbar buttons outside a stack are unchanged.

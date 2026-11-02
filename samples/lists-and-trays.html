@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ordering, rich lists and a folding tray</title>
+  <script src="../dist/pudl-theme.js"></script>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <link rel="stylesheet" href="../dist/pudl-windows.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-windows.js" defer></script>
+  <script src="../dist/pudl-listbox.js" defer></script>
+  <script src="../dist/pudl-reorder.js" defer></script>
+  <style>
+    body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    .win-host { flex: 1; position: relative; min-height: 0; }
+    .panel { padding: var(--space-4); max-width: 460px; }
+    .sections { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+    .sections > li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+    .sections > li:last-child { border-bottom: 0; }
+    .sections > li > h3 { margin: 0; font-size: var(--text-sm); }
+    .sections > li > p { flex: 1 0 100%; margin: 0; color: var(--text-muted); font-size: var(--text-sm); }
+    .sections[data-reorder-active] > li > p { display: none; }
+  </style>
+</head>
+<body>
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="sections,reviewers"></div>
+  </div>
+  <footer class="win-bar">
+    <nav class="win-dock" data-win-dock aria-label="Open windows"></nav>
+    <nav class="status-area" aria-label="Status" data-status-fold="all">
+      <a class="status-item" href="#queue" aria-label="Review queue: 4 waiting"><span class="glyph" style="--glyph: var(--glyph-inbox)" aria-hidden="true"></span><span>Queue</span><span class="badge warn" aria-hidden="true" data-status-reserve="99+">4</span></a>
+      <a class="status-item" href="#runs" aria-label="Runs: 1 working"><span class="glyph" style="--glyph: var(--glyph-terminal)" aria-hidden="true"></span><span>Runs</span><span class="badge" data-state="working" aria-hidden="true" data-status-reserve="99+">1</span></a>
+      <a class="status-item" href="#mail" aria-label="Mail: nothing new"><span class="glyph" style="--glyph: var(--glyph-document)" aria-hidden="true"></span><span>Mail</span><span class="badge" aria-hidden="true" data-status-reserve="99+" hidden></span></a>
+      <a class="status-item" href="#account" aria-label="Your account" data-status-keep><span class="glyph status-picture" style="--glyph: var(--glyph-account)" aria-hidden="true"></span></a>
+    </nav>
+  </footer>
+
+  <template id="tpl-sections">
+    <section class="win" data-win="sections" style="--win-x: 0.03; --win-y: 0.05; --win-w: 0.42; --win-h: 0.8">
+      <header class="win-head"><h2 class="win-title">Sections</h2></header>
+      <div class="win-body"><div class="panel">
+        <p>Press Reorder, then drag a section by its grip or move it with the arrow keys. The page would save the order it is given; this one keeps it until you leave.</p>
+        <p><button type="button" class="btn btn-sm" id="reorder-start">Reorder</button> <button type="button" class="btn btn-sm" id="reorder-done" hidden>Done</button></p>
+        <ul class="sections" id="sections" data-reorder="off" data-reorder-done="reorder-done" aria-label="Sections">
+          <li data-reorder-id="pinned" data-reorder-fixed><h3>Pinned</h3><p>Stays first.</p></li>
+          <li data-reorder-id="projects"><h3>Projects</h3><p>Four open, one due this week.</p></li>
+          <li data-reorder-id="reports"><h3>Reports</h3><p>The quarter's figures.</p></li>
+          <li data-reorder-id="sources"><h3>Sources</h3><p>Where the figures come from.</p></li>
+          <li data-reorder-id="archive"><h3>Archive</h3><p>Closed work.</p></li>
+        </ul>
+        <p id="order-said" class="form-hint" aria-live="off"></p>
+      </div></div>
+    </section>
+  </template>
+  <template id="tpl-reviewers">
+    <section class="win" data-win="reviewers" style="--win-x: 0.5; --win-y: 0.08; --win-w: 0.42; --win-h: 0.75">
+      <header class="win-head"><h2 class="win-title">Reviewers</h2></header>
+      <div class="win-body"><div class="panel">
+        <div class="form-group"><input class="form-input" id="find" type="search" aria-label="Find a reviewer" placeholder="Find a reviewer"></div>
+        <div class="listbox" id="reviewers" data-listbox="multiple" aria-label="Reviewers" data-listbox-rows="6">
+          <div class="listbox-group">Available</div>
+          <div class="listbox-row" data-value="ana" aria-selected="true"><span class="listbox-title">Ana Reyes</span><span class="listbox-detail">Finance</span><span class="badge" data-state="working">Reviewing</span></div>
+          <div class="listbox-row" data-value="jun"><span class="listbox-title">Jun Reyes</span><span class="listbox-detail">Operations</span><span class="badge" data-state="waiting">Waiting</span></div>
+          <div class="listbox-row" data-value="mei"><span class="listbox-title">Mei Tan</span><span class="listbox-detail">Finance</span><span class="badge" data-state="idle">Idle</span></div>
+          <div class="listbox-group">Away</div>
+          <div class="listbox-row" data-value="ana-c" data-disabled><span class="listbox-title">Ana Cruz</span><span class="listbox-detail">Legal</span><span class="badge">Away</span></div>
+          <div class="listbox-row" data-value="devin"><span class="listbox-title">Devin Lee</span><span class="listbox-detail">Operations</span><span class="badge">Away</span></div>
+        </div>
+        <p class="form-hint">Narrow the window to see the tray fold into one Status item.</p>
+      </div></div>
+    </section>
+  </template>
+  <script>
+    document.addEventListener('click', function (e) {
+      if (e.target.id === 'reorder-start') pudlReorder.on(document.getElementById('sections'));
+    });
+    document.addEventListener('pudl:reorder-mode', function (e) {
+      document.getElementById('reorder-start').hidden = e.detail.on;
+      document.getElementById('reorder-done').hidden = !e.detail.on;
+      if (e.detail.on) { var g = e.target.querySelector('.reorder-grip'); if (g) g.focus(); }
+      else document.getElementById('reorder-start').focus();
+    });
+    document.addEventListener('pudl:reorder', function (e) {
+      document.getElementById('order-said').textContent = 'Saved order: ' + e.detail.order.join(', ');
+    });
+    document.addEventListener('input', function (e) {
+      if (e.target.id !== 'find') return;
+      var q = e.target.value.toLowerCase();
+      document.querySelectorAll('#reviewers .listbox-row').forEach(function (r) { r.hidden = !!q && r.querySelector('.listbox-title').textContent.toLowerCase().indexOf(q) < 0; });
+    });
+  </script>
+</body>
+</html>

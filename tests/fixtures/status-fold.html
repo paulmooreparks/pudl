@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A status area that folds</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 300px; position: relative; } .barwrap { width: 1200px; margin: 8px 0; } .barwrap > .win-bar { position: static; }</style>
+</head>
+<body>
+  <!-- A test fixture for a taskbar status area that folds: windows, two of
+       them in a stack whose label carries their shared detail in its own
+       form; one taskbar whose tray folds all at once and one whose tray
+       folds item by item, each with reserved badges, an item that opens a
+       popover and an account that never folds. -->
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="a,b,c,d" data-win-taskbar-stacks="always"></div>
+  </div>
+  <div class="barwrap" id="wrap-all">
+    <footer class="win-bar" id="bar-all">
+      <nav class="win-dock" data-win-dock aria-label="Windows"></nav>
+      <nav class="status-area" aria-label="Status" data-status-fold="all" id="tray-all">
+        <button type="button" class="status-item" id="queue" aria-label="Queue: 3 waiting"><span class="glyph" style="--glyph: var(--glyph-inbox)" aria-hidden="true"></span><span>Queue</span><span class="badge warn" aria-hidden="true" data-status-reserve="99+">3</span></button>
+        <button type="button" class="status-item" id="runs" aria-label="Runs: 2 stuck"><span class="glyph" style="--glyph: var(--glyph-terminal)" aria-hidden="true"></span><span>Runs</span><span class="badge" data-state="stuck" aria-hidden="true" data-status-reserve="99+">2</span></button>
+        <button type="button" class="status-item" id="mail" aria-label="Mail: nothing new"><span class="glyph" style="--glyph: var(--glyph-document)" aria-hidden="true"></span><span>Mail</span><span class="badge" aria-hidden="true" data-status-reserve="99+" hidden></span></button>
+        <button type="button" class="status-item" id="tasks" aria-label="Tasks" popovertarget="tasks-pop"><span class="glyph" style="--glyph: var(--glyph-list)" aria-hidden="true"></span><span>Tasks</span></button>
+        <button type="button" class="status-item" id="account" aria-label="Your account" data-status-keep><span class="glyph status-picture" style="--glyph: var(--glyph-account)" aria-hidden="true"></span></button>
+      </nav>
+    </footer>
+  </div>
+  <div class="popover" id="tasks-pop" popover><p>Tasks.</p><button type="button" class="btn btn-sm" id="tasks-first">First task</button></div>
+  <div class="barwrap" id="wrap-items">
+    <footer class="win-bar" id="bar-items">
+      <nav class="win-dock" data-win-dock aria-label="Windows too"></nav>
+      <nav class="status-area" aria-label="Status too" data-status-fold id="tray-items">
+        <button type="button" class="status-item" id="i1" aria-label="One"><span class="glyph" style="--glyph: var(--glyph-inbox)" aria-hidden="true"></span><span>One item</span></button>
+        <button type="button" class="status-item" id="i2" aria-label="Two"><span class="glyph" style="--glyph: var(--glyph-flag)" aria-hidden="true"></span><span>Two items</span></button>
+        <button type="button" class="status-item" id="i3" aria-label="Three"><span class="glyph" style="--glyph: var(--glyph-shield)" aria-hidden="true"></span><span>Three items</span></button>
+      </nav>
+    </footer>
+  </div>
+  <template id="tpl-a"><section class="win" data-win="a" style="--win-x:.02;--win-y:.05;--win-w:.3;--win-h:.5"><header class="win-head"><h2 class="win-title">A long window title for the first</h2></header><div class="win-body"><p>A.</p></div></section></template>
+  <template id="tpl-b"><section class="win" data-win="b" style="--win-x:.1;--win-y:.1;--win-w:.3;--win-h:.5"><header class="win-head"><h2 class="win-title">Another long window title</h2></header><div class="win-body"><p>B.</p></div></section></template>
+  <template id="tpl-c"><section class="win" data-win="c" data-win-group="chats" data-win-group-label="Studio (Chats)" data-win-group-detail="Studio" data-win-detail="Studio" style="--win-x:.2;--win-y:.15;--win-w:.3;--win-h:.5"><header class="win-head"><h2 class="win-title">Chat one</h2></header><div class="win-body"><p>C.</p></div></section></template>
+  <template id="tpl-d"><section class="win" data-win="d" data-win-group="chats" data-win-group-label="Studio (Chats)" data-win-group-detail="Studio" data-win-detail="Docs" style="--win-x:.3;--win-y:.2;--win-w:.3;--win-h:.5"><header class="win-head"><h2 class="win-title">Chat two</h2></header><div class="win-body"><p>D.</p></div></section></template>
+  <script>
+    window.__folds = [];
+    document.addEventListener('pudl:status-fold', function (e) { __folds.push(e.target.id + ':' + e.detail.count); });
+  </script>
+</body>
+</html>

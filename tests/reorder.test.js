@@ -108,6 +108,9 @@ function check(name, ok, detail) {
   check('the Done control ends the mode', await p.evaluate(() => document.getElementById('list').getAttribute('data-reorder') === 'off'));
   check('pudlReorder.order gives the order', JSON.stringify(await p.evaluate(() => pudlReorder.order(document.getElementById('list')))) === '["pinned","Files","sources","chats"]'.replace('"Files"', '1'), await p.evaluate(() => pudlReorder.order(document.getElementById('list'))));
 
+  /* A list drawn by script, already on, is taken in. */
+  await p.evaluate(() => { const u = document.createElement('ul'); u.id = 'late'; u.setAttribute('data-reorder', 'on'); u.innerHTML = '<li data-reorder-id="x">X</li><li data-reorder-id="y">Y</li>'; document.body.appendChild(u); });
+  await p.waitForFunction(() => document.querySelectorAll('#late .reorder-grip').length === 2).then(() => true, () => false).then(ok => check('a list added to the page already on gains its grips', ok));
   check('no page errors', !errors.length, errors);
   await b.close();
   console.log(failures ? failures + ' check(s) failed' : 'all checks passed');

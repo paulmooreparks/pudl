@@ -372,10 +372,20 @@
 
   function start() {
     document.querySelectorAll(LIST).forEach(sync);
+    /* A list is taken in when its attribute changes and when it arrives
+       in the page already marked, as a list drawn by script does; one
+       that leaves the page leaves the mode. */
     new MutationObserver(function (records) {
-      records.forEach(function (r) { if (r.target.matches && r.target.matches(LIST)) sync(r.target); else if (active.has(r.target)) sync(r.target); });
+      records.forEach(function (r) {
+        if (r.type === 'attributes') { if (r.target.matches && r.target.matches(LIST)) sync(r.target); else if (active.has(r.target)) sync(r.target); return; }
+        r.addedNodes.forEach(function (n) {
+          if (n.nodeType !== 1) return;
+          if (n.matches(LIST)) sync(n);
+          n.querySelectorAll(LIST).forEach(sync);
+        });
+      });
       active.forEach(function (list) { if (!list.isConnected) sync(list); });
-    }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['data-reorder'] });
+    }).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-reorder'] });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();

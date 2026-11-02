@@ -856,6 +856,13 @@
 .win-bar > .win-bar-more { flex: none; }
 .win-bar > .win-bar-more::before { width: 14px; height: 14px; -webkit-mask-image: var(--glyph-more); mask-image: var(--glyph-more); background: currentColor; }
 .win-bar[data-win-bar-compact] > .status-area .status-item > :not(.glyph, .badge, img, svg, .status-picture) { display: none; }
+/* A folding status area's folded items give way to its Status item
+   (0.97.0), whose glyph takes the most urgent tone among them. */
+.win-bar > .status-area > [data-status-folded] { display: none; }
+.status-fold[data-tone="stuck"] > .glyph, .status-fold[data-tone="danger"] > .glyph { color: var(--danger); }
+.status-fold[data-tone="waiting"] > .glyph, .status-fold[data-tone="warn"] > .glyph { color: var(--warn); }
+.status-fold[data-tone="working"] > .glyph, .status-fold[data-tone="accent"] > .glyph { color: var(--accent); }
+.status-fold[data-tone="positive"] > .glyph { color: var(--positive); }
 .win-bar [hidden] { display: none; }
 .win-bar .icon-btn > .glyph { --glyph-size: 16px; }
 .win-bar .icon-btn > :is(svg, img) { width: 16px; height: 16px; flex: none; object-fit: contain; }

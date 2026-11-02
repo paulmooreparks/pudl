@@ -28,6 +28,7 @@
   <script src="dist/pudl-zoom.js" defer></script>
   <script src="dist/pudl-rows.js" defer></script>
   <script src="dist/pudl-toolbar.js" defer></script>
+  <script src="dist/pudl-reorder.js" defer></script>
   <style>
     /* === Reference document chrome (this page only) ========================= */
     .ref { max-width: 980px; margin: 0 auto; padding: 24px 32px 80px; }
@@ -131,7 +132,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.96.10</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.97.0</a>
     </div>
   </header>
 
@@ -1331,8 +1332,31 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       <div class="form-group"><label class="form-label" for="ref-due">Due</label><input class="form-input" type="date" id="ref-due" value="2026-10-22" data-date></div>
       <div class="form-group"><label class="form-label" for="ref-at">Starts</label><input class="form-input" type="time" id="ref-at" value="13:30" step="900" data-date></div>
     </div>
+    <p>A rich list box holds rows the page writes, each with a title, a second line and a badge, under group headings. It takes the same keys and presses as the list box above. Rows hidden by a filter are out of every key and keep their choice.</p>
+    <div class="demo" style="max-width: 420px">
+      <div class="listbox" id="ref-people" data-listbox="multiple" aria-label="Reviewers" data-listbox-rows="5">
+        <div class="listbox-group">Available</div>
+        <div class="listbox-row" data-value="ana" aria-selected="true"><span class="listbox-title">Ana Reyes</span><span class="listbox-detail">Finance</span><span class="badge" data-state="working">Reviewing</span></div>
+        <div class="listbox-row" data-value="jun"><span class="listbox-title">Jun Reyes</span><span class="listbox-detail">Operations</span><span class="badge" data-state="waiting">Waiting</span></div>
+        <div class="listbox-row" data-value="mei"><span class="listbox-title">Mei Tan</span><span class="listbox-detail">Finance</span><span class="badge" data-state="idle">Idle</span></div>
+        <div class="listbox-group">Away</div>
+        <div class="listbox-row" data-value="ana-c" data-disabled><span class="listbox-title">Ana Cruz</span><span class="listbox-detail">Legal</span><span class="badge">Away</span></div>
+      </div>
+    </div>
 
-    <h2 id="people">27. Pictures, avatars and steppers</h2>
+    <h2 id="reorder">27. Lists a reader puts in order</h2>
+    <p>A list marked <code>data-reorder</code> can be put in order by the reader while its mode is on. Each item that may move gains a flat grip, the handle it is dragged by, and with a grip focused Up and Down move it, Home and End to the ends; each move is announced, and focus stays on the grip. A fixed item keeps its place. A line marks where a dragged item will land. The page saves the order from <code>pudl:reorder</code>.</p>
+    <div class="demo" style="max-width: 420px">
+      <p style="margin: 0 0 8px"><button type="button" class="btn btn-sm" id="ref-reorder-go" onclick="pudlReorder.on(document.getElementById('ref-reorder'))">Reorder</button> <button type="button" class="btn btn-sm" id="ref-reorder-done">Done</button></p>
+      <ul class="row-list" id="ref-reorder" data-reorder="on" data-reorder-done="ref-reorder-done" aria-label="Sidebar sections">
+        <li class="md-row" data-reorder-id="inbox" data-reorder-fixed><span class="md-item">Inbox</span></li>
+        <li class="md-row" data-reorder-id="projects"><span class="md-item">Projects</span></li>
+        <li class="md-row" data-reorder-id="reports"><span class="md-item">Reports</span></li>
+        <li class="md-row" data-reorder-id="archive"><span class="md-item">Archive</span></li>
+      </ul>
+    </div>
+
+    <h2 id="people">28. Pictures, avatars and steppers</h2>
     <p>A figure's frame keeps its picture's proportion before it loads, and a picture that fails shows its words. An avatar is neutral, or tinted by name, and its status mark has a shape as well as a colour. A stepper tells done, current and to come by shape as well as colour, and each done step is a link back.</p>
     <div class="demo" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--space-4); align-items: start">
       <figure class="figure"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 90'%3E%3Crect width='160' height='90' fill='%23c9b79c'/%3E%3Crect x='58' y='8' width='44' height='76' rx='2' fill='%23fbfaf6' transform='rotate(-6 80 46)'/%3E%3Ccircle cx='128' cy='24' r='14' fill='%237d5a3c'/%3E%3C/svg%3E" alt="A receipt on a café table" width="160" height="90"><figcaption>The receipt, photographed at check-out.</figcaption></figure>
@@ -1355,7 +1379,7 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </ol>
     </div>
 
-    <h2>28. Invariants</h2>
+    <h2>29. Invariants</h2>
     <p>These hold everywhere PUDL is used, and a page that breaks one is not using PUDL as intended.</p>
     <ul class="todo">
       <li><span class="lbl">Elevation</span>Raised means the reader can press it, sunken means they can type into it, and flat means it is there to be read.</li>

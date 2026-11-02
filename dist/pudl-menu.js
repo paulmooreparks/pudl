@@ -37,7 +37,12 @@
      More button. A control that is showing, or that no toolbar folded,
      is its own anchor. */
   function shownFor(ctl) {
-    if (ctl.getClientRects().length || !ctl.closest('.toolbar')) return ctl;
+    if (ctl.getClientRects().length) return ctl;
+    /* An item a folding status area has folded is stood in for by the
+       area's Status item (0.97.0). */
+    var area = ctl.closest('.status-area[data-status-fold]');
+    if (area) { var sf = area.querySelector(':scope > .status-fold'); return sf && sf.getClientRects().length ? sf : ctl; }
+    if (!ctl.closest('.toolbar')) return ctl;
     var group = ctl.closest('[data-toolbar-group], .toolbar-group');
     var fold = group && group.querySelector(':scope > .toolbar-fold > .menu-btn');
     if (fold && fold.getClientRects().length) return fold;
