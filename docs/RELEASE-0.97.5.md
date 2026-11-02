@@ -16,4 +16,4 @@ No whole-project matrix or independent second review was run. GitHub CI runs the
 
 ## Publication
 
-Publication identity follows the immutable tag. The archive, its checksum, the public download and the versioned CDN files must match the tag before adoption handoff. Main receives verified 0.97.5 CDN examples after publication.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.97.5. Its immutable commit is 760347c2fc7fe4fc075ed299353f30dfeb54c28c and its annotated tag object is 161b0078cefbdcf937c495efd8f6d388f8cd3a11. The reproducible archive contains 424 files including all 183 dist files, occupies 6256522 bytes, and has SHA-256 0b7af0112cb2ead2bb7dbe5c34d91d3ef9862ff60255f1eb81dc74ba9b5f2822. The unauthenticated public downloads of the archive and checksum match, every archived blob and the ZIP commit comment match the tag, and all 99 versioned CDN CSS and JS files match their tagged bytes. Main's 25 CDN examples now use those verified hashes. The package closure check at the release commit found no missing reference.
