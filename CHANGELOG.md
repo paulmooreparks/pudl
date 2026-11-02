@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.96.8
+
+A tree takes two custom properties from its host. `--tree-indent`, defaulting to the spacing token it used before, is the step each nested level moves in by, and `--tree-row-pad-start`, defaulting to 6px, is the space before a row's toggle or glyph. A host sets them on the tree to line its toggles up with the content around it. The toggle, glyph and gap metrics are unchanged, and a tree that sets neither looks as it did.
+
 ## 0.96.7
 
 A command shortcut pressed with nothing focused now reaches the front window's applet. The dispatcher in `pudl-commands.js` looks up scopes along the chain from the focused element, and with focus on the body, as it is after a window is activated by its title bar, a fullscreen show ends or a page is drawn, that chain held only the page's scopes, so a window's applet never saw its key and a key the browser also binds went to the browser. With focus on the body the front window's scopes are tried first, then the page's; on a page with no window layer and one applet, that applet's. Two applets on a page and nothing focused is still no one's key, a focused field anywhere keeps its own lookup, and a modal dialog still keeps every key.

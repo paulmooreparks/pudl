@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tree indentation</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-tree.js" defer></script>
+  <style>body { margin: 24px; } .tree { width: 320px; } #tuned { --tree-indent: 16px; --tree-row-pad-start: 0px; }</style>
+</head>
+<body>
+  <!-- A test fixture for the tree's two host-set properties: one tree
+       left alone and one tuned to a 16px step and no start padding. -->
+  <ul class="tree" id="plain" aria-label="Plain">
+    <li><a href="#a" aria-expanded="true">Level one</a>
+      <ul>
+        <li><a href="#b" aria-expanded="true">Level two</a>
+          <ul><li><a href="#c">Level three</a></li></ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+  <ul class="tree" id="tuned" aria-label="Tuned">
+    <li><a href="#d" aria-expanded="true">Level one</a>
+      <ul>
+        <li><a href="#e" aria-expanded="true">Level two</a>
+          <ul><li><a href="#f">Level three</a></li></ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</body>
+</html>

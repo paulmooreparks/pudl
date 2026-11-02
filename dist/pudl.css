@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.96.7.
+   Version 0.96.8.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -3042,10 +3042,15 @@ button.filter-chip-x { padding: 0; flex: none; cursor: pointer; }
    Each toggle is a small raised button, since pressing it opens or closes
    its branch. */
 .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
-.tree ul { padding-inline-start: var(--space-4); }
+/* A host lines the tree up with what stands around it through two
+   properties set on the tree (0.96.8): --tree-indent, the step each
+   nested level moves in by, and --tree-row-pad-start, the space before a
+   row's toggle or glyph. The toggle, glyph and gap are not theirs. */
+.tree { --tree-indent: var(--space-4); --tree-row-pad-start: 6px; }
+.tree ul { padding-inline-start: var(--tree-indent); }
 .tree a {
   display: flex; align-items: center; gap: 6px;
-  padding: 3px 10px 3px 6px;
+  padding: 3px 10px 3px var(--tree-row-pad-start);
   border-inline-end: 3px solid transparent;
   font-size: var(--text-sm); line-height: 1.5;
   color: var(--text); text-decoration: none; white-space: nowrap;

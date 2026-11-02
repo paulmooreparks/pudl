@@ -127,7 +127,7 @@ Each row is a component, the markup it expects and the attributes that carry its
 | Applets | an element with `data-applet`, and optionally `data-applet-page`, `data-applet-fit`, `data-applet-param` | `data-applet-state`; `data-applet-fit` |
 | Regions | any element with `data-region` | `aria-busy` while replaced |
 | Grid | `table.data-table[role="grid"]` whose rows each hold a link, the first being the row's address | `aria-selected` on rows |
-| Tree | `ul.tree` of `li` holding `a`, then optionally a nested `ul` of the same | `aria-expanded` on a node's link when it has children; `aria-current` on the current node's |
+| Tree | `ul.tree` of `li` holding `a`, then optionally a nested `ul` of the same; a host may set `--tree-indent` (default `var(--space-4)`), the step each nested level moves in by, and `--tree-row-pad-start` (default `6px`), the space before a row's toggle or glyph, on the tree (0.96.8) | `aria-expanded` on a node's link when it has children; `aria-current` on the current node's |
 | Path bar | `nav.path` (with `.mono`) holding `ol` of `li`, each an `a` or, last, the current place with `aria-current` | `aria-current` |
 | Glyph | `.glyph` with `--glyph` set to a glyph token, and `--glyph-size` | |
 | Document tabs | `.tablist.doc-tabs[role="tablist"]` of `[role="tab"]` links or buttons, each holding its name, an optional `.doc-tab-dirty` with words for assistive technology, and an optional `.doc-tab-close[aria-hidden="true"]` | `aria-selected` |
