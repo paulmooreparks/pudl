@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dock strip overflow</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>body { margin: 0; } .win-host { height: 100dvh; }</style>
+</head>
+<body>
+  <!-- Eight windows docked on the right, four on the left and four at the
+       top, so every strip has more tabs than it can show. -->
+  <div class="win-host">
+    <div class="win-layer" data-win-layer data-win-src="#tpl-{key}" data-win-default="main,r1,r2,r3,r4,r5,r6,r7,r8,l1,l2,l3,l4,t1,t2,t3,t4,t5,t6,t7,t8" data-win-menu data-win-dock-tabs="all" data-win-dock-splits data-win-dock-rail-width="400" data-win-dock-collapse-height="200">
+      <section class="win" data-win="main" data-win-mode="maximized" data-win-glyph="document">
+        <header class="win-head"><h2 class="win-title">Document</h2></header>
+        <div class="win-body"><p>The document fills the area between the docks.</p></div>
+      </section>
+      <section class="win" data-win="r1" data-win-mode="dock-right" data-win-glyph="folder" style="--win-dock-size: .25">
+        <header class="win-head"><h2 class="win-title">Right one: the first window</h2></header>
+        <div class="win-body"><p>Right one.</p></div>
+      </section>
+      <section class="win" data-win="r2" data-win-mode="dock-right" data-win-icon="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23c33'/%3E%3C/svg%3E">
+        <header class="win-head"><h2 class="win-title">Right two: with a picture</h2></header>
+        <div class="win-body"><p>Right two.</p></div>
+      </section>
+      <section class="win" data-win="r3" data-win-mode="dock-right" data-win-glyph="comments" data-win-state="working">
+        <header class="win-head"><h2 class="win-title">Right three: working away</h2></header>
+        <div class="win-body"><p>Right three.</p></div>
+      </section>
+      <section class="win" data-win="r4" data-win-mode="dock-right" data-win-glyph="branch">
+        <header class="win-head"><h2 class="win-title">Right four: branches</h2></header>
+        <div class="win-body"><p>Right four.</p></div>
+      </section>
+      <section class="win" data-win="r5" data-win-mode="dock-right" data-win-glyph="script" data-win-state="waiting">
+        <header class="win-head"><h2 class="win-title">Right five: waiting on an answer</h2></header>
+        <div class="win-body"><p>Right five.</p></div>
+      </section>
+      <section class="win" data-win="r6" data-win-mode="dock-right" data-win-glyph="warning">
+        <header class="win-head"><h2 class="win-title">Right six: problems</h2></header>
+        <div class="win-body"><p>Right six.</p></div>
+      </section>
+      <section class="win" data-win="r7" data-win-mode="dock-right" data-win-glyph="history">
+        <header class="win-head"><h2 class="win-title">Right seven: history</h2></header>
+        <div class="win-body"><p>Right seven.</p></div>
+      </section>
+      <section class="win" data-win="r8" data-win-mode="dock-right" data-win-glyph="gear">
+        <header class="win-head"><h2 class="win-title">Right eight: the last window</h2></header>
+        <div class="win-body"><p>Right eight.</p></div>
+      </section>
+      <section class="win" data-win="l1" data-win-mode="dock-left" data-win-glyph="folder" style="--win-dock-size: .2">
+        <header class="win-head"><h2 class="win-title">Left one: the workspace</h2></header>
+        <div class="win-body"><p>Left one.</p></div>
+      </section>
+      <section class="win" data-win="l2" data-win-mode="dock-left" data-win-glyph="search">
+        <header class="win-head"><h2 class="win-title">Left two: a search</h2></header>
+        <div class="win-body"><p>Left two.</p></div>
+      </section>
+      <section class="win" data-win="l3" data-win-mode="dock-left" data-win-glyph="comments">
+        <header class="win-head"><h2 class="win-title">Left three: the chats</h2></header>
+        <div class="win-body"><p>Left three.</p></div>
+      </section>
+      <section class="win" data-win="l4" data-win-mode="dock-left" data-win-glyph="inbox">
+        <header class="win-head"><h2 class="win-title">Left four: the inbox</h2></header>
+        <div class="win-body"><p>Left four.</p></div>
+      </section>
+      <section class="win" data-win="t1" data-win-mode="dock-top" data-win-glyph="script" style="--win-dock-size: .2">
+        <header class="win-head"><h2 class="win-title">Top one: an output of considerable length in its title</h2></header>
+        <div class="win-body"><p>Top one.</p></div>
+      </section>
+      <section class="win" data-win="t2" data-win-mode="dock-top" data-win-glyph="warning">
+        <header class="win-head"><h2 class="win-title">Top two: problems found while building the whole tree</h2></header>
+        <div class="win-body"><p>Top two.</p></div>
+      </section>
+      <section class="win" data-win="t3" data-win-mode="dock-top" data-win-glyph="terminal">
+        <header class="win-head"><h2 class="win-title">Top three: a terminal session running the test suite</h2></header>
+        <div class="win-body"><p>Top three.</p></div>
+      </section>
+      <section class="win" data-win="t4" data-win-mode="dock-top" data-win-glyph="history">
+        <header class="win-head"><h2 class="win-title">Top four: the history of every change this week</h2></header>
+        <div class="win-body"><p>Top four.</p></div>
+      </section>
+      <section class="win" data-win="t5" data-win-mode="dock-top" data-win-glyph="inbox">
+        <header class="win-head"><h2 class="win-title">Top five: the inbox and everything waiting in it</h2></header>
+        <div class="win-body"><p>Top five.</p></div>
+      </section>
+      <section class="win" data-win="t6" data-win-mode="dock-top" data-win-glyph="search">
+        <header class="win-head"><h2 class="win-title">Top six: a search across the whole workspace</h2></header>
+        <div class="win-body"><p>Top six.</p></div>
+      </section>
+      <section class="win" data-win="t7" data-win-mode="dock-top" data-win-glyph="gear">
+        <header class="win-head"><h2 class="win-title">Top seven: settings for the whole workspace</h2></header>
+        <div class="win-body"><p>Top seven.</p></div>
+      </section>
+      <section class="win" data-win="t8" data-win-mode="dock-top" data-win-glyph="board">
+        <header class="win-head"><h2 class="win-title">Top eight: the board with every card on it</h2></header>
+        <div class="win-body"><p>Top eight.</p></div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

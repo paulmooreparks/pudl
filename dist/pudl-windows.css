@@ -274,6 +274,10 @@
 .win-dock-entry > button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
 .win-dock-tablist .win-item-title { max-width: 12em; overflow: hidden; text-overflow: ellipsis; }
 .win-dock-toggle { flex: none; align-self: flex-start; margin: 4px; }
+/* The More button stands at the strip's end, before the collapse button,
+   while any tab is outside the strip (0.97.7). */
+.win-dock-more { flex: none; align-self: flex-start; margin: 4px; }
+.win-dock-more + .win-dock-toggle { margin-inline-start: 0; }
 .win[data-win-dock-shared]:is([data-win-edge="left"], [data-win-edge="right"]):not([data-win-dock-peek]) {
   top: calc(var(--dock-top, 0px) + 40px);
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px) - 40px);

@@ -93,11 +93,15 @@ Dragging a tab out of its strip is not supported. A docked window moves to anoth
 
 ## Keyboard and Focus
 
-Arrow keys move focus along the tabs, horizontally in an open dock and a top or bottom strip and vertically in a rail. Home and End move to the first and last tabs. Enter or Space selects the focused tab. Delete requests closure through `pudl:window-closing`, so an editor can refuse while asking about unsaved changes. Required tabs ignore closure. Closing a tab focuses a remaining tab when one exists. Alt+Shift with the arrow keys moves the focused tab, as described above.
+Arrow keys move focus along the tabs, horizontally in an open dock and a top or bottom strip and vertically in a rail, and the whole tab comes into view as it takes focus. Home and End move to the first and last tabs. Enter or Space selects the focused tab. Delete requests closure through `pudl:window-closing`, so an editor can refuse while asking about unsaved changes. Required tabs ignore closure. Closing a tab focuses a remaining tab when one exists. Alt+Shift with the arrow keys moves the focused tab, as described above.
 
 Shift with the arrow keys toward or away from the central area resizes the shared dock from its tab: the horizontal keys for a side dock, the vertical keys for a top or bottom dock. Shift+F10 or the context-menu key opens the tab's window menu. Right-clicking a tab opens its window commands without changing the selected tab (0.83.1). The menu button also opens with Enter, Space or Arrow Down. Escape dismisses the menu and returns focus to its opener.
 
 Selecting a tab in a rail or a collapsed strip slides out its mounted window over the central area. Working outside that window and its dock retracts it; its menus remain usable. Escape retracts it and returns focus to the tab, unless a menu or dialog needs the key first. Temporary slideouts are not saved in the URL. `pudlWindows.raise(key)` also reveals a docked window when its dock is collapsed.
+
+## More Tabs
+
+A strip whose tabs do not all fit scrolls sideways, and a tab that is selected, by a press, by the arrow keys or by its window being raised, is scrolled whole into view, with its menu button. While any tab is wholly or partly outside the strip, a More button stands at the strip's end, before the collapse button (0.97.7): a raised icon button with the More glyph, named "More tabs" with the count of hidden tabs, from `data-win-text-dock-more` on the layer. The strip's room is measured with the button present, so its appearing never pushes a tab under it. Its menu lists the hidden tabs in strip order, each with its window's picture or glyph, its title and its state mark; choosing one selects the tab, as pressing it would, and scrolls it whole into view. Every shared dock edge with tabs has one, and so does each pane of a split dock. A tab's own menu button shows only while the whole tab is inside the strip, so a tab scrolled almost off never leaves its caret alone at the strip's edge. The thin scrollbar stays for those who use it.
 
 PUDL generates the dock groups and their accessibility attributes. A grouped window is a tab panel, labelled by its tab, and regains its previous role and label when it leaves the group. Hosts should use the public API and status attributes rather than modifying generated elements.
 

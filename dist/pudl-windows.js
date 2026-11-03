@@ -684,7 +684,55 @@
     setTimeout(go, 100);
   }
 
+  /* The tabs of a strip that are wholly or partly outside it, in strip
+     order, measured with the More button present, so the button appearing
+     never pushes a tab under it; an icon rail has no More button. The
+     button is named "More tabs", from data-win-text-dock-more, with the
+     count of hidden tabs. */
+  function fitDockMore(group) {
+    var more = group.querySelector(':scope > .win-dock-more'), list = group.querySelector('.win-dock-tablist');
+    if (!more) return;
+    if (group.hasAttribute('data-dock-rail')) { more.hidden = true; more.__hidden = []; return; }
+    more.hidden = false;
+    var clip = list.getBoundingClientRect(), from = clip.left, to = clip.left + list.clientWidth;
+    var hidden = Array.prototype.filter.call(list.querySelectorAll(':scope > [data-dock-entry]'), function (entry) {
+      var rect = entry.getBoundingClientRect();
+      return rect.left < from - 1 || rect.right > to + 1;
+    }).map(function (entry) { return entry.getAttribute('data-dock-entry'); });
+    more.__hidden = hidden;
+    more.hidden = !hidden.length;
+    var name = text('dock-more', 'More tabs') + ' (' + hidden.length + ')';
+    setAttr(more, 'aria-label', name);
+    setAttr(more, 'title', name);
+    setAttr(more, 'data-tooltip', name);
+  }
+
+  /* The More button's menu: the hidden tabs in strip order, each with its
+     window's picture or glyph, its title and its state mark. Choosing one
+     selects the tab, as pressing it would, and scrolls it whole into
+     view. */
+  function openDockMore(group) {
+    var more = group.querySelector(':scope > .win-dock-more'), list = group.querySelector('.win-dock-tablist');
+    if (!more || !window.pudlMenu || !window.pudlMenu.openAt) return;
+    var rows = (more.__hidden || []).map(function (key) {
+      var tab = list.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+      if (!tab) return null;
+      var picture = tab.querySelector('.win-item-icon'), glyph = tab.querySelector('.win-item-glyph'), state = tab.querySelector('.win-item-state');
+      var mark = state && state.firstChild && !state.firstChild.hidden ? [state] : [];
+      return { id: 'dock-tab-' + key, label: titleOf(key), icon: [picture || glyph], mark: mark, run: function () {
+        if (!tab.isConnected) return;
+        tab.click();
+        tab.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      } };
+    }).filter(Boolean);
+    var r = more.getBoundingClientRect();
+    var low = (r.top + r.bottom) / 2 > window.innerHeight / 2;
+    window.pudlMenu.openAt(Math.round(r.left), Math.round(low ? r.top - 4 : r.bottom + 4), rows,
+      { owner: more, 'for': more, edges: { top: Math.round(r.top - 4), bottom: Math.round(r.bottom + 4) } });
+  }
+
   function positionDockMenus(group) {
+    fitDockMore(group);
     var bounds = group.getBoundingClientRect(), list = group.querySelector('.win-dock-tablist'), clip = list.getBoundingClientRect();
     var rtl = getComputedStyle(group).direction === 'rtl';
     group.querySelectorAll('[data-dock-menu]').forEach(function (button) {
@@ -694,7 +742,10 @@
       var rect = entry.getBoundingClientRect();
       var left = rtl ? rect.left + 5 : rect.right - 23;
       var top = Math.max(clip.top, Math.min(rect.top + (rect.height - 18) / 2, clip.top + list.clientHeight - 18));
-      button.hidden = rail || left < clip.left - 1 || left + 18 > clip.left + list.clientWidth + 1;
+      /* A tab's menu button shows only while the whole tab is inside the
+         strip, at both edges, so a tab scrolled almost off never leaves
+         its caret alone at the strip's edge (0.97.7). */
+      button.hidden = rail || rect.left < clip.left - 1 || rect.right > clip.left + list.clientWidth + 1;
       button.style.left = (left - bounds.left) + 'px';
       button.style.top = (top - bounds.top) + 'px';
     });
@@ -973,6 +1024,17 @@
           toggleButton.innerHTML = '<span class="glyph" aria-hidden="true"></span>';
           group.appendChild(toggleButton);
         }
+        /* While any tab is wholly or partly outside the strip, a More
+           button at the strip's end lists the hidden tabs (0.97.7). */
+        if (!group.querySelector('.win-dock-more')) {
+          var moreButton = document.createElement('button');
+          moreButton.type = 'button';
+          moreButton.className = 'icon-btn win-dock-more';
+          moreButton.setAttribute('aria-haspopup', 'menu');
+          moreButton.innerHTML = '<span class="glyph" aria-hidden="true" style="--glyph: var(--glyph-more)"></span>';
+          moreButton.hidden = true;
+          group.appendChild(moreButton);
+        }
         dockGroups[groupId] = group;
         if (window.ResizeObserver) {
           group.__resizeObserver = new ResizeObserver(function () {
@@ -1010,7 +1072,8 @@
             if (railMode(state, edge)) dockPeek[edge] = key;
             commit(raised(state, key), false);
             focusWindow(key);
-          } else if (e.target.closest('.win-dock-toggle')) dockMode(edge, railMode(state, edge) ? 'open' : 'rail');
+          } else if (e.target.closest('.win-dock-more')) openDockMore(group);
+          else if (e.target.closest('.win-dock-toggle')) dockMode(edge, railMode(state, edge) ? 'open' : 'rail');
         });
         group.addEventListener('keydown', function (e) {
           var menu = e.target.closest('[data-dock-menu]');
@@ -1037,7 +1100,12 @@
           else if (along === 1) next = tabs[(i + 1) % tabs.length];
           else if (along === -1) next = tabs[(i + tabs.length - 1) % tabs.length];
           else if (e.key === 'Delete') { e.preventDefault(); closeDockTab(tab.getAttribute('data-dock-key'), edge, 'key'); return; }
-          if (next) { e.preventDefault(); tabs.forEach(function (t) { t.tabIndex = t === next ? 0 : -1; }); next.focus(); }
+          if (next) {
+            e.preventDefault(); tabs.forEach(function (t) { t.tabIndex = t === next ? 0 : -1; }); next.focus();
+            /* The whole tab, its menu button's room included, comes into
+               view, not only the part focus brings (0.97.7). */
+            next.parentElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          }
         });
         group.addEventListener('focusout', function (e) {
           if (!group.contains(e.relatedTarget)) group.querySelectorAll('[role="tab"]').forEach(function (t) {
@@ -1067,11 +1135,14 @@
         });
       }
       var firstPane = !spec.pane || spec === layout.specs.filter(function (s) { return s.edge === edge; })[0];
-      var dockToggle = group.querySelector('.win-dock-toggle');
+      var dockToggle = group.querySelector('.win-dock-toggle'), dockMore = group.querySelector('.win-dock-more');
       dockToggle.hidden = !firstPane;
+      /* The More button follows the strip; the toggle stands before the
+         strip in a left dock or a rail, and after the More button else. */
+      if (list.nextElementSibling !== dockMore) group.insertBefore(dockMore, list.nextElementSibling);
       if (edge === 'left' || rail) {
         if (group.firstElementChild !== dockToggle) group.insertBefore(dockToggle, list);
-      } else if (list.nextElementSibling !== dockToggle) group.insertBefore(dockToggle, list.nextElementSibling);
+      } else if (dockMore.nextElementSibling !== dockToggle) group.insertBefore(dockToggle, dockMore.nextElementSibling);
       group.toggleAttribute('data-dock-rail', rail);
       group.toggleAttribute('data-dock-collapsed', collapsed);
       group.style.zIndex = String(4 * state.open.length + 2);

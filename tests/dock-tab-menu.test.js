@@ -18,11 +18,16 @@ const assert = require('assert/strict');
     const active = await page.locator('[data-dock-menu="a"]').boundingBox();
     const strip = await page.locator('[data-dock-edge="right"] .win-dock-tablist').boundingBox();
     assert.ok(active.y >= strip.y && active.y + active.height <= strip.y + strip.height, 'active menu stays visible with scrollbar space');
+    /* A tab partly scrolled off the strip's start has no menu button, so a
+       caret never stands alone at the strip's edge (0.97.7); a whole tab
+       keeps its own. */
     await page.locator('[data-dock-edge="right"] .win-dock-tablist').evaluate(e => { e.scrollLeft = getComputedStyle(e).direction === 'rtl' ? -35 : 35; });
-    await page.waitForFunction(() => !document.querySelector('[data-dock-menu="a"]').hidden);
-    assert.ok(await page.locator('[data-dock-menu="a"]').isVisible(), 'partly clipped tab retains its visible menu button');
+    await page.waitForFunction(() => document.querySelector('[data-dock-menu="a"]').hidden);
+    assert.ok(!(await page.locator('[data-dock-menu="a"]').isVisible()), 'partly clipped tab hides its menu button');
+    await page.waitForFunction(() => !document.querySelector('[data-dock-menu="b"]').hidden);
+    assert.ok(await page.locator('[data-dock-menu="b"]').isVisible(), 'a whole tab keeps its menu button');
     for (const key of ['b', 'c']) {
-      await page.locator('[data-dock-key="' + key + '"]').scrollIntoViewIfNeeded();
+      await page.locator('[data-dock-entry="' + key + '"]').scrollIntoViewIfNeeded();
       await page.locator('[data-dock-menu="' + key + '"]').click();
       await page.waitForSelector('#win-menu-' + key + ':popover-open:not(.placing)');
       const menu = await page.locator('#win-menu-' + key).boundingBox();
