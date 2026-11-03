@@ -75,6 +75,16 @@ function check(name, ok, detail) {
   const plain = await page.evaluate(() => pudlToast('No label.', { action: { run: () => {} } }).querySelectorAll('.toast-action').length);
   check('a function action without a label is left out and reported', plain === 0 && warnings.some(w => /needs a label/.test(w)), warnings);
 
+  /* A long word with no spaces, such as a file path, breaks inside the
+     toast rather than running past its edge (0.97.6). */
+  const path = await page.evaluate(() => {
+    const t = pudlToast('Saved to C:\\Users\\someone\\AppData\\Roaming\\An.Application.With.A.Long.Name\\settings\\backups\\2026-11-03T10-51-00.backup.json', { ms: 10000 });
+    const box = t.getBoundingClientRect(), text = t.querySelector('.toast-text'), r = text.getBoundingClientRect();
+    const range = document.createRange(); range.selectNodeContents(text); const words = range.getBoundingClientRect();
+    return { within: words.right <= box.right + 0.5 && r.right <= box.right + 0.5, wraps: words.height > parseFloat(getComputedStyle(text).lineHeight) * 1.5, overflow: t.scrollWidth <= t.clientWidth + 1 };
+  });
+  check('a long path in a toast breaks inside it, with nothing past its edge', path.within && path.wraps && path.overflow, path);
+
   check('no errors', errors.length === 0, errors);
   await browser.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');

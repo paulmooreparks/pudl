@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.6
+
+A toast's text breaks a long word, such as a file path with no spaces, inside the toast instead of running past its edge. The rule that lets a notice's and a toast's words break anywhere covered a toast's title and body but not `.toast-text`, the element `pudl-toast.js` draws a toast's message into.
+
 ## 0.97.5
 
 A destructive button's words at rest now meet 4.5:1 in the dark theme. They had fallen below it against the raised fill under them: Standard at 3.79:1, and every skin used with a companion palette between 3.56:1 and 3.93:1. The dark theme now mixes them 55% danger with 45% text, which keeps them red and gives at least 4.73:1 across every skin, palette and theme, measured where the words sit. The light theme is unchanged.

@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.97.5.
+   Version 0.97.6.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -3593,7 +3593,7 @@ a.seg-choice { text-decoration: none; }
    whole label in its title. */
 .notice, .toast { min-width: 0; max-width: 100%; box-sizing: border-box; }
 .notice > *, .toast > * { min-width: 0; }
-.notice :is(.notice-content, .notice-body, .notice-title), .toast :is(.toast-content, .toast-body, .toast-title) { overflow-wrap: anywhere; }
+.notice :is(.notice-content, .notice-body, .notice-title), .toast :is(.toast-content, .toast-body, .toast-title, .toast-text) { overflow-wrap: anywhere; }
 .notice pre, .toast pre { max-width: 100%; overflow-x: auto; }
 .notice-actions .btn, .toast-actions .btn { max-width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
