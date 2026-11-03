@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.97.7 (unreleased)
+
+A path bar keeps to one line. When its places do not fit, the places above the current one shrink, each to an ellipsis, and the current place shrinks last; when they still do not fit, the bar scrolls sideways, starting scrolled to its end, so the current place is in sight and what stands below the bar never moves as the reader goes deeper. The scrolled-off places stay in the Tab order and scroll into view as they take focus. The host gives each place its whole name in `title`, so a shortened place can be read by the pointer. In a toolbar the bar takes the room between the buttons. A page that relied on the bar wrapping marks it `.wrap`, which wraps as before.
+
+A shared dock strip whose tabs do not all fit shows a More button at its end, before the collapse button, named "More tabs" with the count of hidden tabs, from `data-win-text-dock-more` on the layer. Its menu lists the hidden tabs in strip order with each window's picture or glyph, title and state mark, and choosing one selects the tab and scrolls it whole into view. The strip's room is measured with the button present. Every dock edge with tabs has one, and so does each pane of a split dock. A tab's own menu button now shows only while the whole tab is inside the strip, so a tab scrolled almost off no longer leaves its caret alone at the strip's edge, and arrowing to a tab brings the whole tab into view. A context menu's row may now give `icon`, elements drawn in the glyph's place, and `mark`, elements drawn after its words.
+
 ## 0.97.6
 
 A toast's text breaks a long word, such as a file path with no spaces, inside the toast instead of running past its edge. The rule that lets a notice's and a toast's words break anywhere covered a toast's title and body but not `.toast-text`, the element `pudl-toast.js` draws a toast's message into.
