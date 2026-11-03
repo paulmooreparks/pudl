@@ -103,6 +103,23 @@ function check(name, ok, detail) {
   });
   check('forced colours: the separators are still drawn', sep.width === '12px' && !/rgba\(0, 0, 0, 0\)|transparent/.test(sep.bg), sep);
 
+  /* A place shorter than the 3em floor keeps its own width (0.97.8): a
+     root "/" sits tight against the separator after it. */
+  const tight = await page.evaluate(() => {
+    const nav = document.createElement('nav'); nav.className = 'path mono'; nav.setAttribute('aria-label', 'Short');
+    nav.innerHTML = '<ol><li><a href="#root" title="/">/</a></li><li><a href="#home" title="~">~</a></li><li><span aria-current="location" title="site">site</span></li></ol>';
+    nav.style.width = '600px'; document.body.appendChild(nav);
+    const lis = [...nav.querySelectorAll('li')], out = lis.map(li => {
+      const a = li.firstElementChild, sep = getComputedStyle(li, '::before');
+      const sepWidth = sep.content === 'none' ? 0 : parseFloat(sep.width) + parseFloat(sep.marginLeft) + parseFloat(sep.marginRight);
+      return { li: li.getBoundingClientRect().width - sepWidth, content: a.scrollWidth };
+    });
+    const em = parseFloat(getComputedStyle(lis[0]).fontSize);
+    nav.remove();
+    return { out, em };
+  });
+  check('a place shorter than 3em is no wider than its own content', tight.out.slice(0, 2).every(p => p.li <= p.content + 1 && p.li < 3 * tight.em - 1), tight);
+
   check('no page errors', errors.length === 0, errors);
   await browser.close();
   if (failures) { console.log('FAIL ' + failures + ' checks'); process.exit(1); }

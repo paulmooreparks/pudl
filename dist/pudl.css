@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.97.7.
+   Version 0.97.8.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -3143,11 +3143,20 @@ button.filter-chip-x { padding: 0; flex: none; cursor: pointer; }
   margin: 0; padding: 0; list-style: none; min-width: 0;
   font-size: var(--text-sm);
 }
-.path li { display: inline-flex; align-items: center; flex: 0 1 auto; min-width: 3em; }
-.path li:last-child { flex-shrink: 0; min-width: 0; max-width: 100%; }
+/* A place starts at its own width and may shrink to 3em, or to its own
+   width where that is less (0.97.8), so a one-character place such as "/"
+   is never padded out. Its flex basis is its content and its minimum is
+   the flex item's automatic one, which the flexbox specification makes
+   the smaller of its width and its content's minimum width. Its width is
+   3em, written as min(3em, 100%) so that it holds a percentage of the
+   list: CSS Sizing treats such a cyclic percentage as auto while the list
+   measures its places, so the list is as wide as their content and not
+   3em for each. */
+.path li { display: inline-flex; align-items: center; flex: 0 1 max-content; width: min(3em, 100%); min-width: auto; }
+.path li:last-child { flex-shrink: 0; width: auto; min-width: 0; max-width: 100%; }
 .path.wrap:where(:dir(ltr), :dir(rtl)) { direction: inherit; display: block; overflow: visible; }
 .path.wrap:where(:dir(ltr), :dir(rtl)) > ol { direction: inherit; margin: 0; flex-wrap: wrap; justify-content: flex-start; }
-.path.wrap li { flex: none; min-width: 0; }
+.path.wrap li { flex: none; width: auto; min-width: 0; }
 /* In a toolbar the bar takes the room between the buttons, so it shrinks
    and scrolls there instead of taking a line of its own. */
 .toolbar > .path { flex: 1 1 0; }

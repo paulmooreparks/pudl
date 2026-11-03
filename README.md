@@ -693,7 +693,7 @@ A **path bar** says where the reader is inside a hierarchy they are browsing, su
 
 It is for a browsed hierarchy only. A site's own sections are its tabs, and a record's way back is its back link, so a path bar is never a site's breadcrumb trail. The separators are drawn, and assistive technology hears the list rather than them. `.mono` sets the path in the monospace face, for file paths.
 
-The bar keeps to one line (0.97.7), as a file manager's does, so what stands below it never moves as the reader goes deeper. When the places do not fit, the places above the current one shrink, each to an ellipsis, and the current place shrinks last; when they still do not fit, the bar scrolls sideways, and it starts scrolled to its end, so the current place is in sight. The scrolled-off places stay in the Tab order, and a place scrolls into view as it takes focus. The host gives each place its whole name in `title`, so a shortened place can be read by the pointer. In a toolbar the bar takes the room between the buttons. A bar marked `.wrap` wraps as it did before.
+The bar keeps to one line (0.97.7), as a file manager's does, so what stands below it never moves as the reader goes deeper. When the places do not fit, the places above the current one shrink, each to an ellipsis, and the current place shrinks last; when they still do not fit, the bar scrolls sideways, and it starts scrolled to its end, so the current place is in sight. A place shrinks no narrower than 3em, or its own width where that is less, so a short place such as "/" is never padded out. The scrolled-off places stay in the Tab order, and a place scrolls into view as it takes focus. The host gives each place its whole name in `title`, so a shortened place can be read by the pointer. In a toolbar the bar takes the room between the buttons. A bar marked `.wrap` wraps as it did before.
 
 ## Glyphs as elements and drop targets
 
@@ -1686,7 +1686,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.97.7, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.97.8, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
