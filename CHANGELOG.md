@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.97.7 (unreleased)
+## 0.97.7
 
 A path bar keeps to one line. When its places do not fit, the places above the current one shrink, each to an ellipsis, and the current place shrinks last; when they still do not fit, the bar scrolls sideways, starting scrolled to its end, so the current place is in sight and what stands below the bar never moves as the reader goes deeper. The scrolled-off places stay in the Tab order and scroll into view as they take focus. The host gives each place its whole name in `title`, so a shortened place can be read by the pointer. In a toolbar the bar takes the room between the buttons. A page that relied on the bar wrapping marks it `.wrap`, which wraps as before.
 
