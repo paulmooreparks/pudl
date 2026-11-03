@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Path bars</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <style>
+    body { margin: 16px; }
+    #narrow, #narrow-wrap { width: 20em; border: 1px dashed var(--border); }
+    #bar { width: 40em; }
+    #wide { width: 60em; }
+  </style>
+</head>
+<body>
+  <!-- A deep path in a narrow box, each place with its whole name as its title. -->
+  <div id="narrow">
+    <nav class="path mono" id="deep" aria-label="Location">
+      <ol>
+        <li><a href="?path=/" title="workspace">workspace</a></li>
+        <li><a href="?path=/projects" title="projects">projects</a></li>
+        <li><a href="?path=/projects/catalogue" title="catalogue">catalogue</a></li>
+        <li><a href="?path=/projects/catalogue/2026" title="2026">2026</a></li>
+        <li><a href="?path=/projects/catalogue/2026/november" title="november">november</a></li>
+        <li><a href="?path=/projects/catalogue/2026/november/drafts" title="drafts">drafts</a></li>
+        <li><a href="?path=/projects/catalogue/2026/november/drafts/chapters" title="chapters">chapters</a></li>
+        <li><span aria-current="location" title="introduction.md">introduction.md</span></li>
+      </ol>
+    </nav>
+  </div>
+  <!-- The same path in a toolbar whose box the test narrows and widens. -->
+  <div id="bar">
+    <div class="toolbar" role="toolbar" aria-label="Files">
+      <button type="button" class="btn">Up</button>
+      <nav class="path mono" id="inbar" aria-label="Location">
+        <ol>
+          <li><a href="?path=/" title="workspace">workspace</a></li>
+          <li><a href="?path=/projects" title="projects">projects</a></li>
+          <li><a href="?path=/projects/catalogue" title="catalogue">catalogue</a></li>
+          <li><a href="?path=/projects/catalogue/2026" title="2026">2026</a></li>
+          <li><a href="?path=/projects/catalogue/2026/november" title="november">november</a></li>
+          <li><a href="?path=/projects/catalogue/2026/november/drafts" title="drafts">drafts</a></li>
+          <li><a href="?path=/projects/catalogue/2026/november/drafts/chapters" title="chapters">chapters</a></li>
+          <li><span aria-current="location" title="introduction.md">introduction.md</span></li>
+        </ol>
+      </nav>
+      <button type="button" class="btn">New</button>
+    </div>
+  </div>
+  <!-- A short path in a wide box, as before. -->
+  <div id="wide">
+    <nav class="path" id="short" aria-label="Location">
+      <ol>
+        <li><a href="?path=/" title="site">site</a></li>
+        <li><a href="?path=/articles" title="articles">articles</a></li>
+        <li><span aria-current="location" title="coincidences.md">coincidences.md</span></li>
+      </ol>
+    </nav>
+  </div>
+  <!-- The old wrapping bar, by its modifier. -->
+  <div id="narrow-wrap">
+    <nav class="path mono wrap" id="wrapped" aria-label="Location">
+      <ol>
+        <li><a href="?path=/" title="workspace">workspace</a></li>
+        <li><a href="?path=/projects" title="projects">projects</a></li>
+        <li><a href="?path=/projects/catalogue" title="catalogue">catalogue</a></li>
+        <li><a href="?path=/projects/catalogue/2026" title="2026">2026</a></li>
+        <li><a href="?path=/projects/catalogue/2026/november" title="november">november</a></li>
+        <li><a href="?path=/projects/catalogue/2026/november/drafts" title="drafts">drafts</a></li>
+        <li><a href="?path=/projects/catalogue/2026/november/drafts/chapters" title="chapters">chapters</a></li>
+        <li><span aria-current="location" title="introduction.md">introduction.md</span></li>
+      </ol>
+    </nav>
+  </div>
+</body>
+</html>

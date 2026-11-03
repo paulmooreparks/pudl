@@ -812,7 +812,7 @@
       "spec": "08-components/trees-and-path-bars.md",
       "template": "<nav class=\"path\" aria-label=\"Location\"><ol><li><a href=\"/\">site</a></li><li><span aria-current=\"location\">articles</span></li></ol></nav>",
       "parts": [{ "selector": ".path", "surface": "list" }],
-      "variants": [{ "name": "Monospace", "class": "mono" }]
+      "variants": [{ "name": "Monospace", "class": "mono" }, { "name": "Wrapping", "class": "wrap" }]
     },
     {
       "id": "code-block",

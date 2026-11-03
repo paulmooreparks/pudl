@@ -693,6 +693,8 @@ A **path bar** says where the reader is inside a hierarchy they are browsing, su
 
 It is for a browsed hierarchy only. A site's own sections are its tabs, and a record's way back is its back link, so a path bar is never a site's breadcrumb trail. The separators are drawn, and assistive technology hears the list rather than them. `.mono` sets the path in the monospace face, for file paths.
 
+The bar keeps to one line (0.97.7), as a file manager's does, so what stands below it never moves as the reader goes deeper. When the places do not fit, the places above the current one shrink, each to an ellipsis, and the current place shrinks last; when they still do not fit, the bar scrolls sideways, and it starts scrolled to its end, so the current place is in sight. The scrolled-off places stay in the Tab order, and a place scrolls into view as it takes focus. The host gives each place its whole name in `title`, so a shortened place can be read by the pointer. In a toolbar the bar takes the room between the buttons. A bar marked `.wrap` wraps as it did before.
+
 ## Glyphs as elements and drop targets
 
 Any glyph token can be drawn as an element with `.glyph`, in the colour of the text around it and at its size, unless `--glyph-size` says otherwise:

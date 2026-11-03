@@ -860,9 +860,11 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   color: color-mix(in srgb, var(--text) 80%, var(--surface-alt));
 }
 .menubar-pin > span:not(.glyph) { overflow: hidden; text-overflow: ellipsis; }
-.menubar-pin img, .menubar-pin .glyph, .menubar-panel .menubar-icon { flex: none; width: 16px; height: 16px; }
-.menubar-panel .menubar-icon { display: inline-flex; }
-.menubar-panel .menubar-icon > * { width: 100%; height: 100%; }
+.menubar-pin img, .menubar-pin .glyph, :is(.menubar-panel, .menu-panel) .menubar-icon { flex: none; width: 16px; height: 16px; }
+:is(.menubar-panel, .menu-panel) .menubar-icon { display: inline-flex; }
+:is(.menubar-panel, .menu-panel) .menubar-icon > * { width: 100%; height: 100%; }
+/* A row's mark, such as a window's state mark, stands after its words. */
+.menu-action > .menu-mark { display: inline-flex; align-items: center; flex: none; }
 .menubar-pin:hover { color: var(--text); background: color-mix(in srgb, var(--text) 12%, transparent); }
 .menubar-pin:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus-ring); }
 .menubar-row.menubar-pins-collapsed .menubar-pin,
@@ -3114,13 +3116,41 @@ button.filter-chip-x { padding: 0; flex: none; cursor: pointer; }
    for a browsed hierarchy only. A site's own sections are its tabs, and a
    record's way back is its back link, so a path bar is never a site's
    breadcrumb trail. The separators are drawn, and say nothing to
-   assistive technology, which hears the list. */
+   assistive technology, which hears the list.
+
+   The bar keeps to one line (0.97.7). When its places do not fit, the
+   places above the current one shrink, each to an ellipsis, and the
+   current place shrinks last; when they still do not fit, the bar scrolls
+   sideways, and it starts scrolled to its end, so the current place is in
+   sight at load without script. The bar is a scroll container of the
+   opposite direction to the page, holding the list in the page's own
+   direction, packed toward its end: a scroll container starts at its
+   start edge, which for the bar is the page's end, and what the list
+   overflows toward the page's start is the bar's scrollable overflow. The
+   list's order, and what assistive technology hears, do not change. A
+   scrolled-off place stays in the Tab order and is scrolled into view as
+   it takes focus. The host gives each place its title, so a shortened
+   name can be read by the pointer. A bar marked .wrap wraps as it did
+   before. */
+.path { display: flex; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.path::-webkit-scrollbar { display: none; }
+.path:dir(ltr) { direction: rtl; }
+.path:dir(ltr) > ol { direction: ltr; margin-right: auto; }
+.path:dir(rtl) { direction: ltr; }
+.path:dir(rtl) > ol { direction: rtl; margin-left: auto; }
 .path ol {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 0 2px;
+  display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 0 2px;
   margin: 0; padding: 0; list-style: none; min-width: 0;
   font-size: var(--text-sm);
 }
-.path li { display: inline-flex; align-items: center; min-width: 0; }
+.path li { display: inline-flex; align-items: center; flex: 0 1 auto; min-width: 3em; }
+.path li:last-child { flex-shrink: 0; min-width: 0; max-width: 100%; }
+.path.wrap:where(:dir(ltr), :dir(rtl)) { direction: inherit; display: block; overflow: visible; }
+.path.wrap:where(:dir(ltr), :dir(rtl)) > ol { direction: inherit; margin: 0; flex-wrap: wrap; justify-content: flex-start; }
+.path.wrap li { flex: none; min-width: 0; }
+/* In a toolbar the bar takes the room between the buttons, so it shrinks
+   and scrolls there instead of taking a line of its own. */
+.toolbar > .path { flex: 1 1 0; }
 .path li + li::before {
   content: ""; flex: none; width: 12px; height: 12px; margin-inline: 1px;
   background: var(--text-muted);
