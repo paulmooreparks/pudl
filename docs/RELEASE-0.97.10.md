@@ -18,4 +18,4 @@ All 54 suite runs passed across Chromium, Firefox and WebKit, 27 with readable a
 
 ## Publication
 
-The archive and checksum will be built from the immutable tag and checked against public downloads. Versioned CDN CSS and JavaScript files will be checked against their tagged bytes before the adoption handoff.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.97.10. Its immutable commit is 867a3d038f3b3bae02555ac14622060a21c460c9 and its annotated tag object is 29f63c6eec6558ceaa004ad0a71560638851b8ae. The reproducible archive contains 432 files, including all 183 dist files, occupies 6277582 bytes, and has SHA-256 c87f04a61d496e0ba01e8be6231a0fd3009c2c2cac7a1f743aab45de0bfdc8d8. The unauthenticated public archive and checksum downloads match, every archived blob and the ZIP commit comment match the tag, and all 99 versioned CDN CSS and JavaScript files match their tagged bytes. Main's 25 CDN examples use the verified assets. The package closure check found no missing reference.
