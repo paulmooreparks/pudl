@@ -317,12 +317,12 @@
    server or by the script, a shared window keeps its title bar and the
    whole of its dock, with no empty band where the strip would go (issue
    #14). */
-.win-layer:not(:has(> .win-dock-group)) > .win[data-win-dock-shared]:is([data-win-edge="left"], [data-win-edge="right"]) {
+.win-layer > .win[data-win-dock-shared]:not(:where(.win-dock-group, .win-dock-group ~ *)):not(:has(~ .win-dock-group)):is([data-win-edge="left"], [data-win-edge="right"]) {
   top: var(--dock-top, 0px);
   height: calc(100% - var(--dock-top, 0px) - var(--dock-bottom, 0px));
 }
-.win-layer:not(:has(> .win-dock-group)) > .win[data-win-dock-shared] { padding: 0; }
-.win-layer:not(:has(> .win-dock-group)) > .win[data-win-dock-shared]:not([data-win-dock-only]) > .win-head { display: flex; }
+.win-layer > .win[data-win-dock-shared]:not(:where(.win-dock-group, .win-dock-group ~ *)):not(:has(~ .win-dock-group)) { padding: 0; }
+.win-layer > .win[data-win-dock-shared]:not(:where(.win-dock-group, .win-dock-group ~ *)):not(:has(~ .win-dock-group)):not([data-win-dock-only]) > .win-head { display: flex; }
 
 /* Shared top and bottom docks, with data-win-dock-tabs="all". The strip
    runs the width of the layer on the dock's inner side, next to the work
@@ -586,7 +586,7 @@
   -webkit-mask: var(--glyph-caret) center / contain no-repeat;
   mask: var(--glyph-caret) center / contain no-repeat;
 }
-.win[data-win-chrome="compact"]:has([data-win-action="menu"]) .win-head [data-win-action]:not([data-win-action="menu"]) { display: none; }
+.win[data-win-chrome="compact"] .win-head:has([data-win-action="menu"]) [data-win-action]:not([data-win-action="menu"]) { display: none; }
 .win[data-win-restricted] > .win-rh { display: none; }
 .win[data-win-restricted] .win-head { cursor: default; }
 .win-btn[aria-disabled="true"] { opacity: .5; cursor: default; }
@@ -618,7 +618,8 @@
   .win-snap .win-snap-zone:hover, .win-snap .win-snap-zone[aria-current="true"] { forced-color-adjust: none; background: Highlight; }
 }
 
-.win:has(> .win-menu:popover-open) .win-btn[data-win-action="menu"] {
+.win > :where(.win-head):has(~ .win-menu:popover-open) .win-btn[data-win-action="menu"],
+.win > .win-menu:popover-open ~ :where(.win-head) .win-btn[data-win-action="menu"] {
   background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow);
 }
 .win-btn[data-win-action="page"]::before { --glyph: var(--glyph-open); }

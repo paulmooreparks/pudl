@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.10
+
+Five window selectors now limit their relational checks to dock-group siblings and window headers. Shared-dock fallback, compact chrome and open-menu paint keep their declaration values and specificity, including server-rendered layout before scripts run. No host markup or JavaScript changes are required. A retained eight-pair streaming workload measured lower style/layout work with open and reopened windows, with a small additional transition cost when closing windows. See [the release record](docs/RELEASE-0.97.10.md) for measurements, tradeoffs and verification limits.
+
 ## 0.97.9
 
 Skin selection writes `data-skin` and `data-skin-pref` only when their values change. Previously, unrelated DOM insertions rewrote both attributes, so a consumer that redrew content after a skin attribute mutation could enter an endless redraw loop. Repeated selection, reads and refreshes no longer produce unchanged attribute notifications. Real selection and availability changes retain their existing notifications.
