@@ -167,11 +167,21 @@
         var c = e.target.closest(CONTROL);
         if (c && !c.closest('.menu-panel') && !isField(c)) stop(bar, c);
       });
-      new MutationObserver(function () {
+      new MutationObserver(function (records) {
+        /* Hosts may replace a label with identical text. Such a replacement
+           changes no control or measurement, so keep the existing fold. */
+        var changed = records.some(function (r) {
+          if (r.type === 'attributes') return r.oldValue !== r.target.getAttribute(r.attributeName);
+          if (r.type === 'characterData') return r.oldValue !== r.target.data;
+          var added = Array.prototype.slice.call(r.addedNodes), removed = Array.prototype.slice.call(r.removedNodes);
+          if (added.concat(removed).some(function (n) { return n.nodeType !== 3; })) return true;
+          return added.map(function (n) { return n.data; }).join('') !== removed.map(function (n) { return n.data; }).join('');
+        });
+        if (!changed) return;
         menus(bar); stop(bar, null, true);
         bar.__dirty = true;
         if (bar.__fold) soonFit(bar);
-      }).observe(bar, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'aria-disabled', 'hidden'] });
+      }).observe(bar, { subtree: true, childList: true, characterData: true, characterDataOldValue: true, attributes: true, attributeOldValue: true, attributeFilter: ['disabled', 'aria-disabled', 'hidden'] });
   }
 
   /* Folding again in the next frame, once however many changes come

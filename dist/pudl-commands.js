@@ -385,7 +385,18 @@
       var f = find(b.getAttribute('data-command'), b);
       if (!f) return;
       var label = String(val(f.cmd, 'label'));
-      if (b.textContent !== label) { b.textContent = label; touched = true; }
+      var glyph = glyphOf(f.cmd), sig = (glyph || '') + '\n' + label;
+      if (b.__pudlChoiceSig !== sig) {
+        b.__pudlChoiceSig = sig;
+        b.textContent = '';
+        if (glyph) b.appendChild(glyphEl(glyph));
+        var words = document.createElement('span');
+        words.className = 'toolbar-words';
+        words.textContent = label;
+        b.appendChild(words);
+        touched = true;
+      }
+      attr(b, 'aria-label', label);
       attr(b, 'title', label);
       attr(b, 'aria-pressed', String(!!val(f.cmd, 'checked')));
       prop(b, 'disabled', !!val(f.cmd, 'disabled'));
