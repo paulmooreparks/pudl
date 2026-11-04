@@ -540,7 +540,7 @@
         return (c && c !== 'false') || a.parentElement.classList.contains('active');
       })[0];
       var stop = focused >= 0 ? l.items[focused] : current || l.items[0];
-      l.items.forEach(function (a) { a.tabIndex = a === stop ? 0 : -1; });
+      l.items.forEach(function (a) { var value = a === stop ? 0 : -1; if (a.getAttribute('tabindex') !== String(value)) a.tabIndex = value; });
     });
   }
   document.addEventListener('keydown', function (e) {
@@ -558,7 +558,7 @@
     else if (e.key === 'End') next = items.items[items.items.length - 1];
     else return;
     e.preventDefault();
-    items.items.forEach(function (x) { x.tabIndex = x === next ? 0 : -1; });
+    items.items.forEach(function (x) { var value = x === next ? 0 : -1; if (x.getAttribute('tabindex') !== String(value)) x.tabIndex = value; });
     next.focus();
   });
   document.addEventListener('focusout', function (e) {

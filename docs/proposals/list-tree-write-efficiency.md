@@ -1,0 +1,9 @@
+# List and tree write efficiency
+
+This candidate keeps row-list and tree behavior unchanged while skipping writes whose values already match the DOM. The change covers master-detail row tab stops, tree roles and levels, named toggle state, and tree keyboard tab stops. Dynamic enhancement still traverses the tree so new nodes and changed names are discovered. Row-list observation still scans all lists; scoping that traversal remains further work.
+
+The isolated Edge 156 probe used two 500-row lists and a 500-node tree, with seven repetitions per action. Replacing one row label with identical text fell from 1,000 induced attribute mutations to zero. Repeated tree enhancement fell from 1,502 mutations to zero. Moving to a different tree item now changes two tab positions rather than producing 2,002 attribute mutations. The measured median time through the next timer fell from 0.8 to 0.5 ms for the row change, from 0.8 to 0.3 ms for tree enhancement, and from 1.3 to 0.7 ms for the keyboard probe. These small synthetic timings include scheduling and collection overhead. They do not establish relief from larger live layout stalls.
+
+The candidate is an overlay for PUDL 0.97.10 containing only readable and minified master-detail and tree scripts, including source maps. It contains no window assets and leaves the consuming application's window and tray corrections intact. It adds no public state or markup contract. It is a local measurement build and has not been published as a release.
+
+Focused verification covers unchanged writes, dynamic tree insertion, renamed toggle labels, row and tree keyboard navigation, existing tree behavior, and persistent-sidebar resizing and peeking. The build manifest records completed results and immutable file hashes. The investigation continues separately into toolbar measurement and window layout paths.
