@@ -97,7 +97,7 @@ With floating windows as well:
       integrity="sha384-ykf7LvKWwTwSMSuFsYQL7rQ5VOqNb7Q1zdpJTQ1RDG0C/1Kv+Sw8y87E8VvF8u1K"
       crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.97.11/dist/pudl-windows.js" defer
-        integrity="sha384-oycuthojB1/rTATPprahsAcw4iUja/+egKhaNC5M2f5wfZyjmq/OZRfKZuuBZUhH"
+        integrity="sha384-hdADbHNTF2aDf6jWxcNqCdqVneQ+7c1d26iKsS7SWDnE9l9CKdnOs48HhWQuvy5y"
         crossorigin="anonymous"></script>
 ```
 
@@ -121,7 +121,7 @@ With the sidebar divider as well:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.97.11/dist/pudl-md.js" defer
-        integrity="sha384-+K820KmqZIaxOZxArpH+XAzpaJfDrbDqoz5EjqQaLxouxwcz+K1YzkX7CT7NzOXR"
+        integrity="sha384-R1wugIHj5bIRWTN5jz2WteyWy0/2SjzIqQN27rXCGabKdgZJtiLK7iGUoJtnZSH+"
         crossorigin="anonymous"></script>
 ```
 
@@ -162,7 +162,7 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
         integrity="sha384-/v1kx/aWnxGTqr57wM4rCYnbtWgeysmaYmVYyVbS7xv627AumdudiiTv/QyNdtTr"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.97.11/dist/pudl-toolbar.js" defer
-        integrity="sha384-1eyhBIaKuVo8KvTMMAwzBCY6HXaoNQK6YbSbSaEIp6CEomm+P+xoqyA/8yefquLW"
+        integrity="sha384-wREUnjNMd9gapbJbbrJOJ+WalMBlDndSn1BNODSvb1qRpwlEBuUbVaFzz1FQhv0Y"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.97.11/dist/pudl-split.js" defer
         integrity="sha384-apx4JcddiGfbbtBSUh64m5AJRxayFbqoA/G95EAkIJ2mVkQ86qW09KktpezmUCnL"
@@ -180,7 +180,7 @@ With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and
         integrity="sha384-st3TkNtIIRXU2hzNWDhfXEuB5M1L6afgZF7W9eDr4FJD2Qal7itGSv5EioRa9KU+"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.97.11/dist/pudl-tree.js" defer
-        integrity="sha384-l73pMksX8rVnHEZvPr33Z7oYR2rVe2HykILKAQurCXZY2TIXgz3qrB3QW6PInTbz"
+        integrity="sha384-vVY7mfv3iscCFboK+O9LwoL+dHyyQSxlkAnHzMA4YHCd/Y6DAgLS43q6e6zdMePJ"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.97.11/dist/pudl-reorder.js" defer
         integrity="sha384-KeP1rgofIEcQ/3Da3IttURe1eQjGdKZGp/mt83zJt7TuBS6FxgoVReqvTjU7OfbW"
