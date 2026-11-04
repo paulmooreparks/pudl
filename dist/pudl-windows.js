@@ -486,6 +486,11 @@
     if (tab) tab.focus();
   }
 
+  function applyPeek() {
+    apply(state);
+    layer.dispatchEvent(new CustomEvent('pudl:windows-change', { bubbles: true, detail: copy(state) }));
+  }
+
   function dismissDockPeek(e) {
     if (!Object.keys(dockPeek).length || !e.target.closest) return;
     if (e.target.closest('[popover]:popover-open, dialog[open]')) return;
@@ -501,13 +506,13 @@
        finish first: hiding the peek changes what is in front, and a menu
        bar drawn again for that would lose the press before its click
        arrived (0.80.0). */
-    if (layer.contains(e.target)) { apply(state); return; }
+    if (layer.contains(e.target)) { applyPeek(); return; }
     var done = false;
     var finish = function () {
       if (done) return;
       done = true;
       document.removeEventListener('click', after);
-      setTimeout(function () { apply(state); }, 0);
+      setTimeout(function () { applyPeek(); }, 0);
     };
     var after = function () { finish(); };
     document.addEventListener('click', after);
@@ -3747,7 +3752,7 @@
     var edge = shownEdge(state, key);
     if (sharedEdge(edge) && railMode(state, edge) && dockPeek[edge] !== key) {
       dockPeek[edge] = key;
-      apply(state);
+      applyPeek();
     }
     var now = document.activeElement;
     if (now && el.contains(now) && !now.closest('.menu-panel')) return;
@@ -5049,6 +5054,13 @@
     dock.setAttribute('data-win-dock-measure', '');
     tabs.forEach(function (t) { t.style.setProperty('--win-tab-natural', Math.ceil(t.getBoundingClientRect().width) + 'px'); });
     dock.removeAttribute('data-win-dock-measure');
+    var compactFirst = bar.querySelector(':scope > .status-area[data-status-compact-priority="first"]');
+    if (compactFirst) {
+      var dockStyle = getComputedStyle(dock), tabGap = parseFloat(dockStyle.columnGap) || 0;
+      var naturalNeed = tabs.reduce(function (sum, tab) { return sum + (parseFloat(tab.style.getPropertyValue('--win-tab-natural')) || 0); }, 0) + Math.max(0, tabs.length - 1) * tabGap;
+      var available = dock.clientWidth - (parseFloat(dockStyle.paddingLeft) || 0) - (parseFloat(dockStyle.paddingRight) || 0);
+      if (dock.__stackFull || naturalNeed > available + 0.5) bar.setAttribute('data-win-bar-compact', '');
+    }
     function finished() {
       if (more && more.hidden) {
         var menuFocus = more.hasAttribute('data-menu-for') && document.activeElement && document.activeElement.closest('.context-menu');
@@ -5510,7 +5522,7 @@
       e.preventDefault();
       var key = dockPeek[edge];
       delete dockPeek[edge];
-      apply(state);
+      applyPeek();
       var tab = layer.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
       if (tab) tab.focus();
     });

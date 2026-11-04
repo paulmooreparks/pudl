@@ -118,6 +118,7 @@ function check(name, ok, detail) {
   })));
   check('Workspace has no rail dropdown', !await page.locator('[data-dock-menu="workspace"]').isVisible());
   check('retracted rail buttons are raised', await page.locator('[data-dock-rail] [data-dock-peek]').count() === 0);
+  await page.evaluate(() => { window.peekEvents = []; document.addEventListener('pudl:windows-change', () => peekEvents.push(pudlWindows.shown('workspace'))); });
   const before = await win('note').boundingBox();
   const canonical = await page.evaluate(() => JSON.stringify(pudlWindows.state().place));
   await tab('workspace').click();
@@ -139,11 +140,16 @@ function check(name, ok, detail) {
   const peekAtClick = await press;
   await page.waitForFunction(() => !document.querySelector('.win[data-win="workspace"][data-win-dock-peek]'));
   check('a press outside the windows lands before the slideout retracts, which it then does', peekAtClick === true);
+  check('outside retraction announces the new shown result', await page.evaluate(() => peekEvents[peekEvents.length - 1] === false));
   await page.evaluate(() => document.getElementById('outside-press').remove());
   await tab('workspace').click();
   await page.keyboard.press('Escape');
   check('Escape retracts the slideout and restores its tab focus', !(await win('workspace').isVisible()) && await tab('workspace').evaluate(el => el === document.activeElement));
+  check('Escape retraction announces the new shown result', await page.evaluate(() => peekEvents[peekEvents.length - 1] === false));
   check('retracting releases the rail button', !await tab('workspace').evaluate(el => el.hasAttribute('data-dock-peek')));
+  await page.evaluate(() => pudlWindows.raise('workspace'));
+  check('focus opening a rail peek announces its shown result', await page.evaluate(() => pudlWindows.shown('workspace') && peekEvents[peekEvents.length - 1] === true));
+  await page.keyboard.press('Escape');
   await tab('workspace').click();
   check('a sidebar slideout still has no window title bar', !(await win('workspace').locator('.win-head').isVisible()));
   await tab('workspace').focus();
