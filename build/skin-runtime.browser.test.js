@@ -6,6 +6,53 @@ const path = require('path');
 const pw = require('playwright');
 const script = fs.readFileSync(path.join(__dirname, process.env.PUDL_MIN ? '../dist/min/pudl-skins.js' : '../dist/pudl-skins.js'), 'utf8');
 for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['chromium', 'firefox', 'webkit'])) {
+  test(engine + ' skin observers settle after a redraw and ignore unchanged selection', async () => {
+    const browser = await pw[engine].launch();
+    try {
+      const page = await browser.newPage();
+      await page.route('http://skins.test/**', route => route.fulfill({
+        contentType: route.request().url().endsWith('.css') ? 'text/css' : 'text/html',
+        body: route.request().url().endsWith('.css') ? ':root[data-skin="bevel"] { --probe: 1; }' : '<link id="skin" rel="stylesheet" href="/bevel.css"><div id="drawing"></div>'
+      }));
+      await page.goto('http://skins.test/');
+      await page.addScriptTag({ content: script });
+      await page.evaluate(() => pudlSkins.register('bevel', document.getElementById('skin')));
+      const redraw = async action => page.evaluate(action => new Promise(resolve => {
+        const root = document.documentElement, drawing = document.getElementById('drawing');
+        let draws = 0, capped = false;
+        const attributes = [], changes = [];
+        const changed = e => changes.push(e.detail);
+        document.addEventListener('pudl:skin-change', changed);
+        const observer = new MutationObserver(records => {
+          attributes.push(...records.map(r => r.attributeName));
+          if (++draws >= 12) { capped = true; observer.disconnect(); return; }
+          drawing.replaceChildren(document.createElement('span'));
+        });
+        observer.observe(root, { attributes: true, attributeFilter: ['data-skin', 'data-skin-pref'] });
+        if (action === 'select') pudlSkins.select('bevel');
+        else if (action === 'remove') document.getElementById('skin').remove();
+        else {
+          pudlSkins.current(); pudlSkins.refresh(); pudlSkins.select('bevel');
+          drawing.appendChild(document.createElement('span'));
+        }
+        setTimeout(() => {
+          observer.disconnect(); document.removeEventListener('pudl:skin-change', changed);
+          resolve({ draws, capped, attributes, changes, skin: root.getAttribute('data-skin'), preference: root.getAttribute('data-skin-pref') });
+        }, 0);
+      }), action);
+      assert.deepEqual(await redraw('select'), {
+        draws: 1, capped: false, attributes: ['data-skin', 'data-skin-pref'],
+        changes: [{ skin: 'bevel', preference: 'bevel' }], skin: 'bevel', preference: 'bevel'
+      }, 'a real skin change permits one consumer redraw and then settles');
+      assert.deepEqual(await redraw('unchanged'), {
+        draws: 0, capped: false, attributes: [], changes: [], skin: 'bevel', preference: 'bevel'
+      }, 'reads, repeated selection and unrelated DOM insertion do not notify skin observers');
+      assert.deepEqual(await redraw('remove'), {
+        draws: 1, capped: false, attributes: ['data-skin'],
+        changes: [{ skin: 'standard', preference: 'bevel' }], skin: 'standard', preference: 'bevel'
+      }, 'removing a selected sheet changes effective skin once and retains preference');
+    } finally { await browser.close(); }
+  });
   test(engine + ' selects only available skins and preserves content and navigation', async () => {
     const browser = await pw[engine].launch();
     try {

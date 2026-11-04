@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.9
+
+Skin selection writes `data-skin` and `data-skin-pref` only when their values change. Previously, unrelated DOM insertions rewrote both attributes, so a consumer that redrew content after a skin attribute mutation could enter an endless redraw loop. Repeated selection, reads and refreshes no longer produce unchanged attribute notifications. Real selection and availability changes retain their existing notifications.
+
 ## 0.97.8
 
 A path bar's place shorter than 3em, such as a root "/" or a home "~", keeps its own width. Since 0.97.7 every place but the current one was at least 3em wide, the floor meant for a place shrinking to an ellipsis, so a short place was padded out and left a gap before the separator after it. A place now shrinks no narrower than 3em or its own width, whichever is less, and is never wider than its content.

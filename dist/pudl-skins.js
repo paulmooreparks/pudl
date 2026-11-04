@@ -28,8 +28,8 @@
     var next = pref === 'standard' || !entries[pref] || !ready(entries[pref]) ? 'standard' : pref;
     var changed = next !== current || root.getAttribute('data-skin-pref') !== pref;
     current = next;
-    root.setAttribute('data-skin', current);
-    root.setAttribute('data-skin-pref', pref);
+    if (root.getAttribute('data-skin') !== current) root.setAttribute('data-skin', current);
+    if (root.getAttribute('data-skin-pref') !== pref) root.setAttribute('data-skin-pref', pref);
     if (changed) document.dispatchEvent(new CustomEvent('pudl:skin-change', { detail: { skin: current, preference: pref } }));
     return current;
   }
