@@ -14,4 +14,4 @@ This release fixes the observer feedback loop. It does not establish that the fi
 
 ## Publication
 
-The archive and checksum will be built from the immutable tag and checked against public downloads. Versioned CDN CSS and JavaScript files will be checked against their tagged bytes before the adoption handoff.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.97.9. Its immutable commit is 644a8aeee656192d4912c859392e324bfd7ff8f6 and its annotated tag object is ff4215be3abf38c334ffc2f5aadfc272634b6759. The reproducible archive contains 430 files, including all 183 dist files, occupies 6272630 bytes, and has SHA-256 1d41572627210a70cb937216585050ffe873d3c287c468e20a3cd5b38b8c791f. The unauthenticated public archive and checksum downloads match, every archived blob and the ZIP commit comment match the tag, and all 99 versioned CDN CSS and JavaScript files match their tagged bytes. Main's 25 CDN examples use those verified assets. The package closure check found no missing reference.
