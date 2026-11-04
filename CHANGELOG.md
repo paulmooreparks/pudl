@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.97.11
+
+Row lists and trees skip unchanged tab-stop and accessibility attribute writes. Repeated tree enhancement is mutation-free when its semantics have not changed. A toolbar no longer refolds for identical text replacement or unchanged observed disabled/hidden attributes. Real content, width and font invalidation and explicit fitting retain their behavior.
+
+Command-generated segmented choices now show each command's glyph beside its label, keep their accessible names, and hide words as their toolbar folds. Full-coverage static Inter Regular, Italic, SemiBold and Bold TrueType faces are available under `dist/fonts/ttf/`, covered by the existing font license; web stylesheets request no additional fonts. Dock peeks opened by focus or closed by Escape or an outside press now emit `pudl:windows-change` after visibility is applied. A status area may opt into `data-status-compact-priority="first"` to compact its labels before natural-width taskbar tabs shrink or stack, keeping its individual actions.
+
 ## 0.97.10
 
 Five window selectors now limit their relational checks to dock-group siblings and window headers. Shared-dock fallback, compact chrome and open-menu paint keep their declaration values and specificity, including server-rendered layout before scripts run. No host markup or JavaScript changes are required. A retained eight-pair streaming workload measured lower style/layout work with open and reopened windows, with a small additional transition cost when closing windows. See [the release record](docs/RELEASE-0.97.10.md) for measurements, tradeoffs and verification limits.
