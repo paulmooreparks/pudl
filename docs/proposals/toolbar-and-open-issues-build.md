@@ -1,0 +1,15 @@
+# Toolbar measurement and open issues build
+
+This candidate builds on the guarded list/tree writes of commit 07f2558. It keeps normal toolbar labels visible when space permits. Identical text replacement and unchanged observed disabled/hidden values no longer dirty a toolbar. Element replacement and real text or state changes still invalidate it. Explicit fit, font arrival and width-driven fitting retain their existing behavior. The observer uses MutationRecord old values and compares text-only replacement records without measuring geometry or caching element markup.
+
+The isolated 300px toolbar probe measured four groups of three commands in Edge 156.0.4314.42, with seven repetitions and CDP counters sampled across two frames. Unchanged label replacement fell from 17 layouts per sample to zero. Explicit fitting still produces 17 layouts. The baseline median combined style/layout cost was about 2.2 ms for unchanged label replacement. This correction removes an unnecessary entry into fitting; it does not optimize the folding algorithm itself or establish a cure for intermittent live stalls.
+
+Issue #32 adds a command's glyph and a toolbar-words label to generated segmented choices. Labels remain the accessible names, selection remains mutually exclusive, and label/glyph changes redraw the segment's contents while keeping its button. Folding may hide words as it does for other glyph controls, and wider toolbars restore them.
+
+Issue #31 adds full-coverage static Inter Regular, Italic, SemiBold and Bold TrueType files under dist/fonts/ttf. The reproducible build/fonts-static.py generator pins all axes of the committed full variable fonts using the documented fontTools instancer, retains the default optical size and all characters, and verifies serialized TrueType outlines, static tables, weight and italic metadata. The existing Inter license covers these files. Web font declarations and requests do not change. Generation and a second --check pass produced identical bytes. Application-specific D2 integration remains a consumer check.
+
+Issue #29 announces windows-change after transient dock peeks open through focus or close through Escape or an outside press. The event follows applying visibility and carries the existing state detail; transient peeks still write no history. Tab-click paths that already commit retain their notifications. The existing delayed outside-press dismissal remains delayed so its click can finish.
+
+The window asset includes the consuming application's small data-status-compact-priority="first" addition. An opting-in status area compacts labels before natural-width taskbar tabs shrink or stack. Individual status actions remain available. Existing data-status-fold behavior remains opt-in for other consumers, and this change does not opt any page into aggregation.
+
+The measurement archive records exact assets, hashes and completed focused validation. This candidate is a local integration build. It has not been installed or published as a release.
