@@ -26,4 +26,4 @@ Earlier fixture failures were corrected and their output retained; the completed
 
 ## Publication
 
-Publication checks compare the archive, public downloads and versioned CDN assets to the immutable tag. Verified CDN examples are updated on main after publication.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.97.11. Its immutable commit is cc8f8f1ac723eefe3c2b4ace727442bcf6996d97 and its annotated tag object is 9b3899fe3b8358b4b258804c051c12be8b15591b. The reproducible archive contains 440 files, including all 187 dist files, occupies 6954324 bytes, and has SHA-256 7f22d176d23104ce7bb3b6a8bc0f6694f830724f6b65995a1eeda5aadc9bd75e. Unauthenticated public archive and checksum downloads match; every archived blob and the ZIP commit comment match the tag. All 99 versioned CDN CSS and JavaScript files match the tagged bytes. Main's 25 CDN examples use the verified assets. The package closure check found no missing reference. GitHub CI was still running when this record was written.
