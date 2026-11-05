@@ -11,3 +11,5 @@ Both layouts passed the existing focused interaction harness in Chromium, Firefo
 ## Publication
 
 The immutable tag is v0.97.12. The release archive includes the studies and their local dependencies. Public archive and checksum verification and versioned CDN byte checks are recorded after publication.
+
+The public release is https://github.com/paulmooreparks/pudl/releases/tag/v0.97.12. The immutable commit is 4515062677c9ad5f94a4b32c28007908e4dcc601. Its reproducible archive contains 447 files, including all 187 distribution files, and occupies 6971754 bytes. Its SHA-256 is f6e01df9944f22c67146ebef2053bc0c19df97fdcbba45dc46ade154c6c4dc2e. The public archive and checksum match the tag, and all 99 versioned CDN CSS and JavaScript files match their tagged bytes. Main now carries the 25 updated CDN examples with verified integrity hashes. The package closure check found no missing dependencies. GitHub CI is follow-up evidence; the full project matrix was not run locally.
