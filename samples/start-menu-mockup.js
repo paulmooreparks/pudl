@@ -36,7 +36,7 @@
     document.getElementById('announcement').textContent = summary + (query ? ' found' : ' in ' + label);
     document.getElementById('no-results').hidden = count !== 0;
     document.getElementById('empty-message').textContent = 'No applications' + (category !== 'all' ? ' in ' + label : '') + ' match “' + input.value.trim() + '”.';
-    clear.hidden = !input.value;
+    clear.disabled = !input.value;
     if (updateAddress) {
       const url = new URL(location.href);
       if (category === 'all') url.searchParams.delete('category'); else url.searchParams.set('category', category);
