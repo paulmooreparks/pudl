@@ -31,11 +31,11 @@
     }
     const label = categories.find(a => a.dataset.categoryLink === category).querySelector('span:not(.glyph)').textContent;
     title.textContent = query ? (category === 'all' ? 'Search results' : label + ' matches') : label;
-    const summary = count + (count === 1 ? ' application' : ' applications');
+    const summary = count + (count === 1 ? ' item' : ' items');
     document.getElementById('result-count').textContent = summary;
     document.getElementById('announcement').textContent = summary + (query ? ' found' : ' in ' + label);
     document.getElementById('no-results').hidden = count !== 0;
-    document.getElementById('empty-message').textContent = 'No applications' + (category !== 'all' ? ' in ' + label : '') + ' match “' + input.value.trim() + '”.';
+    document.getElementById('empty-message').textContent = 'No items' + (category !== 'all' ? ' in ' + label : '') + ' match “' + input.value.trim() + '”.';
     clear.disabled = !input.value;
     if (updateAddress) {
       const url = new URL(location.href);

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.97.12
+
+Two interactive Start menu studies show a searchable catalog with categories on either side. They use native PUDL navigation lists, a resizable split-pane divider, filter controls and a popover. Clear has a glyph and keeps its label. The catalog uses generic item wording so it can include destinations other than applications. Search and category state are addressable, and the sample destinations are working links. These are design studies composed from existing controls; projects need no changes. See [the release record](docs/RELEASE-0.97.12.md).
+
 ## 0.97.11
 
 Row lists and trees skip unchanged tab-stop and accessibility attribute writes. Repeated tree enhancement is mutation-free when its semantics have not changed. A toolbar no longer refolds for identical text replacement or unchanged observed disabled/hidden attributes. Real content, width and font invalidation and explicit fitting retain their behavior.
