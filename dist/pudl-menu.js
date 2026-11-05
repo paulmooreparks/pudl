@@ -56,8 +56,8 @@
      panel of any content anchored to the control that opened it, which is
      placed as a menu is but has no rows to move through. */
   var PLACED = '.menu-panel, .popover';
-  var openPanels = new Set(Array.prototype.filter.call(document.querySelectorAll(PLACED), isOpen));
-  function placed(el) { return !!(el && el.classList && (el.classList.contains('menu-panel') || el.classList.contains('popover'))); }
+  var openPanels = new Set(Array.prototype.filter.call(document.querySelectorAll(PLACED), function (p) { return placed(p) && isOpen(p); }));
+  function placed(el) { return !!(el && el.classList && !el.hasAttribute('data-start') && (el.classList.contains('menu-panel') || el.classList.contains('popover'))); }
   var opening = new WeakSet();
 
   var insets;
@@ -367,19 +367,19 @@
   }
 
   document.addEventListener('input', function (e) {
-    if (e.target.matches && e.target.matches('.menu-panel .md-filter')) applyFilter(e.target);
+    if (e.target.matches && !e.target.closest('[data-start]') && e.target.matches('.menu-panel .md-filter')) applyFilter(e.target);
   });
 
   document.addEventListener('keydown', function (e) {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     var t = e.target;
-    if (!t || !t.closest) return;
+    if (!t || !t.closest || t.closest('[data-start]')) return;
 
     /* Down on a menu button opens its panel if need be and moves into it. */
     var btn = t.closest('.menu-btn[popovertarget]');
     if (btn && e.key === 'ArrowDown') {
       var target = document.getElementById(btn.getAttribute('popovertarget'));
-      if (!target) return;
+      if (!target || target.hasAttribute('data-start')) return;
       e.preventDefault();
       if (!isOpen(target)) target.showPopover();
       /* The toggle event that places a panel comes a moment later, and a
@@ -1069,7 +1069,7 @@
     var chosen = t.closest('.menu-panel a.md-item, .menu-panel .menu-action');
     if (!chosen) return;
     var panel = chosen.closest('.menu-panel');
-    if (panel && isOpen(panel)) panel.hidePopover();
+    if (panel && !panel.hasAttribute('data-start') && isOpen(panel)) panel.hidePopover();
   });
 
   /* A filter menu: a panel marked

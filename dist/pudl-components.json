@@ -12,6 +12,56 @@
   },
   "components": [
     {
+      "id": "start",
+      "name": "Start",
+      "kind": "layout",
+      "requires": [
+        "pudl-start.js",
+        "pudl-split.js"
+      ],
+      "template": "<div class=\"menu-panel start-menu\" data-start role=\"region\" aria-label=\"Start\"><header class=\"popover-head start-header\"><h2 class=\"popover-title\">Start</h2></header><div class=\"start-search\"><form class=\"md-filter-group start-search-form\" role=\"search\"><input class=\"md-filter\" data-start-query type=\"search\" aria-label=\"Search items\"><button class=\"icon-btn md-filter-go\" aria-label=\"Open first matching item\"></button></form><button class=\"btn btn-sm\" data-start-clear type=\"button\"><span class=\"glyph\" style=\"--glyph:var(--glyph-close)\" aria-hidden=\"true\"></span>Clear</button></div><div class=\"split start-content\"><div class=\"split-pane start-items-pane\"><h3 class=\"md-section-label\" data-start-heading>All</h3><ul class=\"row-list start-items\" data-start-items><li class=\"md-row\" data-start-item data-start-category=\"tools\"><a class=\"md-item start-item\" href=\"#files\"><span class=\"glyph\" style=\"--glyph:var(--glyph-folder)\" aria-hidden=\"true\"></span>Files</a></li></ul><p class=\"empty-state\" data-start-empty hidden>No matching items.</p></div><div class=\"split-handle\" aria-label=\"Resize categories\"></div><nav class=\"split-pane start-categories\" data-start-categories aria-label=\"Categories\"><ul class=\"row-list start-category-list\"><li class=\"md-row\"><a class=\"md-item start-category\" href=\"?category=\" data-start-category-key=\"\" aria-current=\"page\"><span data-start-label>All</span><span class=\"start-category-count\" data-start-category-count aria-hidden=\"true\"></span></a></li><li class=\"md-row\"><a class=\"md-item start-category\" href=\"?category=tools\" data-start-category-key=\"tools\"><span data-start-label>Tools</span></a></li></ul></nav></div></div>",
+      "parts": [
+        {
+          "selector": ".start-menu",
+          "surface": "flat"
+        },
+        {
+          "selector": ".start-search-form",
+          "surface": "sunken"
+        },
+        {
+          "selector": "[data-start-clear]",
+          "surface": "raised"
+        },
+        {
+          "selector": ".start-item",
+          "surface": "list"
+        },
+        {
+          "selector": ".start-category",
+          "surface": "list"
+        },
+        {
+          "selector": ".split-handle",
+          "surface": "handle"
+        }
+      ],
+      "properties": [
+        {
+          "attribute": "data-start-side",
+          "values": [
+            "left",
+            "right"
+          ]
+        }
+      ],
+      "slots": [
+        {
+          "selector": "[data-start-items]"
+        }
+      ]
+    },
+    {
       "id": "selection-actions", "name": "Selection actions", "kind": "layout",
       "spec": "08-components/annotations.md", "requires": ["pudl-annotations.js"],
       "template": "<article data-selection-actions=\"selection-offer\">Select this text</article><div class=\"selection-actions\" id=\"selection-offer\"><button class=\"btn btn-sm\" type=\"button\" data-selection-action=\"quote\">Quote</button></div>",

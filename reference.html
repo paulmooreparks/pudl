@@ -24,6 +24,7 @@
   <script src="dist/pudl-grid.js" defer></script>
   <script src="dist/pudl-code.js" defer></script>
   <script src="dist/pudl-split.js" defer></script>
+  <script src="dist/pudl-start.js" defer></script>
   <script src="dist/pudl-disclose.js" defer></script>
   <script src="dist/pudl-zoom.js" defer></script>
   <script src="dist/pudl-rows.js" defer></script>
@@ -134,7 +135,7 @@
       <button class="theme-toggle" type="button" title="Toggle light / dark"
               onclick="pudlToggleTheme()"></button>
       <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl">GitHub</a>
-      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.97.12</a>
+      <a class="topbar-pill" href="https://github.com/paulmooreparks/pudl/blob/main/CHANGELOG.md" title="Changelog">v0.98.0</a>
     </div>
   </header>
 
@@ -1069,6 +1070,9 @@ Draft the release notes for [0.26](CHANGELOG.md).</textarea>
       </section>
     </div>
 
+    <h2 id="start-control">Start</h2>
+    <p>A searchable catalog can contain destinations and commands. Categories stay in a list, and the divider resizes with pointer or keyboard input. <a href="samples/start.html">Try categories on the right</a> or <a href="samples/start-left.html">on the left</a>.</p>
+    <div class="demo"><button class="btn" popovertarget="reference-start"><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span>Start</button><div id="reference-start" role="dialog" popover class="menu-panel start-menu" data-start aria-label="Start"><header class="popover-head start-header"><h2 class="popover-title">Start</h2></header><div class="start-search"><form class="md-filter-group start-search-form" role="search"><input class="md-filter" data-start-query type="search" aria-label="Search items"><button class="icon-btn md-filter-go" aria-label="Open first matching item"></button></form><button class="btn btn-sm" data-start-clear type="button"><span class="glyph" style="--glyph:var(--glyph-close)" aria-hidden="true"></span>Clear</button></div><div class="split start-content"><div class="split-pane start-items-pane"><h3 class="md-section-label" data-start-heading>All</h3><ul class="row-list start-items" data-start-items><li class="md-row" data-start-item data-start-category="tools"><a class="md-item start-item" href="#files"><span class="glyph" style="--glyph:var(--glyph-folder)" aria-hidden="true"></span>Files</a></li></ul><p class="empty-state" data-start-empty hidden>No matching items.</p></div><div class="split-handle" aria-label="Resize categories"></div><nav class="split-pane start-categories" data-start-categories aria-label="Categories"><ul class="row-list start-category-list"><li class="md-row"><a class="md-item start-category" href="?category=" data-start-category-key="" aria-current="page"><span data-start-label>All</span><span class="start-category-count" data-start-category-count aria-hidden="true"></span></a></li><li class="md-row"><a class="md-item start-category" href="?category=tools" data-start-category-key="tools"><span data-start-label>Tools</span></a></li></ul></nav></div></div></div>
     <h2 id="split">21. Splitters</h2>
     <p>Set <code>--split-target-size: 18px</code> for a wider track that occupies its own space. <code>--split-rule-size</code> controls the visible line. Set <code>data-split-pane="first"</code> or <code>"second"</code> to show one pane while keeping both mounted and preserving the split value; remove the attribute to restore both panes. The host owns the URL state and focus transfer. The <a href="docs/RESPONSIVE-WORKSPACES.md">responsive workspace guide</a> also covers narrow window policies, compact chrome, menu overflow, and menu-group theme tokens.</p>
     <p>Two panes inside a component, with a handle between them that resizes the first, drawn as the master-detail divider is. Drag it, or focus it and use the arrow keys, Home and End; Enter or a double-click returns the stylesheet's size. The second pair is stacked.</p>

@@ -48,3 +48,7 @@ Both versions have a searchable twelve-application catalog, a Pinned category, c
 Both variants passed focused interaction checks in Chromium, Firefox and WebKit with no page errors. Desktop light/dark and 390px-wide captures were reviewed. Selected and unselected category rows, application rows and the search group were compared against unmodified PUDL instances for typography, padding, backgrounds, borders and shadows. Their appearance matches; custom CSS supplies composition and layout. All application targets resolve to existing sample files. These checks establish mockup behavior and the tested component properties, not a production accessibility audit or control contract.
 
 The catalog and fixed pins are illustrative. The mockups do not record preferences in browser storage, discover installed applications, or implement multi-instance window selection. Those remain contract decisions for the eventual component.
+
+## Reusable control
+
+The approved composition is now implemented as a first-class Start control. Its [public contract](start-control.md) covers declarative markup, host-owned routing and persistence, and the `pudlStart` lifecycle. The [right-category example](../../samples/start.html) and [left-category example](../../samples/start-left.html) load the distribution implementation. The preceding mockup record remains a history of the design iterations.

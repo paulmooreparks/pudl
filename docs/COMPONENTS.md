@@ -55,3 +55,7 @@ Building a palette from the list shows what a development tool needs and PUDL la
 - **A combo box**, a text field that suggests values as the reader types.
 - **A list box**, a list from which the reader chooses one item or several, in a form.
 - **An image**, with its caption and how it fits its space.
+
+## Start
+
+Start is a searchable catalog of destinations and commands, with a category list and a resizable divider. It composes existing PUDL surfaces and is registered as `start` in the component inventory. Load `pudl-start.js` after `pudl-split.js`. The [markup and API contract](proposals/start-control.md) describes its hooks and host-owned routing. The [right-category example](../samples/start.html) and [left-category example](../samples/start-left.html) use the control.

@@ -112,3 +112,7 @@ Never let colour carry a meaning alone. A status, an error or a selection also s
 - No colour stands alone for a state.
 - Every control is reachable by the keyboard, and a toolbar's fields keep their own keys.
 - Both themes have been looked at.
+
+## A Start catalog
+
+Use the Start control for a searchable catalog of destinations and commands. Render `.menu-panel.start-menu[data-start]` with its search, item and category hooks, then load `pudl-start.js` after `pudl-split.js`. Keep destinations as links and commands as buttons. The category list remains a list, and its divider is the existing splitter. Hosts retain routing and saved preferences through `pudl:start-change` and `setState`. The [Start contract](proposals/start-control.md) and [working example](../samples/start.html) provide the complete composition.

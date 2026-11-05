@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.98.0
+
+Start is now a reusable control in `pudl-start.js`, composed from PUDL filters, navigation lists, popovers and splitters. Hosts render categories and mixed destination links or command buttons, and retain routing and persistence policy. The control owns filtering, counts, keyboard navigation and focus return; multiple instances keep independent state. See [the contract](docs/proposals/start-control.md) and working examples. General menu handlers defer to Start for its own interaction.
+
+
 ## 0.97.12
 
 Two interactive Start menu studies show a searchable catalog with categories on either side. They use native PUDL navigation lists, a resizable split-pane divider, filter controls and a popover. Clear has a glyph and keeps its label. The catalog uses generic item wording so it can include destinations other than applications. Search and category state are addressable, and the sample destinations are working links. These are design studies composed from existing controls; projects need no changes. See [the release record](docs/RELEASE-0.97.12.md).

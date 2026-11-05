@@ -1686,7 +1686,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.97.12, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.98.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1726,3 +1726,9 @@ Static Inter faces for renderers that require TrueType outlines are available as
 ## Start menu studies
 
 The interactive [categories-right study](samples/start-menu-mockup.html) and [categories-left study](samples/start-menu-left-mockup.html) compare two Start menu layouts using existing PUDL controls. Both provide search, category navigation and a resizable divider. They are design studies rather than a new public control API.
+
+## Start control
+
+Load `dist/pudl-start.js` with defer after `dist/pudl-split.js`, alongside `dist/pudl.css`. Render a `.menu-panel.start-menu[data-start]` with a search field, category list and catalog rows. A row can hold a navigation link or a command button. The control handles filtering, category counts, keyboard navigation and popup focus; the existing splitter handles resizing. Hosts own URLs, saved preferences and whether an action closes Start.
+
+The [complete contract](docs/proposals/start-control.md) and [component template](dist/pudl-components.json) define its markup and `pudlStart` methods. The [right-category example](samples/start.html) and [left-category example](samples/start-left.html) use the distribution control and a small host routing adapter. The earlier mockups remain as design history.
