@@ -15,3 +15,5 @@ The earlier broad menu run retained two assertion errors: the inventory test ori
 ## Publication
 
 The immutable tag is v0.98.0. Public archive/checksum and versioned CDN verification are recorded after publication.
+
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.98.0. Its immutable commit is fab3df963e149bdfe0981971671d31f0ab3fa286 and annotated tag object is a6ffe33ec219f8a231c2cc94deb3657816d2eaad. The reproducible archive contains 456 files including all 190 distribution files, occupies 6996190 bytes, and has SHA-256 b75dd776a57b26e2d6e7e5dc70822d82532c53ab7a52547080413f2c2fbfe0a6. Public archive and checksum verification passed against every tagged blob. All 101 versioned CDN CSS and JavaScript files match the tag. Main carries 25 CDN examples with verified integrity hashes. Package closure found no missing dependencies. GitHub CI remains follow-up evidence.
