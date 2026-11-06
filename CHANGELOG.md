@@ -6,7 +6,7 @@ Window layout addresses now preserve the complete logical stack through `z.order
 
 Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js` together. Hosts already saving the layout URL need no separate stack store. Background applet initialization must still avoid explicitly activating itself. See [the stack contract and interactive sample](docs/WINDOW-STACK.md).
 
-Launcher feedback dismissal preserves destination focus when a browser's native popover dismissal clears it. The launcher action still executes immediately.
+Start's queued open notification preserves focus that has already moved to a destination. The launcher action still executes immediately, and feedback dismissal leaves destination focus in place. Hosts using Start or the launcher should also update `pudl-start.js`.
 
 ## 0.100.0
 

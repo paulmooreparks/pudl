@@ -17,7 +17,10 @@ function check(name, ok, detail) {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   const URL = ROOT + '/tests/fixtures/dock-overflow.html';
-  const settle = () => page.evaluate(() => new Promise(r => setTimeout(r, 150)));
+  /* A timer does not flush the frames used by ResizeObserver and overflow placement. */
+  const settle = () => page.evaluate(() => new Promise(resolve => {
+    setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(resolve)), 150);
+  }));
   const group = (edge, pane) => page.locator('.win-dock-group[data-dock-edge="' + edge + '"]' + (pane ? '[data-dock-pane]' : ':not([data-dock-pane])')).first();
   const more = (edge, pane) => group(edge, pane).locator(':scope > .win-dock-more');
   const menu = () => page.locator('.context-menu:popover-open');

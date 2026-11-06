@@ -121,15 +121,23 @@
     if (form && root.contains(form)) on(form, 'submit', function (e) {
       e.preventDefault(); var first = available()[0]; if (first) first.click();
     });
+    var openingFocus = null;
     on(root, 'beforetoggle', function (e) {
       if (e.target === root && e.newState === 'open') {
+        openingFocus = document.activeElement;
         if (!explicitOpener && !root.contains(document.activeElement)) opener = document.activeElement;
         explicitOpener = false;
       }
     });
     on(root, 'toggle', function (e) {
       if (e.target !== root) return;
-      if (e.newState === 'open') { draw('refresh'); input.focus({ preventScroll: true }); if (window.pudlSplit) window.pudlSplit.refresh(root); }
+      if (e.newState === 'open') {
+        var focus = document.activeElement;
+        draw('refresh');
+        if (focus === openingFocus) input.focus({ preventScroll: true });
+        if (window.pudlSplit) window.pudlSplit.refresh(root);
+      }
+      openingFocus = null;
     });
     on(document, 'keydown', function (e) {
       var button = e.target.closest && e.target.closest('[popovertarget]');

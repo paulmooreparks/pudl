@@ -4,7 +4,7 @@ Window layout addresses preserve every logical open window's bottom-to-top order
 
 Restoration stages connected, measurable windows until geometry, stack and selection are applied. Fragment arrival order does not determine the visible stack. Region navigation preserves the new state. Hosts already saving the window layout address need no additional stack store or manual Z-index changes. Update the window script, window stylesheet and region script together. The [contract and working sample](WINDOW-STACK.md) describe normalization and lifecycle behavior.
 
-Launcher feedback dismissal also preserves destination focus if native popover dismissal clears it. Destination actions still execute immediately through the original event.
+Start's queued open notification preserves focus that has already moved to a destination. Previously that notification could move focus back into a launcher just before feedback dismissal. Hosts using Start or the launcher should also update `pudl-start.js`. Destination actions still execute immediately through the original event.
 
 ## Verification
 

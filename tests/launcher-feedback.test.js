@@ -24,9 +24,9 @@ const { launch, ROOT, out } = require('./lib');
     const open = () => page.evaluate(() => pudlLauncher.open(document.getElementById('catalog-a')));
     const waitClosed = () => page.waitForFunction(() => pudlLauncher.state(document.getElementById('catalog-a')).presentation === 'closed');
     const waitFeedback = () => page.waitForFunction(() => !document.querySelector('[data-launcher-selected]'));
-    await open();
     const immediate = await page.evaluate(async () => {
       const root = document.getElementById('catalog-a'), item = document.getElementById('item-a');
+      pudlLauncher.open(root);
       window.feedbackStarted = performance.now(); item.click(); item.click();
       const synchronousExecutions = executions; await Promise.resolve();
       return { executions: synchronousExecutions, visible: root.matches(':popover-open'), selected: item.parentElement.hasAttribute('data-launcher-selected'), focus: document.activeElement.id, background: getComputedStyle(item.parentElement).backgroundColor };
