@@ -1,13 +1,28 @@
-/* Prototype host adapter. No distribution control or application integration is changed. */
+/* Prototype host adapter using the shared menu bar, applet, Start and window controls. */
 (function () {
   'use strict';
-  var root = document.getElementById('host-launcher'), opener = document.getElementById('host-title');
+  var requestedPlacement = new URL(location.href).searchParams.get('launcher');
+  if (requestedPlacement === 'top' || requestedPlacement === 'taskbar') document.querySelector('[data-menubar]').removeAttribute('data-menubar-launcher');
+  function boot() {
+  var root = document.getElementById('host-launcher'), opener = pudlMenubar.launcherButton() || document.getElementById('host-title');
+  if (pudlMenubar.launcherButton()) { document.getElementById('host-title').remove(); opener.id = 'host-title'; }
   var frame = document.getElementById('host-frame'), slot = document.getElementById('launcher-slot');
   var demo = document.body.dataset.demo, key = 'pudl-host-launcher-study:' + demo;
-  var current = '', restoring = false, hydrated = new WeakSet();
+  var current = '', restoring = false, hydrated = new WeakSet(), popupOnUnpin = false;
+  var placement = new URL(location.href).searchParams.get('launcher') || 'title';
+  document.body.dataset.launcherPlacement = placement;
+  if (placement === 'top' || placement === 'taskbar') {
+    opener.hidden = false;
+    opener.setAttribute('aria-label', 'Open launcher');
+    if (placement === 'top') document.querySelector('.host-bar').prepend(opener);
+    else document.querySelector('.win-bar').prepend(opener);
+    document.body.dataset.defaultPresentation = 'popup';
+    document.querySelectorAll('.study-switcher a').forEach(function (a) { var url = new URL(a.href); url.searchParams.set('launcher', placement); a.href = url.href; });
+  }
   function load(name, fallback) { try { return JSON.parse(localStorage.getItem(key + ':' + name)) || fallback; } catch (_) { return fallback; } }
   function save(name, value) { try { localStorage.setItem(key + ':' + name, JSON.stringify(value)); } catch (_) { /* The demo also works without storage. */ } }
   function sizeKey() { return innerWidth <= 700 ? 'size-narrow' : 'size-wide'; }
+  function visibleInvoker() { return placement === 'title' ? pudlMenubar.launcherButton({ visible: true }) || opener : opener; }
   function setAddress(push) {
     if (restoring) return;
     var url = new URL(location.href), state = pudlStart.state(root);
@@ -18,7 +33,8 @@
   }
   function place() {
     if (!root.hasAttribute('popover')) return;
-    var r = opener.getBoundingClientRect(), top = Math.min(r.bottom + 6, Math.max(8, innerHeight - 280));
+    var r = visibleInvoker().getBoundingClientRect();
+    var top = placement === 'taskbar' ? Math.max(8, r.top - root.getBoundingClientRect().height - 6) : Math.min(r.bottom + 6, Math.max(8, innerHeight - 280));
     root.style.left = Math.max(8, Math.min(r.left, innerWidth - root.getBoundingClientRect().width - 8)) + 'px';
     root.style.top = top + 'px'; root.style.setProperty('--launcher-top', top + 'px');
   }
@@ -45,7 +61,7 @@
       opener.setAttribute('popovertarget', root.id);
       opener.setAttribute('aria-haspopup', 'dialog'); opener.setAttribute('aria-expanded', String(next === 'popup'));
       popupSize();
-      if (next === 'popup') { opener.click(); place(); }
+      if (next === 'popup') { pudlStart.open(root, visibleInvoker()); place(); }
     }
     var pinned = next === 'pane' || next === 'collapsed', pin = document.getElementById('keep-open');
     pin.setAttribute('aria-pressed', String(pinned)); pin.title = pinned ? 'Unpin launcher' : 'Pin launcher';
@@ -61,14 +77,23 @@
     else if (current === 'popup' && root.matches(':popover-open')) { presentation('closed', false); opener.focus({ preventScroll: true }); }
     else presentation('popup', true);
   }
-  opener.addEventListener('click', function (e) {
-    /* Native popover activation supplies the popup toggle and invoker relationship. */
-    if (root.hasAttribute('popover')) return;
-    e.preventDefault(); reveal();
+  if (placement !== 'title') opener.addEventListener('click', function (e) { if (!root.hasAttribute('popover')) { e.preventDefault(); reveal(); } });
+  document.querySelector('[data-menubar]').addEventListener('pudl:menubar-launcher', function (e) {
+    e.preventDefault();
+    if (e.detail.toggle) reveal();
+    else if (current === 'pane' || (current === 'popup' && root.matches(':popover-open'))) root.querySelector('[data-start-query]').focus();
+    else presentation(current === 'collapsed' ? 'pane' : 'popup', true);
   });
   opener.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); if (current === 'pane' || (current === 'popup' && root.matches(':popover-open'))) root.querySelector('[data-start-query]').focus(); else presentation(current === 'collapsed' ? 'pane' : 'popup', true); } });
-  document.getElementById('keep-open').addEventListener('click', function () { presentation(current === 'pane' ? 'popup' : 'pane', true); });
-  document.getElementById('collapse-launcher').addEventListener('click', function () { presentation(current === 'pane' ? 'collapsed' : 'closed', false); opener.focus(); });
+  document.getElementById('keep-open').addEventListener('click', function () {
+    if (current === 'pane') { var next = popupOnUnpin ? 'popup' : 'closed'; popupOnUnpin = false; presentation(next, next === 'popup'); if (next === 'closed') visibleInvoker().focus(); }
+    else { popupOnUnpin = current === 'popup' && root.matches(':popover-open'); presentation('pane', true); }
+  });
+  document.addEventListener('click', function (e) {
+    if (current !== 'pane' || e.target.closest('#keep-open')) return;
+    if (!root.contains(e.target) || e.target.closest('[data-demo-open]')) popupOnUnpin = false;
+  }, true);
+  document.getElementById('collapse-launcher').addEventListener('click', function () { presentation(current === 'pane' ? 'collapsed' : 'closed', false); visibleInvoker().focus(); });
   root.addEventListener('beforetoggle', function (e) {
     if (e.target === root && root.hasAttribute('popover')) opener.setAttribute('aria-expanded', String(e.newState === 'open'));
   });
@@ -118,6 +143,7 @@
   }
   function hydrate(win) {
     if (hydrated.has(win)) return; hydrated.add(win);
+    var body = win.querySelector('.win-body'); body.setAttribute('data-applet', 'host-study-tool'); pudlApplets.boot(win); pudlApplets.start(win.dataset.win).then(updateMenus);
     win.querySelectorAll('[data-draft]').forEach(function (input) {
       input.value = load('draft-' + input.dataset.draft, ''); input.addEventListener('input', function () { save('draft-' + input.dataset.draft, input.value); win.querySelector('[data-draft-status]').textContent = 'Draft kept in this browser when storage is available.'; });
     });
@@ -127,19 +153,51 @@
     if (colour) colour.addEventListener('input', function () { win.querySelector('[data-colour-value]').textContent = colour.value; win.querySelector('.colour-sample').style.setProperty('--sample-colour', colour.value); });
     diagnostics(win);
   }
-  function emptyWorkspace() { document.querySelector('.workspace-empty').hidden = pudlWindows.state().open.length > 0; }
-  document.addEventListener('pudl:windows-change', emptyWorkspace);
+  function emptyWorkspace() { var empty = document.querySelector('.workspace-empty'); if (empty) empty.hidden = pudlWindows.state().open.length > 0; }
+  function updateMenus() { pudlMenubar.refresh(); }
+  pudlApplets.define('host-study-tool', {});
+  pudlApplets.register('host-study-tool', {
+    init: function (body) {
+      var win = body.closest('.win'), active = win.dataset.win;
+      return { menus: function () {
+        var draft = body.querySelector('[data-draft]'), reader = !!body.querySelector('.reading-sample');
+        var name = reader ? 'Reader' : draft ? 'Editor' : win.querySelector('.win-title').textContent;
+        var titles = [{ label: name, glyph: reader ? 'document' : 'app', items: [
+          { label: 'Browse catalog', run: function () { if (current !== 'pane') presentation(current === 'collapsed' ? 'pane' : 'popup', true); else root.querySelector('[data-start-query]').focus(); } },
+          { label: 'Close window', run: function () { pudlWindows.close(active); } }
+        ] }];
+        if (draft || body.querySelector('[data-diagram-export]')) titles.push({ label: 'File', items: [{ label: draft ? 'Download text' : 'Export SVG', glyph: 'download', run: function () {
+          if (!draft) { body.querySelector('[data-diagram-export]').click(); return; }
+          var url = URL.createObjectURL(new Blob([draft.value], { type: 'text/plain;charset=utf-8' })), a = document.createElement('a');
+          a.href = url; a.download = active + '.txt'; a.click(); setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        } }] });
+        if (draft) titles.push({ label: 'Edit', items: [{ label: 'Select all', run: function () { draft.focus(); draft.select(); } }] });
+        if (reader) titles.push({ label: 'Reading', items: [{ label: 'Go to beginning', run: function () { body.scrollTop = 0; body.tabIndex = -1; body.focus({ preventScroll: true }); } }] });
+        var refresh = body.querySelector('[data-refresh-diagnostics]');
+        if (refresh) titles[0].items.push({ label: 'Refresh diagnostics', run: function () { refresh.click(); } });
+        var step = body.querySelector('[data-diagram-step]');
+        if (step) titles.push({ label: 'Shape', items: [{ label: 'Change step label', run: function () { step.click(); } }] });
+        return { titles: titles };
+      } };
+    }
+  });
+  document.addEventListener('pudl:windows-change', function () { emptyWorkspace(); updateMenus(); });
   document.addEventListener('pudl:window-open', function (e) { var win = e.target.closest('.win'); if (win) hydrate(win); });
   new MutationObserver(function (records) { if (records.some(function (r) { return Array.from(r.addedNodes).some(function (n) { return n.nodeType === 1 && (n.matches('.win') || n.querySelector('.win')); }); })) document.querySelectorAll('.win[data-win]').forEach(hydrate); }).observe(document.querySelector('.win-layer'), { childList: true, subtree: true });
   function openItem(id, from) {
+    if (current === 'pane') popupOnUnpin = false;
     var single = new URL(location.href).searchParams.get('mode') === 'standalone';
     if (single) document.getElementById('study-' + id).content.querySelector('.win').setAttribute('data-win-mode', 'maximized');
     if (single) { var before = pudlWindows.state().open.slice(); before.filter(function (k) { return k !== id; }).forEach(function (k) { pudlWindows.close(k); }); }
     if (current === 'popup') presentation('closed', false);
-    pudlWindows.open(id, from); document.getElementById('workspace-context').textContent = document.getElementById('study-' + id).content.querySelector('.win-title').textContent;
+    pudlWindows.open(id, from); updateMenus();
     if (single) { var url = new URL(location.href); url.searchParams.set('item', id); history.replaceState(null, '', url); }
   }
-  root.addEventListener('click', function (e) { var link = e.target.closest('[data-demo-open]'); if (!link || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return; e.preventDefault(); openItem(link.dataset.demoOpen, link); });
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('[data-demo-open]'); if (!link || !link.closest('#host-launcher, .desktop-guide') || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    e.preventDefault(); openItem(link.dataset.demoOpen, link);
+  });
+  document.querySelectorAll('[data-open-launcher]').forEach(function (button) { button.addEventListener('click', function () { if (current === 'pane') root.querySelector('[data-start-query]').focus(); else presentation(current === 'collapsed' ? 'pane' : 'popup', true); }); });
   document.addEventListener('click', function (e) {
     var win = e.target.closest('.win'); if (!win) return;
     if (e.target.closest('[data-refresh-diagnostics]')) diagnostics(win);
@@ -156,18 +214,17 @@
       openItem(id, file);
     }
   });
-  document.getElementById('theme-choice').addEventListener('click', function (e) { var light = document.documentElement.dataset.theme !== 'light'; document.documentElement.dataset.theme = light ? 'light' : 'dark'; e.currentTarget.lastChild.textContent = light ? 'Dark theme' : 'Light theme'; save('theme', light ? 'light' : 'dark'); });
-  document.querySelectorAll('button[data-catalog-view]').forEach(function (button) { button.addEventListener('click', function () { var view = button.dataset.catalogView; document.body.dataset.catalogView = view; document.querySelectorAll('button[data-catalog-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b === button)); }); save('catalog-view', view); setAddress(false); }); });
-  var flavour = document.getElementById('host-flavour');
-  function hostName() { if (!flavour) return; var name = flavour.value === 'gk' ? 'GK Companion' : 'Dinah'; document.querySelectorAll('[data-host-name],#launcher-heading').forEach(function (n) { n.textContent = name; }); opener.setAttribute('aria-label', 'Open ' + name + ' launcher'); }
-  if (flavour) { flavour.value = new URL(location.href).searchParams.get('host') === 'gk' ? 'gk' : 'dinah'; hostName(); flavour.addEventListener('change', function () { hostName(); var url = new URL(location.href); url.searchParams.set('host', flavour.value); history.replaceState(null, '', url); }); }
+  document.getElementById('theme-choice').addEventListener('click', function () { var light = document.documentElement.dataset.theme !== 'light'; document.documentElement.dataset.theme = light ? 'light' : 'dark'; document.querySelector('[data-theme-label]').textContent = light ? 'Dark theme' : 'Light theme'; save('theme', light ? 'light' : 'dark'); });
+  document.querySelectorAll('button[data-catalog-view]').forEach(function (button) { button.addEventListener('click', function () { var view = button.dataset.catalogView; document.body.dataset.catalogView = view; document.querySelectorAll('button[data-catalog-view]').forEach(function (b) { b.setAttribute('aria-checked', String(b === button)); }); save('catalog-view', view); setAddress(false); }); });
+  function hostName(value) { var name = value === 'gk' ? 'GK Companion' : 'Dinah'; document.querySelectorAll('[data-host-name],#launcher-heading').forEach(function (n) { n.textContent = name; }); opener.setAttribute('aria-label', 'Open ' + name + ' launcher'); document.querySelectorAll('[data-host-flavour]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.hostFlavour === value)); }); }
+  if (demo === 'tools') { hostName(new URL(location.href).searchParams.get('host')); document.querySelectorAll('[data-host-flavour]').forEach(function (button) { button.addEventListener('click', function () { hostName(button.dataset.hostFlavour); var url = new URL(location.href); url.searchParams.set('host', button.dataset.hostFlavour); history.replaceState(null, '', url); }); }); }
   function restore() {
     restoring = true; var params = new URL(location.href).searchParams;
     var section = params.has('section') ? params.get('section') : (demo === 'content' ? 'posts' : '');
     pudlStart.setState(root, { query: params.get('find') || '', category: section === 'all' ? '' : section });
     var view = params.get('view') || load('catalog-view', 'overview');
     document.body.dataset.catalogView = view === 'list' ? 'list' : 'overview';
-    document.querySelectorAll('button[data-catalog-view]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.catalogView === document.body.dataset.catalogView)); });
+    document.querySelectorAll('button[data-catalog-view]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.catalogView === document.body.dataset.catalogView)); });
     presentation(params.get('catalog') || load('presentation', document.body.dataset.defaultPresentation), false); restoring = false;
   }
   window.addEventListener('popstate', restore);
@@ -178,7 +235,7 @@
   });
   document.documentElement.dataset.theme = load('theme', 'dark');
   document.body.dataset.appMode = new URL(location.href).searchParams.get('mode') === 'standalone' ? 'standalone' : 'desktop';
-  if (document.documentElement.dataset.theme === 'light') document.getElementById('theme-choice').lastChild.textContent = 'Dark theme';
+  if (document.documentElement.dataset.theme === 'light') document.querySelector('[data-theme-label]').textContent = 'Dark theme';
   var pane = load('pane-width', null), divider = load('category-width', null);
   if (pane) frame.style.setProperty('--split-a', pane + 'px');
   if (divider) root.querySelector('#category-split').style.setProperty('--split-a', divider + 'px');
@@ -186,6 +243,9 @@
   restore();
   document.querySelectorAll('.win[data-win]').forEach(hydrate);
   emptyWorkspace();
+  updateMenus();
   var item = new URL(location.href).searchParams.get('item');
   if (new URL(location.href).searchParams.get('mode') === 'standalone' && document.getElementById('study-' + item)) openItem(item, opener);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

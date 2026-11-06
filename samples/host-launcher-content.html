@@ -4,16 +4,34 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Content browser | PUDL host launcher demos</title>
 <link rel="stylesheet" href="../dist/pudl.css"><link rel="stylesheet" href="../dist/pudl-windows.css"><link rel="stylesheet" href="host-launcher.css">
-<script src="../dist/pudl-split.js" defer></script><script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-start.js" defer></script><script src="../dist/pudl-windows.js" defer></script><script src="host-launcher.js" defer></script>
+<script src="../dist/pudl-split.js" defer></script><script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-start.js" defer></script><script src="../dist/pudl-windows.js" defer></script><script src="../dist/pudl-applets.js" defer></script><script src="../dist/pudl-menubar.js" defer></script><script src="host-launcher.js" defer></script>
 </head>
 <body class="host-study" data-demo="content" data-default-presentation="pane">
-<header class="topbar host-bar"><button class="btn btn-sm" id="host-title" popovertarget="host-launcher" aria-label="Open Bytecode.News launcher"><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span><span data-host-name>Bytecode.News</span><span aria-hidden="true"> ▾</span></button><span class="host-context" id="workspace-context">Workspace</span><button class="btn btn-sm" type="button" id="theme-choice"><span class="glyph" style="--glyph:var(--glyph-colour)" aria-hidden="true"></span>Light theme</button></header>
-<nav class="topbar study-switcher" aria-label="Launcher demos"><a class="brand" href="host-launcher.html">PUDL demos</a><a class="topbar-pill" href="host-launcher-apps.html">Applications</a><a class="topbar-pill" href="host-launcher-content.html" aria-current="page">Content</a><a class="topbar-pill" href="host-launcher-tools.html">Desktop tools</a></nav>
-<div class="study-options"><div class="seg" role="group" aria-label="Catalog format"><button type="button" data-catalog-view="overview" aria-pressed="true">Overview</button><button type="button" data-catalog-view="list" aria-pressed="false">List</button></div><a href="host-launcher.html#integration">Integration notes</a></div>
+<header class="topbar host-bar">
+<button class="btn btn-sm" id="host-title" hidden type="button" popovertarget="host-launcher"><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span>Start</button>
+<nav class="menubar" data-menubar data-menubar-launcher="host-launcher" aria-label="Site and application menus"><ul data-menubar-source hidden>
+<li><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span><span data-host-name>Bytecode.News</span><ul><li><a href="host-launcher.html">About these demos</a></li></ul></li>
+<li data-menu-glyph="eye">View<ul data-menu-radio><li>Catalog format</li><li><button class="menu-action" type="button" data-catalog-view="overview" role="menuitemradio" aria-checked="true">Overview</button></li><li><button class="menu-action" type="button" data-catalog-view="list" role="menuitemradio" aria-checked="false">List</button></li><li>-</li><li><button class="menu-action" type="button" id="theme-choice"><span class="glyph" style="--glyph:var(--glyph-colour)" aria-hidden="true"></span><span data-theme-label>Light theme</span></button></li></ul></li>
+<li data-menubar-windows data-menubar-if="windows" data-menu-glyph="window">Window<ul></ul></li>
+<li data-menu-glyph="info">Help<ul><li><a href="host-launcher.html">About these demos</a></li><li><a href="host-launcher.html#integration">Integration notes</a></li></ul></li>
+</ul></nav>
+<nav class="seg study-switcher" aria-label="Launcher demos"><a href="host-launcher-apps.html">Applications</a><a href="host-launcher-content.html" aria-current="page">Content</a><a href="host-launcher-tools.html">Desktop Tools</a></nav>
+</header>
 <div class="split host-frame" id="host-frame" data-split-pane="second">
 <div class="split-pane launcher-slot" id="launcher-slot"></div>
 <div class="split-handle outer-divider" aria-label="Resize the launcher pane" data-split-min="300" data-split-max="75%"></div>
-<main class="split-pane workspace-pane"><div class="workspace-empty"><h1>Content browser</h1><p>Open the Bytecode.News title to find something. Your open work stays in this workspace.</p></div><div class="win-host study-windows"><div class="win-layer" data-win-layer data-win-src="#study-{key}"></div></div><footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></footer></main>
+<main class="split-pane workspace-pane"><div class="win-host study-windows">
+<section class="desktop-guide" aria-labelledby="desktop-welcome">
+<div class="desktop-guide-inner">
+<header><p class="md-meta">Bytecode.News · Sample content</p><h1 id="desktop-welcome">Find something worth reading</h1><p>Browse a few starting points below, or open the launcher for the full catalog. Articles open over this page, so you can keep more than one at hand.</p><button class="btn" type="button" data-open-launcher><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span>Open launcher</button></header>
+<div class="desktop-sections">
+<section aria-labelledby="desktop-posts"><h2 id="desktop-posts">Posts</h2><ul><li><a href="?open=experience" data-demo-open="experience">Where Does The Experience Come From?</a><p>Practice, feedback and professional judgement.</p></li><li><a href="?open=cheerp" data-demo-open="cheerp">Java in the browser</a><p>Bringing an existing runtime to a new environment.</p></li></ul></section>
+<section aria-labelledby="desktop-facts"><h2 id="desktop-facts">Factoids</h2><ul><li><a href="?open=fact-one" data-demo-open="fact-one">A small fact about URLs</a><p>Why destinations should keep their addresses.</p></li><li><a href="?open=fact-two" data-demo-open="fact-two">Keyboard discovery</a><p>Controls that explain how to use them.</p></li></ul></section>
+<section aria-labelledby="desktop-feeds"><h2 id="desktop-feeds">From the feeds</h2><ul><li><a href="?open=feed-one" data-demo-open="feed-one">Programming feed</a><p>A starting point for programming reading.</p></li><li><a href="?open=feed-two" data-demo-open="feed-two">Web platform feed</a><p>A sample entry about the browser platform.</p></li></ul></section>
+</div>
+<aside class="desktop-hint"><h2>A quick guide</h2><p>The Bytecode.News title at the top opens the launcher. Search or choose a category there; use its pin to keep it beside your reading. The View menu switches between Overview and List. Open articles remain available on the taskbar, and closing an article brings this page back into view.</p></aside>
+</div></section>
+<div class="win-layer" data-win-layer data-win-src="#study-{key}"></div></div><footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></footer></main>
 </div>
 <section class="menu-panel start-menu host-launcher" id="host-launcher" data-start data-start-side="left" popover aria-labelledby="launcher-heading">
 <header class="popover-head start-header"><h2 class="popover-title" id="launcher-heading">Bytecode.News</h2><button class="icon-btn" type="button" id="keep-open" aria-label="Keep launcher open" aria-pressed="false" title="Pin launcher"><span class="glyph" style="--glyph:var(--glyph-pin)" aria-hidden="true"></span></button><button class="icon-btn popover-close" type="button" id="collapse-launcher" aria-label="Close launcher"></button></header>

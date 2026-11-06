@@ -2,7 +2,7 @@
 
 PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is a joke at its own expense, because a puddle is the flattest thing there is and PUDL insists that everything a user can touch has depth.
 
-Try the [interactive host launcher demos](samples/host-launcher.html), covering application catalogs, content browsing and desktop tools. The demos use released PUDL controls with proposed host integration kept in sample code.
+Try the [interactive host launcher demos](samples/host-launcher.html), covering application catalogs, content browsing and desktop tools. The demos use PUDL's shared controls and a sample host adapter; direct title-menu integration is on main and awaits a versioned release.
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 

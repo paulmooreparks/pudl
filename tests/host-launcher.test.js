@@ -6,6 +6,10 @@ const { launch, ROOT, out } = require('./lib');
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
+  async function chooseView(view) {
+    await page.locator('.menubar-title[data-menu-id="view"]').click();
+    await page.locator('.menubar-panel').getByRole('menuitemradio', { name: view === 'list' ? 'List' : 'Overview', exact: true }).click();
+  }
   try {
     for (const kind of ['apps', 'content', 'tools']) {
       await page.goto(ROOT + '/samples/host-launcher-' + kind + '.html');
@@ -14,8 +18,12 @@ const { launch, ROOT, out } = require('./lib');
       await page.locator('#host-title').click();
       assert.equal(await root.isVisible(), false, 'title toggles the visible launcher closed');
       assert.equal(await page.locator('#host-title').getAttribute('aria-expanded'), 'false');
+      if (kind === 'content') await page.screenshot({ path: out('host-content-welcome.png') });
       await page.locator('#host-title').click();
       assert.equal(await root.isVisible(), true, 'title toggles the launcher open again');
+      const siteGlyph = page.locator('.menubar-menu:not(.menubar-front):not(.menubar-one) > .menubar-glyph');
+      await siteGlyph.click(); assert.equal(await root.isVisible(), false, 'site hamburger closes the launcher');
+      await siteGlyph.click(); assert.equal(await root.isVisible(), true, 'site hamburger opens the launcher');
       if (kind !== 'content') {
         const panel = await root.boundingBox(), title = await page.locator('#host-title').boundingBox();
         assert.ok(Math.abs(panel.y - title.y - title.height - 6) < 2, 'popup anchors under the host title');
@@ -31,6 +39,7 @@ const { launch, ROOT, out } = require('./lib');
       if (kind !== 'content') await page.locator('#keep-open').click();
       await page.waitForFunction(() => document.body.dataset.presentation === 'pane');
       assert.equal(await page.locator('#keep-open').getAttribute('aria-pressed'), 'true', 'pin stays pressed in the persistent pane');
+      assert.equal(await siteGlyph.getAttribute('aria-expanded'), 'true', 'hamburger follows the pinned presentation');
       assert.equal(await page.locator('#keep-open .glyph').count(), 1, 'pin uses the shared glyph');
       const handle = page.locator('.outer-divider'), slot = page.locator('#launcher-slot');
       const width = (await slot.boundingBox()).width;
@@ -54,6 +63,13 @@ const { launch, ROOT, out } = require('./lib');
       const target = kind === 'apps' ? 'editor' : kind === 'content' ? 'experience' : 'notes';
       await root.locator('[data-demo-open="' + target + '"]').click();
       await page.waitForSelector('.win[data-win="' + target + '"]');
+      await page.waitForSelector('.menubar-front');
+      await page.waitForFunction(name => document.querySelector('.menubar-front .menubar-title')?.textContent === name, kind === 'content' ? 'Reader' : 'Editor');
+      assert.equal(await page.locator('.menubar-front .menubar-title').first().textContent(), kind === 'content' ? 'Reader' : 'Editor');
+      assert.equal(await page.locator('.menubar-menu:not(.menubar-one) > .menubar-glyph').count(), 2, 'shared menu control supplies both hamburgers');
+      await page.locator('.menubar-front > .menubar-glyph').click();
+      assert.equal(await page.locator('.menubar-panel').getByRole('menuitem', { name: 'Browse catalog', exact: true }).isVisible(), true);
+      await page.keyboard.press('Escape');
       if (kind !== 'content') {
         await page.locator('.win[data-win="' + target + '"] textarea').fill('A draft kept while browsing');
         await page.locator('#host-title').focus();
@@ -65,9 +81,9 @@ const { launch, ROOT, out } = require('./lib');
         const scroll = await root.locator('[data-start-items]').evaluate(el => { el.scrollTop = 70; return el.scrollTop; });
         await page.locator('#host-title').click(); await page.locator('#host-title').click();
         assert.equal(await root.locator('[data-start-items]').evaluate(el => el.scrollTop), scroll, 'title toggle retains browsing position');
-        await page.locator('button[data-catalog-view="list"]').click();
+        await chooseView('list');
         assert.equal(await root.locator('.story-excerpt').first().isVisible(), false);
-        await page.locator('button[data-catalog-view="overview"]').click();
+        await chooseView('overview');
         assert.equal(await root.locator('.story-excerpt').first().isVisible(), true);
       }
       for (const theme of ['dark', 'light']) {
@@ -75,14 +91,28 @@ const { launch, ROOT, out } = require('./lib');
         await page.screenshot({ path: out('host-' + kind + '-' + theme + '.png') });
       }
       await page.setViewportSize({ width: 390, height: 844 });
+      await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       assert.equal(await root.isVisible(), true);
       await page.screenshot({ path: out('host-' + kind + '-narrow.png') });
       await page.locator('#keep-open').click();
+      assert.equal(await root.isVisible(), false, 'unpin closes after using the pane');
+      const menu = page.locator('.menubar-one .menubar-title');
+      if (await menu.isVisible()) {
+        await menu.click();
+        await page.locator('.menubar-panel').getByRole('menuitem', { name: kind === 'apps' ? 'yavc.app' : kind === 'content' ? 'Bytecode.News' : 'Dinah', exact: true }).click();
+      } else await page.locator('#host-title').click();
       const narrow = await root.boundingBox(); assert.ok(narrow.x >= 0 && narrow.x + narrow.width <= 391);
       await query.focus(); await query.press('Escape');
       await page.waitForFunction(() => !document.getElementById('host-launcher').matches(':popover-open'));
-      assert.equal(await page.evaluate(() => document.activeElement.id), 'host-title');
+      assert.equal(await page.evaluate(() => document.activeElement.matches('.menubar-title')), true, 'Escape returns to the visible menu-bar invoker');
+      const folded = page.locator('.menubar-one .menubar-title');
+      if (await folded.isVisible()) {
+        await folded.click();
+        await page.locator('.menubar-panel').getByRole('menuitem', { name: kind === 'apps' ? 'yavc.app' : kind === 'content' ? 'Bytecode.News' : 'Dinah', exact: true }).click();
+        assert.equal(await root.isVisible(), true, 'collapsed shared menu opens the launcher');
+        await query.press('Escape');
+      }
       await page.setViewportSize({ width: 1440, height: 1000 });
       console.log('PASS ' + kind + ' title opener, filtering, pane resizing, persistence, collapse, windows, themes and narrow popup');
     }
@@ -96,13 +126,14 @@ const { launch, ROOT, out } = require('./lib');
     await page.locator('#host-title').click(); await page.locator('[data-demo-open="diagrams"]').click();
     await page.locator('[data-diagram-step]').click();
     assert.equal(await page.locator('[data-diagram-label]').textContent(), 'Review the result');
-    const download = page.waitForEvent('download'); await page.locator('[data-diagram-export]').click();
+    await page.locator('.menubar-front .menubar-title[data-menu-id="file"]').click();
+    const download = page.waitForEvent('download'); await page.locator('.menubar-panel').getByRole('menuitem', { name: 'Export SVG', exact: true }).click();
     const exported = await download;
     assert.equal(exported.suggestedFilename(), 'launcher-study-diagram.svg');
     assert.equal(await exported.failure(), null, 'SVG download completes before navigation');
     await page.goto(ROOT + '/samples/host-launcher-tools.html?catalog=pane&section=utilities&host=gk');
     await page.waitForFunction(() => document.body.dataset.presentation === 'pane');
-    assert.equal(await page.locator('[data-host-name]').innerText(), 'GK Companion');
+    assert.equal(await page.locator('.menubar-brand [data-host-name]').innerText(), 'GK Companion');
     await page.locator('[data-demo-open="calculator"]').click();
     await page.locator('[data-calculator] [name="a"]').fill('18.5');
     assert.equal(await page.locator('[data-calculator] output').innerText(), '26');
@@ -122,18 +153,56 @@ const { launch, ROOT, out } = require('./lib');
     await page.goForward();
     await page.waitForFunction(() => pudlStart.state(document.getElementById('host-launcher')).category === 'feeds');
     await page.locator('[data-start-category-key=""]').click();
-    await page.locator('button[data-catalog-view="list"]').click();
-    await page.locator('[data-demo-open="cheerp"]').click();
+    await chooseView('list');
+    await page.locator('#host-launcher [data-demo-open="cheerp"]').click();
     await page.waitForSelector('.win[data-win="cheerp"]');
     const shared = await browser.newPage();
     await shared.goto(page.url());
     await shared.waitForSelector('.win[data-win="cheerp"]');
     assert.equal(await shared.locator('[data-start-item]:visible').count(), 10);
-    assert.equal(await shared.locator('button[data-catalog-view="list"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await shared.locator('button[data-catalog-view="list"]').getAttribute('aria-checked'), 'true');
     await shared.close();
+    await page.goto(ROOT + '/samples/host-launcher-content.html?catalog=collapsed');
+    const guide = page.locator('.desktop-guide');
+    await guide.waitFor({ state: 'visible' });
+    assert.equal(await guide.evaluate(el => el.closest('.win') === null), true, 'orientation content is on the desktop background');
+    assert.equal(await guide.locator('.desktop-sections > section').count(), 3);
+    await guide.locator('[data-demo-open="experience"]').click();
+    await page.waitForSelector('.win[data-win="experience"]');
+    assert.equal(await guide.isVisible(), true, 'article opens over retained desktop content');
+    await page.locator('.win[data-win="experience"] [data-win-action="close"]').click();
+    await page.waitForSelector('.win[data-win="experience"]', { state: 'detached' });
+    await guide.locator('[data-open-launcher]').click();
+    assert.equal(await page.locator('#host-launcher').isVisible(), true, 'orientation button opens launcher');
+    assert.equal(await page.locator('#host-launcher [data-start-query]').evaluate(el => el === document.activeElement), true);
+    for (const placement of ['title', 'top', 'taskbar']) {
+      await page.goto(ROOT + '/samples/host-launcher-apps.html?launcher=' + placement + '&catalog=popup');
+      await page.waitForFunction(() => document.body.dataset.presentation === 'popup');
+      const panel = await page.locator('#host-launcher').boundingBox(), invoker = await page.locator('#host-title').boundingBox();
+      assert.ok(placement === 'taskbar' ? panel.y + panel.height < invoker.y : panel.y > invoker.y + invoker.height, 'popup follows placement');
+      await page.locator('#host-title').click(); assert.equal(await page.locator('#host-launcher').isVisible(), false);
+      await page.locator('#host-title').click(); assert.equal(await page.locator('#host-launcher').isVisible(), true);
+      await page.screenshot({ path: out('host-placement-' + placement + '.png') });
+      await page.locator('#keep-open').click();
+      await page.locator('#keep-open').click();
+      assert.equal(await page.locator('#host-launcher').isVisible(), true, 'immediate unpin restores popup');
+      assert.equal(await page.locator('#keep-open').getAttribute('aria-pressed'), 'false');
+      await page.locator('#keep-open').click();
+      await page.locator('#host-launcher [data-demo-open="editor"]').click();
+      await page.locator('#keep-open').click();
+      assert.equal(await page.locator('#host-launcher').isVisible(), false, 'unpin after destination activation closes launcher');
+      await page.locator('#host-title').click();
+      await page.locator('#keep-open').click();
+      await page.locator('.win[data-win="editor"] textarea').click();
+      await page.locator('#keep-open').click();
+      assert.equal(await page.locator('#host-launcher').isVisible(), false, 'unpin after outside interaction closes launcher');
+      assert.equal(await page.locator('.win[data-win="editor"]').count(), 1, 'unpin preserves open work');
+    }
     assert.deepEqual(errors, []);
     console.log('PASS standalone switching, diagram export, colour picker, host choice, calculator, expenses, checklist, history, clean-context shared URL and no page errors');
   } catch (error) {
+    await page.screenshot({ path: out('host-failure.png') });
+    console.error(await page.evaluate(() => ({ url: location.href, width: innerWidth, scrollWidth: document.documentElement.scrollWidth, overflow: Array.from(document.querySelectorAll('body *')).filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.right > innerWidth + 1; }).slice(0, 15).map(el => ({ tag: el.tagName, id: el.id, className: el.className, right: el.getBoundingClientRect().right })) })));
     console.error(error);
     throw error;
   } finally { await browser.close(); }

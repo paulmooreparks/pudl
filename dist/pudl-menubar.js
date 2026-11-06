@@ -32,6 +32,14 @@
    to the host's titles through menus().into, and may not use a title the
    host has; what breaks a rule is left out, with a warning naming it.
 
+   data-menubar-launcher names the panel opened directly by the site's
+   identity title and hamburger. Native popover invocation supplies the
+   pointer toggle. pudl:menubar-launcher is a cancelable request for other
+   activation paths, with { target, invoker, toggle, focus }; a host that
+   also presents a persistent pane handles it and prevents the default.
+   launcherButton() returns the retained identity control; passing
+   { visible: true } returns the collapsed bar's control when necessary.
+
    A host may give the bar a pins group, for the few things its readers go
    to most, as a second hidden list. It stands between the host menu and
    the front menu, so it stays put as the front changes:
@@ -77,6 +85,20 @@
   var titleLetters = {};   // letter -> the title's label, for the bar as built
 
   var bar, source, pinsSource, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
+  var launcherControl = null;
+  function isLauncher(title) { return !!(bar && bar.hasAttribute('data-menubar-launcher') && title && title._menu && title._menu.menu && title._menu.menu.kind === 'host' && title._menu.title.id === 'site'); }
+  function requestLauncher(title, toggle, focus) {
+    if (!isLauncher(title)) return false;
+    closeAll(false);
+    var target = document.getElementById(bar.getAttribute('data-menubar-launcher'));
+    var event = new CustomEvent('pudl:menubar-launcher', { bubbles: true, cancelable: true, detail: { target: target, invoker: title, toggle: toggle, focus: focus } });
+    if (bar.dispatchEvent(event) && target && target.hasAttribute('popover')) {
+      if (toggle || !target.matches(':popover-open')) target.togglePopover();
+    }
+    var glyph = title.previousElementSibling;
+    if (glyph && glyph.classList.contains('menubar-glyph')) glyph.setAttribute('aria-expanded', title.getAttribute('aria-expanded') || 'false');
+    return true;
+  }
   var menuScope = null;
   var STANDARD = ['site', 'go', 'applets', 'view', 'window', 'help'];
   var SHARED = ['go', 'view', 'help'];
@@ -628,6 +650,16 @@
 
   function titleButton(t, m) {
     var b = el('button', 'menubar-title', { type: 'button', role: 'menuitem', 'aria-haspopup': 'menu', 'aria-expanded': 'false', tabindex: '-1', id: 'menubar-t' + (++uid) });
+    if (m.kind === 'host' && t.id === 'site' && bar.hasAttribute('data-menubar-launcher')) {
+      if (launcherControl) { b = launcherControl; b.replaceChildren(); }
+      else launcherControl = b;
+      var launcher = document.getElementById(bar.getAttribute('data-menubar-launcher'));
+      b.setAttribute('aria-controls', bar.getAttribute('data-menubar-launcher'));
+      if (launcher && launcher.getAttribute('role') === 'region') b.removeAttribute('aria-haspopup');
+      else b.setAttribute('aria-haspopup', 'dialog');
+      if (launcher && launcher.hasAttribute('popover')) b.setAttribute('popovertarget', launcher.id);
+      else b.removeAttribute('popovertarget');
+    }
     b.setAttribute('title', t.label);
     b.setAttribute('data-tooltip', t.label);
     if (t.id) b.setAttribute('data-menu-id', t.id);
@@ -984,6 +1016,7 @@
         var first = g.querySelector('.menubar-title');
         if (first) toggle(first, true);
       });
+      if (m.kind === 'host' && bar.hasAttribute('data-menubar-launcher')) glyph.setAttribute('popovertarget', bar.getAttribute('data-menubar-launcher'));
       g.appendChild(glyph);
       m.titles.forEach(function (t) { g.appendChild(titleButton(t, m)); });
       if (m.kind === 'pins' && m.pins.length) {
@@ -1276,7 +1309,10 @@
         m.pins.forEach(function (pin) { list.push(pinRow(pin)); });
         return;
       }
-      m.titles.forEach(function (t) { list.push({ id: t.id, label: t.label, items: t.items, letter: t.letter, _title: t }); });
+      m.titles.forEach(function (t) {
+        if (m.kind === 'host' && t.id === 'site' && bar.hasAttribute('data-menubar-launcher')) list.push({ id: t.id, label: t.label, run: function () { requestLauncher(launcherControl, true, 'first'); } });
+        else list.push({ id: t.id, label: t.label, items: t.items, letter: t.letter, _title: t });
+      });
     });
     return list;
   }
@@ -1293,6 +1329,7 @@
   }
 
   function open(title, focusWhere) {
+    if (requestLauncher(title, false, focusWhere)) return;
     if (!currentTarget()) {
       var prior = title._menu;
       render();
@@ -1348,6 +1385,7 @@
   }
 
   function toggle(title, keyboard) {
+    if (requestLauncher(title, true, keyboard ? 'first' : null)) return;
     if (openTitle === title && panel && panel.matches(':popover-open')) { closeAll(true); return; }
     open(title, keyboard ? 'first' : null);
   }
@@ -1471,6 +1509,12 @@
     var t = e.target.closest('.menubar-title');
     if (!t || !built.contains(t)) return;
     if (e.type === 'click') {
+      if (isLauncher(t)) {
+        /* Keep native invocation for popups so a second press does not
+           light-dismiss before the click can toggle the launcher. */
+        var target = document.getElementById(bar.getAttribute('data-menubar-launcher'));
+        if (target && target.hasAttribute('popover')) { closeAll(false); return; }
+      }
       /* This handler owns the toggle; suppress the button's native one. */
       e.preventDefault();
       toggle(t, e.detail === 0);
@@ -2144,6 +2188,21 @@
     window.addEventListener('blur', function () { altArmed = false; built.classList.remove('menubar-letters'); });
     render();
 
+    var launcher = document.getElementById(bar.getAttribute('data-menubar-launcher'));
+    if (launcherControl) new MutationObserver(function () {
+      /* A host can change the retained identity's state for a persistent
+         pane. Keep its companion invoker in step without watching content. */
+      var glyph = launcherControl.previousElementSibling;
+      if (!glyph || !glyph.classList.contains('menubar-glyph')) return;
+      glyph.setAttribute('aria-expanded', launcherControl.getAttribute('aria-expanded') || 'false');
+      if (launcherControl.hasAttribute('aria-haspopup')) glyph.setAttribute('aria-haspopup', launcherControl.getAttribute('aria-haspopup'));
+      else glyph.removeAttribute('aria-haspopup');
+    }).observe(launcherControl, { attributes: true, attributeFilter: ['aria-expanded', 'aria-haspopup'] });
+    if (launcher) launcher.addEventListener('beforetoggle', function (e) {
+      if (e.target !== launcher) return;
+      if (launcherControl) launcherControl.setAttribute('aria-expanded', String(e.newState === 'open'));
+      built.querySelectorAll('.menubar-menu:first-child > .menubar-glyph').forEach(function (glyph) { glyph.setAttribute('aria-expanded', String(e.newState === 'open')); });
+    });
     document.addEventListener('pudl:windows-change', soon);
     document.addEventListener('pudl:window-title', function () { render(); });
     document.addEventListener('pudl:commands-change', function () { render(); });
@@ -2214,6 +2273,10 @@
   }
 
   window.pudlMenubar = {
+    launcherButton: function (options) {
+      if (options && options.visible && launcherControl && !launcherControl.getClientRects().length) return titles().find(function (t) { return t._menu.all; }) || launcherControl;
+      return launcherControl;
+    },
     focus: function (options) { return focusBar(options); },
     /* Rows are read afresh as each menu opens, so a refresh builds the bar
        again only when its menus, titles or pins read differently (0.69.3);

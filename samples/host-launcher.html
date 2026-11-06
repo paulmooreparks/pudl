@@ -11,8 +11,8 @@
   <main class="demo-hub">
     <header>
       <h1>One catalog, three kinds of host</h1>
-      <p>These working demos explore finding applications, browsing content and opening desktop tools through the host title. They use the released PUDL Start control, splitters and windows.</p>
-      <p>The proposed host adapter adds opener placement, persistent presentation and remembered size. Those extensions are sample code for review and are not a released PUDL API.</p>
+      <p>These working demos explore finding applications, browsing content and opening desktop tools through the host title. They use PUDL's menu bar, applet, Start, splitter and window controls.</p>
+      <p>The shared menu bar's direct launcher integration is on main and awaits a versioned release. The host adapter adds opener placement, persistent presentation and remembered size as sample code for review.</p>
     </header>
     <div class="demo-choices">
       <article>
@@ -22,7 +22,7 @@
       </article>
       <article>
         <h2>Content</h2>
-        <p>A Bytecode.News-inspired browser moves the editorial index into a resizable pane. Open articles, change categories, switch the overview to a list, then collapse or detach the browser.</p>
+        <p>A Bytecode.News-inspired browser puts a concise welcome page and featured links on the desktop background. Open articles over it, browse the resizable catalog, and use View to switch between Overview and List.</p>
         <p><a class="btn" href="host-launcher-content.html">Open content demo</a></p>
       </article>
       <article>
@@ -32,6 +32,10 @@
       </article>
     </div>
     <section>
+      <h2>Other launcher positions</h2>
+      <p>The main studies place the launcher on the site menu's title. Compare the same application catalog with <a href="host-launcher-apps.html?launcher=top&amp;catalog=popup">a separate top-bar button</a> or <a href="host-launcher-apps.html?launcher=taskbar&amp;catalog=popup">a lower-left taskbar button</a>. The placement stays selected when switching between the three studies.</p>
+    </section>
+    <section>
       <h2>What you can try</h2>
       <p>The host title toggles its catalog open and closed. Type to search, select a category and use the divider with a pointer or keyboard. Press the pin glyph to keep the catalog open as a pane, resize it, collapse it, and reveal it again. Press the pin again to return to a popup. The Size disclosure provides keyboard-accessible popup dimensions; the popup also has a native resize grip.</p>
       <p>Open several destinations and use their real PUDL window controls and taskbar. Copy the address to share the selected catalog state and open windows. Back and Forward restore navigation. Preferences and working drafts remain in this browser. Reset demo preferences restores the initial presentation and geometry without clearing working drafts or checklist entries.</p>
@@ -39,7 +43,7 @@
     <section id="integration">
       <h2>For implementers</h2>
       <p>The catalogs and tools are illustrative. They are not connected to production accounts, article services, app registrations or native desktop bridges. Single-application mode uses a query parameter to demonstrate host policy; production hosts supply their own subdomain URLs and unsaved-work rules.</p>
-      <p>PUDL owns catalog filtering, category interaction, keyboard navigation, splitters and windows. The shared sample adapter owns URL integration, local preferences, opening policy, popup placement and the presentation switch. The same catalog node is retained while changing presentation.</p>
+      <p>PUDL owns the menu bars and their hamburger controls, active application menus, catalog filtering, category interaction, keyboard navigation, splitters and windows. The shared sample adapter owns URL integration, local preferences, opening policy, popup placement and the presentation switch. The same catalog node is retained while changing presentation.</p>
       <ul>
         <li><a href="https://github.com/paulmooreparks/pudl/blob/main/docs/proposals/host-launcher.md">Read the host-launcher design and implementation boundaries.</a></li>
         <li><a href="https://github.com/paulmooreparks/pudl/blob/main/samples/host-launcher.js">Inspect the shared host adapter.</a></li>

@@ -4,12 +4,19 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Desktop tool catalog | PUDL host launcher demos</title>
 <link rel="stylesheet" href="../dist/pudl.css"><link rel="stylesheet" href="../dist/pudl-windows.css"><link rel="stylesheet" href="host-launcher.css">
-<script src="../dist/pudl-split.js" defer></script><script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-start.js" defer></script><script src="../dist/pudl-windows.js" defer></script><script src="host-launcher.js" defer></script>
+<script src="../dist/pudl-split.js" defer></script><script src="../dist/pudl-menu.js" defer></script><script src="../dist/pudl-start.js" defer></script><script src="../dist/pudl-windows.js" defer></script><script src="../dist/pudl-applets.js" defer></script><script src="../dist/pudl-menubar.js" defer></script><script src="host-launcher.js" defer></script>
 </head>
 <body class="host-study" data-demo="tools" data-default-presentation="popup">
-<header class="topbar host-bar"><button class="btn btn-sm" id="host-title" popovertarget="host-launcher" aria-label="Open Dinah launcher"><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span><span data-host-name>Dinah</span><span aria-hidden="true"> ▾</span></button><span class="host-context" id="workspace-context">Workspace</span><button class="btn btn-sm" type="button" id="theme-choice"><span class="glyph" style="--glyph:var(--glyph-colour)" aria-hidden="true"></span>Light theme</button></header>
-<nav class="topbar study-switcher" aria-label="Launcher demos"><a class="brand" href="host-launcher.html">PUDL demos</a><a class="topbar-pill" href="host-launcher-apps.html">Applications</a><a class="topbar-pill" href="host-launcher-content.html">Content</a><a class="topbar-pill" href="host-launcher-tools.html" aria-current="page">Desktop tools</a></nav>
-<div class="study-options"><label>Host <select class="form-input" id="host-flavour"><option value="dinah">Dinah</option><option value="gk">GK Companion</option></select></label><a href="host-launcher.html#integration">Integration notes</a></div>
+<header class="topbar host-bar">
+<button class="btn btn-sm" id="host-title" hidden type="button" popovertarget="host-launcher"><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span>Start</button>
+<nav class="menubar" data-menubar data-menubar-launcher="host-launcher" aria-label="Site and application menus"><ul data-menubar-source hidden>
+<li><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span><span data-host-name>Dinah</span><ul><li><a href="host-launcher.html">About these demos</a></li></ul></li>
+<li data-menu-glyph="eye">View<ul data-menu-radio><li>Example host</li><li><button class="menu-action" type="button" data-host-flavour="dinah" role="menuitemradio" aria-checked="true">Dinah</button></li><li><button class="menu-action" type="button" data-host-flavour="gk" role="menuitemradio" aria-checked="false">GK Companion</button></li><li>-</li><li><button class="menu-action" type="button" id="theme-choice"><span class="glyph" style="--glyph:var(--glyph-colour)" aria-hidden="true"></span><span data-theme-label>Light theme</span></button></li></ul></li>
+<li data-menubar-windows data-menubar-if="windows" data-menu-glyph="window">Window<ul></ul></li>
+<li data-menu-glyph="info">Help<ul><li><a href="host-launcher.html">About these demos</a></li><li><a href="host-launcher.html#integration">Integration notes</a></li></ul></li>
+</ul></nav>
+<nav class="seg study-switcher" aria-label="Launcher demos"><a href="host-launcher-apps.html">Applications</a><a href="host-launcher-content.html">Content</a><a href="host-launcher-tools.html" aria-current="page">Desktop Tools</a></nav>
+</header>
 <div class="split host-frame" id="host-frame" data-split-pane="second">
 <div class="split-pane launcher-slot" id="launcher-slot"></div>
 <div class="split-handle outer-divider" aria-label="Resize the launcher pane" data-split-min="300" data-split-max="75%"></div>
