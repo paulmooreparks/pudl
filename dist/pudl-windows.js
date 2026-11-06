@@ -3835,19 +3835,22 @@
   /* beside, from a link marked data-win-beside, is the zone the window
      opens in; a maximised opener then takes the other half, so the two
      stand side by side. */
+  function openResult(key, status, error) {
+    return { key: key, status: status, window: wins[key] || null, error: error || null };
+  }
   function open(key, from, beside) {
     if (wins[key]) {
       commit(beside && !restricted(key) && !dockOnly(key) ? snapped(state, key, beside) : raised(state, key), false);
       focusWindow(key);
-      return;
+      return Promise.resolve(openResult(key, 'existing'));
     }
-    if (pending[key]) return;
+    if (pending[key]) return pending[key];
     pending[key] = true;
     var host = hostOf(from);              // read now: the opener may close while this loads
     var asked = document.activeElement, askedTop = state.top;
-    load(key).then(function (el) {
+    return pending[key] = load(key).then(function (el) {
       delete pending[key];
-      if (wins[key]) return;            // opened meanwhile, by Back or Forward
+      if (wins[key]) return openResult(key, 'existing'); // opened meanwhile, by Back or Forward
       var take = focusUnmoved(asked) && state.top === askedTop;
       adopt(el);
       var st = copy(state);
@@ -3862,12 +3865,14 @@
       commit(st, true);
       announceOpen(el);
       if (take) focusWindow(key);
-    }, function (err) {
+      return openResult(key, 'opened');
+    }).catch(function (err) {
       delete pending[key];
       /* The window could not be built, so fall back on the item's own page,
          which is where the link pointed all along. */
       if (window.console) console.warn('pudl-windows:', err.message);
-      if (from && from.href) location.href = from.href;
+      if (from && from.href) { try { location.href = from.href; } catch (_) { /* The failed result still reaches the host. */ } }
+      return openResult(key, 'failed', err);
     });
   }
 
@@ -3877,20 +3882,20 @@
      returns to the old window. If the new window is already open it is
      brought forward and the old one closes. */
   function replaceWith(oldKey, key, from) {
-    if (requiredWindow(oldKey) || childrenOf(state, oldKey).some(requiredWindow)) return;
-    if (!wins[oldKey] || oldKey === key) { open(key, from); return; }
+    if (requiredWindow(oldKey) || childrenOf(state, oldKey).some(requiredWindow)) return Promise.resolve(openResult(key, 'blocked'));
+    if (!wins[oldKey] || oldKey === key) return open(key, from);
     if (wins[key]) {
       markClosing(oldKey, 'replace');
       commit(closed(raised(state, key), oldKey), true);
       focusWindow(key);
-      return;
+      return Promise.resolve(openResult(key, 'existing'));
     }
-    if (pending[key]) return;
+    if (pending[key]) return pending[key];
     pending[key] = true;
     var asked = document.activeElement;
-    load(key).then(function (el) {
+    return pending[key] = load(key).then(function (el) {
       delete pending[key];
-      if (wins[key]) return;
+      if (wins[key]) return openResult(key, 'existing');
       /* Judged before the old window closes, since closing it would drop
          focus to the page if focus was inside it. */
       var take = focusUnmoved(asked);
@@ -3914,10 +3919,12 @@
       commit(st, true);
       announceOpen(el);
       if (take) focusWindow(key);
-    }, function (err) {
+      return openResult(key, 'opened');
+    }).catch(function (err) {
       delete pending[key];
       if (window.console) console.warn('pudl-windows:', err.message);
-      if (from && from.href) location.href = from.href;
+      if (from && from.href) { try { location.href = from.href; } catch (_) { /* The failed result still reaches the host. */ } }
+      return openResult(key, 'failed', err);
     });
   }
 
@@ -5764,8 +5771,8 @@
        link or button does, the URL and history included, so a project never
        has to click PUDL's own buttons from script. */
     window.pudlWindows = {
-      open: function (key, opener) { if (KEY_RE.test(key)) open(key, opener || null); },
-      replace: function (oldKey, key) { if (KEY_RE.test(key)) replaceWith(oldKey, key, null); },
+      open: function (key, opener) { return KEY_RE.test(key) ? open(key, opener || null) : Promise.resolve(openResult(key, 'failed', new Error('Invalid window key'))); },
+      replace: function (oldKey, key) { return KEY_RE.test(key) ? replaceWith(oldKey, key, null) : Promise.resolve(openResult(key, 'failed', new Error('Invalid window key'))); },
       rekey: function (oldKey, key, push) { return KEY_RE.test(key) && rekey(oldKey, key, push); },
       raise: function (key) {
         if (!wins[key]) return;

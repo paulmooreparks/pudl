@@ -71,6 +71,28 @@ After settlement, `pudl:taskbar-activation-end` bubbles from the layer with `{ i
 
 `waitUntil` must be called synchronously. Calling it after event dispatch, or for an `open` request backed by `href`, throws. Dormant navigation destinations remain real HTTP(S) links, with native modified-click behavior. Hosts must not defer navigation, downloads or new-tab creation into a promise and depend on user activation surviving that delay.
 
+The follow-up candidate adds completion results to `pudlWindows.open(key, opener)` and `pudlWindows.replace(oldKey, key)`. Both return a promise resolving to `{ key, status, window, error }`. Status is `opened` after adoption, state commit and the window-open announcement, `existing` when reusing a window, `failed` for invalid keys or loading/adoption failures, or `blocked` when replacement would remove a required window family. Window is the current element or null; error is the failure reason or null. Concurrent requests for the same loading key share the same promise. Existing callers may ignore it; expected loading failures resolve as data rather than creating unhandled promise rejections. The existing authored-link navigation fallback remains in effect on failure.
+
+This result covers the window control's adoption, not independent applet initialization. A host using `waitUntil` must turn a failed result into a rejection and then await its own application readiness. For example, `openAndInitialize` below is the host's adapter:
+
+```js
+layer.addEventListener('pudl:taskbar-activate', event => {
+  event.preventDefault();
+  event.detail.waitUntil(openAndInitialize(event.detail));
+});
+
+async function openAndInitialize(request) {
+  const key = chooseInstanceKey(request.id, request.action);
+  const result = await pudlWindows.open(key, request.opener);
+  if (result.status === 'failed' || result.status === 'blocked') {
+    throw result.error || new Error('Window opening was blocked');
+  }
+  await initializeApplication(result.window);
+}
+```
+
+The host supplies `chooseInstanceKey` and `initializeApplication` for its domain. A genuine fragment failure now settles the taskbar request as soon as the fetch fails, without waiting for a readiness deadline. A host may still impose its own deadline for an initialization operation that never completes.
+
 PUDL's ordinary asynchronous window loading preserves a later active-window selection. Host adapters that fetch and initialize windows independently must likewise avoid unconditional focus on completion. Pending work and errors are transient and are excluded from pin preferences and URLs. Reconfiguration does not cancel already accepted host work.
 
 Preference storage must retain unavailable IDs separately from the currently registered projection. A temporarily empty registry emits no user preference event. Hosts must not save that temporary projection over durable account or guest preferences. The current descriptor accepts a shared glyph name; picture destinations should use a glyph fallback for this candidate rather than modifying generated taskbar markup.

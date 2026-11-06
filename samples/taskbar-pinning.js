@@ -39,7 +39,9 @@
       template.content.querySelectorAll('[data-draft]').forEach(function (el) { el.dataset.draft += '-' + index; });
       if (!document.getElementById(template.id)) document.body.appendChild(template);
     }
-    pudlWindows.open(key, event.detail.opener);
+    event.detail.waitUntil(pudlWindows.open(key, event.detail.opener).then(function (result) {
+      if (result.status === 'failed' || result.status === 'blocked') throw result.error || new Error('Window opening was blocked');
+    }));
   });
   layer.addEventListener('pudl:taskbar-change', function () {
     try { localStorage.setItem(storage, JSON.stringify(pudlWindows.taskbarState())); } catch (_) { /* The demo still works without storage. */ }

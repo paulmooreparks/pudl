@@ -93,7 +93,7 @@ const { launch, ROOT } = require('./lib');
     await page.waitForSelector('.win[data-win="meeting-notes"]');
     await page.waitForSelector('.win[data-win="calculator"]');
     const requested = page.waitForRequest('**/pin-test/delayed');
-    await page.evaluate(() => pudlWindows.open('delayed'));
+    await page.evaluate(() => { pudlWindows.open('delayed'); });
     await requested;
     await page.evaluate(() => pudlWindows.raise('calculator'));
     await page.locator('.win[data-win="calculator"] .win-body').focus();

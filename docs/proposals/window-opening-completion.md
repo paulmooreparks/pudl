@@ -1,0 +1,15 @@
+# Observable window opening completion
+
+Beta integration of taskbar pins exposed a missing host contract. The window control logged fragment failures and cleared its private loading flag, but `pudlWindows.open()` returned no completion result. A host could observe successful adoption and await applet initialization, but needed a separate deadline to release failed taskbar requests. The tested beta adapter used a 30-second deadline. A real fetch failure should permit immediate reporting and retry.
+
+The follow-up candidate returns a promise from `open` and `replace`. Both share the same per-key in-flight operation and resolve to `{ key, status, window, error }`. Status is `opened`, `existing`, `failed` or `blocked`. The last status applies when replacement is refused for a required window family. Expected load failures resolve as data because legacy callers ignore these operations; turning every failure into a rejecting promise would introduce unhandled rejections in those callers.
+
+The completion boundary follows adoption, state commit, the window-open announcement and any normal focus handling. It does not include independent applet initialization. The host converts `failed` or `blocked` into a rejection for taskbar `waitUntil`, and awaits its own application readiness on success. This preserves the separation between shared window layout and domain initialization. Existing authored-link navigation fallback remains in effect.
+
+The change does not add cancellation, polling, storage or a default timeout. A host still needs a bounded policy for its own initialization work that never settles. It must preserve intervening activation when its independent initializer finishes. Public release and production promotion remain held for beta review.
+
+The focused result suite verifies successful adoption and announcement, existing windows, invalid keys, required-family replacement refusal, failed fetch followed by retry, shared in-flight open/replace requests and taskbar failure settlement driven by the actual fetch result. Compatibility suites cover window APIs, focus, complete stack restoration, sharing and pin lifecycles, with readable and minified assets across Chromium, Firefox and WebKit. Exact run results and immutable asset identities are recorded in the follow-up handoff manifest.
+
+The follow-up passed 21 source and 21 minified suite runs under `tests/output/open-result-beta-source-20261106/` and `tests/output/open-result-beta-minified-20261106/`. The sample host adapter now registers the opening result with `waitUntil`, converting failure or refusal into rejection. Its final source regression is retained under `tests/output/open-result-adapter-source-20261106/`. Minified consistency and Git whitespace checks pass.
+
+Early test failures are retained under `tests/output/open-result-source-first-20261106/` and `tests/output/open-result-source-second-20261106/`. The first exposed the public wrapper discarding the new internal result. The second exposed a test harness race between request observation and the route handler installing its release callback. Both were corrected before the cross-engine runs.
