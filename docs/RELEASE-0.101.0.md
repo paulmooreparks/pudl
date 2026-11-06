@@ -17,3 +17,7 @@ Consumer integration against frozen candidate `09bb8ab` passed in Edge with read
 Complete Linux suites passed 140 of 140 checks in each readable engine and in minified Chromium against the final production assets. Chromium, WebKit and minified Chromium passed on `bc03cba`; readable Firefox passed on `5bdc36f`, whose distribution is byte-identical. The subsequent test-only changes passed all three affected Linux Firefox suites locally. The latest CI Firefox job was still installing its browser at publication preparation, so a wholly green latest-tip CI run is not claimed. Retained failures and evidence locations are recorded in [the verification record](review/window-stack-candidate.md).
 
 No manual assistive-technology or native desktop installation check is claimed. Taskbar pinning and folded launcher labeling are deferred. The specification remains 0.52.3.
+
+## Publication
+
+The [public release](https://github.com/paulmooreparks/pudl/releases/tag/v0.101.0) is tagged at `26e02cdc17bfdff2dfb2b99074590eb0a5fc8beb`. Its reproducible archive contains 474 files, including all 193 distribution files, and has SHA-256 `3ccc87bd0eb5a882b982c4506d9cf1897ce43d22abdadd47d35a1ccf476ee791`. The public archive and checksum match, every archived blob matches the tag, and all 103 versioned CDN JavaScript and CSS files match their tagged bytes. The branch README contains 25 verified CDN examples. GitHub Pages deployed the release commit successfully.
