@@ -16,6 +16,7 @@
     ['style', 'role', 'popover', 'data-launcher', 'data-launcher-presentation'].forEach(function (name) { original[name] = root.getAttribute(name); });
     var originalPane = layout.getAttribute('data-split-pane'), invokers = new Map(), listeners = [];
     var current = 'closed', returnPopup = false, destroyed = false, signature = '';
+    var feedback = null, clickAction = null;
     var size = { width: 720, height: 600 }, popupHost = options.popupHost || document.body;
     var pin = root.querySelector('[data-launcher-pin]'), sizeButton = root.querySelector('[data-launcher-size]');
     var widthField = root.querySelector('[data-launcher-width]'), heightField = root.querySelector('[data-launcher-height]');
@@ -78,6 +79,7 @@
     function present(next, settings) {
       if (destroyed || ['popup', 'pane', 'collapsed', 'closed'].indexOf(next) < 0) return false;
       settings = settings || {};
+      cancelFeedback();
       if (!settings.reason || settings.reason === 'api' || settings.reason === 'init') returnPopup = false;
       if (signature && current === next && (next !== 'popup' || popup())) {
         if (settings.focus) { if (next === 'pane' || next === 'popup') root.querySelector('[data-start-query]').focus({ preventScroll: true }); else focusInvoker(); }
@@ -125,7 +127,43 @@
       if (!pinned()) { applySize(); place(); }
       changed('resize'); return true;
     }
-    function activated() { returnPopup = false; if (popup()) present('closed', { reason: 'activate' }); return true; }
+    function cancelFeedback() {
+      clickAction = null;
+      if (!feedback) return;
+      clearTimeout(feedback.timer);
+      if (feedback.previous === null) feedback.mark.removeAttribute('data-launcher-selected');
+      else feedback.mark.setAttribute('data-launcher-selected', feedback.previous);
+      feedback = null;
+    }
+    function destination(target) {
+      var action = target && target.closest && target.closest('a[href],button');
+      if (!action || action.closest('[data-start]') !== root) return null;
+      var row = action.closest('[data-start-item]');
+      return (row && row.querySelector('a[href],button') === action) || action.hasAttribute('data-launcher-activate') ? action : null;
+    }
+    function eligible(action) {
+      if (!action || !root.contains(action) || action.disabled || action.closest('[aria-disabled="true"], [hidden], [data-start-filtered]')) return false;
+      if (action.tagName !== 'A') return true;
+      var base = document.querySelector('base[target]'), target = action.getAttribute('target') || (base && base.getAttribute('target')) || '_self';
+      return !action.hasAttribute('download') && target.toLowerCase() === '_self';
+    }
+    function activated(action) {
+      if (destroyed) return false;
+      action = action || clickAction;
+      if (action && !root.contains(action)) action = null;
+      if (action && !eligible(action)) return false;
+      returnPopup = false;
+      if (feedback) return true;
+      if (!action || (current !== 'pane' && !popup())) { if (popup()) present('closed', { reason: 'activate' }); return true; }
+      var mark = action.closest('[data-start-item]') || action;
+      feedback = { mark: mark, previous: mark.getAttribute('data-launcher-selected'), timer: 0 };
+      attr(mark, 'data-launcher-selected', '');
+      feedback.timer = setTimeout(function () {
+        cancelFeedback();
+        if (!destroyed && popup()) present('closed', { reason: 'activate' });
+      }, 180);
+      return true;
+    }
     attr(root, 'data-launcher', '');
     if (options.size) {
       if (Number.isFinite(options.size.width) && options.size.width > 0) size.width = options.size.width;
@@ -134,10 +172,22 @@
     on(document, 'click', function (e) {
       if (pinned() && !(pin && pin.contains(e.target)) && !root.contains(e.target)) returnPopup = false;
     }, true);
+    /* Guard repeated plain activation before a host's destination handler runs.
+       The original event and its default action otherwise remain synchronous. */
+    on(root, 'click', function (e) {
+      var action = destination(e.target);
+      if (action && (action.disabled || action.closest('[aria-disabled="true"], [hidden], [data-start-filtered]'))) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+      if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || !eligible(action)) return;
+      if (feedback || clickAction) { e.preventDefault(); e.stopImmediatePropagation(); return; }
+      clickAction = action;
+      queueMicrotask(function () {
+        if (clickAction !== action) return;
+        clickAction = null;
+        if (!e.defaultPrevented && !destroyed && eligible(action)) activated(action);
+      });
+    }, true);
     on(root, 'click', function (e) {
       if (e.target.closest('[data-start]') !== root) return;
-      var action = e.target.closest('[data-start-item] a[href], [data-start-item] button');
-      if (action && !e.defaultPrevented && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !action.disabled && action.getAttribute('aria-disabled') !== 'true') activated();
       var button = e.target.closest('button'); if (!button || button.disabled) return;
       if (button.hasAttribute('data-launcher-pin')) { e.preventDefault(); setPinned(!pinned()); }
       if (button.hasAttribute('data-launcher-close')) { e.preventDefault(); present(pinned() ? 'collapsed' : 'closed', { focus: true, reason: 'close' }); }
@@ -158,13 +208,14 @@
       if (e.target !== root || !root.hasAttribute('popover')) return;
       var control = button(); if (control) attr(control, 'aria-expanded', String(e.newState === 'open'));
       if (e.newState === 'open') { current = 'popup'; changed('open'); }
-      else if (current === 'popup') { current = 'closed'; changed('dismiss'); }
+      else if (current === 'popup') { cancelFeedback(); current = 'closed'; changed('dismiss'); }
     });
     on(root, 'toggle', function (e) {
       if (e.target !== root || !root.hasAttribute('popover')) return;
       if (popup()) { current = 'popup'; place(); changed('open'); }
-      else if (current === 'popup') { current = 'closed'; changed('dismiss'); }
+      else if (current === 'popup') { cancelFeedback(); current = 'closed'; changed('dismiss'); }
     });
+    on(root, 'pudl:start-change', cancelFeedback);
     on(window, 'resize', function () { if (popup()) { applySize(); place(); } });
     [widthField, heightField].forEach(function (field, index) {
       if (field) on(field, 'input', function () { var value = Number(field.value); if (value > 0) { var request = {}; request[index ? 'height' : 'width'] = value; resize(request); } });
@@ -180,7 +231,7 @@
       state: state, present: present, open: open, toggle: toggle, pin: setPinned, resize: resize, activated: activated,
       destroy: function () {
         var restoreFocus = root.contains(document.activeElement);
-        destroyed = true; observer.disconnect(); listeners.forEach(function (off) { off(); });
+        cancelFeedback(); destroyed = true; observer.disconnect(); listeners.forEach(function (off) { off(); });
         if (popup()) root.hidePopover();
         if (sizePanel && sizePanel.matches(':popover-open')) sizePanel.hidePopover();
         if (parent.isConnected) parent.insertBefore(root, sibling && sibling.parentNode === parent ? sibling : null);
@@ -205,7 +256,7 @@
     toggle: function (root) { return call(root, 'toggle'); },
     pin: function (root, value) { return call(root, 'pin', value); },
     resize: function (root, size) { return call(root, 'resize', size); },
-    activated: function (root) { return call(root, 'activated'); },
+    activated: function (root, action) { return call(root, 'activated', action); },
     destroy: function (root) { var c = controls.get(root); if (!c) return false; c.destroy(); return true; }
   };
 })();

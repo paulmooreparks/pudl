@@ -108,11 +108,10 @@
   document.addEventListener('pudl:window-open', function (e) { var win = e.target.closest('.win'); if (win) hydrate(win); });
   new MutationObserver(function (records) { if (records.some(function (r) { return Array.from(r.addedNodes).some(function (n) { return n.nodeType === 1 && (n.matches('.win') || n.querySelector('.win')); }); })) document.querySelectorAll('.win[data-win]').forEach(hydrate); }).observe(document.querySelector('.win-layer'), { childList: true, subtree: true });
   function openItem(id, from) {
-    pudlLauncher.activated(root);
+    pudlLauncher.activated(root, from);
     var single = new URL(location.href).searchParams.get('mode') === 'standalone';
     if (single) document.getElementById('study-' + id).content.querySelector('.win').setAttribute('data-win-mode', 'maximized');
     if (single) { var before = pudlWindows.state().open.slice(); before.filter(function (k) { return k !== id; }).forEach(function (k) { pudlWindows.close(k); }); }
-    if (current === 'popup') presentation('closed', false);
     pudlWindows.open(id, from); updateMenus();
     if (single) { var url = new URL(location.href); url.searchParams.set('item', id); history.replaceState(null, '', url); }
   }

@@ -2,6 +2,8 @@
 
 PUDL 0.99.0 adds `pudl-launcher.js` as the presentation controller for a Start catalog. It composes the existing menu bar, Start, splitter and popover controls. A host supplies the catalog and its destination actions, layout, URLs and preference storage. The [interactive studies](../samples/host-launcher.html) show application, content and desktop-tool hosts.
 
+The activation-feedback behavior and heading inset described here are implemented in an unreleased candidate.
+
 ## Setup
 
 Load `pudl.css`, `pudl-split.js`, `pudl-start.js` and then `pudl-launcher.js`. Load `pudl-menu.js` when using the standard Size settings popover, and `pudl-menubar.js` when the site title opens the launcher. Existing Start catalogs continue to work without the launcher module.
@@ -45,7 +47,15 @@ The four presentation values are `popup`, `pane`, `collapsed` and `closed`. A vi
 
 Pinning an open popup and immediately unpinning restores the popup. Activating a destination or clicking outside the pinned catalog clears that return intent, so subsequent unpinning closes it. Query editing and category changes within the catalog leave the intent intact. Disabled destinations do not consume it. The intent is transient and is never stored; a pane restored on a new page closes when unpinned.
 
-Plain activation of an enabled catalog destination dismisses an unpinned popup without returning focus to the opener. The host remains responsible for routing or executing that destination. Modified link clicks retain browser behavior. A programmatic host activation, such as a link on a content desktop, calls `pudlLauncher.activated(root)` to apply the same dismissal and unpin policy. Closing or collapsing through the launcher controls restores focus to its visible invoker; native outside dismissal leaves focus with the outside action.
+Plain activation of an enabled catalog destination executes its existing action immediately. PUDL marks its row with `data-launcher-selected` for a static 180 ms background confirmation, then dismisses an unpinned popup without returning focus to the opener. A pinned launcher shows the same feedback and remains open. The controller never replays the click or delays host execution. Reduced-motion preferences retain this static confirmation without an animation.
+
+Only the primary link or button in a `data-start-item` row is a destination. Auxiliary actions and categories do not start feedback. A host can mark an additional header destination with `data-launcher-activate`. Disabled destinations do nothing; repeated plain destination activation during feedback is blocked in capture before target and bubbling destination handlers run. Modified clicks, middle clicks, downloads and links targeting another browsing context keep native behavior and do not start this path.
+
+A managed destination that prevents the original click calls `pudlLauncher.activated(root, actionElement)` synchronously when accepting that action, then executes its existing operation immediately. Existing `activated(root)` calls infer a destination from the same click when available. Without a catalog action, such as a programmatic activation from the desktop background, the call records activation and dismisses immediately. Passing an element outside the catalog follows that same immediate path. Repeated confirmation calls during one feedback interval are idempotent. These calls do not guard independent programmatic host operations from executing twice; the host still owns those operations.
+
+Close, outside dismissal, presentation changes, filter or category changes and destruction cancel pending feedback. A pending interval cannot close a reopened or newly pinned launcher. Destination activation still clears the immediate-unpin return intent. Dismissal preserves focus already moved by the destination. Closing or collapsing through the launcher controls restores focus to the visible invoker.
+
+A normal same-tab navigation can replace the document before confirmation is visible, and opening a modal can supersede the launcher. A visible 180 ms pause is therefore not guaranteed for every destination. Operations that require the original user gesture retain it because they execute through their original event; no permission or new-context action depends on activation surviving a timer. Hosts must remove their own delayed click replay and immediate popup-close code when adopting the shared feedback policy.
 
 ## API and persistence
 
@@ -59,7 +69,7 @@ Plain activation of an enabled catalog destination dismisses an unpinned popup w
 | `toggle(root)` | Toggles the visible popup or the pinned pane's expanded state. |
 | `pin(root, boolean)` | Applies pinning or unpinning, including the transient return-intent rule. |
 | `resize(root, { width, height })` | Sets either or both retained popup dimensions. Invalid dimensions return `false` without a change. |
-| `activated(root)` | Records host-driven destination activation and dismisses an unpinned popup. |
+| `activated(root, actionElement)` | Confirms host-driven destination activation; a catalog action gets 180 ms feedback before popup dismissal. Existing calls without an element remain valid. |
 | `destroy(root)` | Disconnects listeners and the resize observer, restores original placement and presentation/control attributes, and leaves the Start catalog and its data intact. |
 
 Except for `state`, methods return booleans. Methods on an unknown root return `false`. Each controller owns its own state and handlers; several independent launchers can coexist. An unchanged presentation does not rewrite the catalog.
