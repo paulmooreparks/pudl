@@ -18,4 +18,4 @@ No whole-project matrix was run locally. GitHub CI on the release push is follow
 
 ## Publication
 
-Publication uses immutable tag `v0.99.0`, a reproducible archive, a checksum, public-download verification and versioned CDN byte checks. The tagged README keeps the previous verified CDN examples; main receives the new verified examples after publication.
+The release is public at https://github.com/paulmooreparks/pudl/releases/tag/v0.99.0. Its immutable commit is 1f64a1f2cd2310e8569223e5f72b49bd5f96ad1c and its annotated tag object is 68fcc2b6031539cc27f0c33d0e7a336e1c8d621c. The reproducible archive contains 468 files including all 193 distribution files, occupies 7043672 bytes, and has SHA-256 163a5e6fe44e4f989049529c695d7d89359a2bcf12cbb5d2fc7c02b5b90c5e87. Unauthenticated downloads of the archive and checksum match; every archived blob and the ZIP commit comment match the tag. All 103 versioned CDN CSS and JavaScript files match the tagged bytes. Main's 25 CDN examples use the verified 0.99.0 hashes. Package closure found no missing roots, file differences or unresolved references.
