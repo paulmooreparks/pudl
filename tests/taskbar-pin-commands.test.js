@@ -92,6 +92,7 @@ const { launch, ROOT } = require('./lib');
     await page.evaluate(() => { pudlWindows.open('calculator'); pudlWindows.open('meeting-notes'); });
     await page.waitForSelector('.win[data-win="meeting-notes"]');
     await page.waitForSelector('.win[data-win="calculator"]');
+    await page.evaluate(() => pudlWindows.raise('calculator'));
     const requested = page.waitForRequest('**/pin-test/delayed');
     await page.evaluate(() => { pudlWindows.open('delayed'); });
     await requested;

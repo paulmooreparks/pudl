@@ -113,6 +113,7 @@
   var state = { open: [], top: null, min: {}, place: {} };
   var taskbarDestinations = new Map(), taskbarPins = [], taskbarSlots = [];
   var taskbarPending = new Map();
+  var windowChoice = 0;    // explicit selection, independent of popup focus recovery
   var wins = {};           // key -> window element
   var zOrder = [];         // keys, bottom to top
   var openers = {};        // key -> element that opened it, for returning focus
@@ -3840,6 +3841,7 @@
   }
   function open(key, from, beside) {
     if (wins[key]) {
+      windowChoice++;
       commit(beside && !restricted(key) && !dockOnly(key) ? snapped(state, key, beside) : raised(state, key), false);
       focusWindow(key);
       return Promise.resolve(openResult(key, 'existing'));
@@ -3847,11 +3849,13 @@
     if (pending[key]) return pending[key];
     pending[key] = true;
     var host = hostOf(from);              // read now: the opener may close while this loads
-    var asked = document.activeElement, askedTop = state.top;
+    var asked = document.activeElement, askedTop = state.top, askedChoice = windowChoice;
     return pending[key] = load(key).then(function (el) {
       delete pending[key];
       if (wins[key]) return openResult(key, 'existing'); // opened meanwhile, by Back or Forward
-      var take = focusUnmoved(asked) && state.top === askedTop;
+      /* Popup dismissal may restore DOM focus while the requested window loads.
+         Only an intervening window selection should preserve the previous top. */
+      var keepTop = state.top !== askedTop || windowChoice !== askedChoice, take = !keepTop && focusUnmoved(asked);
       adopt(el);
       var st = copy(state);
       st.open.push(key);
@@ -3860,7 +3864,7 @@
                                      innerW(), innerH(), narrowPolicy(el) === 'maximized' ? { w: 0, h: 0 } : null);
       var other = { left: 'right', right: 'left' }[beside];
       if (other && opener && st.place[opener].mode === 'maximized' && !restricted(opener)) st.place[opener] = inZoneNamed(st.place[opener], other);
-      if (take) st.top = key;
+      if (!keepTop) st.top = key;
       openers[key] = from || null;
       commit(st, true);
       announceOpen(el);
@@ -4650,6 +4654,7 @@
   }
   function activateStackRow(key) {
     if (!wins[key] || state.open.indexOf(key) < 0) return;
+    windowChoice++;
     if (stackPopup) stackPopup.close(false);
     var st = raised(state, frontOf(state, key)); commit(st, false); if (st.top) focusWindow(st.top);
   }
@@ -5423,6 +5428,7 @@
     var tab = e.target.closest('[data-win-tab]');
     if (tab) {
       e.preventDefault();
+      windowChoice++;
       var st = tabbed(state, tab.getAttribute('data-win-tab'));
       commit(st, false);
       if (st.top) focusWindow(st.top);
@@ -5475,6 +5481,7 @@
     var el = e.target.closest('.win');
     if (!el || !layer.contains(el)) return;
     var key = el.getAttribute('data-win');
+    windowChoice++;
 
     /* A press anywhere in a window raises it at once, before any drag. */
     if (state.top !== key) commit(fronted(state, key), false);
@@ -5572,6 +5579,7 @@
     layer.addEventListener('dblclick', onSplitterDoubleClick);
     layer.addEventListener('keydown', onSplitterKey);
     layer.addEventListener('focusin', onFocusIn);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Tab' && !e.defaultPrevented) windowChoice++; }, true);
     layer.addEventListener('keydown', function (e) {
       var head = e.target.classList && e.target.classList.contains('win-head') ? e.target : null;
       if (head && layer.contains(head)) onHeadKey(e, head.closest('.win').getAttribute('data-win'));
@@ -5776,6 +5784,7 @@
       rekey: function (oldKey, key, push) { return KEY_RE.test(key) && rekey(oldKey, key, push); },
       raise: function (key) {
         if (!wins[key]) return;
+        windowChoice++;
         commit(raised(state, key), false);
         focusWindow(key);
       },

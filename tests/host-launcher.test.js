@@ -118,7 +118,7 @@ const { launch, ROOT, out } = require('./lib');
       const menu = page.locator('.menubar-one .menubar-title');
       if (await menu.isVisible()) {
         await menu.click();
-        await page.locator('.menubar-panel').getByRole('menuitem', { name: kind === 'apps' ? 'yavc.app' : kind === 'content' ? 'Bytecode.News' : 'Dinah', exact: true }).click();
+        await page.locator('.menubar-panel').getByRole('menuitem', { name: 'Open launcher', exact: true }).click();
       } else await page.locator('#host-title').click();
       const narrow = await root.boundingBox(); assert.ok(narrow.x >= 0 && narrow.x + narrow.width <= 391);
       await query.focus(); await query.press('Escape');
@@ -127,7 +127,7 @@ const { launch, ROOT, out } = require('./lib');
       const folded = page.locator('.menubar-one .menubar-title');
       if (await folded.isVisible()) {
         await folded.click();
-        await page.locator('.menubar-panel').getByRole('menuitem', { name: kind === 'apps' ? 'yavc.app' : kind === 'content' ? 'Bytecode.News' : 'Dinah', exact: true }).click();
+        await page.locator('.menubar-panel').getByRole('menuitem', { name: 'Open launcher', exact: true }).click();
         assert.equal(await root.isVisible(), true, 'collapsed shared menu opens the launcher');
         await query.press('Escape');
       }
