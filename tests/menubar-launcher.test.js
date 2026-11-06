@@ -1,5 +1,5 @@
 const assert = require('assert/strict');
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, out } = require('./lib');
 (async () => {
   const browser = await launch();
   try {
@@ -22,6 +22,32 @@ const { launch, ROOT } = require('./lib');
       return pudlMenubar.launcherButton() === before;
     }), true, 'identity control survives a menu rebuild');
     await page.locator('#catalog').evaluate(el => el.hidePopover());
+    await page.evaluate(() => document.querySelector('[data-menubar]').style.maxWidth = '130px');
+    await page.setViewportSize({ width: 240, height: 800 });
+    await page.waitForSelector('.menubar-collapsed');
+    await page.locator('.menubar-one .menubar-title').click();
+    const foldedLauncher = page.getByRole('menuitem', { name: 'Open launcher', exact: true });
+    await foldedLauncher.waitFor();
+    assert.match(await foldedLauncher.locator('.glyph').getAttribute('style'), /glyph-app/);
+    assert.ok(await page.locator('#menubar-panel .md-section-label').filter({ hasText: 'Example' }).isVisible());
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+      await page.screenshot({ path: out('folded-launcher-' + theme + '.png') });
+    }
+    await foldedLauncher.click(); assert.equal(await open(), true);
+    await page.locator('#catalog').evaluate(el => el.hidePopover());
+    await page.evaluate(() => {
+      document.querySelector('[data-menubar]').setAttribute('data-menubar-launcher-label', 'Ouvrir le lanceur');
+      pudlMenubar.refresh();
+    });
+    await page.locator('.menubar-one .menubar-title').click();
+    await page.getByRole('menuitem', { name: 'Ouvrir le lanceur', exact: true }).click();
+    assert.equal(await open(), true);
+    await page.locator('#catalog').evaluate(el => el.hidePopover());
+    await page.evaluate(() => document.querySelector('[data-menubar]').style.maxWidth = '');
+    await page.setViewportSize({ width: 1100, height: 800 });
+    await page.waitForFunction(() => !document.querySelector('.menubar-row').classList.contains('menubar-collapsed') && document.querySelector('[data-menu-id="site"]').getClientRects().length);
+    assert.match(await identity.textContent(), /Example/);
     await page.evaluate(() => {
       document.querySelector('[data-menubar]').addEventListener('pudl:menubar-launcher', e => { e.preventDefault(); window.requested = { toggle: e.detail.toggle, focus: e.detail.focus, target: e.detail.target.id }; });
     });

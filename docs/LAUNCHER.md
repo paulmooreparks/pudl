@@ -4,6 +4,8 @@ PUDL 0.99.0 adds `pudl-launcher.js` as the presentation controller for a Start c
 
 PUDL 0.100.0 adds the activation-feedback behavior and heading inset described here.
 
+The next candidate labels the folded identity action `Open launcher` with the shared app glyph. Set `data-menubar-launcher-label` on the real menu bar to localize that action. The expanded identity retains the site's own name and logo, and the folded group heading retains that name. Ordinary identity menus are unchanged.
+
 ## Setup
 
 Load `pudl.css`, `pudl-split.js`, `pudl-start.js` and then `pudl-launcher.js`. Load `pudl-menu.js` when using the standard Size settings popover, and `pudl-menubar.js` when the site title opens the launcher. Existing Start catalogs continue to work without the launcher module.

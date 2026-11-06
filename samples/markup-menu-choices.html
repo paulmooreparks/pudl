@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Markup menu choices | PUDL</title>
+<link rel="stylesheet" href="../dist/pudl.css">
+<script src="../dist/pudl-menu.js" defer></script>
+<script src="../dist/pudl-menubar.js" defer></script>
+<script src="markup-menu-choices.js" defer></script>
+</head>
+<body>
+<header class="topbar"><nav class="menubar" data-menubar data-menubar-ribbon aria-label="Menu choices example"><ul data-menubar-source hidden>
+<li>Menu choices<ul><li><a href="../reference.html">PUDL reference</a></li></ul></li>
+<li data-menubar-id="appearance">Appearance<ul data-menu-radio id="theme-choices">
+<li><button type="button" value="light" aria-checked="true">Light</button></li>
+<li><button type="button" value="dark" aria-checked="false">Dark</button></li>
+<li><button type="button" value="system" aria-checked="false">System</button></li>
+</ul></li>
+</ul></nav></header>
+<main class="wrap">
+<h1>Markup menu choices</h1>
+<p>Choose Appearance in the menu bar or ribbon. The page handles a shared choice event without inline JavaScript. Each choice remains an ordinary source button with a string value.</p>
+<p role="status" id="choice-status">Appearance follows Light.</p>
+<p><a href="../docs/MENU-CHOICES.md">Read the host integration contract</a></p>
+</main>
+</body></html>

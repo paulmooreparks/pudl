@@ -606,6 +606,10 @@
     }
   }
 
+  document.addEventListener('beforetoggle', function (e) {
+    if (e.newState === 'closed' && ctx.owner && e.target.contains(ctx.owner)) closeContext(0);
+  }, true);
+
   function ctxRows(panel) {
     return Array.prototype.slice.call(panel.querySelectorAll(':scope > .menu-action'));
   }
@@ -736,7 +740,10 @@
     panel.setAttribute('role', 'menu');
     if (label) panel.setAttribute('aria-label', label);
     fillContext(panel, rows);
-    (document.querySelector('dialog[open]:modal') || document.body).appendChild(panel);
+    /* Keep context actions within their owner's popup. Native light dismissal
+       then treats choosing an auxiliary action as an inside interaction. */
+    var popup = ctx.owner && ctx.owner.closest && ctx.owner.closest('[popover]:popover-open');
+    (popup || document.querySelector('dialog[open]:modal') || document.body).appendChild(panel);
     if (parentRow) {
       panel.setAttribute('data-menu-placement', 'beside');
       panel.setAttribute('data-menu-anchor', parentRow.id);

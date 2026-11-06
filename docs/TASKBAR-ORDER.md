@@ -55,3 +55,7 @@ Automated tests cover browser interaction and state. Manual screen-reader and na
 ## Grouped entries
 
 With opt-in taskbar stacks, pointer moves, keyboard moves, menus and Arrange operate on displayed entries. A genuine stack gathers its logical group into a stable block; an ordinary link moves only its own key. An internal stack-list move permutes the group's occupied canonical slots. The [stack contract](TASKBAR-STACKS.md) gives interleaved and filtered examples. The public `reorderTaskbar(key, destination)` call continues to move one root window.
+
+## Persistent destinations
+
+The optional [persistent pin contract](TASKBAR-PINS.md) adds a separate host-owned preference order for destinations and unpinned windows. The root-window array and URL grammar above retain their existing meaning. Use `reorderTaskbarEntry` for a displayed pin or stack, and persist `taskbarState()` when handling `pudl:taskbar-change`.

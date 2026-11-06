@@ -1310,7 +1310,7 @@
         return;
       }
       m.titles.forEach(function (t) {
-        if (m.kind === 'host' && t.id === 'site' && bar.hasAttribute('data-menubar-launcher')) list.push({ id: t.id, label: t.label, run: function () { requestLauncher(launcherControl, true, 'first'); } });
+        if (m.kind === 'host' && t.id === 'site' && bar.hasAttribute('data-menubar-launcher')) list.push({ id: t.id, label: (bar.getAttribute('data-menubar-launcher-label') || '').trim() || 'Open launcher', glyph: 'app', run: function () { requestLauncher(launcherControl, true, 'first'); } });
         else list.push({ id: t.id, label: t.label, items: t.items, letter: t.letter, _title: t });
       });
     });
@@ -1489,7 +1489,14 @@
         return;
       }
     }
-    if (c.el && c.el.isConnected) c.el.click();
+    if (c.el && c.el.isConnected) {
+      if (c.el.disabled || c.el.getAttribute('aria-disabled') === 'true') return;
+      var choiceList = c.radio && c.el.tagName === 'BUTTON' && c.el.hasAttribute('value') && c.el.parentElement.parentElement;
+      if (choiceList && choiceList.hasAttribute('data-menu-radio') && !choiceList.dispatchEvent(new CustomEvent('pudl:menu-choose', {
+        bubbles: true, cancelable: true, detail: { value: c.el.value, button: c.el }
+      }))) return;
+      c.el.click();
+    }
     else if (c.href != null) location.assign(c.href);
   }
 

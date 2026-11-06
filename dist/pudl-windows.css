@@ -778,6 +778,15 @@
   -webkit-mask: var(--glyph-circle) center / contain no-repeat;
   mask: var(--glyph-circle) center / contain no-repeat;
 }
+/* A persistent entry keeps a running indicator beside its destination mark. */
+.win-bar .win-dock > .win-tab[data-win-pin]::before { display: block; }
+.win-tab[data-win-pin-running="false"]::before {
+  background: var(--text-muted);
+  -webkit-mask-image: var(--glyph-pin);
+  mask-image: var(--glyph-pin);
+}
+.win-tab[aria-disabled="true"] { opacity: .55; cursor: default; }
+.win-tab > .win-pin-progress { width: .85em; height: .85em; }
 .win-tab:hover { background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 .win-tab:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win-tab[aria-current="true"] { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
