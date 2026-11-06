@@ -41,6 +41,7 @@ const { launch, ROOT, out } = require('./lib');
         await page.locator('#launcher-size').click();
         await page.waitForSelector('#launcher-size-panel:popover-open');
         assert.equal(await page.locator('#launcher-size .glyph').count(), 1, 'size uses a PUDL glyph button and popover');
+        assert.notEqual(await page.locator('#reset-size .glyph').evaluate(el => getComputedStyle(el).maskImage), 'none', 'reset uses a defined glyph');
         await page.screenshot({ path: out('host-' + kind + '-size.png') });
         await page.locator('#launcher-width').fill('680'); await page.locator('#launcher-width').press('Tab');
         await page.waitForFunction(() => Math.abs(document.getElementById('host-launcher').getBoundingClientRect().width - 680) < 2);
