@@ -160,7 +160,12 @@
       attr(mark, 'data-launcher-selected', '');
       feedback.timer = setTimeout(function () {
         cancelFeedback();
-        if (!destroyed && popup()) present('closed', { reason: 'activate' });
+        if (!destroyed && popup()) {
+          var destinationFocus = document.activeElement;
+          var keepFocus = destinationFocus && destinationFocus !== document.body && !root.contains(destinationFocus);
+          present('closed', { reason: 'activate' });
+          if (keepFocus && destinationFocus.isConnected && document.activeElement === document.body) destinationFocus.focus({ preventScroll: true });
+        }
       }, 180);
       return true;
     }
