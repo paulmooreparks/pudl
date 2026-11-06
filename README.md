@@ -2,11 +2,11 @@
 
 PUDL is the Pleasantly Usable Design Language. It rhymes with "puddle", which is a joke at its own expense, because a puddle is the flattest thing there is and PUDL insists that everything a user can touch has depth.
 
-Try the [interactive host launcher demos](samples/host-launcher.html), covering application catalogs, content browsing and desktop tools. The demos use PUDL's shared controls and a sample host adapter; direct title-menu integration is on main and awaits a versioned release.
+Try the [interactive host launcher demos](samples/host-launcher.html), covering application catalogs, content browsing and desktop tools. The demos use PUDL's shared controls and a sample host adapter; the shared launcher controller and title-menu integration are available in 0.99.0.
 
 I built PUDL as an answer to flat design. Flat design began as a fair rebellion against skeuomorphism, and it went on to strip out the cues that tell a user what can be pressed, what can be typed into, and what can only be read. PUDL gives every affordance one visual representation. Somebody who has learned it in one application should be able to open any other application built with it and know how to use it on sight.
 
-This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.52.1.
+This repository is PUDL's web implementation. The language itself, its rules, tokens, glyphs and components, is specified in [pudl-spec](https://github.com/paulmooreparks/pudl-spec), independently of any platform, and each release here says which version of the specification it implements. This one implements specification 0.52.3.
 
 The web implementation is a stylesheet, a small theme script and a font, with optional scripts for menus, floating windows, applets and regions. It needs no framework, and a project has nothing to build: it copies `dist/` or loads it from a CDN, and carries its own copy.
 
@@ -1688,7 +1688,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.98.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.99.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1734,3 +1734,7 @@ The interactive [categories-right study](samples/start-menu-mockup.html) and [ca
 Load `dist/pudl-start.js` with defer after `dist/pudl-split.js`, alongside `dist/pudl.css`. Render a `.menu-panel.start-menu[data-start]` with a search field, category list and catalog rows. A row can hold a navigation link or a command button. The control handles filtering, category counts, keyboard navigation and popup focus; the existing splitter handles resizing. Hosts own URLs, saved preferences and whether an action closes Start.
 
 The [complete contract](docs/proposals/start-control.md) and [component template](dist/pudl-components.json) define its markup and `pudlStart` methods. The [right-category example](samples/start.html) and [left-category example](samples/start-left.html) use the distribution control and a small host routing adapter. The earlier mockups remain as design history.
+
+## Host launcher
+
+PUDL 0.99.0 adds `dist/pudl-launcher.js` after the Start and splitter modules. It owns popup/sidebar switching, contextual unpinning, placement, size and focus while retaining the same catalog. The host supplies a split-pane slot and invoker and keeps its catalog, URLs, actions and preferences. Use `data-menubar-launcher` for the real site title and hamburger, or a normal launcher button. See [the complete contract](docs/LAUNCHER.md), [the reference](reference.html#host-launcher) and [interactive host examples](samples/host-launcher.html).

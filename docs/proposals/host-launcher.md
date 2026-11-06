@@ -1,6 +1,6 @@
 # Host launcher
 
-This design extends the Start control to provide a consistent catalog of destinations and tools under the host's title. The host can be a website, a suite of applications or a desktop application. The existing Start API remains the published contract until the extensions are implemented and released.
+This design extends the Start control to provide a consistent catalog of destinations and tools under the host's title. The host can be a website, a suite of applications or a desktop application. PUDL 0.99.0 implements the shared presentation contract in [the launcher guide](../LAUNCHER.md), while retaining the existing Start API.
 
 ## Recorded direction
 
@@ -31,9 +31,9 @@ The title opener, focus handling, placement and keyboard behavior belong to PUDL
 
 The presentation switch is a pin glyph toggle with an accessible name and tooltip. It uses the standard pressed button surface while pinned and the raised surface in popup mode. The pin replaces the separate Keep open and Use popup labels. Collapsing a pinned pane retains its pinned preference.
 
-Unpinning depends on what happened after pinning. Pinning an open popup and immediately unpinning restores that popup. Activating a destination or clicking outside the pinned launcher clears that return intent; subsequent unpinning closes the launcher completely. Editing the query or changing a category inside the launcher does not clear it. This intent lasts only for the current pinning interaction and is not stored across reloads. An initially persistent pane therefore closes when unpinned. The host adapter owns this presentation policy.
+Unpinning depends on what happened after pinning. Pinning an open popup and immediately unpinning restores that popup. Activating a destination or clicking outside the pinned launcher clears that return intent; subsequent unpinning closes the launcher completely. Editing the query or changing a category inside the launcher does not clear it. This intent lasts only for the current pinning interaction and is not stored across reloads. An initially persistent pane therefore closes when unpinned. The shared launcher controller owns this presentation policy.
 
-PUDL needs opener-relative placement, a title-menu integration contract and the proposed persistent presentation. Existing Start selectors and methods must remain compatible. Each adopting application needs a separate menu/catalog inventory and migration so existing capabilities remain discoverable. This record defines the shared direction; it does not report those application migrations as implemented.
+PUDL 0.99.0 supplies opener-relative placement, title-menu integration and persistent presentation. Existing Start selectors and methods must remain compatible. Each adopting application needs a separate menu/catalog inventory and migration so existing capabilities remain discoverable. This record defines the shared direction; it does not report those application migrations as implemented.
 
 ## Interactive review demos
 
@@ -47,9 +47,9 @@ The [demo hub](../../samples/host-launcher.html) links three fully interactive s
 
 The studies use the shared PUDL menu bar, applet, Start, splitter and window controls. The menu bar generates the hamburger controls, keyboard navigation, responsive folding and active application's menus. Each sample tool registers its menus through the applet API. The site title opens its host-wide catalog; View contains the catalog format, theme and relevant host options. Opening an article contributes Reader and Reading menus, while editors contribute File and Edit. The demo selector is a segmented control at the top bar's right edge.
 
-The shared menu bar now accepts `data-menubar-launcher`, naming the catalog panel that replaces the site's ordinary identity menu. This integration is on main and awaits a versioned release. The title uses native popover toggling. The hamburger and keyboard paths emit a cancelable `pudl:menubar-launcher` request, which the host adapter handles for popup and persistent presentations. `pudlMenubar.launcherButton()` exposes the retained identity opener; `{ visible: true }` selects the collapsed bar's control when the title is hidden. The adapter uses that visible control for placement and focus restoration. Hosts without the attribute retain the existing identity-menu behavior.
+The shared menu bar now accepts `data-menubar-launcher`, naming the catalog panel that replaces the site's ordinary identity menu. This integration is available in 0.99.0. The title uses native popover toggling. The hamburger and keyboard paths emit a cancelable `pudl:menubar-launcher` request, which the shared launcher controller handles for popup and persistent presentations. `pudlMenubar.launcherButton()` exposes the retained identity opener; `{ visible: true }` selects the collapsed bar's control when the title is hidden. The launcher controller uses that visible control for placement and focus restoration. Hosts without the attribute retain the existing identity-menu behavior.
 
-`samples/host-launcher.js` remains the shared host adapter, and `samples/host-launcher.css` supplies composition. Production host integrations are unchanged. The adapter prototypes opener-relative placement and switching one retained catalog node between a temporary popup and a persistent pane. The hub also links variants with a separate top-bar Start button and a lower-left taskbar Start button. Their `launcher=top` and `launcher=taskbar` addresses retain the same catalog, pin, filtering and window behavior; the taskbar popup opens above its button.
+`samples/host-launcher.js` remains the shared host adapter, and `samples/host-launcher.css` supplies composition. Production host integrations are unchanged. The adapter now delegates opener-relative placement and switching the retained catalog node to `pudl-launcher.js`. It retains content, routing and preferences. The hub also links variants with a separate top-bar Start button and a lower-left taskbar Start button. Their `launcher=top` and `launcher=taskbar` addresses retain the same catalog, pin, filtering and window behavior; the taskbar popup opens above its button.
 
 The outer pane divider and category divider use native PUDL pointer and keyboard interaction. Temporary popups use CSS resizing and provide explicit width/height fields for keyboard users. The host stores effective dimensions, presentation, theme and format as per-demo browser preferences; narrow and wide popup dimensions use separate preference keys. Completed split changes store the currently visible size so a preceding keyboard completion cannot overwrite a more recent pointer gesture's effective geometry.
 
@@ -63,7 +63,7 @@ The taskbar is the standard `.win-bar`, directly under the host frame as a sibli
 
 Size is a standard raised PUDL button with a glyph. It opens a named `.popover` containing labelled pixel dimension fields, the standard close glyph and a Reset size action. The shared popover control owns placement and focus. Closing these settings keeps the parent launcher open. Size is disabled while the launcher is pinned, when resizing uses the split divider instead.
 
-The next decision is a review of these presentations and state behavior. The samples do not announce a versioned production release.
+The next decision is a review of these presentations and state behavior. The samples use the versioned 0.99.0 launcher API.
 
 ## Demo validation
 

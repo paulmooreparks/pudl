@@ -12,7 +12,7 @@
     <header>
       <h1>One catalog, three kinds of host</h1>
       <p>These working demos explore finding applications, browsing content and opening desktop tools through the host title. They use PUDL's menu bar, applet, Start, splitter and window controls.</p>
-      <p>The shared menu bar's direct launcher integration is on main and awaits a versioned release. The host adapter adds opener placement, persistent presentation and remembered size as sample code for review.</p>
+      <p>PUDL 0.99.0 supplies the shared launcher controller and direct title-menu integration. The host adapter supplies catalog content, routing and saved preferences.</p>
     </header>
     <div class="demo-choices">
       <article>
@@ -43,7 +43,7 @@
     <section id="integration">
       <h2>For implementers</h2>
       <p>The catalogs and tools are illustrative. They are not connected to production accounts, article services, app registrations or native desktop bridges. Single-application mode uses a query parameter to demonstrate host policy; production hosts supply their own subdomain URLs and unsaved-work rules.</p>
-      <p>PUDL owns the menu bars and their hamburger controls, active application menus, catalog filtering, category interaction, keyboard navigation, splitters and windows. The shared sample adapter owns URL integration, local preferences, opening policy, popup placement and the presentation switch. The same catalog node is retained while changing presentation.</p>
+      <p>PUDL owns the menu bars and their hamburger controls, active application menus, catalog filtering, category interaction, keyboard navigation, splitters and windows. The shared launcher controller owns popup/sidebar switching, pin intent, placement, size and focus. The sample host adapter owns URLs, local preferences and destination actions. The same catalog node is retained while changing presentation.</p>
       <ul>
         <li><a href="https://github.com/paulmooreparks/pudl/blob/main/docs/proposals/host-launcher.md">Read the host-launcher design and implementation boundaries.</a></li>
         <li><a href="https://github.com/paulmooreparks/pudl/blob/main/samples/host-launcher.js">Inspect the shared host adapter.</a></li>

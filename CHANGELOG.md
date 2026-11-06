@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.99.0
+
+The shared launcher controller in `pudl-launcher.js` now owns popup/sidebar switching, contextual unpinning, placement, resizing, focus and lifecycle. Hosts keep catalog content, actions, URLs and preferences. Existing Start catalogs remain compatible.
 
 The shared menu bar can open a host launcher from its identity title and hamburger through `data-menubar-launcher`. Hosts can handle the cancelable launcher request to support a persistent pane. The interactive host-launcher studies now use the menu bar and applet menu API, including contextual Reader and Editor menus, and offer separate top-bar and taskbar launcher examples.
 
-The sample host adapter restores a popup on immediate unpin, but closes it after a destination is chosen or the person clicks outside the pinned launcher. The Content study adds an orientation page directly to the desktop background, with grouped article links and an Open launcher button.
+The launcher controller restores a popup on immediate unpin, but closes it after a destination is chosen or the person clicks outside the pinned launcher. The Content study adds an orientation page directly to the desktop background, with grouped article links and an Open launcher button.
 
 The studies keep the standard taskbar outside the launcher/workspace split, at full width along the viewport's bottom even when empty. Standard minimize-all, restore-all and close-all controls remain at its right end.
 

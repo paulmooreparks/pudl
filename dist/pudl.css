@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.98.0.
+   Version 0.99.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -4143,3 +4143,7 @@ del.diff-word { text-decoration-color: var(--diff-del); }
  .start-menu .start-category-count, .start-menu .start-key-hint { display: none; }
  .start-menu .start-footer { justify-content: space-between; }
 }
+
+/* Host launcher presentations, composed with Start and split panes (0.99.0). */
+.start-menu[data-launcher][popover] { inset: auto; margin: 0; width: 720px; height: 600px; min-width: min(280px, calc(100vw - 16px)); min-height: min(260px, calc(100dvh - var(--launcher-top, 48px) - 12px)); max-width: calc(100vw - 16px); max-height: calc(100dvh - var(--launcher-top, 48px) - 12px); resize: both; }
+.start-menu[data-launcher]:not([popover]) { position: static; inset: auto; width: 100%; height: 100%; max-width: none; max-height: none; min-width: 0; border: 0; border-radius: 0; box-shadow: none; }

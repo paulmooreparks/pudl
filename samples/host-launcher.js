@@ -1,4 +1,4 @@
-/* Prototype host adapter using the shared menu bar, applet, Start and window controls. */
+/* Host catalog content, routing and preferences. PUDL owns launcher presentation. */
 (function () {
   'use strict';
   var requestedPlacement = new URL(location.href).searchParams.get('launcher');
@@ -8,7 +8,7 @@
   if (pudlMenubar.launcherButton()) { document.getElementById('host-title').remove(); opener.id = 'host-title'; }
   var frame = document.getElementById('host-frame'), slot = document.getElementById('launcher-slot');
   var demo = document.body.dataset.demo, key = 'pudl-host-launcher-study:' + demo;
-  var current = '', restoring = false, hydrated = new WeakSet(), popupOnUnpin = false;
+  var current = '', restoring = true, hydrated = new WeakSet();
   var placement = new URL(location.href).searchParams.get('launcher') || 'title';
   document.body.dataset.launcherPlacement = placement;
   if (placement === 'top' || placement === 'taskbar') {
@@ -31,79 +31,18 @@
     });
     if (url.href !== location.href) history[push ? 'pushState' : 'replaceState'](null, '', url);
   }
-  function place() {
-    if (!root.hasAttribute('popover')) return;
-    var r = visibleInvoker().getBoundingClientRect();
-    var top = placement === 'taskbar' ? Math.max(8, r.top - root.getBoundingClientRect().height - 6) : Math.min(r.bottom + 6, Math.max(8, innerHeight - 280));
-    root.style.left = Math.max(8, Math.min(r.left, innerWidth - root.getBoundingClientRect().width - 8)) + 'px';
-    root.style.top = top + 'px'; root.style.setProperty('--launcher-top', top + 'px');
-  }
-  function popupSize() {
-    var size = load(sizeKey(), { width: demo === 'content' ? 820 : 720, height: 600 });
-    root.style.width = Math.max(280, Math.min(size.width, innerWidth - 16)) + 'px';
-    root.style.height = Math.max(260, Math.min(size.height, innerHeight - 60)) + 'px';
-  }
-  function presentation(next, focus) {
-    if (!['popup', 'pane', 'collapsed', 'closed'].includes(next)) next = document.body.dataset.defaultPresentation;
-    var wasPopup = root.hasAttribute('popover');
-    current = next;
-    if (wasPopup && root.matches(':popover-open')) root.hidePopover();
-    document.body.dataset.presentation = next;
-    opener.removeAttribute('popovertarget'); opener.setAttribute('aria-controls', root.id);
-    if (next === 'pane' || next === 'collapsed') {
-      root.removeAttribute('popover'); root.setAttribute('role', 'region'); if (root.parentNode !== slot) slot.appendChild(root);
-      root.style.removeProperty('width'); root.style.removeProperty('height');
-      if (next === 'pane') frame.removeAttribute('data-split-pane'); else frame.setAttribute('data-split-pane', 'second');
-      opener.removeAttribute('aria-haspopup'); opener.setAttribute('aria-expanded', String(next === 'pane'));
-    } else {
-      frame.setAttribute('data-split-pane', 'second'); if (root.parentNode !== document.body) document.body.appendChild(root);
-      root.setAttribute('popover', 'auto'); root.setAttribute('role', 'dialog');
-      opener.setAttribute('popovertarget', root.id);
-      opener.setAttribute('aria-haspopup', 'dialog'); opener.setAttribute('aria-expanded', String(next === 'popup'));
-      popupSize();
-      if (next === 'popup') { pudlStart.open(root, visibleInvoker()); place(); }
-    }
-    var pinned = next === 'pane' || next === 'collapsed', pin = document.getElementById('keep-open');
-    pin.setAttribute('aria-pressed', String(pinned)); pin.title = pinned ? 'Unpin launcher' : 'Pin launcher';
-    document.getElementById('launcher-width').disabled = next === 'pane' || next === 'collapsed';
-    document.getElementById('launcher-height').disabled = next === 'pane' || next === 'collapsed';
-    document.getElementById('launcher-size').disabled = pinned;
-    document.getElementById('launcher-size').title = pinned ? 'Resize the pinned launcher with its divider' : 'Set launcher size';
-    pudlSplit.refresh(frame); pudlSplit.refresh(root);
-    if (focus && next === 'pane') root.querySelector('[data-start-query]').focus({ preventScroll: true });
-    save('presentation', next); setAddress(false);
-  }
-  function reveal() {
-    if (current === 'pane') { presentation('collapsed', false); opener.focus({ preventScroll: true }); }
-    else if (current === 'collapsed') presentation('pane', true);
-    else if (current === 'popup' && root.matches(':popover-open')) { presentation('closed', false); opener.focus({ preventScroll: true }); }
-    else presentation('popup', true);
-  }
-  if (placement !== 'title') opener.addEventListener('click', function (e) { if (!root.hasAttribute('popover')) { e.preventDefault(); reveal(); } });
-  document.querySelector('[data-menubar]').addEventListener('pudl:menubar-launcher', function (e) {
-    e.preventDefault();
-    if (e.detail.toggle) reveal();
-    else if (current === 'pane' || (current === 'popup' && root.matches(':popover-open'))) root.querySelector('[data-start-query]').focus();
-    else presentation(current === 'collapsed' ? 'pane' : 'popup', true);
+  function presentation(next, focus) { pudlLauncher.present(root, next, { focus: focus }); }
+  function popupSize() { pudlLauncher.resize(root, load(sizeKey(), { width: demo === 'content' ? 820 : 720, height: 600 })); }
+  root.addEventListener('pudl:launcher-change', function (e) {
+    current = e.detail.presentation; document.body.dataset.presentation = current;
+    if (restoring) return;
+    save('presentation', current);
+    if (current === 'popup') save(sizeKey(), { width: e.detail.width, height: e.detail.height });
+    setAddress(false);
   });
-  opener.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); if (current === 'pane' || (current === 'popup' && root.matches(':popover-open'))) root.querySelector('[data-start-query]').focus(); else presentation(current === 'collapsed' ? 'pane' : 'popup', true); } });
-  document.getElementById('keep-open').addEventListener('click', function () {
-    if (current === 'pane') { var next = popupOnUnpin ? 'popup' : 'closed'; popupOnUnpin = false; presentation(next, next === 'popup'); if (next === 'closed') visibleInvoker().focus(); }
-    else { popupOnUnpin = current === 'popup' && root.matches(':popover-open'); presentation('pane', true); }
-  });
-  document.addEventListener('click', function (e) {
-    if (current !== 'pane' || e.target.closest('#keep-open')) return;
-    if (!root.contains(e.target) || e.target.closest('[data-demo-open]')) popupOnUnpin = false;
-  }, true);
-  document.getElementById('collapse-launcher').addEventListener('click', function () { presentation(current === 'pane' ? 'collapsed' : 'closed', false); visibleInvoker().focus(); });
-  root.addEventListener('beforetoggle', function (e) {
-    if (e.target === root && root.hasAttribute('popover')) opener.setAttribute('aria-expanded', String(e.newState === 'open'));
-  });
-  root.addEventListener('toggle', function (e) {
-    if (e.target !== root || !root.hasAttribute('popover')) return;
-    if (e.newState === 'open') { current = 'popup'; document.body.dataset.presentation = current; opener.setAttribute('aria-expanded', 'true'); place(); save('presentation', current); setAddress(false); }
-    if (e.newState === 'closed' && current === 'popup') { current = 'closed'; document.body.dataset.presentation = current; opener.setAttribute('aria-expanded', 'false'); save('presentation', current); setAddress(false); }
-  });
+  pudlLauncher.enhance(root, { pane: slot, layout: frame, invoker: opener, anchor: visibleInvoker,
+    placement: placement === 'taskbar' ? 'above' : 'below',
+    size: load(sizeKey(), { width: demo === 'content' ? 820 : 720, height: 600 }) });
   root.addEventListener('pudl:start-change', function (e) { setAddress(e.detail.reason === 'category'); });
   document.addEventListener('pudl:split', function (e) {
     /* Persist the current visible size even if a preceding keyboard gesture's
@@ -115,28 +54,10 @@
     var width = element.getBoundingClientRect().width;
     if (e.detail.size === null || width > 0) save(name, e.detail.size === null ? null : width);
   });
-  new ResizeObserver(function () {
-    if (!root.hasAttribute('popover') || !root.matches(':popover-open')) return;
-    var r = root.getBoundingClientRect();
-    if (r.width && r.height) {
-      save(sizeKey(), { width: r.width, height: r.height });
-      ['width', 'height'].forEach(function (dimension) {
-        var input = document.getElementById('launcher-' + dimension);
-        if (document.activeElement !== input) input.value = Math.round(r[dimension]);
-      });
-    }
-  }).observe(root);
-  ['width', 'height'].forEach(function (dimension) {
-    document.getElementById('launcher-' + dimension).addEventListener('input', function (e) {
-      var value = Number(e.target.value);
-      if (Number.isFinite(value) && value > 0) root.style[dimension] = Math.max(dimension === 'width' ? 280 : 260, Math.min(value, dimension === 'width' ? innerWidth - 16 : innerHeight - 60)) + 'px';
-      place(); pudlSplit.refresh(root); pudlMenu.place(document.getElementById('launcher-size-panel'));
-    });
-  });
   document.getElementById('reset-size').addEventListener('click', function () {
     save(sizeKey(), { width: demo === 'content' ? 820 : 720, height: 600 });
     frame.style.removeProperty('--split-a'); root.querySelector('#category-split').style.removeProperty('--split-a'); save('pane-width', null); save('category-width', null);
-    if (root.hasAttribute('popover')) { popupSize(); place(); } pudlSplit.refresh(frame); pudlSplit.refresh(root);
+    if (root.hasAttribute('popover')) popupSize(); pudlSplit.refresh(frame); pudlSplit.refresh(root);
   });
   function calculate(form) { var values = Array.from(form.querySelectorAll('input')).map(function (i) { return Number(i.value) || 0; }); form.querySelector('output').textContent = values.reduce(function (a, b) { return a + b; }, 0).toFixed(form.hasAttribute('data-expenses') ? 2 : 4).replace(/\.?(0+)$/, function (s) { return form.hasAttribute('data-expenses') ? s : ''; }); }
   function diagnostics(win) {
@@ -165,7 +86,7 @@
         var draft = body.querySelector('[data-draft]'), reader = !!body.querySelector('.reading-sample');
         var name = reader ? 'Reader' : draft ? 'Editor' : win.querySelector('.win-title').textContent;
         var titles = [{ label: name, glyph: reader ? 'document' : 'app', items: [
-          { label: 'Browse catalog', run: function () { if (current !== 'pane') presentation(current === 'collapsed' ? 'pane' : 'popup', true); else root.querySelector('[data-start-query]').focus(); } },
+          { label: 'Browse catalog', run: function () { pudlLauncher.open(root); } },
           { label: 'Close window', run: function () { pudlWindows.close(active); } }
         ] }];
         if (draft || body.querySelector('[data-diagram-export]')) titles.push({ label: 'File', items: [{ label: draft ? 'Download text' : 'Export SVG', glyph: 'download', run: function () {
@@ -187,7 +108,7 @@
   document.addEventListener('pudl:window-open', function (e) { var win = e.target.closest('.win'); if (win) hydrate(win); });
   new MutationObserver(function (records) { if (records.some(function (r) { return Array.from(r.addedNodes).some(function (n) { return n.nodeType === 1 && (n.matches('.win') || n.querySelector('.win')); }); })) document.querySelectorAll('.win[data-win]').forEach(hydrate); }).observe(document.querySelector('.win-layer'), { childList: true, subtree: true });
   function openItem(id, from) {
-    if (current === 'pane') popupOnUnpin = false;
+    pudlLauncher.activated(root);
     var single = new URL(location.href).searchParams.get('mode') === 'standalone';
     if (single) document.getElementById('study-' + id).content.querySelector('.win').setAttribute('data-win-mode', 'maximized');
     if (single) { var before = pudlWindows.state().open.slice(); before.filter(function (k) { return k !== id; }).forEach(function (k) { pudlWindows.close(k); }); }
@@ -199,7 +120,7 @@
     var link = e.target.closest('[data-demo-open]'); if (!link || !link.closest('#host-launcher, .desktop-guide') || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
     e.preventDefault(); openItem(link.dataset.demoOpen, link);
   });
-  document.querySelectorAll('[data-open-launcher]').forEach(function (button) { button.addEventListener('click', function () { if (current === 'pane') root.querySelector('[data-start-query]').focus(); else presentation(current === 'collapsed' ? 'pane' : 'popup', true); }); });
+  document.querySelectorAll('[data-open-launcher]').forEach(function (button) { button.addEventListener('click', function () { pudlLauncher.open(root); }); });
   document.addEventListener('click', function (e) {
     var win = e.target.closest('.win'); if (!win) return;
     if (e.target.closest('[data-refresh-diagnostics]')) diagnostics(win);
@@ -230,7 +151,6 @@
     presentation(params.get('catalog') || load('presentation', document.body.dataset.defaultPresentation), false); restoring = false;
   }
   window.addEventListener('popstate', restore);
-  window.addEventListener('resize', function () { place(); });
   document.getElementById('reset-study').addEventListener('click', function () {
     try { Object.keys(localStorage).filter(function (k) { return k.startsWith(key + ':') && !k.startsWith(key + ':draft-') && !k.startsWith(key + ':task-'); }).forEach(function (k) { localStorage.removeItem(k); }); } catch (_) {}
     location.href = location.pathname;

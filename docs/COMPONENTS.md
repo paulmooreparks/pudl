@@ -59,3 +59,7 @@ Building a palette from the list shows what a development tool needs and PUDL la
 ## Start
 
 Start is a searchable catalog of destinations and commands, with a category list and a resizable divider. It composes existing PUDL surfaces and is registered as `start` in the component inventory. Load `pudl-start.js` after `pudl-split.js`. The [markup and API contract](proposals/start-control.md) describes its hooks and host-owned routing. The [right-category example](../samples/start.html) and [left-category example](../samples/start-left.html) use the control.
+
+## Host launcher
+
+The `host-launcher` structure composes Start, split panes and the optional menu bar. Its presentation controller is `pudl-launcher.js`; the [launcher contract](LAUNCHER.md) defines initialization, pin intent, geometry, events and cleanup. It does not introduce another surface grammar or a host registry.
