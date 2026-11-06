@@ -38,7 +38,11 @@ function check(name, ok, extra) {
   await p.waitForFunction(() => /design/.test(location.pathname));
   await p.waitForFunction(() => !document.querySelector('[data-region][aria-busy]'));
   let u = await url();
-  check('the tab pushes its address with the live windows', /^article-reader-design\.html\?open=url-state,mixing&top=mixing&p\.url-state=floating:.*&p\.mixing=maximized:/.test(u), u);
+  const designURL = new URL(await p.url());
+  check('the tab pushes its address with the live windows', designURL.pathname.endsWith('/article-reader-design.html') &&
+    designURL.searchParams.get('open') === 'url-state,mixing' && designURL.searchParams.get('top') === 'mixing' &&
+    designURL.searchParams.get('z.order') === 'url-state,mixing' &&
+    /^floating:/.test(designURL.searchParams.get('p.url-state')) && /^maximized:/.test(designURL.searchParams.get('p.mixing')), u);
   check('the list is the Design list', (await p.locator('.md-sidebar .md-row').count()) === 3);
   check('the Design tab is current', await p.evaluate(() => new URL(document.querySelector('.section-tab[aria-current]').href).pathname.endsWith('article-reader-design.html')));
   check('the title follows', /^Design/.test(await p.title()), await p.title());

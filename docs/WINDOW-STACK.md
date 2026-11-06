@@ -1,6 +1,6 @@
 # Window stack persistence
 
-PUDL maintains a complete logical stack independently of window membership, taskbar order, MRU and dock-tab arrangement. `pudlWindows.state().zOrder` returns a detached array of every open key from bottom to top. The window URL serializes that stack as `z.order`. This contract is implemented in the candidate for PUDL 0.101.0.
+PUDL maintains a complete logical stack independently of window membership, taskbar order, MRU and dock-tab arrangement. `pudlWindows.state().zOrder` returns a detached array of every open key from bottom to top. Since PUDL 0.101.0, the window URL serializes that stack as `z.order`.
 
 The [interactive sample](../samples/window-stack.html) lets you raise, minimize, dock and close windows, then reload their saved address. Hosts that already persist the window layout URL need no separate array or manual Z-index override. Hosts using region navigation must update `pudl-regions.js` alongside the window script and stylesheet.
 

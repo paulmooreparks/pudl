@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.101.0
+
+Window layout addresses now preserve the complete logical stack through `z.order`. `pudlWindows.state().zOrder` exposes a detached bottom-to-top array independently of taskbar order. Restored windows remain hidden and measurable until their geometry and stack are applied, so fragment arrival order cannot expose a different stack. Old addresses retain their existing fallback. Parent/child constraints and dock rendering bands remain in effect.
+
+Update `pudl-windows.js`, `pudl-windows.css` and `pudl-regions.js` together. Hosts already saving the layout URL need no separate stack store. Background applet initialization must still avoid explicitly activating itself. See [the stack contract and interactive sample](docs/WINDOW-STACK.md).
+
+Launcher feedback dismissal preserves destination focus when a browser's native popover dismissal clears it. The launcher action still executes immediately.
+
 ## 0.100.0
 
 Launcher destinations execute through their original event immediately. A static selection highlight remains for 180 ms before an unpinned popup closes; pinned catalogs remain open. Disabled and repeated plain activation are guarded, native link exclusions are preserved, and explicit presentation changes cancel pending dismissal. Managed actions can confirm acceptance with `pudlLauncher.activated(root, actionElement)` and header destinations can use `data-launcher-activate`. Hosts should remove their own delayed click replay and immediate popup-close code.
