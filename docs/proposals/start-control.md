@@ -63,3 +63,7 @@ This inline example works as a catalog without JavaScript. Adding `popover`, an 
 ```
 
 The host attaches its own command handler to `new-note`. Start does not invent commands, install an application registry or record usage. The full examples include the labelled header, glyph-bearing Clear button and result count. A host can render query/category values from its URL and restore them through `setState`; `samples/start.js` demonstrates the corresponding history adapter.
+
+## Host-wide launcher direction
+
+The [host launcher design](host-launcher.md) records the proposed title-menu integration and browsing presentations, including consolidation of tool and applet entry points in desktop and web hosts. Those extensions do not change the published Start contract until implemented and released.
