@@ -67,6 +67,8 @@
     pin.setAttribute('aria-pressed', String(pinned)); pin.title = pinned ? 'Unpin launcher' : 'Pin launcher';
     document.getElementById('launcher-width').disabled = next === 'pane' || next === 'collapsed';
     document.getElementById('launcher-height').disabled = next === 'pane' || next === 'collapsed';
+    document.getElementById('launcher-size').disabled = pinned;
+    document.getElementById('launcher-size').title = pinned ? 'Resize the pinned launcher with its divider' : 'Set launcher size';
     pudlSplit.refresh(frame); pudlSplit.refresh(root);
     if (focus && next === 'pane') root.querySelector('[data-start-query]').focus({ preventScroll: true });
     save('presentation', next); setAddress(false);
@@ -128,7 +130,7 @@
     document.getElementById('launcher-' + dimension).addEventListener('input', function (e) {
       var value = Number(e.target.value);
       if (Number.isFinite(value) && value > 0) root.style[dimension] = Math.max(dimension === 'width' ? 280 : 260, Math.min(value, dimension === 'width' ? innerWidth - 16 : innerHeight - 60)) + 'px';
-      place(); pudlSplit.refresh(root);
+      place(); pudlSplit.refresh(root); pudlMenu.place(document.getElementById('launcher-size-panel'));
     });
   });
   document.getElementById('reset-size').addEventListener('click', function () {

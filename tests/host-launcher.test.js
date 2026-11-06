@@ -10,11 +10,22 @@ const { launch, ROOT, out } = require('./lib');
     await page.locator('.menubar-title[data-menu-id="view"]').click();
     await page.locator('.menubar-panel').getByRole('menuitemradio', { name: view === 'list' ? 'List' : 'Overview', exact: true }).click();
   }
+  async function checkTaskbar() {
+    const bar = page.locator('body > .win-bar');
+    assert.equal(await bar.isVisible(), true, 'taskbar stays visible outside the launcher split');
+    const box = await bar.boundingBox(), viewport = page.viewportSize();
+    assert.ok(Math.abs(box.width - viewport.width) < 2 && Math.abs(box.y + box.height - viewport.height) < 2, 'taskbar spans the bottom of the viewport');
+    assert.equal(await bar.locator('[data-win-close-all]').isVisible(), true);
+    assert.equal(await bar.locator('[data-win-back]').count(), 1);
+    assert.equal(await bar.locator('[data-win-restore]').count(), 1);
+  }
   try {
     for (const kind of ['apps', 'content', 'tools']) {
       await page.goto(ROOT + '/samples/host-launcher-' + kind + '.html');
       await page.waitForFunction(() => window.pudlStart && document.body.dataset.presentation);
       const root = page.locator('#host-launcher');
+      await checkTaskbar();
+      assert.equal(await page.locator('[data-win-close-all]').getAttribute('aria-disabled'), 'true', 'empty taskbar keeps disabled bulk controls');
       await page.locator('#host-title').click();
       assert.equal(await root.isVisible(), false, 'title toggles the visible launcher closed');
       assert.equal(await page.locator('#host-title').getAttribute('aria-expanded'), 'false');
@@ -27,10 +38,14 @@ const { launch, ROOT, out } = require('./lib');
       if (kind !== 'content') {
         const panel = await root.boundingBox(), title = await page.locator('#host-title').boundingBox();
         assert.ok(Math.abs(panel.y - title.y - title.height - 6) < 2, 'popup anchors under the host title');
-        await root.locator('details').evaluate(el => { el.open = true; });
+        await page.locator('#launcher-size').click();
+        await page.waitForSelector('#launcher-size-panel:popover-open');
+        assert.equal(await page.locator('#launcher-size .glyph').count(), 1, 'size uses a PUDL glyph button and popover');
+        await page.screenshot({ path: out('host-' + kind + '-size.png') });
         await page.locator('#launcher-width').fill('680'); await page.locator('#launcher-width').press('Tab');
         await page.waitForFunction(() => Math.abs(document.getElementById('host-launcher').getBoundingClientRect().width - 680) < 2);
-        await root.locator('details').evaluate(el => { el.open = false; });
+        await page.locator('#launcher-size-panel [aria-label="Close size settings"]').click();
+        assert.equal(await root.isVisible(), true, 'closing size settings keeps the launcher open');
       }
       const query = root.locator('[data-start-query]');
       await query.fill('unfindable'); assert.equal(await root.locator('[data-start-empty]').isVisible(), true);
@@ -38,6 +53,7 @@ const { launch, ROOT, out } = require('./lib');
       const before = await root.locator('[data-start-item]:visible').count(); assert.ok(before >= 4);
       if (kind !== 'content') await page.locator('#keep-open').click();
       await page.waitForFunction(() => document.body.dataset.presentation === 'pane');
+      await checkTaskbar();
       assert.equal(await page.locator('#keep-open').getAttribute('aria-pressed'), 'true', 'pin stays pressed in the persistent pane');
       assert.equal(await siteGlyph.getAttribute('aria-expanded'), 'true', 'hamburger follows the pinned presentation');
       assert.equal(await page.locator('#keep-open .glyph').count(), 1, 'pin uses the shared glyph');
@@ -92,6 +108,7 @@ const { launch, ROOT, out } = require('./lib');
       }
       await page.setViewportSize({ width: 390, height: 844 });
       await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
+      await checkTaskbar();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       assert.equal(await root.isVisible(), true);
       await page.screenshot({ path: out('host-' + kind + '-narrow.png') });
@@ -197,6 +214,15 @@ const { launch, ROOT, out } = require('./lib');
       await page.locator('#keep-open').click();
       assert.equal(await page.locator('#host-launcher').isVisible(), false, 'unpin after outside interaction closes launcher');
       assert.equal(await page.locator('.win[data-win="editor"]').count(), 1, 'unpin preserves open work');
+      await page.locator('[data-win-back]').click();
+      await page.waitForFunction(() => pudlWindows.state().min.editor === true);
+      assert.equal(await page.locator('[data-win-restore]').isVisible(), true);
+      await page.locator('[data-win-restore]').click();
+      await page.waitForFunction(() => !pudlWindows.state().min.editor);
+      await page.locator('[data-win-close-all]').click();
+      await page.waitForFunction(() => pudlWindows.state().open.length === 0);
+      await checkTaskbar();
+      assert.equal(await page.locator('[data-win-close-all]').getAttribute('aria-disabled'), 'true');
     }
     assert.deepEqual(errors, []);
     console.log('PASS standalone switching, diagram export, colour picker, host choice, calculator, expenses, checklist, history, clean-context shared URL and no page errors');

@@ -59,6 +59,10 @@ Drafts and checklist entries remain browser-local. Reset demo preferences resets
 
 The Content study also places a static orientation page directly on the desktop background, inside the window host and outside its window layer. It has no window frame or window controls. A short introduction, grouped links for Posts, Factoids and Feeds, and a launcher button orient first-time visitors. Each link uses the same article activation path as the catalog, and article windows open over the retained background. The layout uses plain headings, separators and text links. The existing narrow-screen window policy hides background content while a full-screen reader is active.
 
+The taskbar is the standard `.win-bar`, directly under the host frame as a sibling of the launcher/workspace split. It spans the full viewport width and remains visible when no windows are open, when the launcher is pinned, and on narrow screens. Its right end uses PUDL's `data-win-back`, `data-win-restore` and `data-win-close-all` controls. The shared window module owns their glyphs, disabled state, minimize/restore alternation and window actions. Demo preference reset is in View, so no demonstration footer sits below the taskbar.
+
+Size is a standard raised PUDL button with a glyph. It opens a named `.popover` containing labelled pixel dimension fields, the standard close glyph and a Reset size action. The shared popover control owns placement and focus. Closing these settings keeps the parent launcher open. Size is disabled while the launcher is pinned, when resizing uses the split divider instead.
+
 The next decision is a review of these presentations and state behavior. The samples do not announce a versioned production release.
 
 ## Demo validation
@@ -68,5 +72,9 @@ The menu-bar and host-launcher checks passed 36 runs across Chromium, Firefox an
 The focused shared-control fixture checks the menu bar without a host event handler. It covers native title toggling, default hamburger and keyboard activation, expanded state, identity retention through a rebuild and cancellation by the host. Generated assets pass their freshness check. The minified host and shared-control checks are retained under `tests/output/host-demos-release-check/`.
 
 The final desktop-background revision passed the host-launcher suite in all three engines under `tests/output/host-demos-desktop-guide-final/`. It verifies that the orientation content is outside every window, its article links open retained Reader windows, closing a reader reveals the background, and its launcher button opens and focuses the existing catalog. The background screenshot is `host-content-welcome.png` within each engine's retained screenshots.
+
+The taskbar correction is verified under `tests/output/host-demos-standard-taskbar-final/` in all three engines. The checks require a visible full-width taskbar at the viewport's bottom when empty, pinned and narrow, then exercise its minimize-all, restore-all and close-all links for every launcher position. Closing the last window leaves the taskbar and its disabled bulk controls visible.
+
+The Size button/popover revision passed the same three-engine suite under `tests/output/host-demos-standard-size-final/`. It verifies changing dimensions through the real button and popover, then closing the settings without dismissing the launcher. The suite retains all taskbar, pin-intent, window, background and responsive-menu checks.
 
 An earlier Chromium run exposed size fields being overwritten by the resize observer while being edited. The observer now leaves the focused field alone, and input applies the requested size immediately. An earlier Firefox run failed during browser context cleanup with a protocol error; that evidence remains under `tests/output/host-demos-pin-final/`. The final suite waits for the SVG download to complete before navigation and closes the browser directly. No whole-project matrix was run for this revision.

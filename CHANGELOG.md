@@ -6,6 +6,10 @@ The shared menu bar can open a host launcher from its identity title and hamburg
 
 The sample host adapter restores a popup on immediate unpin, but closes it after a destination is chosen or the person clicks outside the pinned launcher. The Content study adds an orientation page directly to the desktop background, with grouped article links and an Open launcher button.
 
+The studies keep the standard taskbar outside the launcher/workspace split, at full width along the viewport's bottom even when empty. Standard minimize-all, restore-all and close-all controls remain at its right end.
+
+Launcher Size uses a glyph-bearing PUDL button and a named popover with dimension fields and a reset action. Pinned launchers use their divider instead.
+
 ## 0.98.0
 
 Start is now a reusable control in `pudl-start.js`, composed from PUDL filters, navigation lists, popovers and splitters. Hosts render categories and mixed destination links or command buttons, and retain routing and persistence policy. The control owns filtering, counts, keyboard navigation and focus return; multiple instances keep independent state. See [the contract](docs/proposals/start-control.md) and working examples. General menu handlers defer to Start for its own interaction.
