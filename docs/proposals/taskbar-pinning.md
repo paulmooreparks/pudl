@@ -1,8 +1,8 @@
 # Persistent taskbar pins
 
-This proposal adds persistent destinations to the taskbar. An implementation and an interactive demo are available for review. The implementation is pending demo review and release; its current integration contract is in [Persistent taskbar pins](../TASKBAR-PINS.md). The existing taskbar ordering contract is documented in [Taskbar ordering](../TASKBAR-ORDER.md).
+This proposal led to the persistent destinations delivered in PUDL 0.102.0. Its integration contract is in [Persistent taskbar pins](../TASKBAR-PINS.md). The existing taskbar ordering contract is documented in [Taskbar ordering](../TASKBAR-ORDER.md). The candidate checkpoints below retain the design and verification history.
 
-The remaining pinning work and the [folded launcher label correction](folded-launcher-discoverability.md) are scheduled for one release after window-stack persistence. Work has resumed. The current pinning candidate remains pending demo review before release.
+Taskbar pinning and the [folded launcher label correction](folded-launcher-discoverability.md) share the 0.102.0 release after window-stack persistence. Live beta review is complete.
 
 ## Design review on 6 November 2026
 

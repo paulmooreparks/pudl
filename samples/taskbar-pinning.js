@@ -1,6 +1,8 @@
 /* The host owns destination identities, activation and saved preferences. */
 (function () {
   'use strict';
+  document.querySelector('[data-host-name]').textContent = 'Workspace';
+  document.getElementById('launcher-heading').textContent = 'Start';
   var layer = document.querySelector('[data-win-layer]');
   var storage = 'pudl-taskbar-pinning-demo';
   var destinations = [

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.102.0
+
+Taskbars can retain registered destinations after their last window closes. Pins combine associated instances through the existing window stack, preserve their place during open and close, and participate in ordering and overflow. Pin to taskbar and Unpin from taskbar are shared by the taskbar context menu, the window dropdown and the active Window menu. Hosts own destination identity, permissions and preference storage. See [the integration contract](docs/TASKBAR-PINS.md) and [working sample](samples/taskbar-pinning.html).
+
+Optional New window requests and asynchronous activation tracking suppress duplicate creation while the host prepares a destination. `pudlWindows.open` and `replace` now return a shared in-flight completion result. Loading failures resolve as data, allowing hosts to report failure and retry without a separate fetch deadline. Applet initialization remains host-owned. Delayed window opening preserves an intervening active-window selection.
+
+Folded site menus label the identity launcher action Open launcher with the shared app glyph. `data-menubar-launcher-label` supplies a localized label while the expanded identity retains its existing name and logo.
+
+Markup radio buttons with a value can use the cancelable `pudl:menu-choose` event instead of inline JavaScript. The event carries the original button and string value; hosts update checked state and cancel the legacy source click when handling the choice. See [the choice contract](docs/MENU-CHOICES.md). Automatic skin or theme menu generation is not included.
+
+Update the window script and stylesheet, menu script and menu-bar script together, or replace the complete distribution. Existing hosts need no new registration unless enabling taskbar pins. No automatic migration from other bookmark or pin stores occurs.
+
 ## 0.101.0
 
 Window layout addresses now preserve the complete logical stack through `z.order`. `pudlWindows.state().zOrder` exposes a detached bottom-to-top array independently of taskbar order. Restored windows remain hidden and measurable until their geometry and stack are applied, so fragment arrival order cannot expose a different stack. Old addresses retain their existing fallback. Parent/child constraints and dock rendering bands remain in effect.

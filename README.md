@@ -1690,7 +1690,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.101.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.102.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1744,3 +1744,5 @@ PUDL 0.99.0 adds `dist/pudl-launcher.js` after the Start and splitter modules. I
 In 0.100.0 launcher destinations execute immediately while a static selection highlight remains for 180 ms before popup dismissal. Managed actions can pass their element to `pudlLauncher.activated(root, actionElement)`. Hosts adopting this policy remove delayed click replay and immediate popup-close code. See [the activation contract](docs/LAUNCHER.md).
 
 In 0.101.0 layout addresses preserve the complete window stack independently of taskbar order. Update the window script, window stylesheet and region script together. See [the stack contract](docs/WINDOW-STACK.md).
+
+In 0.102.0 taskbars can retain registered destinations, combining their running instances under one pin. Standard window menus share Pin to taskbar and Unpin from taskbar. Hosts own identity, permissions and saved preferences, and can await window opening results before independent applet initialization. See [the pin contract](docs/TASKBAR-PINS.md), [working example](samples/taskbar-pinning.html) and [release record](docs/RELEASE-0.102.0.md).

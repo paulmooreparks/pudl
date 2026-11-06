@@ -16,18 +16,18 @@ Menus describe the scope of their commands. Opening a menu does not change the a
 
 The standard order is **Site name, Go, Applets, View, Window, Help**. A site omits menus for which it has no meaningful commands. The remaining menus retain their relative order. Site-specific menus may appear after Applets and before View when their purpose cannot fit a standard menu. They must not become destinations for applet command contributions.
 
-Applets is a top-level launcher immediately after Go. Launching a tool is frequent enough to deserve direct access and is distinct from navigating site destinations. Do not bury the primary launcher under Go. A toolbar or launch page may provide an additional route.
+When the site identity retains an ordinary menu, Applets is a top-level launcher immediately after Go. Do not bury the primary launcher under Go. A host may instead opt into the shared host launcher through `data-menubar-launcher` on the site menu bar. In that presentation, the site identity and hamburger open the same catalog, and a duplicate Applets menu may be omitted. The [launcher contract](LAUNCHER.md) defines invocation, focus and popup/sidebar behavior.
 
 | Menu | Contents |
 |---|---|
-| Site identity | Home; About the site; Site settings when available; account and sign-in commands when applicable; Copy workspace link when supported. |
+| Site identity | The host launcher when opted in; otherwise Home, About, site settings, account commands and workspace sharing when supported. |
 | Go | Site destinations, site search, and navigation commands. |
 | Applets | Available tools that users can launch. The list describes available tools, regardless of which instances are already open. |
 | View | Site presentation, including theme, sidebar visibility, and window/classic layout. |
 | Window | Active-window controls, arrangements, bulk window commands, and the open-window list. |
 | Help | Site help, keyboard guidance, support, and the active applet's help contribution. |
 
-The identity menu groups related entries with separators. It is not a general navigation directory or a drawer for unrelated commands. Theme choices belong under View; the settings page can expose the same preference. Applet launching belongs under Applets. Account actions remain clearly separated from navigation and workspace sharing. A browser site must not offer Quit unless its environment actually supports quitting the application.
+An ordinary identity menu groups related entries with separators. Theme choices belong under View; the settings page can expose the same preference. Applet launching belongs under Applets or the opted-in host launcher. Account actions remain clearly separated from navigation and workspace sharing. A browser site must not offer Quit unless its environment actually supports quitting the application.
 
 Applets launches tools; Window selects and manages existing windows. Sites with multiple instances must make launch behavior clear, using labels such as New editor window when a command always creates another instance. Reusing an existing instance must not discard its work.
 

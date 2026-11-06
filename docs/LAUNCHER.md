@@ -4,7 +4,7 @@ PUDL 0.99.0 adds `pudl-launcher.js` as the presentation controller for a Start c
 
 PUDL 0.100.0 adds the activation-feedback behavior and heading inset described here.
 
-The next candidate labels the folded identity action `Open launcher` with the shared app glyph. Set `data-menubar-launcher-label` on the real menu bar to localize that action. The expanded identity retains the site's own name and logo, and the folded group heading retains that name. Ordinary identity menus are unchanged.
+PUDL 0.102.0 labels the folded identity action `Open launcher` with the shared app glyph. Set `data-menubar-launcher-label` on the real menu bar to localize that action. The expanded identity retains the site's own name and logo, and the folded group heading retains that name. Ordinary identity menus are unchanged.
 
 ## Setup
 
@@ -42,6 +42,12 @@ pudlLauncher.enhance(root, {
 ```
 
 The menu bar retains its identity button across rebuilds. The launcher consumes `pudl:menubar-launcher` for hamburger, keyboard and collapsed-menu activation. A normal button with `popovertarget="catalog"` also works, including top-bar and taskbar placement. Use `placement: 'above'` for a lower taskbar button. Native pointer invocation supplies the open/close toggle. Arrow Down opens or enters the catalog without closing an already-open one.
+
+## Fixed taskbar commands
+
+A host may place ordinary glyph-bearing buttons directly in `.win-bar` before `nav.win-dock[data-win-dock]` for fixed commands such as Settings and, in a desktop application, Quit. These controls remain outside the generated dock and its destination registry. They cannot be reordered or unpinned through taskbar destination management. The host connects them to its existing command registry and controls availability and localization.
+
+Keep the taskbar outside the launcher/workspace split so pinning the launcher cannot reparent or narrow it. Preserve the standard minimize-all, restore-all and close-all controls at the taskbar's trailing end. The dock uses the remaining width and its normal overflow behavior; the host must check its fixed controls at narrow widths. Route Quit through the native host's existing quit and unsaved-work guards. PUDL's close-all action continues to manage windows.
 
 ## Presentation and unpinning
 

@@ -1,5 +1,7 @@
 # Observable window opening completion
 
+PUDL 0.102.0 delivers this contract following live beta verification. The candidate history below records the integration boundary and retained evidence.
+
 Beta integration of taskbar pins exposed a missing host contract. The window control logged fragment failures and cleared its private loading flag, but `pudlWindows.open()` returned no completion result. A host could observe successful adoption and await applet initialization, but needed a separate deadline to release failed taskbar requests. The tested beta adapter used a 30-second deadline. A real fetch failure should permit immediate reporting and retry.
 
 The follow-up candidate returns a promise from `open` and `replace`. Both share the same per-key in-flight operation and resolve to `{ key, status, window, error }`. Status is `opened`, `existing`, `failed` or `blocked`. The last status applies when replacement is refused for a required window family. Expected load failures resolve as data because legacy callers ignore these operations; turning every failure into a rejecting promise would introduce unhandled rejections in those callers.

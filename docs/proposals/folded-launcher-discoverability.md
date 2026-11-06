@@ -1,5 +1,7 @@
 # Folded launcher discoverability
 
+PUDL 0.102.0 delivers this contract following live beta review. The text below records its design.
+
 The expanded site identity should retain its name and logo. In the folded combined menu, its launcher action should read `Open launcher` and carry a shared glyph, while the host section heading retains the site name. The current `combined()` implementation in `dist/pudl-menubar.js` copies `t.label` and omits its glyph, producing two similarly named entries with different purposes.
 
 The proposed `data-menubar-launcher-label` attribute on the real menu bar supplies the localized folded action label. It applies only when launcher integration is enabled. Ordinary identity menus retain their existing behavior. The generated action continues through the current launcher request, cancellation, invoker and focus path.
