@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Window stack restoration</title>
+<link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+<script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-toolbar.js" defer></script><script src="../../dist/pudl-windows.js" defer></script>
+<style>body{margin:0}.win-host{height:85vh}.win-bar{position:fixed;bottom:0;width:100%}</style></head><body>
+<div class="win-host"><main class="win-layer" data-win-layer data-win-src="/stack-fragments/{key}.html" data-win-taskbar-reorder data-win-dock-tabs="all"></main></div>
+<footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav><a class="icon-btn" href="?" data-win-back aria-label="Minimize all"></a><a class="icon-btn" href="?" data-win-close-all aria-label="Close all"></a></footer>
+<script>window.arrivals=[];document.addEventListener('pudl:window-open',function(e){arrivals.push({key:e.target.dataset.win,visibility:getComputedStyle(e.target).visibility,restoring:e.target.hasAttribute('data-win-restoring')});});</script>
+</body></html>

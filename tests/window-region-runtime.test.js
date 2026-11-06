@@ -36,12 +36,14 @@ function check(name, ok, extra) {
   check('a declared parameter of an open window stays', /r\.url-state=chapter-2/.test(s), s);
   check('one for a window that is not open goes', !/r\.nowhere/.test(s), s);
   check('an undeclared prefix is the page\'s own and stays', /q\.url-state=kept/.test(s), s);
+  const stackBefore = await p.evaluate(() => pudlWindows.state().zOrder);
   const loadsBefore = loads.length;
   await p.click('.section-tab[href="article-reader-design.html"]');
   await p.waitForFunction(() => /design/.test(location.pathname));
   await settled();
   s = await q();
   check('it travels with the windows when the regions swap to another page', /r\.url-state=chapter-2/.test(s) && /open=url-state/.test(s), s);
+  check('stack state survives region navigation', JSON.stringify(await p.evaluate(() => pudlWindows.state().zOrder)) === JSON.stringify(stackBefore) && new URL(p.url()).searchParams.get('z.order') === stackBefore.join(','));
   check('without loading the page', loads.length === loadsBefore, loads.join(','));
   await p.goBack();
   await p.waitForFunction(() => !/design/.test(location.pathname));

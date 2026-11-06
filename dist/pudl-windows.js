@@ -1279,6 +1279,7 @@
     });
     var out = { open: st.open.slice(), top: st.top, min: Object.assign({}, st.min), place: place, recent: recentOf(st) };
     out.taskbarOrder = taskbarKeys(st);
+    out.zOrder = stackOf(st);
     if (!gridEmpty(st.grid)) out.grid = copyGrid(st.grid);
     if (st.docks) {
       out.docks = {};
@@ -1636,10 +1637,17 @@
   /* The stacking order a state implies: the order as it stands, windows
      new to it on top, and the state's top window above them all. */
   function stackOf(st) {
-    var order = zOrder.filter(function (k) { return st.open.indexOf(k) >= 0; });
+    var source = Array.isArray(st.zOrder) ? st.zOrder : zOrder;
+    var order = source.filter(function (k, i) { return st.open.indexOf(k) >= 0 && source.indexOf(k) === i; });
     st.open.forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });
     if (st.top && order.indexOf(st.top) >= 0) { order.splice(order.indexOf(st.top), 1); order.push(st.top); }
-    return order;
+    var roots = order.filter(function (k) { return !parentOf(st, k); });
+    if (st.top && st.open.indexOf(st.top) >= 0) {
+      var root = rootOf(st, st.top); roots.splice(roots.indexOf(root), 1); roots.push(root);
+    }
+    var result = [];
+    roots.forEach(function (root) { result.push(root); order.forEach(function (k) { if (parentOf(st, k) === root) result.push(k); }); });
+    return result;
   }
 
   function edgeFront(st, edge) {
@@ -1682,6 +1690,10 @@
     if (!q.has('open')) return null;
     var st = { open: keyList(q.get('open')), top: null, min: {}, place: {} };
     st.taskbarOrder = keyList(q.get('tb.order'));
+    if (q.has('z.order')) {
+      var ordered = keyList(q.get('z.order')).filter(function (key) { return st.open.indexOf(key) >= 0; });
+      st.zOrder = st.open.filter(function (key) { return ordered.indexOf(key) < 0; }).concat(ordered);
+    }
     sharedEdges().forEach(function (edge) {
       var m = /^(auto|open|rail):([A-Za-z0-9_-]*)(?::([0-9.]*))?(?::([A-Za-z0-9_,-]*))?$/.exec(q.get('d.' + edge) || '');
       if (m) {
@@ -1722,6 +1734,7 @@
     var dockPreference = st.docks && Object.keys(st.docks).some(function (edge) { return st.docks[edge].mode !== 'auto' || st.docks[edge].size != null || !!st.docks[edge].order; });
     if (!st.open.length && !dockPreference) return [];
     var parts = ['open=' + st.open.join(',')];
+    if (st.open.length) parts.push('z.order=' + stackOf(st).join(','));
     var taskOrder = taskbarKeys(st), defaultOrder = st.open.filter(function (k) { return !parentOf(st, k); });
     if (taskOrder.join(',') !== defaultOrder.join(',')) parts.push('tb.order=' + taskOrder.join(','));
     if (st.top) parts.push('top=' + st.top);
@@ -1794,7 +1807,7 @@
       if (!seg) return;
       var raw = seg.split('=')[0], k = raw;
       try { k = decodeURIComponent(k.replace(/\+/g, ' ')); } catch (e) { /* leave as is */ }
-      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k === 'tb.order' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2))) || (/^ds\.(left|right|top|bottom)$/.test(k) && splitEdge(k.slice(3)))) return;
+      if (k === 'open' || k === 'top' || k === 'min' || k === 'grid' || k === 'tb.order' || k === 'z.order' || k.indexOf('p.') === 0 || (/^d\.(left|right|top|bottom)$/.test(k) && sharedEdge(k.slice(2))) || (/^ds\.(left|right|top|bottom)$/.test(k) && splitEdge(k.slice(3)))) return;
       var owner = scopedOwner(k);
       if (owner) {
         if (rename && owner.key === rename.from) { parts.push(owner.prefix + '.' + rename.to + seg.slice(raw.length)); return; }
@@ -2119,8 +2132,9 @@
   /* The topmost visible window outside the given set, for when the top
      window is minimised or closed. */
   function nextTop(st, except) {
-    for (var i = zOrder.length - 1; i >= 0; i--) {
-      var k = zOrder[i];
+    var order = stackOf(st);
+    for (var i = order.length - 1; i >= 0; i--) {
+      var k = order[i];
       if (except.indexOf(k) < 0 && st.open.indexOf(k) >= 0 && !isHidden(st, k)) return k;
     }
     return null;
@@ -2412,9 +2426,9 @@
   /* The window a top-level window's tab or row brings forward: its topmost
      child if it has one, since that child covers it, or else itself. */
   function frontOf(st, key) {
-    var kids = childrenOf(st, key);
-    for (var i = zOrder.length - 1; i >= 0; i--) {
-      if (kids.indexOf(zOrder[i]) >= 0) return zOrder[i];
+    var kids = childrenOf(st, key), order = stackOf(st);
+    for (var i = order.length - 1; i >= 0; i--) {
+      if (kids.indexOf(order[i]) >= 0) return order[i];
     }
     return key;
   }
@@ -2504,6 +2518,7 @@
     load(key).then(function (el) {
       delete reviving[key];
       if (wins[key] || state.open.indexOf(key) < 0) return;
+      el.setAttribute('data-win-restoring', '');
       adopt(el);
       announceOpen(el);
       apply(state);
@@ -2552,25 +2567,9 @@
       gone.remove();
     });
     closing = {};
-    zOrder = zOrder.filter(function (k) { return st.open.indexOf(k) >= 0; });
-    st.open.forEach(function (k) { if (zOrder.indexOf(k) < 0) zOrder.push(k); });
-    if (st.top) { zOrder.splice(zOrder.indexOf(st.top), 1); zOrder.push(st.top); }
+    st.zOrder = stackOf(st);
+    zOrder = st.zOrder.slice();
     trackRecent(st);
-
-    /* Children stack directly above their parent, and the active window's
-       family goes to the top. */
-    var roots = zOrder.filter(function (k) { return !parentOf(st, k); });
-    if (st.top) {
-      var topRoot = rootOf(st, st.top);
-      roots.splice(roots.indexOf(topRoot), 1);
-      roots.push(topRoot);
-    }
-    var ordered = [];
-    roots.forEach(function (r) {
-      ordered.push(r);
-      zOrder.forEach(function (k) { if (parentOf(st, k) === r) ordered.push(k); });
-    });
-    zOrder = ordered;
 
     /* Docked windows stack above the rest, though nothing is let into their
        strips, so that a drag's ghost or a window's shadow never crosses one. */
@@ -2610,6 +2609,7 @@
     renderRows();
     syncPane();
     renderSplitters(st);
+    st.open.forEach(function (key) { if (wins[key]) wins[key].removeAttribute('data-win-restoring'); });
     announceSeen(st);
     if (taskbarArrangement) taskbarArrangement.refresh();
   }
@@ -3854,6 +3854,7 @@
         st.open.splice(st.open.indexOf(oldKey) + 1, 0, key);
         if (taskbarArrangement) taskbarArrangement.remap(oldKey, key);
         st.taskbarOrder = taskbarKeys(st).map(function (k) { return k === oldKey ? key : k; }).filter(function (k, i, all) { return all.indexOf(k) === i; });
+        st.zOrder = st.zOrder.map(function (k) { return k === oldKey ? key : k; }).filter(function (k, i, all) { return all.indexOf(k) === i; });
         st.place[key] = Object.assign({}, st.place[oldKey]);
         delete st.min[key];
         markClosing(oldKey, 'replace');
@@ -3893,6 +3894,7 @@
     var st = copy(state);
     st.open[st.open.indexOf(oldKey)] = key;
     st.taskbarOrder = st.taskbarOrder.map(function (k) { return k === oldKey ? key : k; });
+    st.zOrder = st.zOrder.map(function (k) { return k === oldKey ? key : k; });
     if (st.top === oldKey) st.top = key;
     [st.min, st.place].forEach(function (m) { move(m, oldKey, key); });
     Object.keys(st.docks || {}).forEach(function (edge) {
@@ -3905,8 +3907,6 @@
       if (dockPeek[edge] === oldKey) dockPeek[edge] = key;
     });
     [wins, openers, closing, homes, menuRuns, lastFocus].forEach(function (m) { move(m, oldKey, key); });
-    var z = zOrder.indexOf(oldKey);
-    if (z >= 0) zOrder[z] = key;
     layer.querySelectorAll('.win[data-win-parent="' + CSS.escape(oldKey) + '"]').forEach(function (child) {
       child.setAttribute('data-win-parent', key);
     });
@@ -3991,13 +3991,14 @@
     var serial = ++restoreSerial;
     syncing++;
     var named = readURL();
+    Object.keys(wins).forEach(function (key) { wins[key].setAttribute('data-win-restoring', ''); });
     var st = named || { open: defaults.slice(), top: null, min: {}, place: {} };
     required.forEach(function (k) { if (st.open.indexOf(k) < 0) st.open.unshift(k); });
     dockPeek = {};
     var missing = st.open.filter(function (k) { return !wins[k]; });
     var loaded = {};
     return Promise.all(missing.map(function (k) {
-      return load(k).then(function (el) { if (serial !== restoreSerial) return null; loaded[k] = el; adopt(el); announceOpen(el); return null; },
+      return load(k).then(function (el) { if (serial !== restoreSerial) return null; loaded[k] = el; el.setAttribute('data-win-restoring', ''); adopt(el); announceOpen(el); return null; },
                           function (err) {
                             if (window.console) console.warn('pudl-windows:', err.message);
                             return k;
@@ -4020,7 +4021,7 @@
         st.place[k] = st.place[k] ? clampPlacement(st.place[k], innerW(), innerH(), { w: 0, h: 0 })
                                   : clampPlacement(initialPlacement(k, wins[k], i), innerW(), innerH(), narrowPolicy(wins[k]) === 'maximized' ? { w: 0, h: 0 } : null);
       });
-      if (!st.top) st.top = st.open.filter(function (k) { return !st.min[k]; }).pop() || null;
+      if (!st.top) st.top = (named && Array.isArray(named.zOrder) ? stackOf(st).filter(function (k) { return !isHidden(st, k); }) : st.open.filter(function (k) { return !st.min[k]; })).pop() || null;
       normalizeDocks(st);
       if (!named && defaults.length) bare = windowParams(st).join('&');
       commit(st, push);
@@ -5299,6 +5300,7 @@
   function onFocusIn(e) {
     var el = e.target.closest && e.target.closest('.win');
     if (!el || !layer.contains(el)) return;
+    if (el.hasAttribute('data-win-restoring')) return;
     var key = el.getAttribute('data-win');
     /* Remembered, so that bringing the window forward later gives focus
        back to what had it. */
@@ -5341,7 +5343,7 @@
     layer.appendChild(inner);
 
     layer.querySelectorAll(':scope > .win[data-win]').forEach(function (el) {
-      if (KEY_RE.test(el.getAttribute('data-win'))) adopt(el);
+      if (KEY_RE.test(el.getAttribute('data-win'))) { el.setAttribute('data-win-restoring', ''); adopt(el); }
       else el.remove();
     });
     zOrder = Object.keys(wins);

@@ -945,3 +945,6 @@
 }
 
 .win-statuses[data-win-status-empty], .win-execution:has(> .win-state[hidden]) { visibility: hidden; }
+
+/* Restored fragments receive their saved geometry and stack before exposure. */
+.win[data-win-restoring] { visibility: hidden; }
