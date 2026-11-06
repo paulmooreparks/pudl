@@ -1688,7 +1688,7 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.99.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.100.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 
@@ -1738,3 +1738,5 @@ The [complete contract](docs/proposals/start-control.md) and [component template
 ## Host launcher
 
 PUDL 0.99.0 adds `dist/pudl-launcher.js` after the Start and splitter modules. It owns popup/sidebar switching, contextual unpinning, placement, size and focus while retaining the same catalog. The host supplies a split-pane slot and invoker and keeps its catalog, URLs, actions and preferences. Use `data-menubar-launcher` for the real site title and hamburger, or a normal launcher button. See [the complete contract](docs/LAUNCHER.md), [the reference](reference.html#host-launcher) and [interactive host examples](samples/host-launcher.html).
+
+In 0.100.0 launcher destinations execute immediately while a static selection highlight remains for 180 ms before popup dismissal. Managed actions can pass their element to `pudlLauncher.activated(root, actionElement)`. Hosts adopting this policy remove delayed click replay and immediate popup-close code. See [the activation contract](docs/LAUNCHER.md).

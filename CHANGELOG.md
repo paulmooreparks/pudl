@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.100.0
+
+Launcher destinations execute through their original event immediately. A static selection highlight remains for 180 ms before an unpinned popup closes; pinned catalogs remain open. Disabled and repeated plain activation are guarded, native link exclusions are preserved, and explicit presentation changes cancel pending dismissal. Managed actions can confirm acceptance with `pudlLauncher.activated(root, actionElement)` and header destinations can use `data-launcher-activate`. Hosts should remove their own delayed click replay and immediate popup-close code.
+
+Start category headings and counts gain balanced vertical padding. The interactive host demos use the shared feedback policy. See [the launcher contract](docs/LAUNCHER.md).
+
 ## 0.99.0
 
 The shared launcher controller in `pudl-launcher.js` now owns popup/sidebar switching, contextual unpinning, placement, resizing, focus and lifecycle. Hosts keep catalog content, actions, URLs and preferences. Existing Start catalogs remain compatible.

@@ -2,7 +2,7 @@
 
 PUDL 0.99.0 adds `pudl-launcher.js` as the presentation controller for a Start catalog. It composes the existing menu bar, Start, splitter and popover controls. A host supplies the catalog and its destination actions, layout, URLs and preference storage. The [interactive studies](../samples/host-launcher.html) show application, content and desktop-tool hosts.
 
-The activation-feedback behavior and heading inset described here are implemented in an unreleased candidate.
+PUDL 0.100.0 adds the activation-feedback behavior and heading inset described here.
 
 ## Setup
 
