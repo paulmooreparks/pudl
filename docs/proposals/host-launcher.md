@@ -6,6 +6,8 @@ This design extends the Start control to provide a consistent catalog of destina
 
 The host launcher includes Dinah and GK Companion alongside web hosts. Their tool entry points belong in the host launcher. Parks Computing should likewise consolidate its Applets menu into that launcher. Tools and Applets can become catalog categories without retaining separate top-level menus that duplicate the same destinations.
 
+The launcher header omits the repeated host title and uses an accessible name on the catalog instead. Its leading space is available for host-level actions, with standard pin and close controls retained at the trailing edge. Settings and Sign In or Account suit content sites; Settings and Quit with the application name suit native desktop hosts. These actions remain host-owned and must use real commands and permission rules. The [launcher guide](../LAUNCHER.md#launcher-header-actions) documents defaults for other host types and narrow layouts. The shared examples remove the redundant visible heading and provide functional Settings without simulating authentication or native Quit.
+
 The opener retains the host's identity: yavc.app, Dinah, GK Companion or Parks Computing. Its scope remains stable when the active application, document or window changes. A host chooses its catalog and integration policy; an individual applet cannot silently replace that global scope.
 
 | Host | Catalog responsibility |

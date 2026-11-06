@@ -1,5 +1,16 @@
 # Changelog
 
+
+## 0.103.0
+
+Provider-backed taskbar destinations can resolve articles, applets and other window categories without individual registrations. Hosts supply stable identity, reopening metadata and authorization, with explicit exclusions for windows that cannot reopen. Saved references restore dormant pins, and stale provider responses cannot cross account scopes. See [Taskbar pins](docs/TASKBAR-PINS.md).
+
+Destination descriptors support picture URLs with glyph fallback. Running windows, dormant pins and grouped taskbar entries use the same rendering contract. Unopened launcher rows discover their provider lazily when their pin menu is requested.
+
+Taskbar menus preserve command order and separator groups when pin membership or window state changes. Taskbar order remains first, and Close remains last where offered.
+
+Launcher samples omit duplicate titles and demonstrate header actions using real PUDL controls. [Launcher guidance](docs/LAUNCHER.md) describes Settings, account and native Quit actions, accessible naming and narrow layouts. Hosts own these actions and should update their authored launcher headers.
+
 ## 0.102.0
 
 Taskbars can retain registered destinations after their last window closes. Pins combine associated instances through the existing window stack, preserve their place during open and close, and participate in ordering and overflow. Pin to taskbar and Unpin from taskbar are shared by the taskbar context menu, the window dropdown and the active Window menu. Hosts own destination identity, permissions and preference storage. See [the integration contract](docs/TASKBAR-PINS.md) and [working sample](samples/taskbar-pinning.html).

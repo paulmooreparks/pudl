@@ -67,6 +67,8 @@
   function hydrate(win) {
     if (hydrated.has(win)) return; hydrated.add(win);
     var body = win.querySelector('.win-body'); body.setAttribute('data-applet', 'host-study-tool'); pudlApplets.boot(win); pudlApplets.start(win.dataset.win).then(updateMenus);
+    var theme = body.querySelector('[data-study-theme]');
+    if (theme) { theme.value = document.documentElement.dataset.theme; theme.addEventListener('change', function () { setTheme(theme.value); }); }
     win.querySelectorAll('[data-draft]').forEach(function (input) {
       input.value = load('draft-' + input.dataset.draft, ''); input.addEventListener('input', function () { save('draft-' + input.dataset.draft, input.value); win.querySelector('[data-draft-status]').textContent = 'Draft kept in this browser when storage is available.'; });
     });
@@ -136,9 +138,10 @@
       openItem(id, file);
     }
   });
-  document.getElementById('theme-choice').addEventListener('click', function () { var light = document.documentElement.dataset.theme !== 'light'; document.documentElement.dataset.theme = light ? 'light' : 'dark'; document.querySelector('[data-theme-label]').textContent = light ? 'Dark theme' : 'Light theme'; save('theme', light ? 'light' : 'dark'); });
+  function setTheme(theme) { document.documentElement.dataset.theme = theme; document.querySelector('[data-theme-label]').textContent = theme === 'light' ? 'Dark theme' : 'Light theme'; document.querySelectorAll('[data-study-theme]').forEach(function (field) { field.value = theme; }); save('theme', theme); }
+  document.getElementById('theme-choice').addEventListener('click', function () { setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'); });
   document.querySelectorAll('button[data-catalog-view]').forEach(function (button) { button.addEventListener('click', function () { var view = button.dataset.catalogView; document.body.dataset.catalogView = view; document.querySelectorAll('button[data-catalog-view]').forEach(function (b) { b.setAttribute('aria-checked', String(b === button)); }); save('catalog-view', view); setAddress(false); }); });
-  function hostName(value) { var name = value === 'gk' ? 'GK Companion' : 'Dinah'; document.querySelectorAll('[data-host-name],#launcher-heading').forEach(function (n) { n.textContent = name; }); opener.setAttribute('aria-label', 'Open ' + name + ' launcher'); document.querySelectorAll('[data-host-flavour]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.hostFlavour === value)); }); }
+  function hostName(value) { var name = value === 'gk' ? 'GK Companion' : 'Dinah'; document.querySelectorAll('[data-host-name]').forEach(function (n) { n.textContent = name; }); root.setAttribute('aria-label', name + ' launcher'); opener.setAttribute('aria-label', 'Open ' + name + ' launcher'); document.querySelectorAll('[data-host-flavour]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.hostFlavour === value)); }); }
   if (demo === 'tools') { hostName(new URL(location.href).searchParams.get('host')); document.querySelectorAll('[data-host-flavour]').forEach(function (button) { button.addEventListener('click', function () { hostName(button.dataset.hostFlavour); var url = new URL(location.href); url.searchParams.set('host', button.dataset.hostFlavour); history.replaceState(null, '', url); }); }); }
   function restore() {
     restoring = true; var params = new URL(location.href).searchParams;

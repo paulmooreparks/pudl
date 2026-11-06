@@ -113,6 +113,7 @@
   var state = { open: [], top: null, min: {}, place: {} };
   var taskbarDestinations = new Map(), taskbarPins = [], taskbarSlots = [];
   var taskbarPending = new Map();
+  var taskbarProviders = new Map(), taskbarReferences = new Map(), taskbarResolutions = new Map(), taskbarScope = '';
   var windowChoice = 0;    // explicit selection, independent of popup focus recovery
   var wins = {};           // key -> window element
   var zOrder = [];         // keys, bottom to top
@@ -604,13 +605,33 @@
     img.alt = '';
     img.setAttribute('aria-hidden', 'true');
     img.decoding = 'async';
-    img.addEventListener('error', function () {
-      if (failedIcons.has(src)) return;
-      failedIcons.add(src);
-      markAll();
-    });
+    img.setAttribute('data-win-picture', src);
+    if (cls === 'win-item-icon') img.hidden = true;
     img.src = src;
     return img;
+  }
+  /* Capture also follows marks cloned into shared menu and overflow rows. */
+  document.addEventListener('load', function (event) {
+    var img = event.target;
+    if (!img.matches || !img.matches('img.win-item-icon[data-win-picture]')) return;
+    img.hidden = false;
+    var glyph = img.parentElement && img.parentElement.querySelector('.win-item-glyph');
+    if (glyph) glyph.hidden = true;
+  }, true);
+  document.addEventListener('error', function (event) {
+    var img = event.target, src = img.getAttribute && img.getAttribute('data-win-picture');
+    if (!src || failedIcons.has(src)) return;
+    failedIcons.add(src); markAll();
+  }, true);
+  function destinationPicture(node, destination, fallback) {
+    var glyph = node.querySelector('.win-item-glyph'), src = destination.icon || fallback || '';
+    if (failedIcons.has(src)) src = '';
+    var picture = node.querySelector('.win-item-icon');
+    if (src && (!picture || picture.getAttribute('src') !== src)) {
+      if (picture) picture.remove();
+      picture = iconImg(src, 'win-item-icon'); glyph.before(picture);
+    } else if (!src && picture) { picture.remove(); picture = null; }
+    setHidden(glyph, !!picture && !picture.hidden);
   }
   function markAll() {
     document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
@@ -645,7 +666,7 @@
       picture = iconImg(src, 'win-item-icon');
       icon.before(picture);
     } else if (!src && picture) { picture.remove(); picture = null; }
-    setHidden(icon, !!picture || (!win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key')));
+    setHidden(icon, (!!picture && !picture.hidden) || (!win.hasAttribute('data-win-glyph') && !node.hasAttribute('data-dock-key')));
     setText(node.querySelector('.win-item-title'), titleOf(key));
     var detail = node.querySelector('.win-item-detail');
     /* A detail that repeats the title says nothing, so it is not drawn
@@ -2738,12 +2759,14 @@
             if (a.tagName === 'A') setAttr(a, 'href', destination.href);
             if (!a.firstChild) a.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span>';
             setText(a.querySelector('.win-item-title'), destination.label);
-            styleProp(a.firstElementChild, '--glyph', 'var(--glyph-' + destination.glyph + ', var(--glyph-window))');
+            styleProp(a.querySelector('.win-item-glyph'), '--glyph', 'var(--glyph-' + destination.glyph + ', var(--glyph-window))');
             setAttr(a, 'aria-label', destination.label); setAttr(a, 'title', destination.label);
           }
         }
         else { setAttr(a, 'href', urlFor(tabbed(state, k))); windowMark(a, k, state.min[k] ? text('minimized', '{title} (minimized)').replace('{title}', fullTitle(k)) : fullTitle(k)); }
         if (destination) {
+          destinationPicture(a, destination, (!destination.status || destination.status === 'available') && k && iconOf(k));
+          setAttr(a, 'data-win-pin-status', destination.status || 'available');
           setAttr(a, 'data-win-pin', entry.pin);
           setAttr(a, 'data-win-pin-running', entry.keys.length ? 'true' : 'false');
           var unavailable = !entry.keys.length && (destination.disabled || taskbarPending.has(entry.pin));
@@ -2754,6 +2777,7 @@
             else a.removeAttribute('tabindex');
           }
           var name = stackText(entry.keys.length ? 'taskbar-pinned-running' : 'taskbar-pinned-idle', entry.keys.length ? '{title}, pinned' : '{title}, pinned, not open', { title: a.getAttribute('aria-label') || destination.label });
+          if (destination.status && destination.status !== 'available') name = destination.label + ', ' + text('taskbar-status-' + destination.status, destination.status);
           var progress = a.querySelector('.win-pin-progress');
           if (taskbarPending.has(entry.pin)) {
             if (!progress) { progress = document.createElement('span'); progress.className = 'spinner win-pin-progress'; progress.setAttribute('aria-hidden', 'true'); a.appendChild(progress); }
@@ -2770,7 +2794,7 @@
     document.querySelectorAll('[data-win-pin-toggle]').forEach(function (button) {
       var id = button.getAttribute('data-win-pin-toggle'), d = taskbarDestinations.get(id);
       setAttr(button, 'aria-pressed', taskbarPins.indexOf(id) >= 0 ? 'true' : 'false');
-      if (button.tagName === 'BUTTON') button.disabled = !d || !d.pinnable;
+      if (button.tagName === 'BUTTON') button.disabled = !d || (taskbarPins.indexOf(id) < 0 && (!d.pinnable || (!!d.status && d.status !== 'available')));
     });
     refreshStackContext();
   }
@@ -3131,6 +3155,7 @@
   function adopt(el) {
     var key = el.getAttribute('data-win');
     wins[key] = el;
+    destinationOf(key);
     if (contentSized(key) && el.getAttribute('data-win-narrow') === 'maximized') console.warn('pudl-windows: data-win-narrow is ignored on content-sized window ' + key);
     if (!el.parentNode || el.parentNode !== layer) layer.insertBefore(el, ghost);
 
@@ -4446,6 +4471,9 @@
   function pinToken(id) { return 'pin:' + id; }
   function destinationOf(key) {
     var id = wins[key] && wins[key].getAttribute('data-win-destination');
+    if (!wins[key] || wins[key].getAttribute('data-win-pinnable') === 'false') return null;
+    var provider = wins[key].getAttribute('data-win-destination-provider');
+    if (provider && KEY_RE.test(id || '') && KEY_RE.test(provider) && !rememberDestination(id, provider)) return null;
     return taskbarDestinations.has(id) ? id : null;
   }
   function pinMembers(id, dock) {
@@ -4457,7 +4485,12 @@
     var live = taskbarPins.map(pinToken).concat(roots);
     return taskbarSlots.concat(live).filter(function (id, i, all) { return live.indexOf(id) >= 0 && all.indexOf(id) === i; });
   }
-  function taskbarPreferences() { return { pins: taskbarPins.slice(), order: taskbarItems(state) }; }
+  function taskbarPreferences() {
+    var value = { pins: taskbarPins.slice(), order: taskbarItems(state) };
+    var references = taskbarPins.filter(function (id) { return taskbarReferences.has(id); }).map(function (id) { return { id: id, provider: taskbarReferences.get(id) }; });
+    if (taskbarProviders.size || references.length) value.references = references;
+    return value;
+  }
   function taskbarChanged(reason) {
     layer.dispatchEvent(new CustomEvent('pudl:taskbar-change', { bubbles: true, detail: Object.assign({ reason: reason }, taskbarPreferences()) }));
   }
@@ -4466,29 +4499,105 @@
     renderDocks(); fitBarsSoon();
     if (taskbarArrangement) taskbarArrangement.refresh();
   }
-  function configureTaskbar(options) {
-    if (!options || !Array.isArray(options.destinations)) return false;
-    var next = new Map(), valid = true;
-    try { options.destinations.forEach(function (d) {
-      if (!d || typeof d.id !== 'string' || !KEY_RE.test(d.id) || next.has(d.id) || typeof d.label !== 'string' || !d.label.trim() ||
-          (d.href != null && (typeof d.href !== 'string' || !/^(https?:)$/.test(new URL(d.href, document.baseURI).protocol)))) { valid = false; return; }
-      next.set(d.id, { id: d.id, label: d.label, glyph: /^[a-z][a-z0-9-]*$/.test(d.glyph || '') ? d.glyph : 'window', href: d.href || '', disabled: !!d.disabled, pinnable: d.pinnable !== false, newWindow: d.newWindow === true, newWindowDisabled: !!d.newWindowDisabled });
+  function taskbarDescriptor(d) {
+    if (!d || typeof d.id !== 'string' || !KEY_RE.test(d.id) || typeof d.label !== 'string' || !d.label.trim()) throw new Error('Invalid taskbar destination');
+    ['href', 'icon'].forEach(function (field) {
+      if (d[field] != null && (typeof d[field] !== 'string' || !/^(https?:)$/.test(new URL(d[field], document.baseURI).protocol))) throw new Error('Invalid taskbar ' + field);
     });
-    } catch (_) { return false; }
-    if (!valid) return false;
-    var pins = options.pins === undefined ? taskbarPins : options.pins;
-    var order = options.order === undefined ? taskbarSlots : options.order;
-    if (!Array.isArray(pins) || !Array.isArray(order)) return false;
-    pins = pins.filter(function (id, i) { return next.has(id) && next.get(id).pinnable && pins.indexOf(id) === i; });
+    return { id: d.id, label: d.label, glyph: /^[a-z][a-z0-9-]*$/.test(d.glyph || '') ? d.glyph : 'window', href: d.href || '', icon: d.icon || '', command: d.command === true, disabled: !!d.disabled, pinnable: d.pinnable !== false, newWindow: d.newWindow === true, newWindowDisabled: !!d.newWindowDisabled };
+  }
+  function unresolvedDestination(id, status) {
+    return { id: id, label: text('taskbar-unavailable', 'Unavailable destination'), glyph: 'window', href: '', icon: '', disabled: true, pinnable: status !== 'excluded', status: status };
+  }
+  function rememberDestination(id, provider) {
+    if (taskbarReferences.has(id) && taskbarReferences.get(id) !== provider) return false;
+    if (!taskbarReferences.has(id) && taskbarDestinations.has(id)) return false;
+    taskbarReferences.set(id, provider);
+    if (!taskbarDestinations.has(id)) taskbarDestinations.set(id, unresolvedDestination(id, 'resolving'));
+    resolveDestination(id);
+    return true;
+  }
+  function resolveDestination(id) {
+    if (taskbarResolutions.has(id)) return taskbarResolutions.get(id).promise;
+    var providerId = taskbarReferences.get(id), provider = taskbarProviders.get(providerId);
+    if (!provider) { taskbarDestinations.set(id, unresolvedDestination(id, 'unavailable')); return Promise.resolve(); }
+    var request = { controller: new AbortController(), promise: null, scope: taskbarScope };
+    taskbarResolutions.set(id, request);
+    taskbarDestinations.set(id, unresolvedDestination(id, provider.pinnable === false ? 'excluded' : 'resolving'));
+    request.promise = Promise.resolve().then(function () {
+      if (request.controller.signal.aborted || provider.pinnable === false) return { status: 'excluded' };
+      return provider.resolve({ id: id, signal: request.controller.signal, scope: request.scope });
+    }).then(function (result) {
+      if (taskbarResolutions.get(id) !== request) return;
+      if (!result || ['available', 'unavailable', 'forbidden', 'excluded'].indexOf(result.status) < 0) throw new Error('Invalid destination resolution');
+      var d = unresolvedDestination(id, result.status);
+      if (result.status === 'available') {
+        d = taskbarDescriptor(result.destination);
+        if (d.id !== id || (!d.href && !d.command)) throw new Error('Destination requires matching identity and reopening metadata');
+        d.status = 'available';
+      }
+      taskbarDestinations.set(id, d);
+    }).catch(function (error) {
+      if (taskbarResolutions.get(id) !== request) return;
+      taskbarDestinations.set(id, unresolvedDestination(id, 'failed'));
+      layer.dispatchEvent(new CustomEvent('pudl:taskbar-resolution-error', { bubbles: true, detail: { id: id, provider: providerId, error: error } }));
+    }).then(function () { if (taskbarResolutions.get(id) === request) refreshTaskbar(); });
+    return request.promise;
+  }
+  function refreshTaskbarDestinations(options) {
+    options = options || {};
+    var work = [];
+    taskbarReferences.forEach(function (provider, id) {
+      if ((options.provider && options.provider !== provider) || (options.ids && options.ids.indexOf(id) < 0)) return;
+      var old = taskbarResolutions.get(id); if (old) old.controller.abort();
+      taskbarResolutions.delete(id);
+      taskbarDestinations.set(id, unresolvedDestination(id, 'resolving'));
+      work.push(resolveDestination(id));
+    });
+    refreshTaskbar();
+    return Promise.all(work);
+  }
+  function configureTaskbar(options) {
+    if (!options || (options.destinations === undefined && options.providers === undefined) || (options.destinations !== undefined && !Array.isArray(options.destinations)) || (options.providers !== undefined && !Array.isArray(options.providers))) return false;
+    var next = new Map(), providers = new Map(), references = new Map(), valid = true;
+    var scope = options.scope === undefined ? '' : options.scope;
+    if (typeof scope !== 'string') return false;
+    try {
+      (options.destinations || []).forEach(function (d) { var value = taskbarDescriptor(d); if (next.has(d.id)) throw new Error('Duplicate destination'); next.set(d.id, value); });
+      (options.providers || []).forEach(function (p) {
+        if (!p || typeof p.id !== 'string' || !KEY_RE.test(p.id) || providers.has(p.id) || typeof p.resolve !== 'function') throw new Error('Invalid destination provider');
+        providers.set(p.id, { resolve: p.resolve, pinnable: p.pinnable !== false });
+      });
+      var saved = options.references === undefined ? Array.from(taskbarReferences, function (pair) { return { id: pair[0], provider: pair[1] }; }) : options.references;
+      if (!Array.isArray(saved)) throw new Error('Invalid destination references');
+      saved.forEach(function (r) {
+        if (!r || typeof r.id !== 'string' || typeof r.provider !== 'string' || !KEY_RE.test(r.id) || !KEY_RE.test(r.provider) || next.has(r.id) || (references.has(r.id) && references.get(r.id) !== r.provider)) throw new Error('Conflicting destination reference');
+        references.set(r.id, r.provider);
+      });
+      Object.keys(wins).forEach(function (key) {
+        var el = wins[key], id = el.getAttribute('data-win-destination'), provider = el.getAttribute('data-win-destination-provider');
+        if (!provider || el.getAttribute('data-win-pinnable') === 'false') return;
+        if (!KEY_RE.test(id || '') || !KEY_RE.test(provider) || next.has(id) || (references.has(id) && references.get(id) !== provider)) throw new Error('Conflicting window destination');
+        references.set(id, provider);
+      });
+    } catch (_) { valid = false; }
+    var pins = options.pins === undefined ? taskbarPins : options.pins, order = options.order === undefined ? taskbarSlots : options.order;
+    if (!valid || !Array.isArray(pins) || !Array.isArray(order)) return false;
+    pins = pins.filter(function (id, i) { return ((next.has(id) && next.get(id).pinnable) || references.has(id)) && pins.indexOf(id) === i; });
     var roots = taskbarKeys(state);
     order = order.filter(function (id, i) { return typeof id === 'string' && order.indexOf(id) === i && (roots.indexOf(id) >= 0 || pins.some(function (pin) { return pinToken(pin) === id; })); });
-    if (JSON.stringify(Array.from(next)) === JSON.stringify(Array.from(taskbarDestinations)) && JSON.stringify(pins) === JSON.stringify(taskbarPins) && JSON.stringify(order) === JSON.stringify(taskbarSlots)) return false;
-    taskbarDestinations = next; taskbarPins = pins.slice(); taskbarSlots = order.slice();
+    var sameProviders = providers.size === taskbarProviders.size && Array.from(providers).every(function (pair) { var old = taskbarProviders.get(pair[0]); return old && old.resolve === pair[1].resolve && old.pinnable === pair[1].pinnable; });
+    var staticOld = Array.from(taskbarDestinations).filter(function (pair) { return !taskbarReferences.has(pair[0]); });
+    if (scope === taskbarScope && sameProviders && JSON.stringify(Array.from(next)) === JSON.stringify(staticOld) && JSON.stringify(Array.from(references)) === JSON.stringify(Array.from(taskbarReferences)) && JSON.stringify(pins) === JSON.stringify(taskbarPins) && JSON.stringify(order) === JSON.stringify(taskbarSlots)) return false;
+    taskbarResolutions.forEach(function (request) { request.controller.abort(); }); taskbarResolutions.clear();
+    taskbarScope = scope; taskbarProviders = providers; taskbarReferences = references; taskbarDestinations = next; taskbarPins = pins.slice(); taskbarSlots = order.slice();
+    references.forEach(function (_, id) { taskbarDestinations.set(id, unresolvedDestination(id, 'resolving')); resolveDestination(id); });
     refreshTaskbar(); return true;
   }
   function pinTaskbar(id, pinned) {
     var d = taskbarDestinations.get(id);
-    if (!d || !d.pinnable || (pinned !== undefined && typeof pinned !== 'boolean')) return false;
+    if (!d || (pinned !== undefined && typeof pinned !== 'boolean')) return false;
+    if (taskbarPins.indexOf(id) < 0 && (!d.pinnable || (d.status && d.status !== 'available'))) return false;
     var was = taskbarPins.indexOf(id) >= 0, want = pinned === undefined ? !was : pinned;
     if (was === want) return false;
     var order = taskbarItems(state), members = pinMembers(id), at = order.findIndex(function (key) { return members.indexOf(key) >= 0; });
@@ -4510,19 +4619,34 @@
     if (!d) return [];
     var rows = [], pinned = taskbarPins.indexOf(id) >= 0;
     if (d.newWindow) rows.push({ id: 'taskbar-new', label: text('taskbar-new', 'New window'), glyph: 'window', disabled: d.disabled || d.newWindowDisabled || taskbarPending.has(id), run: function () { activateDestination(id, document.activeElement, 'new'); } });
-    if (d.pinnable) rows.push({ id: pinned ? 'taskbar-unpin' : 'taskbar-pin', label: pinned ? text('taskbar-unpin', 'Unpin from taskbar') : text('taskbar-pin', 'Pin to taskbar'), glyph: 'pin', run: function () { pinTaskbar(id, !pinned); } });
+    if (d.pinnable || pinned) rows.push({ disabled: !pinned && !!d.status && d.status !== 'available', id: pinned ? 'taskbar-unpin' : 'taskbar-pin', label: pinned ? text('taskbar-unpin', 'Unpin from taskbar') : d.status === 'resolving' ? text('taskbar-resolving', 'Resolving destination') : text('taskbar-pin', 'Pin to taskbar'), glyph: 'pin', run: function () { pinTaskbar(id, !pinned); } });
     return rows;
   }
-  function taskbarWindowCommands(key) {
-    var all = menuCommands(key), rows = [];
-    [all.filter(function (c) { return !c.items && c.id !== 'close'; }),
-      all.filter(function (c) { return c.items; }), contentCommands(wins[key], key),
-      all.filter(function (c) { return c.id === 'close'; })].forEach(function (part) {
+  function destinationRowCommands(row) {
+    if (row.getAttribute('data-win-pinnable') === 'false') return [];
+    var id = row.getAttribute('data-win-pin-target'), provider = row.getAttribute('data-win-destination-provider');
+    if (provider && (!KEY_RE.test(id || '') || !KEY_RE.test(provider) || !rememberDestination(id, provider))) return [];
+    return destinationCommands(id);
+  }
+  function taskbarCommandGroups(groups) {
+    var rows = [];
+    groups.forEach(function (part) {
       if (!part.length) return;
       if (rows.length) rows.push('-');
       rows = rows.concat(part);
     });
     return rows;
+  }
+  function taskbarOrderGroup(dock, entry, internal) {
+    return taskbarReorderEnabled() && dock ? [{ id: 'taskbar-order', label: text('taskbar-order', 'Taskbar order'), items: internal ? internalOrderCommands(dock, entry, internal) : taskbarOrderCommands(dock, entry) }] : [];
+  }
+  function taskbarWindowCommands(key, order) {
+    var all = menuCommands(key);
+    function taskbar(c) { return c.id && c.id.indexOf('taskbar-') === 0; }
+    return taskbarCommandGroups([(order || []).concat(all.filter(taskbar)),
+      all.filter(function (c) { return !taskbar(c) && !c.items && c.id !== 'close'; }),
+      all.filter(function (c) { return c.items; }), contentCommands(wins[key], key),
+      all.filter(function (c) { return c.id === 'close'; })]);
   }
   /* Hosts register asynchronous command work during synchronous event dispatch.
      Native links keep their browser navigation and user activation. */
@@ -4621,7 +4745,8 @@
     var meta = stackMetadata(entry.group), count = 0, execution = stackState(entry.keys);
     entry.keys.forEach(function (k) { var n = Number(wins[k].getAttribute('data-win-attention')); if (Number.isSafeInteger(n) && n > 0) count += n; });
     if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-state"><span class="win-state win-item-running"></span></span>';
-    styleProp(button.firstChild, '--glyph', 'var(--glyph-' + meta.glyph + ', var(--glyph-window))');
+    styleProp(button.querySelector('.win-item-glyph'), '--glyph', 'var(--glyph-' + meta.glyph + ', var(--glyph-window))');
+    destinationPicture(button, meta);
     setText(button.querySelector('.win-item-title'), meta.label);
     setText(button.querySelector('.win-stack-count'), String(entry.keys.length));
     var badge = button.querySelector('.win-item-attention'); setText(badge, String(count)); setHidden(badge, !count);
@@ -5330,9 +5455,9 @@
             items.push({ id: 'window-' + k, label: mark.getAttribute('aria-label'), run: function () { activateStackRow(k); } });
             items.push({ id: 'commands-' + k, label: stackText('stack-window-commands', 'Commands for {title}', { title: fullTitle(k) }), items: menuCommands(k).concat(contentCommands(wins[k], k)) });
           });
-          return { id: 'group-' + group, label: label, items: items.concat(['-']).concat(stackCommands(group, dock)) };
+          return { id: 'group-' + group, label: label, icon: Array.from(t.querySelectorAll('.win-item-icon, .win-item-glyph')), items: items.concat(['-']).concat(stackCommands(group, dock)) };
         }
-        return { id: entryId(t), label: label, run: function () { t.click(); } };
+        return { id: entryId(t), label: label, icon: Array.from(t.querySelectorAll('.win-item-icon, .win-item-glyph')), run: function () { t.click(); } };
       });
       if (taskbarReorderEnabled()) { if (rows.length) rows.push('-'); rows.push({ id: 'arrange', label: text('taskbar-arrange', 'Arrange taskbar'), run: function () { arrangeTaskbar(more.parentElement.querySelector('[data-win-dock]')); } }); }
       return rows;
@@ -5613,8 +5738,11 @@
       if (e.defaultPrevented || !e.detail || (e.detail.count && e.detail.count())) return;
       var destinationRow = e.target && e.target.closest && e.target.closest('[data-win-pin-target]');
       if (destinationRow) {
-        var commands = destinationCommands(destinationRow.getAttribute('data-win-pin-target'));
-        if (commands.length) { e.detail.add(commands); if (e.detail.mark) e.detail.mark(destinationRow); if (e.detail.anchor) e.detail.anchor(destinationRow); }
+        var commands = destinationRowCommands(destinationRow);
+        if (commands.length) {
+          stackContext = { owner: destinationRow, rows: function () { return destinationRowCommands(destinationRow); } };
+          e.detail.add(commands); if (e.detail.mark) e.detail.mark(destinationRow); if (e.detail.anchor) e.detail.anchor(destinationRow);
+        }
         return;
       }
       var pin = e.target && e.target.closest && e.target.closest('[data-win-pin]');
@@ -5622,19 +5750,18 @@
         function pinRows() {
           var id = pin.getAttribute('data-win-pin');
           if (!taskbarDestinations.has(id) || taskbarPins.indexOf(id) < 0) return [];
-          var members = pinMembers(id, pin.parentElement), rows;
-          if (members.length === 1) rows = taskbarWindowCommands(members[0]);
+          var members = pinMembers(id, pin.parentElement), rows, order = taskbarOrderGroup(pin.parentElement, pinToken(id));
+          if (members.length === 1) rows = taskbarWindowCommands(members[0], order);
           else {
-            rows = destinationCommands(id);
-            if (members.length > 1) rows = rows.concat(['-'], stackCommands(pinToken(id), pin.parentElement));
+            var taskbar = order.concat(destinationCommands(id));
+            if (members.length > 1) rows = taskbarCommandGroups([taskbar, stackCommands(pinToken(id), pin.parentElement)]);
             else {
               var destination = taskbarDestinations.get(id);
-              rows.unshift({ label: text('taskbar-open', 'Open'), glyph: destination.glyph, href: destination.href || undefined, disabled: destination.disabled || taskbarPending.has(id), run: function () {
+              rows = taskbarCommandGroups([taskbar, [{ id: 'taskbar-open', label: text('taskbar-open', 'Open'), glyph: destination.glyph, href: destination.href || undefined, disabled: destination.disabled || taskbarPending.has(id), run: function () {
                 if (activateDestination(id, pin, 'open') && destination.href) location.assign(destination.href);
-              } });
+              } }]]);
             }
           }
-          if (taskbarReorderEnabled()) rows.push('-', { label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(pin.parentElement, pinToken(id)) });
           return rows;
         }
         stackContext = { owner: pin, dock: pin.parentElement, group: pinToken(pin.getAttribute('data-win-pin')), rows: pinRows };
@@ -5642,9 +5769,10 @@
       }
       var stack = e.target && e.target.closest && e.target.closest('[data-win-stack]');
       if (stack && !stack.closest('[data-win-tab-menu="off"]') && layer.getAttribute('data-win-tab-menu') !== 'off') {
-        var stackDock = stack.parentElement, group = stack.getAttribute('data-win-stack'), commands = stackCommands(group, stackDock);
-        if (taskbarReorderEnabled()) commands.push('-', { label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(stackDock, 'group:' + group) });
-        stackContext = { owner: stack, dock: stackDock, group: group, rows: function () { return groupMembers(group, stackDock).length ? stackCommands(group, stackDock).concat(taskbarReorderEnabled() ? ['-', { label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(stackDock, 'group:' + group) }] : []) : []; } };
+        var stackDock = stack.parentElement, group = stack.getAttribute('data-win-stack');
+        function stackRows() { return groupMembers(group, stackDock).length ? taskbarCommandGroups([taskbarOrderGroup(stackDock, 'group:' + group), stackCommands(group, stackDock)]) : []; }
+        var commands = stackRows();
+        stackContext = { owner: stack, dock: stackDock, group: group, rows: stackRows };
         e.detail.add(commands); if (e.detail.mark) e.detail.mark(stack); if (e.detail.anchor) e.detail.anchor(stack); return;
       }
       var tab = e.target && e.target.closest && e.target.closest('[data-win-tab], [data-dock-key], [data-dock-menu]');
@@ -5653,17 +5781,13 @@
       if (!wins[key]) return;
       function windowRows() {
         if (!wins[key]) return [];
-      var rows = [];
-      var taskbarDock = tab.closest('.win-bar [data-win-dock]');
-      if (taskbarReorderEnabled() && tab.hasAttribute('data-win-stack-row') && stackPopup) rows.push({ label: text('taskbar-order', 'Taskbar order'), items: internalOrderCommands(stackPopup.button.parentElement, key, stackPopup.button.getAttribute('data-win-stack')) });
-      if (taskbarReorderEnabled() && taskbarDock) rows.push({ label: text('taskbar-order', 'Taskbar order'), items: taskbarOrderCommands(taskbarDock, key) });
-      if (rows.length) rows.push('-');
-      rows = rows.concat(taskbarWindowCommands(key));
-        return rows;
+        var order = taskbarOrderGroup(tab.closest('.win-bar [data-win-dock]'), key);
+        if (tab.hasAttribute('data-win-stack-row') && stackPopup) order = taskbarOrderGroup(stackPopup.button.parentElement, key, stackPopup.button.getAttribute('data-win-stack'));
+        return taskbarWindowCommands(key, order);
       }
       var rows = windowRows();
       if (!rows.length) return;
-      if (tab.hasAttribute('data-win-stack-row')) stackContext = { owner: tab, rows: windowRows };
+      stackContext = { owner: tab, dock: tab.closest('.win-bar [data-win-dock]'), rows: windowRows };
       e.detail.add(rows);
       if (e.detail.mark) e.detail.mark(tab);
       if (e.detail.anchor) e.detail.anchor(tab);
@@ -5741,7 +5865,7 @@
       if (taskbarDrag) taskbarDrag.cancel();
       renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true,
-      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-destination', 'data-win-group', 'data-win-group-label', 'data-win-group-detail', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-pinnable', 'data-win-destination-provider', 'data-win-destination', 'data-win-group', 'data-win-group-label', 'data-win-group-detail', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
       var changed = records.some(function (record) {
@@ -5799,6 +5923,7 @@
       dockRatio: setDockRatio,
       group: groupMembers,
       configureTaskbar: configureTaskbar,
+      refreshTaskbarDestinations: refreshTaskbarDestinations,
       pinTaskbar: pinTaskbar,
       taskbarState: taskbarPreferences,
       reorderTaskbarEntry: function (id, destination, dock) {

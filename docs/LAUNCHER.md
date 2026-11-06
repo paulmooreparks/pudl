@@ -28,6 +28,26 @@ pudlLauncher.enhance(root, {
 
 Add `data-launcher-pin` to the standard pin glyph button, `data-launcher-close` to the close button, and, optionally, `data-launcher-size` to the Size button, `data-launcher-size-panel` to its named `.popover`, and `data-launcher-width` and `data-launcher-height` to its numeric fields. Render the fields with PUDL form classes and labelled pixel units. The controller owns the pin's `aria-pressed` state and disables Size while pinned. Pinned dimensions use the existing splitter's pointer and keyboard interaction. The controller does not generate a second catalog or copy its content.
 
+## Launcher header actions
+
+The launcher does not repeat the site or application title as a visible heading. Its opener already identifies the host. Give the catalog an accessible name such as `aria-label="Dinah launcher"`; removing a visible label must not leave a dangling `aria-labelledby` reference. The shared controller requires no visible title and does not generate one.
+
+Use the available header space for a small set of host-level actions. Put normal PUDL buttons or navigation links with meaningful glyphs and visible labels at the leading edge, and keep the standard pin and close glyph controls at the trailing edge. The buttons use existing host commands, availability rules and safeguards. The controller owns presentation; it does not provide account, settings or process-exit implementations.
+
+| Host type | Recommended header actions |
+| --- | --- |
+| Public content site with accounts | Settings and Sign In for a guest; Settings and Account for a signed-in reader. |
+| Content site without accounts | Settings when useful; otherwise the host can omit the action group. |
+| Web application or application suite | Settings and Account or Switch account when those concepts exist. |
+| Native desktop application | Settings and Quit followed by the application name, such as Quit Dinah. |
+| Shared terminal or kiosk session | Settings only when permitted, and End session when the host has a defined session-ending operation. |
+
+These are defaults, not required placeholders. A host must omit unavailable or meaningless actions rather than add disabled filler. Account can open account management containing Sign Out, while a host with a simpler session model can offer Sign Out directly. Signing out and ending a shared session must preserve the host's existing confirmation and unsaved-work policy. Quit must invoke the native application's real guarded quit command. A browser-hosted page must not imitate that operation with window closing or PUDL Close all.
+
+Keep context-specific commands in the relevant application menus and toolbars, and put less frequent destinations in launcher categories. Do not turn the header into a second menu bar. Allow the action group to wrap at narrow widths without covering the pin, close or search controls; retain labels whenever they fit. Header actions which open a destination can use `data-launcher-activate`, or call `pudlLauncher.activated` synchronously when accepted, to follow the standard feedback and popup-dismissal policy. Controls that operate within the launcher must not be marked as destinations.
+
+The interactive studies demonstrate a functional Settings destination using the real window control and theme select. They omit account and Quit buttons because those browser studies have no account service or native process to terminate. A standalone embedded Start catalog may still have a meaningful section heading when it has no identifying opener; that is separate from the host-launcher header convention.
+
 ## Site title and other openers
 
 Set `data-menubar-launcher="catalog"` on the real `[data-menubar]` to make its identity title and hamburger open that catalog. Other site menus and the active application's menus retain their normal behavior. The collapsed menu bar includes a launcher command. Initialize after the menu bar has started:
@@ -45,7 +65,7 @@ The menu bar retains its identity button across rebuilds. The launcher consumes 
 
 ## Fixed taskbar commands
 
-A host may place ordinary glyph-bearing buttons directly in `.win-bar` before `nav.win-dock[data-win-dock]` for fixed commands such as Settings and, in a desktop application, Quit. These controls remain outside the generated dock and its destination registry. They cannot be reordered or unpinned through taskbar destination management. The host connects them to its existing command registry and controls availability and localization.
+The launcher header is the recommended home for Settings and account or Quit actions when a host uses this pattern. A host needing permanent access may instead place ordinary glyph-bearing buttons directly in `.win-bar` before `nav.win-dock[data-win-dock]`. Avoid duplicating the same fixed action strip in both places by default. Fixed taskbar controls remain outside the generated dock and its destination registry. They cannot be reordered or unpinned through taskbar destination management. The host connects them to its existing command registry and controls availability and localization.
 
 Keep the taskbar outside the launcher/workspace split so pinning the launcher cannot reparent or narrow it. Preserve the standard minimize-all, restore-all and close-all controls at the taskbar's trailing end. The dock uses the remaining width and its normal overflow behavior; the host must check its fixed controls at narrow widths. Route Quit through the native host's existing quit and unsaved-work guards. PUDL's close-all action continues to manage windows.
 
