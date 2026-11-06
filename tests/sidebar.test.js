@@ -77,7 +77,8 @@ function check(name, ok, extra) {
   check('the stylesheet enforces the limits by itself', Math.abs(clamped.a - clamped.half) <= 1 && clamped.c === 180, JSON.stringify(clamped));
 
   await p.setViewportSize({ width: 900, height: 1000 });
-  await p.waitForTimeout(200);
+  await p.waitForFunction(() => Math.abs(+document.querySelector('.layout-demo .md-resize').getAttribute('aria-valuemax') -
+    Math.round(document.querySelector('.layout-demo .md-body').clientWidth / 2)) <= 1);
   const after = await p.evaluate(() => ({
     max: +document.querySelector('.layout-demo .md-resize').getAttribute('aria-valuemax'),
     half: Math.round(document.querySelector('.layout-demo .md-body').clientWidth / 2)

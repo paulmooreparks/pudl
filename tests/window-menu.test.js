@@ -145,7 +145,7 @@ const FIX = ROOT + '/tests/fixtures/window-menu.html';
   check('and with no target it goes there in this tab', /window-menu-page\.html/.test(p.url()), p.url());
 
   /* On its own page, the applet's commands get a menu of their own. */
-  await p.goto(ROOT + '/tests/fixtures/window-menu-page.html');
+  await p.waitForLoadState('load');
   await p.waitForSelector('.applet-commands .menu-btn');
   const before = await p.evaluate(() => document.querySelector('.applet-commands').nextElementSibling.matches('[data-applet="counter"]'));
   check('an applet on a page gets a command menu in a row above it', before);
