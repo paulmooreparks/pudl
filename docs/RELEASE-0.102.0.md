@@ -23,3 +23,9 @@ The first complete CI run exposed an outdated folded launcher expectation and a 
 The corrected assets passed all 144 complete source suites in Chromium and all 144 in Firefox on commit `c3230a5042c2b0eec21e94e6acaae6fd99544a0e`. Generated font validation passed. All 15 focused minified regressions also passed across the three engines, including normal popup focus recovery and intervening selection. The public taskbar and markup-choice samples passed their interactions in both themes, and served assets matched the corrected commit. The release commit changes only this verification record from that tested commit.
 
 The WebKit and minified CI jobs were still installing their browsers at publication preparation. A fully green latest-tip CI run is not claimed. The corresponding focused local checks and the live beta checks passed; the pending CI jobs remain visible in [the full run](https://github.com/paulmooreparks/pudl/actions/runs/42249542545).
+
+## Publication
+
+The [public release](https://github.com/paulmooreparks/pudl/releases/tag/v0.102.0) is tagged at `f8a1f70e6ccee92cc6245cf3e685499326c45ca3`. Its reproducible archive contains 481 files, including all 193 distribution assets, and has SHA-256 `1b7db18e6bd330b3eac4461cf684ef74064d1cff09f604d1b3234471bae715f3`. The public archive and checksum match; every archived blob matches the tag. All 103 versioned CDN JavaScript and CSS files match the tagged bytes. The branch README contains 25 verified CDN examples.
+
+The public taskbar-pin and markup-choice examples passed their interactions in both themes, including instance stacks, bulk-close retention and saved pins. GitHub Pages deployed the tested production assets. The WebKit and minified CI jobs noted above remain pending; the release does not claim a fully green latest-tip CI run. No consumer installation or production promotion was performed as part of upstream publication.
