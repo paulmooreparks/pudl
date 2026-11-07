@@ -5443,7 +5443,9 @@
     /* Each button shrinks to 120px, or its own width where that is less,
        so a short title is never padded out. */
     dock.setAttribute('data-win-dock-measure', '');
-    tabs.forEach(function (t) { t.style.setProperty('--win-tab-natural', Math.ceil(t.getBoundingClientRect().width) + 'px'); });
+    /* Preserve fractional CSS widths so a later measurement cannot enlarge
+       an unchanged active entry through its natural-width minimum. */
+    tabs.forEach(function (t) { t.style.setProperty('--win-tab-natural', t.getBoundingClientRect().width + 'px'); });
     dock.removeAttribute('data-win-dock-measure');
     var compactFirst = bar.querySelector(':scope > .status-area[data-status-compact-priority="first"]');
     if (compactFirst) {

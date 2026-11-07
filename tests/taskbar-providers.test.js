@@ -142,7 +142,7 @@ const { launch, ROOT, out } = require('./lib');
       await pudlWindows.refreshTaskbarDestinations();
     });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('.win-bar-more:not([hidden])').click();
+    await page.locator('.win-pins-more:visible').click();
     await page.locator('.context-menu:popover-open .win-item-icon:not([hidden])').first().waitFor();
     await page.screenshot({ path: out('taskbar-provider-overflow.png') });
     await page.evaluate(async () => { overflowBroken = true; await pudlWindows.refreshTaskbarDestinations(); });

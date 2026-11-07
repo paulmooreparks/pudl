@@ -124,14 +124,17 @@ const { launch, ROOT } = require('./lib');
       assert.equal(await stack('#filtered').count(), 1);
       assert.match(await stack('#filtered').getAttribute('aria-label'), /2 windows/);
     });
-    await scenario('stacks that still do not fit retain existing More behavior', async () => {
+    await scenario('stacks that still do not fit stay in the scrollable taskbar', async () => {
       await width(230);
       assert.equal(await stack().count(), 1);
-      assert.equal(await moreVisible(), true);
+      assert.equal(await moreVisible(), false);
+      assert.equal(await page.locator('#probe-bar').getAttribute('data-win-taskbar-scroll'), '');
       assert.equal(await stack().isVisible(), true, 'the active child keeps its root stack visible');
       const more = page.locator('#probe-bar .win-bar-more');
       await more.click();
       assert.equal(await page.getByRole('menu').first().isVisible(), true);
+      assert.equal(await page.getByRole('menuitem', { name: /^Atlas,/ }).count(), 0, 'Windows contains bulk actions only');
+      await page.keyboard.press('Escape');
     });
     await scenario('Arrange cancellation releases a pending projection without history', async () => {
       const before = await state();
