@@ -5616,7 +5616,10 @@
       /* Every priority-folded bar caches natural text widths. A font swap
          invalidates those measurements even when the bar itself stays fixed. */
       var fontsChanged = function () { if (barNodes.some(function (bar) { return bar.isConnected; })) soon(); };
-      document.fonts.ready.then(fontsChanged); document.fonts.addEventListener('loadingdone', fontsChanged);
+      /* Each loading cycle has its own ready promise. Some engines expose
+         loading before loadingdone, so completion cannot depend on that event. */
+      var fontsLoading = function () { document.fonts.ready.then(fontsChanged); };
+      fontsLoading(); document.fonts.addEventListener('loading', fontsLoading); document.fonts.addEventListener('loadingdone', fontsChanged);
     }
   }
 
