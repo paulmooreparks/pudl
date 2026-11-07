@@ -36,6 +36,7 @@ jobs:
       - run: node tests/run.js chromium
         env:
           PUDL_MIN: '1'
+          PUDL_JOBS: '1'
           PUDL_SUITE_TIMEOUT: '300'
           PUDL_RUN_OUTPUT: tests/output/ci-minified
       - uses: actions/upload-artifact@v4
@@ -63,6 +64,7 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: node tests/run.js ${{ matrix.browser }}
         env:
+          PUDL_JOBS: '1'
           PUDL_SUITE_TIMEOUT: '300'
           PUDL_RUN_OUTPUT: tests/output/ci-${{ matrix.browser }}
       - uses: actions/upload-artifact@v4
