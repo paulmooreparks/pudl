@@ -107,6 +107,17 @@
     var id = String(label).toLowerCase();
     return STANDARD.concat(['file', 'edit']).indexOf(id) >= 0 ? id : '';
   }
+  function menuDestinationId(id) {
+    return 'pudl-menu-' + String(id).split('').map(function (c) { return c.charCodeAt(0).toString(16).padStart(4, '0'); }).join('');
+  }
+  function pinnableSiteTitle(t) { return !!t.id && !(t.id === 'site' && bar.hasAttribute('data-menubar-launcher')); }
+  var siteDestinationSignature = null;
+  function syncSiteDestinations() {
+    var host = menus.find(function (m) { return m.kind === 'host'; });
+    var signature = JSON.stringify(host ? host.titles.filter(pinnableSiteTitle).map(function (t) { return [t.id, t.label, t.glyph]; }) : []);
+    var api = window.pudlWindows;
+    if (api && signature !== siteDestinationSignature) { siteDestinationSignature = signature; api.refreshTaskbarDestinations({provider:'pudl-site-menus'}); }
+  }
 
   var collapsed = false, level = 0, needed = 0, uid = 0, warned = {};
 
@@ -663,6 +674,9 @@
     b.setAttribute('title', t.label);
     b.setAttribute('data-tooltip', t.label);
     if (t.id) b.setAttribute('data-menu-id', t.id);
+    if (m.kind === 'host' && pinnableSiteTitle(t)) {
+      b.setAttribute('data-win-pin-target', menuDestinationId(t.id)); b.setAttribute('data-win-destination-provider', 'pudl-site-menus');
+    } else { b.removeAttribute('data-win-pin-target'); b.removeAttribute('data-win-destination-provider'); }
     if (t.content) t.content.forEach(function (n) {
       var c = n.cloneNode(true);
       /* Words of its own are wrapped, so they can give way to its glyph. */
@@ -892,6 +906,7 @@
       titles().forEach(function (t) { t.tabIndex = t === title ? 0 : -1; });
     }
     var info = title._menu;
+    if (title._siteTearoff) { panel.removeAttribute('aria-labelledby'); panel.setAttribute('aria-label', info.title.label); }
     if (pinsSource && (info.all || (info.menu.kind === 'pins' && info.title.id === 'pins'))) {
       pinsSource.dispatchEvent(new CustomEvent('pudl:pins-menu', { bubbles: true }));
     }
@@ -958,6 +973,12 @@
     var panelFocus = panel && panel.contains(document.activeElement);
     function survivingTitle() {
       if (!previous) return null;
+      if (openTitle && openTitle._siteTearoff) {
+        var host = menus.find(function (m) { return m.kind === 'host'; });
+        var fresh = host && host.titles.find(function (t) { return t.id === previous.title.id && pinnableSiteTitle(t); });
+        if (!openTitle.isConnected || !fresh) return null;
+        openTitle._menu = {menu:host,title:fresh}; return openTitle;
+      }
       return titles().find(function (t) {
         var m = t._menu;
         if (previous.all) return m.all;
@@ -978,6 +999,7 @@
     frontSrc = findFront();
     menuScope = frontScope();
     menus = assemble();
+    syncSiteDestinations();
     /* A bar whose menus, titles and pins read as they did is not built
        again (0.69.3): its title buttons take the new menus, whose rows are
        read afresh as each opens, and nothing is laid out. Bringing another
@@ -1341,7 +1363,7 @@
     }
     /* Unfolded into a ribbon, a title is a tab: it chooses its row of
        tools rather than opening a menu, whatever way it was reached. */
-    if (ribbonActive() && !title._menu.all && hasTools(title)) { chooseTab(title, focusWhere); return; }
+    if (ribbonActive() && !title._siteTearoff && !title._menu.all && hasTools(title)) { chooseTab(title, focusWhere); return; }
     ensurePanel();
     closeSub();
     if (openTitle && openTitle !== title) {
@@ -1356,7 +1378,8 @@
     menus = assemble();
     panel.__path = null;
     fill(panel, titleItems(info));
-    panel.setAttribute('aria-labelledby', title.id);
+    if (title._siteTearoff) { panel.removeAttribute('aria-labelledby'); panel.setAttribute('aria-label', info.title.label); }
+    else { panel.removeAttribute('aria-label'); panel.setAttribute('aria-labelledby', title.id); }
     panel.setAttribute('data-menu-anchor', title.id);
     openTitle = title;
     /* Native light dismiss treats the active title as part of its popup.
@@ -1618,13 +1641,13 @@
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       if (r.classList.contains('menubar-has-sub')) { openSub(r, true); return; }
-      if (openTitle && !openTitle._menu.all) { var n = step(menuTitles(list), openTitle, 1); n.focus(); open(n, 'first'); }
+      if (openTitle && !openTitle._siteTearoff && !openTitle._menu.all) { var n = step(menuTitles(list), openTitle, 1); n.focus(); open(n, 'first'); }
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       if (inSub) { var from = sub._from; closeSub(); if (from) from.focus(); return; }
       var back = host.querySelector(':scope > .menubar-back');
       if (back) { back._back(); return; }
-      if (openTitle && !openTitle._menu.all) { var p = step(menuTitles(list), openTitle, -1); p.focus(); open(p, 'first'); }
+      if (openTitle && !openTitle._siteTearoff && !openTitle._menu.all) { var p = step(menuTitles(list), openTitle, -1); p.focus(); open(p, 'first'); }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
@@ -2182,11 +2205,27 @@
     });
     bar.addEventListener('focusin', function (e) {
       var from = e.relatedTarget;
-      if (!enteringBar && from && !ownsFocus(from)) returnTo = from;
+      if (!enteringBar && from && !ownsFocus(from) && !(from.matches && from.matches('[data-win-menu-id], .win-bar-more'))) returnTo = from;
     });
+    function rememberTaskbarReturn(e) {
+      var control = e.target.closest && e.target.closest('.win-bar [data-win-menu-id], .win-bar-more');
+      if (!control) return;
+      var from = e.type === 'focusin' ? e.relatedTarget : document.activeElement;
+      if (from && from !== document.body && !ownsFocus(from) && !(from.closest && from.closest('.win-bar, .menu-panel'))) returnTo = from;
+    }
+    document.addEventListener('pointerdown', rememberTaskbarReturn, true);
+    document.addEventListener('focusin', rememberTaskbarReturn);
     built.addEventListener('click', onBarPointer);
     built.addEventListener('pointerover', onBarPointer);
     bar.addEventListener('keydown', onKey);
+    function titleContext(e) {
+      var title = e.target.closest && e.target.closest('.menubar-title');
+      if (!title || !title._menu) return;
+      var info = title._menu;
+      if (!info.menu || info.menu.kind !== 'host' || !pinnableSiteTitle(info.title)) { e.preventDefault(); e.stopPropagation(); }
+    }
+    bar.addEventListener('contextmenu', titleContext, true);
+    bar.addEventListener('keydown', function (e) { if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) titleContext(e); }, true);
     panel.addEventListener('click', onPanelClick);
     panel.addEventListener('pointerover', onPanelOver);
     document.addEventListener('keydown', onShortcut);
@@ -2223,7 +2262,7 @@
      or a page's menu coming, going, starting or being hidden. Any other
      change in the page, such as an application drawing its content, no
      longer makes the bar measure itself. */
-    var MENU_SOURCES = '[data-applet], .win, [data-page-menu]';
+    var MENU_SOURCES = '[data-applet], .win, [data-page-menu], [data-win-menu-id]';
     var concerns = function (n) { return n.nodeType === 1 && (n.matches(MENU_SOURCES) || (!!n.firstElementChild && !!n.querySelector(MENU_SOURCES))); };
     new MutationObserver(function (records) {
       if (records.some(function (r) {
@@ -2280,6 +2319,58 @@
   }
 
   window.pudlMenubar = {
+    siteMenuDestinationId: function (id) { return typeof id === 'string' && id ? menuDestinationId(id) : null; },
+    siteMenuDestination: function (id) {
+      var item = this.siteMenus().find(function (t) { return menuDestinationId(t.id) === id; });
+      return item ? {id:id,label:item.label,glyph:item.glyph,kind:'menu',menu:item.id} : null;
+    },
+    toggleSiteMenu: function (id, opener, options) {
+      options = options || {};
+      if (!bar || !opener || !opener.isConnected) return false;
+      if (!currentTarget()) render();
+      var host = assemble().find(function (m) { return m.kind === 'host'; });
+      var title = host && host.titles.find(function (t) { return t.id === id && pinnableSiteTitle(t); });
+      if (!title) return false;
+      if (panel && panel.matches(':popover-open') && openTitle === opener) {
+        if (options.open) { var rows = items(panel); var target = options.focus === 'last' ? rows[rows.length - 1] : rows[0]; if (target) target.focus(); }
+        else closeAll(true);
+        return true;
+      }
+      opener._siteTearoff = true; opener._menu = {menu:host,title:title};
+      if (!opener.id) opener.id = 'menubar-tearoff-' + (++uid);
+      var anchor = !opener.getClientRects().length && opener.closest('.win-bar') && opener.closest('.win-bar').querySelector('.win-bar-more');
+      if (anchor) { anchor._siteTearoff = true; anchor._menu = opener._menu; opener = anchor; if (!opener.id) opener.id = 'menubar-tearoff-' + (++uid); }
+      open(opener, options.focus === 'last' ? 'last' : 'first'); return true;
+    },
+    /* Site-menu references omit front-window and resident applet menus. */
+    siteMenus: function () {
+      if (!bar) return [];
+      if (!currentTarget()) render();
+      var host = assemble().find(function (m) { return m.kind === 'host'; });
+      return host ? host.titles.filter(pinnableSiteTitle).map(function (t) { return { id: t.id, label: t.label, glyph: t.glyph || 'menu' }; }) : [];
+    },
+    siteMenuId: function (control) {
+      var title = control && control.closest && control.closest('.menubar-title');
+      var info = title && built && built.contains(title) && title._menu;
+      return info && info.menu && info.menu.kind === 'host' && pinnableSiteTitle(info.title) ? info.title.id : null;
+    },
+    siteMenuCommands: function (id) {
+      if (!bar) return [];
+      if (!currentTarget()) render();
+      var host = assemble().find(function (m) { return m.kind === 'host'; });
+      var title = host && host.titles.find(function (t) { return t.id === id; });
+      function rows(list) {
+        return list.map(function (c) {
+          if (!c || typeof c !== 'object') return c;
+          var row = Object.assign({}, c);
+          delete row.el; delete row.owner; delete row.commandPath;
+          if (c.items) row.items = rows(c.items);
+          else if (c.label) row.run = function () { if (!c.el || c.el.isConnected) act(c, false); };
+          return row;
+        });
+      }
+      return title ? rows(title.items) : [];
+    },
     launcherButton: function (options) {
       if (options && options.visible && launcherControl && !launcherControl.getClientRects().length) return titles().find(function (t) { return t._menu.all; }) || launcherControl;
       return launcherControl;

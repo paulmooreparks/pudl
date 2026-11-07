@@ -51,7 +51,7 @@ function check(name, ok, extra) {
     const bar = document.querySelector('.win-bar'), dock = bar.querySelector('.win-dock');
     const tabs = [...dock.children];
     return { scroll: dock.scrollWidth > dock.clientWidth + 1, compact: bar.hasAttribute('data-win-bar-compact'),
-      over: tabs.filter(t => t.hasAttribute('data-win-tab-over')).map(t => t.getAttribute('data-win-tab')),
+      glyphs: bar.hasAttribute('data-win-bar-glyphs'), over: tabs.filter(t => t.hasAttribute('data-win-tab-over')).map(t => t.getAttribute('data-win-tab')),
       widths: tabs.filter(t => !t.hasAttribute('data-win-tab-over')).map(t => Math.round(t.getBoundingClientRect().width)),
       current: (dock.querySelector('[aria-current="true"]') || {}).getAttribute ? dock.querySelector('[aria-current="true"]').getAttribute('data-win-tab') : null,
       more: (bar.querySelector('.win-bar-more:not([hidden])') || {}).textContent || null };
@@ -66,20 +66,23 @@ function check(name, ok, extra) {
   check('first the window buttons shrink, to no less than 120px, without scrolling', !tight.scroll && tight.widths.every(w => w >= 119) && tight.widths.some(w => w < 250) && !tight.over.length, JSON.stringify(tight));
   await p.evaluate(() => { for (let i = 2; i <= 6; i++) pudlWindows.open('notes-' + i); });
   await p.waitForFunction(() => document.querySelectorAll('.win-dock [data-win-tab]').length === 8);
-  await p.setViewportSize({ width: 700, height: 800 }); await settle();
+  await p.setViewportSize({ width: 1000, height: 800 }); await settle();
   const tighter = await fit();
-  check('then the tray shows glyphs alone, and windows go into More, the one in front staying', !tighter.scroll && tighter.compact && tighter.over.length > 0 && !tighter.over.includes(tighter.current) && tighter.more === tighter.over.length + ' more', JSON.stringify(tighter));
+  check('then the tray and window labels fold before More is needed', !tighter.scroll && tighter.compact && tighter.glyphs && !tighter.over.length && tighter.more === null, JSON.stringify(tighter));
+  await p.setViewportSize({ width: 390, height: 800 }); await settle();
+  const overflow = await fit();
+  check('More retains entries that still do not fit, keeping the front window', !overflow.scroll && overflow.over.length > 0 && !overflow.over.includes(overflow.current) && overflow.more === overflow.over.length + ' more', JSON.stringify(overflow));
   await p.click('.win-bar-more');
   await p.waitForSelector('.context-menu:popover-open');
   const listed = await p.evaluate(() => [...document.querySelectorAll('.context-menu:popover-open .menu-action')].length);
-  check('More lists the windows that left the dock', listed === tighter.over.length, String(listed));
+  check('More lists the windows that left the dock', listed === overflow.over.length, String(listed));
   await p.keyboard.press('Escape');
   /* At a phone's width the front window's button, alone in the dock, still
      shrinks to fit it rather than being cut off (0.82.1). */
   await p.setViewportSize({ width: 390, height: 800 }); await settle();
   const phone = await p.evaluate(() => {
     const dock = document.querySelector('.win-bar .win-dock'), shown = [...dock.children].filter(t => !t.hasAttribute('data-win-tab-over'));
-    return { scroll: dock.scrollWidth > dock.clientWidth + 1, shown: shown.length, current: shown.length === 1 && shown[0].getAttribute('aria-current') === 'true' };
+    return { scroll: dock.scrollWidth > dock.clientWidth + 1, shown: shown.length, current: shown.some(t => t.getAttribute('aria-current') === 'true') };
   });
   check('at a phone\'s width the front window\'s button alone shrinks to fit the dock', !phone.scroll && phone.current, JSON.stringify(phone));
   await p.setViewportSize({ width: 1400, height: 800 }); await settle();

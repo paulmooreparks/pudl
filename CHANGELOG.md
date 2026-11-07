@@ -1,6 +1,20 @@
 # Changelog
 
 
+## 0.104.0
+
+PUDL 0.104.0 groups pinned destinations at the left of the taskbar under a shared Pinned heading. The heading folds to its pin glyph, then entry labels fold to their identity glyphs before overflow. Buttons keep common heights and fit their visible glyphs with normal padding. Touch sizing follows coarse-pointer input rather than viewport width.
+
+Pinned running windows use the ordinary taskbar activation path. A foreground singleton minimizes, a minimized singleton restores, and a background singleton raises. Stacks retain their chooser. Existing combined order is stable-partitioned into pinned and ordinary sections without changing membership; ordering stays within each section.
+
+Site-menubar menu titles offer Pin and Unpin through pointer or keyboard context menus. Their tear-offs share the current menu source, choices, focus and lifecycle. Applet-menu titles consume context requests, and identity controls configured as launchers are excluded. Custom site menus need stable data-menubar-id metadata. The built-in provider persists menu references through the existing preference envelope.
+
+Applets, pages, links and site menus are eligible destinations. Explicit bare-command kinds are rejected. Hosts should declare destination kinds, preserve the full pins/order/references envelope and remove any custom pinned-section markup. Older destination descriptors remain compatible. A host may offer a genuine Quit applet that owns its shutdown workflow; a bare Quit command is not a pinnable applet.
+
+Arrange taskbar is now a toggle. A second click, tap, Enter or Space closes the popup and discards its draft. Its expanded state follows all dismissal paths. The API and context command retain their open behavior.
+
+Update pudl-windows.js, pudl-windows.css, pudl-menu.js and pudl-menubar.js together, including their minified copies, or replace the complete distribution. See [Taskbar pins](docs/TASKBAR-PINS.md), [Menu bars](docs/MENU-BARS.md) and [verification](docs/RELEASE-0.104.0.md).
+
 ## 0.103.0
 
 Provider-backed taskbar destinations can resolve articles, applets and other window categories without individual registrations. Hosts supply stable identity, reopening metadata and authorization, with explicit exclusions for windows that cannot reopen. Saved references restore dormant pins, and stale provider responses cannot cross account scopes. See [Taskbar pins](docs/TASKBAR-PINS.md).

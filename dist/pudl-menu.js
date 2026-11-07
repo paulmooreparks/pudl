@@ -40,6 +40,8 @@
     if (ctl.getClientRects().length) return ctl;
     /* An item a folding status area has folded is stood in for by the
        area's Status item (0.97.0). */
+    var bar = ctl.closest('.win-bar');
+    if (bar && ctl.hasAttribute('data-win-tab-over')) { var bm = bar.querySelector(':scope > .win-bar-more'); if (bm && bm.getClientRects().length) return bm; }
     var area = ctl.closest('.status-area[data-status-fold]');
     if (area) { var sf = area.querySelector(':scope > .status-fold'); return sf && sf.getClientRects().length ? sf : ctl; }
     if (!ctl.closest('.toolbar')) return ctl;

@@ -1353,7 +1353,7 @@ A right-click on a window's button in the dock opens the same menu, against the 
 
 The window layer can opt into taskbar reordering with `data-win-taskbar-reorder`. Readers can drag mouse/pen entries, use Alt+Shift+Left/Right, choose Taskbar order from an entry's context menu, or tap the generated Arrange taskbar button. Its draft list includes overflow entries and has move controls, Apply order and Cancel. Ordering has its own `tb.order` URL state and leaves window activation and shared-dock ordering unchanged. See [the contract and API](docs/TASKBAR-ORDER.md) and [the sample](samples/taskbar-reordering.html).
 
-A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one line and puts the page's own buttons on either side of it in the order you write them. Short of room it never scrolls (0.81.2): the window buttons shrink to 120px, then the tray shows its glyphs alone, then the last buttons but the front window's go into a "N more" button whose menu lists them.
+A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one line and puts the page's own buttons on either side of it in the order you write them. Short of room it never scrolls: window titles shrink, the tray compacts, and taskbar entry labels fold to identity glyphs before remaining entries move into a "N more" menu. Folded buttons fit their visible glyphs and normal padding, without a common fixed width or empty execution-state space. Authored buttons wrap their foldable words in `.win-bar-label`; full accessible names remain available. Entry heights stay consistent across authored buttons, windows and stacks. Version 0.104.0 also supplies a managed Pinned section and site-menu tear-offs through the normal taskbar destination registry. Hosts do not author pinned buttons or section markup. The [adoption contract](docs/TASKBAR-PINS.md#shared-pinned-section-and-site-menus) covers explicit destination kinds, saved-menu references and section ordering.
 
 ```html
 <footer class="win-bar">
@@ -1690,9 +1690,9 @@ The tests drive the samples and the reference page in real browsers through Play
 
 ## Status
 
-This is version 0.103.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.104.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
-Version 0.103.0 adds provider-backed taskbar destinations, dormant picture icons and lazy launcher-row pin actions. Hosts can cover categories without individual registrations. Taskbar menus preserve command grouping across pin/unpin, and launcher samples use their header for host actions. See [Taskbar pins](docs/TASKBAR-PINS.md) and [Launcher guidance](docs/LAUNCHER.md).
+Version 0.104.0 groups pins in a shared taskbar section, supports site-menu tear-offs and folds entries to glyphs when space is limited. Running pins use normal window activation behavior, and Arrange taskbar toggles its popup. Hosts preserve the complete preference envelope and update the window, menu and menubar assets together. See [Taskbar pins](docs/TASKBAR-PINS.md) and [release verification](docs/RELEASE-0.104.0.md).
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 

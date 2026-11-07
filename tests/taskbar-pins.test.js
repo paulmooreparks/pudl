@@ -17,7 +17,13 @@ const assert = require('assert/strict');
   assert.equal(await pin('editor').getAttribute('data-win-pin-running'), 'true');
   assert.equal(await page.locator('.win-bar [data-win-tab="editor"]').count(), 1);
   await pin('editor').click();
-  assert.equal(await page.evaluate(() => !!pudlWindows.state().min.editor), false, 'a pinned singleton raises rather than minimizes');
+  assert.equal(await page.evaluate(() => !!pudlWindows.state().min.editor), true, 'a foreground taskbar window minimizes whether pinned or unpinned');
+  await pin('editor').click();
+  assert.equal(await page.evaluate(() => !!pudlWindows.state().min.editor), false, 'the same taskbar entry restores its minimized window');
+  await page.reload();
+  await page.locator('.win[data-win="editor"]').waitFor();
+  assert.equal(await pin('editor').getAttribute('data-win-pin-running'), 'true', 'restored root retains its destination');
+  assert.equal(await page.locator('.win-bar [data-win-tab="editor"]').count(), 1, 'refresh does not add a duplicate ordinary entry');
   await page.evaluate(() => pudlWindows.minimize('editor'));
   await pin('editor').click();
   assert.equal(await page.evaluate(() => !!pudlWindows.state().min.editor), false);
@@ -68,9 +74,9 @@ const assert = require('assert/strict');
   assert.equal(await pin('meeting-notes').count(), 1, 'host restores persistent pins');
   const unchanged = await page.evaluate(async () => {
     const destinations = [
-      { id: 'editor', label: 'Editor', glyph: 'pencil' },
-      { id: 'meeting-notes', label: 'Meeting notes', glyph: 'file' },
-      { id: 'calculator', label: 'Calculator', glyph: 'app' }
+      { id: 'editor', label: 'Editor', kind: 'applet', glyph: 'pencil' },
+      { id: 'meeting-notes', label: 'Meeting notes', kind: 'page', glyph: 'file' },
+      { id: 'calculator', label: 'Calculator', kind: 'applet', glyph: 'app' }
     ];
     const preferences = pudlWindows.taskbarState();
     const options = { destinations, ...preferences };
@@ -106,11 +112,11 @@ const assert = require('assert/strict');
   await pin('editor').focus(); await page.keyboard.press('Shift+F10');
   await page.getByRole('menuitem', { name: 'Unpin from taskbar', exact: true }).waitFor();
   await page.keyboard.press('Escape');
-  // The public entry API interleaves pins and ordinary windows.
+  // Section membership is explicit; ordering cannot interleave pins with windows.
   await page.evaluate(() => pudlWindows.open('files'));
   await page.waitForSelector('.win[data-win="files"]');
-  assert.equal(await page.evaluate(() => pudlWindows.reorderTaskbarEntry('pin:editor', { after: 'files' })), true);
-  assert.equal((await page.evaluate(() => pudlWindows.taskbarState().order)).at(-1), 'pin:editor');
+  assert.equal(await page.evaluate(() => pudlWindows.reorderTaskbarEntry('pin:editor', { after: 'files' })), false);
+  assert.ok((await page.evaluate(() => pudlWindows.taskbarState().order)).indexOf('pin:editor') < (await page.evaluate(() => pudlWindows.taskbarState().order)).indexOf('files'));
   assert.equal(await page.evaluate(() => pudlWindows.reorderTaskbarEntry('pin:editor', { after: 'files' })), false);
   assert.ok((await page.evaluate(() => pudlWindows.state().taskbarOrder)).every(key => !key.startsWith('pin:')));
   // Removing every pin restores the existing window-order API's behavior.
@@ -148,8 +154,8 @@ const assert = require('assert/strict');
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.evaluate(() => {
     pudlWindows.configureTaskbar({ destinations: [
-      { id: 'editor', label: 'Editor', glyph: 'pencil' },
-      { id: 'meeting-notes', label: 'Meeting notes', glyph: 'file' },
+      { id: 'editor', label: 'Editor', kind: 'applet', glyph: 'pencil' },
+      { id: 'meeting-notes', label: 'Meeting notes', kind: 'page', glyph: 'file' },
       { id: 'calculator', label: 'Calculator', glyph: 'list-numbered' }
     ], pins: ['editor', 'meeting-notes', 'calculator'], order: [] });
     pudlWindows.open('editor'); pudlWindows.open('meeting-notes');

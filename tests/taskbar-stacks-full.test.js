@@ -43,7 +43,7 @@ const { launch, ROOT } = require('./lib');
     while (high - low > 1) {
       const middle = Math.floor((low + high) / 2);
       await width(middle);
-      if (await moreVisible()) low = middle; else high = middle;
+      if (await page.locator('#probe-bar').getAttribute('data-win-bar-glyphs') !== null) low = middle; else high = middle;
     }
     const threshold = high;
     await width(threshold + 20);

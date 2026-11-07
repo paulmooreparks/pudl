@@ -68,3 +68,7 @@ The final popup integration batch passed all 18 source suite runs and all 18 min
 The lifecycle checks exercise explicit root associations, dormant and running entries, multiple instances, minimize and restore, bulk close, unpin while running, interleaved ordering, host preference restoration, unavailable destinations, address validation, overflow activation and unchanged configuration with zero mutations. Launcher item actions remain open after a pin change, and closing their owner removes its context menu.
 
 No whole-project matrix or manual assistive-technology check was run for this checkpoint. The changes have not been tagged or published as a release. The interactive demo is ready for review before that step.
+
+## Pinned-section follow-up
+
+The selected follow-up presentation groups pins at the left of the taskbar under a folding pin-glyph and Pinned heading. [Pinned section and pinnable menus](taskbar-pinned-section.md) records the decision, bare-command exclusion, ordering migration and default pins. The published 0.103.0 behavior remains unchanged until implementation.

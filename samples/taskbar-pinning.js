@@ -5,9 +5,9 @@
   var layer = document.querySelector('[data-win-layer]');
   var storage = 'pudl-taskbar-pinning-demo';
   var destinations = [
-    { id: 'editor', label: 'Editor', glyph: 'pencil', newWindow: true },
-    { id: 'meeting-notes', label: 'Meeting notes', glyph: 'file' },
-    { id: 'calculator', label: 'Calculator', glyph: 'app' }
+    { id: 'editor', label: 'Editor', kind: 'applet', glyph: 'pencil', newWindow: true },
+    { id: 'meeting-notes', label: 'Meeting notes', kind: 'page', glyph: 'file' },
+    { id: 'calculator', label: 'Calculator', kind: 'applet', glyph: 'app' }
   ];
   var identities = { editor: 'editor', 'editor-copy': 'editor', 'meeting-notes': 'meeting-notes', calculator: 'calculator' };
   var editor = document.getElementById('study-editor');
@@ -24,7 +24,7 @@
   });
   var saved = {};
   try { saved = JSON.parse(localStorage.getItem(storage)) || {}; } catch (_) { /* Storage is optional. */ }
-  pudlWindows.configureTaskbar({ destinations: destinations, pins: Array.isArray(saved.pins) ? saved.pins : ['editor'], order: Array.isArray(saved.order) ? saved.order : [] });
+  pudlWindows.configureTaskbar({ destinations: destinations, pins: Array.isArray(saved.pins) ? saved.pins : ['editor'], order: Array.isArray(saved.order) ? saved.order : [], references: saved.references || [] });
   layer.addEventListener('pudl:taskbar-activate', function (event) {
     event.preventDefault();
     var key = event.detail.id;
