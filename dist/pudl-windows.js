@@ -5589,14 +5589,15 @@
   var barsSoon = null;
   function fitBarsSoon() { if (barsSoon) barsSoon(); }
   function watchBars() {
-    var pending = 0;
+    var pending = 0, barNodes = [];
     var soon = function () { if (!pending) pending = requestAnimationFrame(function () { pending = 0; measureBars(); document.querySelectorAll('.win-bar').forEach(fitBar); }); };
     barsSoon = soon;
     var ro = window.ResizeObserver ? new ResizeObserver(soon) : null;
     var mo = new MutationObserver(soon);
     var content = new MutationObserver(soon);
     var watch = function () {
-      document.querySelectorAll('.win-bar').forEach(function (b) {
+      barNodes = Array.from(document.querySelectorAll('.win-bar'));
+      barNodes.forEach(function (b) {
         if (ro) { ro.observe(b); b.querySelectorAll(':scope > .status-area, :scope > [data-win-bar-items], :scope > .btn').forEach(function (s) { ro.observe(s); }); }
         mo.observe(b, { attributes: true, attributeFilter: ['data-win-bar-edge', 'hidden', 'class', 'style'] });
         content.observe(b, { childList: true, subtree: true, characterData: true });
@@ -5614,7 +5615,7 @@
     if (document.fonts) {
       /* Every priority-folded bar caches natural text widths. A font swap
          invalidates those measurements even when the bar itself stays fixed. */
-      var fontsChanged = soon;
+      var fontsChanged = function () { if (barNodes.some(function (bar) { return bar.isConnected; })) soon(); };
       document.fonts.ready.then(fontsChanged); document.fonts.addEventListener('loadingdone', fontsChanged);
     }
   }
