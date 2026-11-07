@@ -21,3 +21,13 @@ The same frozen runtime was subsequently deployed to a production host under sep
 The real-site WebKit modified-link navigation probe remains unclaimed. Intermediate account confirmation and picture timeouts were retained without an assigned cause; the final account run passed. Manual assistive-technology and physical-device touch checks have not run. Touch coverage uses browser emulation. A second consumer has verified the candidate archive and bundle files, but its runtime checks remain paused under a separate host instruction.
 
 Publication does not authorize consumer installation, restart or production deployment.
+
+## Publication provenance
+
+The [public release](https://github.com/paulmooreparks/pudl/releases/tag/v0.104.0) is tagged at `1793669234fd1c4ef50bee22a41807b91ff6a11a`. Its reproducible archive contains 491 files, including all 193 distribution assets. The archive is 7,153,096 bytes and has SHA-256 `ac9cb885e81b59528d007d9e097a95ac838e2875eacc8ebad65252e019c08a4d`.
+
+The public archive and checksum were downloaded into a fresh directory. Every packaged blob matches the tag and the distribution file set is complete. All 103 versioned CDN JavaScript and CSS files match their tagged bytes. The branch README contains 25 verified integrity examples. All runtime distribution files are identical to the accepted candidate; the only distribution difference is the version comment in `pudl.css`.
+
+The reference page passed light and dark checks for Start filtering, launcher presentation and focus return without page errors. Its screenshots were inspected. Packaging resolves 934 local references without missing roots or omitted linked files. Retained publication evidence is under `tests/output/release-01040-*`.
+
+The broader [CI run](https://github.com/paulmooreparks/pudl/actions/runs/42351412730) was still running when publication checks completed. The focused shared and real-host results above remain the release verification basis. This release does not lift any consumer testing, installation or restart hold.
