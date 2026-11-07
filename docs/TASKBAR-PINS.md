@@ -186,3 +186,15 @@ Destination descriptors now carry an optional `kind` of `applet`, `page` or `lin
 These additions are available in 0.104.0. The [approved design](proposals/taskbar-pinned-section.md) records the decisions and the isolated [preview](../mockups/pinned-section.html) now uses this shared implementation.
 
 The Arrange taskbar button is a toggle. A second activation closes and removes its popup, discarding the draft order. Enter, Space and touch follow the same path. Escape, outside dismissal, Cancel and Apply clear its expanded state; the arrangement API and context-menu command retain their existing open behavior.
+
+## Compact navigation in 0.105.0
+
+PUDL 0.105.0 gives inactive ordinary labels the first folding priority, then folds inactive pin labels. The current window retains its existing entry and label while space permits, even when pinned. Pinning never creates an ordinary-section copy. If glyphs still do not fit, ordinary entries remain in a horizontally scrollable taskbar dock. Inactive pins aggregate under a raised pin-glyph button, with the active pinned entry retained beside it. Further pressure truncates and eventually folds the active label. The row height remains stable.
+
+The pin popup lists every pin with its full name and current window state. Activation delegates to the original taskbar entry, so singleton toggling, stacks, readiness and host authorization retain their existing behavior. Site-menu pins open at the visible pin-popup opener. A navigation row's context menu uses the same destination Pin or Unpin command as its original entry, including unavailable references. No pin editor is introduced.
+
+The trailing Windows popup contains only Arrange taskbar, the useful Minimize all or Restore all action, and Close all windows in a separate final group. It replaces dedicated bulk controls under width pressure. Window buttons remain on the taskbar. Native links in either navigation popup remain anchors with their source addresses and browser attributes. Modified activation retains native navigation.
+
+The [compact sample](../samples/compact-taskbar.html) keeps a host-authored launcher opener at the leading edge using the existing application-grid glyph. Hosts connect that opener to the same launcher catalog and keep it outside the generated dock. The [design and verification scope](proposals/compact-taskbar-navigation.md) records the approved priorities. These changes ship in 0.105.0.
+
+Set `data-win-text-taskbar-windows` on the window layer to localize the Windows control. The existing `data-win-text-taskbar-pinned` localizes the pin-popup name and section heading. Presentation folding never rewrites the saved preference envelope. Bulk-only wrappers are omitted when their controls fold; unrelated status content in a mixed wrapper remains visible.

@@ -23,10 +23,10 @@ const { launch, ROOT, out } = require('./lib');
       assert.equal(await page.locator('.win-bar').getAttribute('data-win-bar-glyphs'), '');
       await height();
       assert.deepEqual(await page.locator('.win-bar .win-dock .win-tab').evaluateAll(ns => ns.map(n => n.getAttribute('aria-label'))), names);
-      assert.equal(await page.locator('.win-bar .win-bar-more:visible').count(), 0, 'fold before overflowing');
+      assert.equal(await page.locator('.win-bar .win-bar-windows:visible').count(), 1, 'window actions compact before entries overflow');
       assert.ok(await page.locator('.win-bar .win-dock').evaluate(n => n.scrollWidth <= n.clientWidth + 1));
       for (const key of ['notes','terminal']) {
-        assert.equal(await page.locator('.win-bar [data-win-tab="'+key+'"]').evaluate(n=>getComputedStyle(n,'::after').maskImage !== 'none'), true, 'identity fallback remains visible');
+        assert.equal(await page.locator('.win-bar [data-win-tab="'+key+'"]').evaluate(n=>!n.hasAttribute('data-win-tab-glyph') || getComputedStyle(n,'::after').maskImage !== 'none'), true, 'folded identities have a glyph fallback; the current label may stay visible');
       }
       await page.locator('.win-bar [data-win-pin="settings"]').focus();
       if (await page.evaluate(()=>pudlWindows.state().top==='settings' && !pudlWindows.state().min.settings)) {
@@ -57,11 +57,9 @@ const { launch, ROOT, out } = require('./lib');
       assert.ok(Math.abs(measured.start-measured.end)<1, 'single glyph is centered '+JSON.stringify(measured));
     }
     await page.setViewportSize({width:180,height:850});await settle();
-    assert.equal(await page.locator('#session').isVisible(),false);
-    await page.locator('.win-bar-more:visible').click();await page.getByRole('menuitem',{name:'Session',exact:true}).click();
-    await page.getByRole('menu',{name:'Session actions',exact:true}).waitFor();
-    const anchor=await page.locator('.win-bar-more').boundingBox(),panel=await page.locator('#session-menu').boundingBox();
-    assert.ok(panel.y+panel.height<=anchor.y+1,'overflowed menu anchors above the visible More button');
+    assert.equal(await page.locator('#session').isVisible(),true,'authored taskbar buttons remain in the dock');
+    await page.locator('.win-bar-more:visible').click();
+    assert.equal(await page.getByRole('menuitem',{name:'Session',exact:true}).count(),0,'actions popup never collects taskbar buttons');
     await page.keyboard.press('Escape');
     await page.setViewportSize({width:1440,height:850});await settle();
     assert.equal(await page.locator('.win-bar').getAttribute('data-win-bar-glyphs'),null);

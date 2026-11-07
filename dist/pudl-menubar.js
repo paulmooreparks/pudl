@@ -87,6 +87,15 @@
   var bar, source, pinsSource, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
   var launcherControl = null;
   function isLauncher(title) { return !!(bar && bar.hasAttribute('data-menubar-launcher') && title && title._menu && title._menu.menu && title._menu.menu.kind === 'host' && title._menu.title.id === 'site'); }
+  function syncLauncherControl(control, target) {
+    if (!control || !target) return;
+    control.setAttribute('aria-controls', target.id);
+    var popup = target.hasAttribute('popover');
+    if (popup) { control.setAttribute('popovertarget', target.id); control.setAttribute('aria-haspopup', 'dialog'); }
+    else { control.removeAttribute('popovertarget'); control.removeAttribute('aria-haspopup'); }
+    var presentation = target.getAttribute('data-launcher-presentation');
+    control.setAttribute('aria-expanded', String(presentation ? presentation === 'popup' || presentation === 'pane' : popup && target.matches(':popover-open')));
+  }
   function requestLauncher(title, toggle, focus) {
     if (!isLauncher(title)) return false;
     closeAll(false);
@@ -1543,7 +1552,7 @@
         /* Keep native invocation for popups so a second press does not
            light-dismiss before the click can toggle the launcher. */
         var target = document.getElementById(bar.getAttribute('data-menubar-launcher'));
-        if (target && target.hasAttribute('popover')) { closeAll(false); return; }
+        if (target && target.hasAttribute('popover')) { syncLauncherControl(t, target); closeAll(false); return; }
       }
       /* This handler owns the toggle; suppress the button's native one. */
       e.preventDefault();
@@ -2235,6 +2244,14 @@
     render();
 
     var launcher = document.getElementById(bar.getAttribute('data-menubar-launcher'));
+    if (launcher) {
+      var syncLauncherRoutes = function () {
+        syncLauncherControl(launcherControl, launcher);
+        built.querySelectorAll('.menubar-menu:first-child > .menubar-glyph').forEach(function (control) { syncLauncherControl(control, launcher); });
+      };
+      new MutationObserver(syncLauncherRoutes).observe(launcher, { attributes: true, attributeFilter: ['popover', 'role', 'data-launcher-presentation'] });
+      syncLauncherRoutes();
+    }
     if (launcherControl) new MutationObserver(function () {
       /* A host can change the retained identity's state for a persistent
          pane. Keep its companion invoker in step without watching content. */

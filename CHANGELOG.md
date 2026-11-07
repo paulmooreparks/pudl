@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.105.0
+
+Taskbars recover space through prioritized label folding and pin aggregation. Inactive ordinary entries fold before pins. Ordinary glyph buttons remain on the taskbar with horizontal scrolling, and the active destination stays directly available. The folded Windows popup contains only Arrange taskbar, the useful Minimize all or Restore all action, and a separate final Close all windows group.
+
+At compact widths, the launcher fills the workspace between the header and taskbar. A leading taskbar opener is mandatory there; on desktop it is hidden when an available site-title opener serves the same catalog, unless `taskbarAlways` is enabled. Touch invocation opens browsing without forcing the search keyboard. Query, category and scroll state survive destination activation and return.
+
+The Size button remains available for pinned launchers and offers only the dimensions applicable to the layout. Compact mode uses automatic sizing and can reset saved desktop sizes. Desktop presentation, requested popup dimensions, pane dimensions and compact visibility remain independent. Escape closes nested menus first and then compact browsing, including when focus has returned to the taskbar.
+
+Replace the complete distribution, or update the window script and stylesheet, launcher, Start, menu, menubar and base stylesheet together with their minified copies. Hosts persisting launcher state must preserve the saved desktop presentation and requested dimensions separately from compact visibility; use `compactVisible` to restore the latter. Managed native navigation must notify `pudlLauncher.activated` when it accepts a destination. Existing taskbar pin preferences remain compatible. See [the launcher contract](docs/LAUNCHER.md), [taskbar pins](docs/TASKBAR-PINS.md), [the working example](samples/compact-taskbar.html) and [verification](docs/RELEASE-0.105.0.md).
+
+
 
 ## 0.104.0
 

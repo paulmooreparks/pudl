@@ -569,7 +569,7 @@
   function keyShown(k) {
     var parts = k.split('+'), key = parts.pop();
     if (MAC) {
-      var sym = { Ctrl: '⌃', Alt: '⌥', Shift: '⇧', Mod: '⌘' };
+      var sym = { Ctrl: 'âŒƒ', Alt: 'âŒ¥', Shift: 'â‡§', Mod: 'âŒ˜' };
       return ['Ctrl', 'Alt', 'Shift', 'Mod'].filter(function (m) { return parts.indexOf(m) >= 0; }).map(function (m) { return sym[m]; }).join('') + key;
     }
     return parts.map(function (m) { return m === 'Mod' ? 'Ctrl' : m; }).concat(key).join('+');
@@ -626,8 +626,11 @@
         return;
       }
       if (!c || typeof c.label !== 'string') return;
-      var r = document.createElement('button');
-      r.type = 'button';
+      var source = c.source && c.source.nodeType === 1 ? c.source : null;
+      var linked = source && source.tagName === 'A' && source.hasAttribute('href');
+      var r = document.createElement(linked ? 'a' : 'button');
+      if (linked) ['href','target','rel','download','hreflang','referrerpolicy'].forEach(function (name) { if (source.hasAttribute(name)) r.setAttribute(name, source.getAttribute(name)); });
+      else r.type = 'button';
       r.className = 'menu-action';
       r.setAttribute('role', 'menuitem');
       r.tabIndex = -1;
@@ -706,6 +709,7 @@
       var retained = new Set(), cursor = panel.firstChild;
       Array.from(fresh.children).forEach(function (made) {
         var model = made._row, prior = model && oldRows.find(function (r) { return !retained.has(r) && (model.id ? r._row.id === model.id : r._row.label === model.label); });
+        if (prior && prior.tagName !== made.tagName) prior = null;
         var row = prior || made;
         if (prior) {
           var id = prior.id, expanded = prior.getAttribute('aria-expanded'), controls = prior.getAttribute('aria-controls');
@@ -760,10 +764,19 @@
     place(panel);
     panel.classList.remove('placing');
     ctx.panels.push(panel);
+    panel.addEventListener('toggle', function () {
+      /* Native dismissal can happen while focus is in another tab or on
+         the page. Retire the same logical menu when its popup closes. */
+      var level = ctx.panels.indexOf(panel);
+      if (level >= 0 && !isOpen(panel)) closeContext(level);
+    });
     panel.addEventListener('click', function (e) {
       var r = e.target.closest('.menu-action');
       if (!r || r.parentElement !== panel) return;
+      if (r.getAttribute('aria-disabled') === 'true') { e.preventDefault(); e.stopPropagation(); return; }
+      if (r.tagName === 'A' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
       e.stopPropagation();
+      if (r.tagName === 'A') e.preventDefault();
       choose(panel, r);
     });
     /* The row under a pointer that moves takes focus. A menu that opens
@@ -789,6 +802,7 @@
     if (c.disabled) return;
     closeContext(0);
     if (typeof c.run === 'function') c.run();
+    else if (c.source && typeof c.source.click === 'function') c.source.click();
   }
 
   function ctxKey(panel, e) {
@@ -824,6 +838,7 @@
 
   function openAt(x, y, rows, opts) {
     opts = opts || {};
+    if (opts.toggle && opts.owner && ((ctx.panels.length && ctx.owner === opts.owner) || ctx.closedBy === opts.owner)) { ctx.closedBy = null; closeContext(0); return null; }
     closeContext(0);
     rows = rowsFrom(rows, opts.owner);
     if (!rows.some(function (r) { return r && r !== '-' && typeof r.label === 'string'; })) return null;
@@ -895,7 +910,8 @@
       return;
     }
     if (e.defaultPrevented || !e.target || !e.target.closest) return;
-    if (e.target.closest('.context-menu')) { e.preventDefault(); return; }
+    var sourceRow = e.target.closest('.context-menu .menu-action');
+    if (e.target.closest('.context-menu') && !(sourceRow && sourceRow._row && sourceRow._row.source)) { e.preventDefault(); return; }
     /* Shift with a right-click always gives the browser's own menu, with
        its spelling suggestions and its copy, paste and inspect, the thing
        readers miss most where a page replaces it. */
@@ -904,7 +920,7 @@
     if (!asked.rows.length) return;
     e.preventDefault();
     var at = asked.anchor ? anchorPoint(asked.anchor) : { x: e.clientX, y: e.clientY };
-    openAt(at.x, at.y, asked.rows, { edges: at, owner: document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
+    openAt(at.x, at.y, asked.rows, { edges: at, owner: sourceRow && asked.mark ? asked.mark : document.activeElement && document.activeElement !== document.body ? document.activeElement : e.target, 'for': asked.mark });
   });
 
   document.addEventListener('keydown', function (e) {
@@ -912,14 +928,15 @@
     if (!summon) { ctx.quiet = false; return; }
     if (e.defaultPrevented) return;
     var target = document.activeElement && document.activeElement !== document.body ? document.activeElement : document.body;
-    if (target.closest && target.closest('.context-menu')) { e.preventDefault(); return; }
+    var sourceRow = target.closest && target.closest('.context-menu .menu-action');
+    if (target.closest && target.closest('.context-menu') && !(sourceRow && sourceRow._row && sourceRow._row.source)) { e.preventDefault(); return; }
     var at = keyboardPoint(target);
     var asked = ask(target, at.x, at.y, true);
     ctx.quiet = true;
     if (!asked.rows.length) return;
     e.preventDefault();
     if (asked.anchor) at = anchorPoint(asked.anchor);
-    openAt(at.x, at.y, asked.rows, { edges: at, owner: target, 'for': asked.mark });
+    openAt(at.x, at.y, asked.rows, { edges: at, owner: sourceRow && asked.mark ? asked.mark : target, 'for': asked.mark });
   });
 
   document.addEventListener('pointerdown', function (e) {
@@ -1009,7 +1026,7 @@
      closes it, as a menu button does: the press's pointerdown has already
      closed the menu, and says which control had opened it. */
   document.addEventListener('pointerdown', function (e) {
-    if (!(e.target.closest && e.target.closest('[data-row-actions]'))) ctx.closedBy = null;
+    if (!(e.target.closest && e.target.closest('[data-row-actions], [data-menu-toggle]'))) ctx.closedBy = null;
   });
   document.addEventListener('click', function (e) {
     var btn = e.target.closest && e.target.closest('[data-row-actions]');

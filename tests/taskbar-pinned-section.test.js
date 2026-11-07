@@ -50,10 +50,10 @@ const { launch, ROOT, out } = require('./lib');
     assert.equal(await page.locator('.win-bar [data-win-menu-id="view"]').evaluate(n=>n===document.activeElement),true,'Escape returns to the ordinary menu taskbar entry');
     await page.setViewportSize({width:210,height:850});
     await page.waitForFunction(()=>!document.querySelector('.win-bar [data-win-menu-id="view"]').getClientRects().length);
-    await page.locator('.win-bar-more:visible').click();
+    await page.locator('.win-pins-more:visible').click();
     await page.getByRole('menuitem',{name:'View, pinned menu',exact:true}).click();
     await page.getByRole('menu',{name:'View',exact:true}).waitFor();
-    assert.equal(await page.locator('#menubar-panel').getAttribute('data-menu-anchor'),await page.locator('.win-bar-more').getAttribute('id'),'overflow uses the visible More anchor');
+    assert.equal(await page.locator('#menubar-panel').getAttribute('data-menu-anchor'),await page.locator('.win-pins-more').getAttribute('id'),'menu pin uses the visible Pins anchor');
     await page.keyboard.press('Escape');await page.setViewportSize({width:1440,height:950});
     await page.evaluate(()=>{
       document.querySelector('[data-menubar-source] > [data-menu-glyph="eye"]').remove();pudlMenubar.refresh();

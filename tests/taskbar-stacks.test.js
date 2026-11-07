@@ -290,10 +290,7 @@ const { launch, ROOT, engine, out } = require('./lib');
         const bar = document.querySelector('#all').parentElement;
         bar.style.width = '230px'; bar.style.right = 'auto';
       });
-      const more = page.locator('#all').locator('..').getByRole('button', { name: /more/ });
-      await more.waitFor();
-      await more.click();
-      await page.getByRole('menuitem', { name: /^Atlas,/ }).click();
+      await atlas('#all').click();
     }
     await scenario('group minimize moves focus away from an active member family', async () => {
       await page.evaluate(() => pudlWindows.raise('child'));
@@ -314,24 +311,10 @@ const { launch, ROOT, engine, out } = require('./lib');
       assert.equal(!!current.min.spare, true);
       assert.equal(['a1', 'a2', 'a3', 'child'].includes(current.top), true);
     });
-    await scenario('More exposes window commands and retains open submenus through retitling', async () => {
-      await openOverflowAtlas();
-      const commands = page.getByRole('menuitem', { name: 'Commands for Atlas two', exact: true });
-      await commands.click();
-      const close = page.getByRole('menuitem', { name: 'Close', exact: true });
-      await close.focus();
-      await page.evaluate(() => pudlWindows.retitle('a2', 'Revised member'));
-      await page.getByRole('menuitem', { name: 'Commands for Revised member', exact: true }).waitFor();
-      assert.equal(await close.isVisible(), true);
-      assert.equal(await close.evaluate(node => node === document.activeElement), true);
-      await page.keyboard.press('Enter');
-      assert.equal((await state()).open.includes('a2'), false);
-      assert.equal((await state()).open.includes('a1'), true);
-    });
-    await scenario('More activation restores a member and uses the current group scope', async () => {
+    await scenario('a narrow taskbar stack restores a member and uses the current group scope', async () => {
       await page.evaluate(() => pudlWindows.minimize('a2'));
       await openOverflowAtlas();
-      await page.getByRole('menuitem', { name: /^Atlas two/ }).click();
+      await popup().getByRole('link', { name: /^Atlas two/ }).click();
       assert.equal(!!(await state()).min.a2, false);
       assert.equal((await state()).top, 'a2');
       assert.equal(await page.getByRole('menu').count(), 0);
@@ -344,16 +327,6 @@ const { launch, ROOT, engine, out } = require('./lib');
       });
       await page.getByRole('menuitem', { name: 'Close these 3 windows', exact: true }).waitFor({ state: 'hidden' });
       assert.equal(await page.getByRole('menu').count(), 0);
-      assert.equal(await page.evaluate(() => document.activeElement.isConnected && document.activeElement !== document.body), true);
-    });
-    await scenario('removing an open submenu parent dismisses its stale commands', async () => {
-      await openOverflowAtlas();
-      await page.getByRole('menuitem', { name: 'Commands for Atlas two', exact: true }).click();
-      await page.getByRole('menuitem', { name: 'Close', exact: true }).focus();
-      await page.evaluate(() => document.querySelector('[data-win="a2"]').setAttribute('data-win-group', 'beta'));
-      await page.getByRole('menuitem', { name: 'Commands for Atlas two', exact: true }).waitFor({ state: 'hidden' });
-      assert.equal(await page.getByRole('menuitem', { name: 'Close', exact: true }).count(), 0);
-      assert.equal((await state()).open.includes('a2'), true);
       assert.equal(await page.evaluate(() => document.activeElement.isConnected && document.activeElement !== document.body), true);
     });
     await scenario('RTL keyboard stack movement follows physical arrow direction', async () => {
@@ -450,32 +423,14 @@ const { launch, ROOT, engine, out } = require('./lib');
       const announcement = await page.locator('[role="status"]').last().textContent();
       assert.ok(announcement.includes(label), 'move announcements preserve host labels literally');
     });
-    await scenario('More member-command templates fill repeated titles literally', async () => {
-      const title = 'Member $& $$ {title} {n}';
-      await page.evaluate(title => {
-        document.querySelector('[data-win-layer]').setAttribute('data-win-text-stack-window-commands', 'Commands {title} / {title}');
-        pudlWindows.retitle('a2', title);
-      }, title);
-      await openOverflowAtlas();
-      const commands = page.getByRole('menuitem', { name: 'Commands ' + title + ' / ' + title, exact: true });
-      await commands.waitFor();
-      await commands.click();
-      assert.equal(await page.getByRole('menuitem', { name: 'Close', exact: true }).isVisible(), true);
-    });
-    await scenario('More visible and accessible counts fill repeated placeholders', async () => {
+    await scenario('the Windows popup has a localized stable accessible name', async () => {
       await page.evaluate(() => {
-        const layer = document.querySelector('[data-win-layer]');
-        layer.setAttribute('data-win-text-more-stacks', '{entries}/{entries} more ({windows}/{windows} windows)');
-        layer.setAttribute('data-win-text-more-stacks-name', 'More entries {entries}/{entries}, windows {windows}/{windows}');
+        document.querySelector('[data-win-layer]').setAttribute('data-win-text-taskbar-windows','Open windows');
         pudlWindows.raise('spare');
-        const bar = document.querySelector('#all').parentElement;
-        bar.style.width = '230px'; bar.style.right = 'auto';
+        const bar=document.querySelector('#all').parentElement;bar.style.width='230px';bar.style.right='auto';
       });
-      const more = page.locator('#all').locator('..').getByRole('button', { name: /^More entries/ });
-      await more.waitFor();
-      const visible = (await more.textContent()).match(/^(\d+)\/\1 more \((\d+)\/\2 windows\)$/);
-      assert.ok(visible, 'both visible count tokens are substituted everywhere');
-      assert.equal(await more.getAttribute('aria-label'), 'More entries ' + visible[1] + '/' + visible[1] + ', windows ' + visible[2] + '/' + visible[2]);
+      const more=page.locator('#all').locator('..').getByRole('button',{name:'Open windows',exact:true});
+      await more.waitFor();assert.equal(await more.textContent(),'Open windows');
     });
     await scenario('reordering canonical members preserves the same focused stack link', async () => {
       await atlas('#all').focus(); await page.keyboard.press('Enter');

@@ -65,48 +65,48 @@ Text is set in Inter, and a page downloads a font only for the characters it sho
 For a prototype, a demo or a documentation page, you can load a release from jsDelivr instead of copying it. jsDelivr serves each file straight from this repository's release tags, and the fonts come along because `pudl.css` finds them relative to its own address.
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-theme.js"
         integrity="sha384-H2i43pyNAD4YdBpGuJ2JvyIL1BBucyyyCLq0xZKYfgMYElFWlsOwgb64xtWPbiOT"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl.css"
-      integrity="sha384-89hAF02i1IKm6UpPh55gNyPzpBv3dlIA2QpbZ8f7ZAY6BBhTPRgEvfYyRdvX/q7t"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl.css"
+      integrity="sha384-bWZrE+bLEGTEF7NnyOo59F/9Xfnp0DBwyVhm84L7yEoeH6Gld5XZoXsAoPU+PdT2"
       crossorigin="anonymous">
 ```
 
 The same two files minified, which every file below has too, with its own hash:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/min/pudl-theme.js"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/min/pudl-theme.js"
         integrity="sha384-VM8Pjx2IaTjtGr0HKMI4HO4Y/A79OzXD6nMsjPpSHGW+wzsV6g9pXvuA81gTeJvg"
         crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/min/pudl.css"
-      integrity="sha384-cewpVjSnHYIZAMfQIMm6EZLPNYqPKnVV/XP/+TfDzMgdU0kwA63v5i/PLM1xtBwE"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/min/pudl.css"
+      integrity="sha384-DR/9vs0o8iNk/zqECUAQLyrZD35Kovh9dsBt9xVSlHannMFtJ1KL//CTaRWx1nrW"
       crossorigin="anonymous">
 ```
 
 With the menu script as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-menu.js" defer
-        integrity="sha384-NtT8pPPvIuE+7R7pt/SbPOHEqVVpGUVNpfRwM589/zSEgDiZzRygABPgrVHURWeG"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-menu.js" defer
+        integrity="sha384-AKkhCS/4evCOa/wL3CUGGyotLep9qcyvWeaDJavRf55Nb/7hP117Qe3oDZbTVIYs"
         crossorigin="anonymous"></script>
 ```
 
 With floating windows as well:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-windows.css"
-      integrity="sha384-AaPODTWMEGq2rfTORpFMRp3PoWvnBhfpAUrUmZGpTFbThzzY194BdypafhQMkHaZ"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-windows.css"
+      integrity="sha384-r9amQIgYP9sTYXNBp5qiTCUSQDMeCKFEqKMmTNmsepcumPS+LuZOdIcv7xOQmGMp"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-windows.js" defer
-        integrity="sha384-cdBne/eR4mZE28cibH1V7F9dYfZKFJxuf+vCflNnxlzAdBcU6DeF23XNkEhRjWE8"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-windows.js" defer
+        integrity="sha384-508F0Akmw4N6eaZkKK6ZGaYMwFJDyvhqAqPBYEyDu7BgdWel/Xwtd+GXTF6rpnGj"
         crossorigin="anonymous"></script>
 ```
 
 With applets as well, loaded after the windows script:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-applets.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-applets.js" defer
         integrity="sha384-1Q3ZlCi53MnCzxEQSmOl+br4Su1/y6EbKdHe5cjKqjbAJVaG2THiXIlj06a1tkCE"
         crossorigin="anonymous"></script>
 ```
@@ -114,7 +114,7 @@ With applets as well, loaded after the windows script:
 With regions as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-regions.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-regions.js" defer
         integrity="sha384-DfHS7dgpf8jHa88wgD5T1psnykIhWZHWKIkG0Hn0XjYlnBmNMbjzs6rrd39lsSeo"
         crossorigin="anonymous"></script>
 ```
@@ -122,7 +122,7 @@ With regions as well:
 With the sidebar divider as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-md.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-md.js" defer
         integrity="sha384-R1wugIHj5bIRWTN5jz2WteyWy0/2SjzIqQN27rXCGabKdgZJtiLK7iGUoJtnZSH+"
         crossorigin="anonymous"></script>
 ```
@@ -130,7 +130,7 @@ With the sidebar divider as well:
 With the dialog command buttons for older browsers as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-dialog.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-dialog.js" defer
         integrity="sha384-g8Wobr7R/IcsZhmHb4GRiTpnGGnUnWmkanT2e0zifKETY9aXFuWaTmfObuGQzTqe"
         crossorigin="anonymous"></script>
 ```
@@ -138,7 +138,7 @@ With the dialog command buttons for older browsers as well:
 With toasts as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-toast.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-toast.js" defer
         integrity="sha384-Wz7XrNtePXJsHgV2D5xgsYzydUngO0oQYoQPCYdHPZne7F5AT/MrajSdsbm/236/"
         crossorigin="anonymous"></script>
 ```
@@ -146,10 +146,10 @@ With toasts as well:
 With tabs within a page and tooltips as well:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-tabs.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-tabs.js" defer
         integrity="sha384-lpU1GEZwaB/Cn15ifE7UQKboo/KI/uZxaTYAiGZJm5C6BzeSiAVZ9zEc63gTcLX4"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-tooltip.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-tooltip.js" defer
         integrity="sha384-QtixcYJZEsylPIgZUPLc4mLMsQigDcDaCspst5dldB347BxzUFuAw2r+XMMOx7GK"
         crossorigin="anonymous"></script>
 ```
@@ -157,37 +157,37 @@ With tabs within a page and tooltips as well:
 With trees and grids as well, highlight.js coloured by PUDL's syntax tokens, and code blocks that copy and download:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-hljs.css"
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-hljs.css"
       integrity="sha384-fo4XfkospG0ZjwQuB+cvRKuwdy3TtGciaUXVrI2ESl7MsuuiU41IDoTNtr3i/Cyj"
       crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-code.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-code.js" defer
         integrity="sha384-/v1kx/aWnxGTqr57wM4rCYnbtWgeysmaYmVYyVbS7xv627AumdudiiTv/QyNdtTr"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-toolbar.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-toolbar.js" defer
         integrity="sha384-wREUnjNMd9gapbJbbrJOJ+WalMBlDndSn1BNODSvb1qRpwlEBuUbVaFzz1FQhv0Y"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-split.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-split.js" defer
         integrity="sha384-apx4JcddiGfbbtBSUh64m5AJRxayFbqoA/G95EAkIJ2mVkQ86qW09KktpezmUCnL"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-menubar.js" defer
-        integrity="sha384-DXkuQdFeI/zbO/X6XjVxOKspUuY+USufH0k+CfX7G5FWBpiqR0wd2Sw0w0TIHLA4"
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-menubar.js" defer
+        integrity="sha384-i0EJdxQ7taLHBg1SGcKp/6NlzDqpsSSYGUegBb/EPjLdjGrnSS5qz/jq4pQ9QHfZ"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-disclose.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-disclose.js" defer
         integrity="sha384-DcuzeBBcA6OXHwa9frM4JcMAMdSnx93wnJvYxQG7obBLhTnJp2JggyPAojTQDcA5"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-zoom.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-zoom.js" defer
         integrity="sha384-X7J9vOnggyyA2PCm/3ssowfj2lxGjeW97Zzes2T8I0wvEBJ5Nb3Kga9THHPAavt+"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-rows.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-rows.js" defer
         integrity="sha384-st3TkNtIIRXU2hzNWDhfXEuB5M1L6afgZF7W9eDr4FJD2Qal7itGSv5EioRa9KU+"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-tree.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-tree.js" defer
         integrity="sha384-vVY7mfv3iscCFboK+O9LwoL+dHyyQSxlkAnHzMA4YHCd/Y6DAgLS43q6e6zdMePJ"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-reorder.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-reorder.js" defer
         integrity="sha384-KeP1rgofIEcQ/3Da3IttURe1eQjGdKZGp/mt83zJt7TuBS6FxgoVReqvTjU7OfbW"
         crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.104.0/dist/pudl-grid.js" defer
+<script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.105.0/dist/pudl-grid.js" defer
         integrity="sha384-vrZRtYlMiXz5ku8IWZAQoUD9njds6obk8PTszhPGqQobfCbdY6oBTx8Da/AEcmoK"
         crossorigin="anonymous"></script>
 ```
@@ -1353,7 +1353,7 @@ A right-click on a window's button in the dock opens the same menu, against the 
 
 The window layer can opt into taskbar reordering with `data-win-taskbar-reorder`. Readers can drag mouse/pen entries, use Alt+Shift+Left/Right, choose Taskbar order from an entry's context menu, or tap the generated Arrange taskbar button. Its draft list includes overflow entries and has move controls, Apply order and Cancel. Ordering has its own `tb.order` URL state and leaves window activation and shared-dock ordering unchanged. See [the contract and API](docs/TASKBAR-ORDER.md) and [the sample](samples/taskbar-reordering.html).
 
-A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one line and puts the page's own buttons on either side of it in the order you write them. Short of room it never scrolls: window titles shrink, the tray compacts, and taskbar entry labels fold to identity glyphs before remaining entries move into a "N more" menu. Folded buttons fit their visible glyphs and normal padding, without a common fixed width or empty execution-state space. Authored buttons wrap their foldable words in `.win-bar-label`; full accessible names remain available. Entry heights stay consistent across authored buttons, windows and stacks. Version 0.104.0 also supplies a managed Pinned section and site-menu tear-offs through the normal taskbar destination registry. Hosts do not author pinned buttons or section markup. The [adoption contract](docs/TASKBAR-PINS.md#shared-pinned-section-and-site-menus) covers explicit destination kinds, saved-menu references and section ordering.
+A `.win-bar` holding the dock is a taskbar (0.79.0, stable since 0.80.0): a bar along the foot of the window area, or its head with `data-win-bar-edge="top"`, which keeps the dock on one line and puts the page's own buttons on either side of it in the order you write them. Short of room, taskbar entry labels fold to identity glyphs. Inactive ordinary labels fold before pin labels. Inactive pins then aggregate under a pin button while the active entry remains on the taskbar; ordinary glyph buttons remain directly available in a horizontally scrollable dock. The trailing Windows popup contains only arrangement and bulk window actions. Folded buttons fit their visible glyphs and normal padding, without a common fixed width or empty execution-state space. Authored buttons wrap their foldable words in `.win-bar-label`; full accessible names remain available. Entry heights stay consistent across authored buttons, windows and stacks. Version 0.104.0 also supplies a managed Pinned section and site-menu tear-offs through the normal taskbar destination registry. Hosts do not author pinned buttons or section markup. The [adoption contract](docs/TASKBAR-PINS.md#shared-pinned-section-and-site-menus) covers explicit destination kinds, saved-menu references and section ordering.
 
 ```html
 <footer class="win-bar">
@@ -1688,11 +1688,13 @@ Everything a project uses is in `dist/`, and everything else supports it.
 
 The tests drive the samples and the reference page in real browsers through Playwright. `npm ci` installs it, `npx playwright install` fetches the browsers, `npm test` runs every suite in Chromium, and `npm run test:all` runs them in Chromium, Firefox and WebKit. `node tests/run.js firefox windows` runs one engine and only the suites whose names contain `windows`. The runner serves the repository itself on port 8765, and runs the suites several at a time across the engines, eight by default or `PUDL_JOBS`; a suite that runs longer than two minutes, or `PUDL_SUITE_TIMEOUT` seconds, is stopped and counted as failed. It ends by naming the slowest suites. Where Playwright cannot fetch its own browsers, `PUDL_EXECUTABLE=/path/to/chromium npm test` uses one already installed. GitHub Actions runs all three engines on every push and pull request.
 
+The working [compact taskbar example](samples/compact-taskbar.html) adds prioritized label folding, pin aggregation, an actions-only Windows popup and touch browsing without forced search focus. The responsive launcher fills the workspace in compact mode, preserves desktop pinning and dimensions, and offers contextual Size controls. Its [proposal](docs/proposals/compact-taskbar-navigation.md) records the approved design. These additions ship in 0.105.0. See [release verification](docs/RELEASE-0.105.0.md).
+
 ## Status
 
-This is version 0.104.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.105.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
-Version 0.104.0 groups pins in a shared taskbar section, supports site-menu tear-offs and folds entries to glyphs when space is limited. Running pins use normal window activation behavior, and Arrange taskbar toggles its popup. Hosts preserve the complete preference envelope and update the window, menu and menubar assets together. See [Taskbar pins](docs/TASKBAR-PINS.md) and [release verification](docs/RELEASE-0.104.0.md).
+Version 0.105.0 adds prioritized taskbar folding, a pin popup and an actions-only Windows popup. The launcher fills the workspace at compact widths, retains desktop presentation and dimensions, and offers Size controls for the current layout. Hosts update the full distribution and persist desktop preference separately from compact visibility. See [the launcher contract](docs/LAUNCHER.md) and [release verification](docs/RELEASE-0.105.0.md).
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 

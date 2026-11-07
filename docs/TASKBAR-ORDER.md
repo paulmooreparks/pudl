@@ -61,3 +61,7 @@ With opt-in taskbar stacks, pointer moves, keyboard moves, menus and Arrange ope
 The optional [persistent pin contract](TASKBAR-PINS.md) adds a separate host-owned preference order for destinations and unpinned windows. The root-window array and URL grammar above retain their existing meaning. Use `reorderTaskbarEntry` for a displayed pin or stack, and persist `taskbarState()` when handling `pudl:taskbar-change`.
 
 In the pinned-section layout, ordering operates within the selected section. Pinning and unpinning are explicit membership changes. Older interleaved preferences are stable-partitioned into pins followed by ordinary windows; see [TASKBAR-PINS.md](TASKBAR-PINS.md#shared-pinned-section-and-site-menus).
+
+## Compact navigation in 0.105.0
+
+PUDL 0.105.0 places Arrange taskbar in the trailing Windows popup when the dedicated Arrange button is folded away. Choosing the command opens the same arrangement surface, anchored to the visible Windows button. Draft cancellation, preference persistence and within-section ordering are unchanged. At widths where the dedicated Arrange opener is shown, it retains its second-activation toggle behavior.

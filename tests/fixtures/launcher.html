@@ -12,7 +12,7 @@
 <div class="split start-content"><div class="split-pane start-items-pane"><ul class="row-list start-items" data-start-items><li class="md-row" data-start-item data-start-category="tools"><button class="md-item" id="item-b" type="button">Editor b</button></li><li class="md-row" data-start-item><a class="md-item" href="#disabled" aria-disabled="true" id="disabled-b">Unavailable</a></li></ul><p data-start-empty hidden>No matches</p></div><div class="split-handle" aria-label="Resize categories b"></div><nav class="split-pane start-categories" data-start-categories aria-label="Categories"><a href="?category=" data-start-category-key="">All</a><a href="?category=tools" data-start-category-key="tools">Tools</a></nav></div>
 </section><span id="after-b"></span><script>
 window.addEventListener('load', function () {
- window.optionsFor = function (key) { return { pane: document.getElementById('pane-'+key), layout: document.getElementById('layout-'+key), invoker: document.getElementById('launch-'+key), size: {width:520,height:420} }; };
+ window.optionsFor = function (key) { return { compactAt: false, pane: document.getElementById('pane-'+key), layout: document.getElementById('layout-'+key), invoker: document.getElementById('launch-'+key), size: {width:520,height:420} }; };
  window.launcherEvents=[]; document.addEventListener('pudl:launcher-change', function(e){ launcherEvents.push({id:e.target.id, ...e.detail}); });
  ['a','b'].forEach(function(key){pudlLauncher.enhance(document.getElementById('catalog-'+key),optionsFor(key));}); window.fixtureReady=true;
 });</script></body></html>

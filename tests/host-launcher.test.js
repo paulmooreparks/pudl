@@ -15,7 +15,7 @@ const { launch, ROOT, out } = require('./lib');
     assert.equal(await bar.isVisible(), true, 'taskbar stays visible outside the launcher split');
     const box = await bar.boundingBox(), viewport = page.viewportSize();
     assert.ok(Math.abs(box.width - viewport.width) < 2 && Math.abs(box.y + box.height - viewport.height) < 2, 'taskbar spans the bottom of the viewport');
-    assert.equal(await bar.locator('[data-win-close-all]').isVisible(), true);
+    assert.ok(await bar.locator('[data-win-close-all]').isVisible() || await bar.locator('.win-bar-windows').isVisible());
     assert.equal(await bar.locator('[data-win-back]').count(), 1);
     assert.equal(await bar.locator('[data-win-restore]').count(), 1);
   }
@@ -111,27 +111,15 @@ const { launch, ROOT, out } = require('./lib');
       await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
       await checkTaskbar();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      assert.equal(await root.isVisible(), true, 'open desktop pane becomes a compact workspace launcher');
+      assert.equal(await page.locator('#keep-open').isVisible(), false);
+      await page.locator('.win-bar-launcher').click();
+      assert.equal(await root.isVisible(), false);
+      await page.locator('.win-bar-launcher').click();
       assert.equal(await root.isVisible(), true);
       await page.screenshot({ path: out('host-' + kind + '-narrow.png') });
-      await page.locator('#keep-open').click();
-      assert.equal(await root.isVisible(), false, 'unpin closes after using the pane');
-      const menu = page.locator('.menubar-one .menubar-title');
-      if (await menu.isVisible()) {
-        await menu.click();
-        await page.locator('.menubar-panel').getByRole('menuitem', { name: 'Open launcher', exact: true }).click();
-      } else await page.locator('#host-title').click();
-      const narrow = await root.boundingBox(); assert.ok(narrow.x >= 0 && narrow.x + narrow.width <= 391);
-      await query.focus(); await query.press('Escape');
-      await page.waitForFunction(() => !document.getElementById('host-launcher').matches(':popover-open'));
-      assert.equal(await page.evaluate(() => document.activeElement.matches('.menubar-title')), true, 'Escape returns to the visible menu-bar invoker');
-      const folded = page.locator('.menubar-one .menubar-title');
-      if (await folded.isVisible()) {
-        await folded.click();
-        await page.locator('.menubar-panel').getByRole('menuitem', { name: 'Open launcher', exact: true }).click();
-        assert.equal(await root.isVisible(), true, 'collapsed shared menu opens the launcher');
-        await query.press('Escape');
-      }
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.setViewportSize({width:1440,height:1000});
+      await page.waitForFunction(()=>!pudlLauncher.state(document.getElementById('host-launcher')).compact);
       console.log('PASS ' + kind + ' title opener, filtering, pane resizing, persistence, collapse, windows, themes and narrow popup');
     }
     await page.goto(ROOT + '/samples/host-launcher-apps.html?mode=standalone&item=editor&catalog=closed');

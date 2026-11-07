@@ -2,7 +2,7 @@
 body { margin:0; height:100dvh; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto; overflow:hidden; background:var(--bg); }
 .topbar { justify-content:space-between; gap:var(--space-3); flex-wrap:nowrap; padding:var(--space-2) var(--space-3); }
 .mockup-label { color:var(--text-muted); font-size:var(--text-xs); white-space:nowrap; }
-main.win-host { position:relative; min-height:0; height:auto; }
+main.win-host { position:relative; min-height:0; height:auto; overflow:hidden; }
 .desktop { max-width:66ch; padding:clamp(24px,5vw,70px); }
 .desktop h1 { font-size:var(--text-2xl); margin-top:0; }
 .desktop p { line-height:1.65; }

@@ -31,7 +31,7 @@ const { launch, ROOT } = require('./lib');
       await page.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.includes('child'));
       await settle();
     }
-    const moreVisible = () => page.locator('#probe-bar .win-bar-more').isVisible();
+    const moreVisible = async () => (await page.locator('#probe [data-win-tab-over]').count()) > 0;
     async function scenario(name, action) {
       try { await load(); await action(); console.log('PASS ' + name); }
       catch (error) { failures++; console.error('FAIL ' + name, error); }
@@ -39,6 +39,8 @@ const { launch, ROOT } = require('./lib');
     // The existing separate-button layout provides an independent fit boundary.
     await load();
     await mode(null);
+    // Compare with full mode's 120px current-entry floor rather than the larger reading reserve.
+    await page.locator('#probe-bar').evaluate(n=>n.style.setProperty('--win-bar-current-floor','120px'));
     let low = 350, high = 1250;
     while (high - low > 1) {
       const middle = Math.floor((low + high) / 2);

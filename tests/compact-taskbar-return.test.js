@@ -1,0 +1,30 @@
+const assert=require('assert/strict');
+const {launch,ROOT}=require('./lib');
+(async()=>{const browser=await launch();try{
+ const page=await browser.newPage({viewport:{width:390,height:850}});
+ await page.goto(ROOT+'/samples/compact-taskbar.html');await page.locator('.win-bar-windows').waitFor();
+ await page.locator('.win-bar-windows').click();
+ assert.deepEqual(await page.locator('.context-menu:popover-open>.menu-action').allTextContents(),['Arrange taskbar','Minimize all','Close all windows']);
+ await page.keyboard.press('Escape');
+ await page.setViewportSize({width:1440,height:850});
+ await page.locator('[data-menu-id="site"]').click();
+ await page.waitForFunction(()=>document.getElementById('catalog').matches(':popover-open'),{},{timeout:3000});
+ assert.equal(await page.locator('[data-menu-id="site"]').getAttribute('popovertarget'),'catalog');
+ await page.locator('[data-menu-id="site"]').click();
+ assert.equal(await page.locator('#catalog:popover-open').count(),0,'second title click closes the launcher');
+ await page.route('**/samples/compact-taskbar.html',async route=>{
+  const response=await route.fetch();await route.fulfill({response,body:(await response.text()).replace('id="catalog" data-start popover','id="catalog" data-start')});
+ });
+ await page.goto(ROOT+'/samples/compact-taskbar.html');
+ await page.locator('[data-menu-id="site"][popovertarget="catalog"]').waitFor();
+ await page.locator('[data-menu-id="site"]').click();await page.locator('#catalog:popover-open').waitFor();
+ await page.locator('[data-launcher-pin]').click();
+ await page.waitForFunction(()=>!document.querySelector('[data-menu-id="site"]').hasAttribute('popovertarget'));
+ await page.locator('[data-launcher-pin]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-menu-id="site"]').getAttribute('popovertarget')==='catalog');
+ await page.keyboard.press('Escape');
+ await page.locator('[data-menu-id="site"]').focus();await page.keyboard.press('Enter');await page.locator('#catalog:popover-open').waitFor();
+ await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:850});
+ await page.locator('.menubar-glyph:visible').first().click();
+ await page.getByRole('menuitem',{name:'Open launcher',exact:true}).click();await page.locator('#catalog:popover-open').waitFor();
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});

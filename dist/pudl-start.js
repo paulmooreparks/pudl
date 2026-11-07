@@ -26,6 +26,12 @@
     if (!all('[data-start-category-key=""]').some(function (c) { return nav.contains(c); })) return false;
     var category = '', rows = [], categories = [], count = 0, opener = null;
     var previous = null, destroyed = false, listeners = [], explicitOpener = false;
+    var openingMode = 'search', originalTabindex = root.getAttribute('tabindex');
+    function focusCatalog(mode) {
+      if (mode === 'none') return;
+      if (mode === 'browse') { if (!root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1'); root.focus({ preventScroll: true }); }
+      else input.focus({ preventScroll: true });
+    }
     function hidden(el) { return !!el.closest('[hidden]'); }
     function enabled(el) { return el && !el.disabled && el.getAttribute('aria-disabled') !== 'true' && !hidden(el); }
     function action(row) { return row.querySelector('a[href],button'); }
@@ -121,6 +127,11 @@
     if (form && root.contains(form)) on(form, 'submit', function (e) {
       e.preventDefault(); var first = available()[0]; if (first) first.click();
     });
+    on(document, 'pointerdown', function (e) {
+      var trigger = e.target.closest && e.target.closest('[popovertarget]');
+      if (trigger && trigger.getAttribute('popovertarget') === root.id) openingMode = e.pointerType === 'touch' || e.pointerType === 'pen' ? 'browse' : 'search';
+    }, true);
+    on(document, 'keydown', function (e) { var trigger = e.target.closest && e.target.closest('[popovertarget]'); if (trigger && trigger.getAttribute('popovertarget') === root.id) openingMode = 'search'; }, true);
     var openingFocus = null;
     on(root, 'beforetoggle', function (e) {
       if (e.target === root && e.newState === 'open') {
@@ -134,7 +145,7 @@
       if (e.newState === 'open') {
         var focus = document.activeElement;
         draw('refresh');
-        if (focus === openingFocus) input.focus({ preventScroll: true });
+        if (focus === openingFocus) focusCatalog(openingMode);
         if (window.pudlSplit) window.pudlSplit.refresh(root);
       }
       openingFocus = null;
@@ -171,14 +182,16 @@
         if (typeof s.category === 'string') category = s.category;
         draw('api'); return true;
       },
-      open: function (from) {
+      focus: focusCatalog,
+      open: function (from, settings) {
         if (!root.hasAttribute('popover') || !root.showPopover || !root.isConnected) return false;
         if (from && typeof from.focus === 'function') { opener = from; explicitOpener = !popup(); }
+        openingMode = settings && settings.focus === false ? 'none' : settings && settings.focus === 'browse' ? 'browse' : 'search';
         if (!popup()) root.showPopover();
-        input.focus({ preventScroll: true }); return true;
+        focusCatalog(openingMode); return true;
       }, close: close,
       destroy: function () {
-        destroyed = true; observer.disconnect(); listeners.forEach(function (off) { off(); });
+        destroyed = true; if (originalTabindex === null) root.removeAttribute('tabindex'); else root.setAttribute('tabindex', originalTabindex); observer.disconnect(); listeners.forEach(function (off) { off(); });
         rows.forEach(function (r) { r.removeAttribute('data-start-filtered'); }); controls.delete(root);
       }
     });
@@ -193,7 +206,8 @@
     refresh: function (root) { var c = get(root); if (!c) return false; c.refresh(); return true; },
     state: function (root) { var c = get(root); return c ? c.state() : null; },
     setState: function (root, s) { var c = get(root); return !!c && c.setState(s); },
-    open: function (root, from) { var c = get(root); return !!c && c.open(from); },
+    open: function (root, from, settings) { var c = get(root); return !!c && c.open(from, settings); },
+    focus: function (root, mode) { var c = get(root); if (!c) return false; c.focus(mode); return true; },
     close: function (root) { var c = get(root); return !!c && c.close(); },
     destroy: function (root) { var c = get(root); if (!c) return false; c.destroy(); return true; }
   };

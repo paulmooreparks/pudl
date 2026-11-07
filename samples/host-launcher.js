@@ -21,7 +21,7 @@
   }
   function load(name, fallback) { try { return JSON.parse(localStorage.getItem(key + ':' + name)) || fallback; } catch (_) { return fallback; } }
   function save(name, value) { try { localStorage.setItem(key + ':' + name, JSON.stringify(value)); } catch (_) { /* The demo also works without storage. */ } }
-  function sizeKey() { return innerWidth <= 700 ? 'size-narrow' : 'size-wide'; }
+  function sizeKey() { return 'size-wide'; }
   function visibleInvoker() { return placement === 'title' ? pudlMenubar.launcherButton({ visible: true }) || opener : opener; }
   function setAddress(push) {
     if (restoring) return;
@@ -36,12 +36,12 @@
   root.addEventListener('pudl:launcher-change', function (e) {
     current = e.detail.presentation; document.body.dataset.presentation = current;
     if (restoring) return;
-    save('presentation', current);
+    save('presentation', current); save('pane-size', e.detail.paneSize);
     if (current === 'popup') save(sizeKey(), { width: e.detail.width, height: e.detail.height });
     setAddress(false);
   });
   pudlLauncher.enhance(root, { pane: slot, layout: frame, invoker: opener, anchor: visibleInvoker,
-    placement: placement === 'taskbar' ? 'above' : 'below',
+    paneSize: load('pane-size', {}), placement: placement === 'taskbar' ? 'above' : 'below', defaultSize: { width: demo === 'content' ? 820 : 720, height: 600 },
     size: load(sizeKey(), { width: demo === 'content' ? 820 : 720, height: 600 }) });
   root.addEventListener('pudl:start-change', function (e) { setAddress(e.detail.reason === 'category'); });
   document.addEventListener('pudl:split', function (e) {
@@ -53,11 +53,6 @@
     if (!element) return;
     var width = element.getBoundingClientRect().width;
     if (e.detail.size === null || width > 0) save(name, e.detail.size === null ? null : width);
-  });
-  document.getElementById('reset-size').addEventListener('click', function () {
-    save(sizeKey(), { width: demo === 'content' ? 820 : 720, height: 600 });
-    frame.style.removeProperty('--split-a'); root.querySelector('#category-split').style.removeProperty('--split-a'); save('pane-width', null); save('category-width', null);
-    if (root.hasAttribute('popover')) popupSize(); pudlSplit.refresh(frame); pudlSplit.refresh(root);
   });
   function calculate(form) { var values = Array.from(form.querySelectorAll('input')).map(function (i) { return Number(i.value) || 0; }); form.querySelector('output').textContent = values.reduce(function (a, b) { return a + b; }, 0).toFixed(form.hasAttribute('data-expenses') ? 2 : 4).replace(/\.?(0+)$/, function (s) { return form.hasAttribute('data-expenses') ? s : ''; }); }
   function diagnostics(win) {

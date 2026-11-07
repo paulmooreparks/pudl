@@ -32,9 +32,10 @@ const { launch, ROOT, engine } = require('./lib');
     if(engine!=='firefox') {
       const touch=await browser.newContext({hasTouch:true,viewport:{width:390,height:850}});
       const t=await touch.newPage();await t.goto(ROOT+'/samples/taskbar-reordering.html');
-      const target=t.locator('.win-bar-arrange');await target.tap();
+      const target=t.locator('.win-bar-arrange');
+      await t.locator('.win-bar-windows').tap();await t.getByRole('menuitem',{name:'Arrange taskbar',exact:true}).tap();
       await t.getByRole('dialog',{name:'Arrange taskbar',exact:true}).waitFor();
-      await target.tap();assert.equal(await t.locator('.win-taskbar-arrangement').count(),0,'second touch tap closes the popup');
+      await t.getByRole('button',{name:'Cancel',exact:true}).tap();assert.equal(await t.locator('.win-taskbar-arrangement').count(),0,'compact command opens the same cancellable popup');
       await touch.close();
     }
     assert.deepEqual(errors,[]);

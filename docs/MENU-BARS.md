@@ -108,3 +108,13 @@ Identified site-menu titles now offer Pin or Unpin through their context menu an
 - `siteMenuCommands(menuId)` returns fresh command rows suitable for `pudlMenu.openAt()`, including generated Window commands and permitted contributions. Unknown menus return an empty array. Call it each time an auxiliary surface opens and discard the rows when it closes. This method is unnecessary for normal taskbar pin integration, which uses the controller directly.
 
 A future pin editor is deferred and will probably live in the launcher. No pin-management command is inserted into the ordinary menu contents.
+
+## Native navigation popup rows
+
+A `pudlMenu.openAt()` command row may supply `source`, an original connected anchor or button. An anchor source produces an anchor row carrying its `href`, `target`, `rel`, `download`, `hreflang` and `referrerpolicy` attributes. Ordinary activation calls the row's `run` callback when present, or clicks the source otherwise. Modified link activation uses the displayed anchor's native browser behavior without running the ordinary callback. Disabled rows block activation. Stable-ID updates replace a row when its required element type changes.
+
+The shared taskbar navigation popups use this contract to retain link semantics while routing plain activation through the original destination or window button. The source is a live DOM reference, never a persisted preference. Hosts should continue providing native links for navigation.
+
+A caller using `openAt(..., { owner: button, toggle: true })` marks its opener with `data-menu-toggle`. A second pointer or keyboard activation closes the owned context popup. The marker preserves the opener identity through pointer light dismissal. Arrow-key opening can omit the toggle option. Normal context requests on source-backed navigation rows remain available, including keyboard requests.
+
+Native popup dismissal retires the corresponding context-menu state. Returning from a link opened in another tab and dismissing with Escape leaves the opener ready for its next activation.

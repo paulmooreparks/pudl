@@ -1,0 +1,42 @@
+const assert=require('assert/strict');
+const {launch,ROOT,engine,out}=require('./lib');
+(async()=>{const browser=await launch();try{
+ const page=await browser.newPage({viewport:{width:900,height:850}});
+ await page.goto(ROOT+'/tests/fixtures/launcher.html');await page.waitForFunction(()=>fixtureReady);
+ await page.evaluate(()=>{window.queryFocus=[];document.addEventListener('focusin',e=>{if(e.target.matches('[data-start-query]'))queryFocus.push(e.target.closest('[data-start]').id);});pudlLauncher.open(document.getElementById('catalog-a'),{focus:'browse'});});
+ assert.equal(await page.evaluate(()=>document.activeElement.id),'catalog-a');
+ assert.deepEqual(await page.evaluate(()=>queryFocus),[],'browse API never focuses a text field');
+ await page.evaluate(()=>pudlLauncher.close(document.getElementById('catalog-a')));
+ await page.locator('#launch-a').focus();await page.keyboard.press('Enter');
+ await page.locator('#catalog-a [data-start-query]').waitFor();
+ await page.waitForFunction(()=>document.activeElement.hasAttribute('data-start-query'));
+ await page.keyboard.press('Escape');
+ if(engine!=='firefox') {
+  const context=await browser.newContext({hasTouch:true,viewport:{width:390,height:850}}),touch=await context.newPage();
+  await touch.goto(ROOT+'/samples/compact-taskbar.html');await touch.locator('#launcher').waitFor();
+  await touch.evaluate(()=>{window.queryFocus=[];document.addEventListener('focusin',e=>{if(e.target.matches('[data-start-query]'))queryFocus.push(e.target.id||'query');});});
+  await touch.locator('#launcher').tap();await touch.waitForFunction(()=>pudlLauncher.state(document.getElementById('catalog')).visible);
+  assert.equal(await touch.evaluate(()=>document.activeElement.id),'catalog');
+  assert.deepEqual(await touch.evaluate(()=>queryFocus),[],'touch opening never focuses text, even transiently');
+  await touch.locator('[data-start-query]').tap();
+  assert.equal(await touch.locator('[data-start-query]').evaluate(n=>n===document.activeElement),true);
+  await touch.locator('[data-start-query]').fill('Editor');
+  await touch.locator('#catalog [data-win-open="editor"]').tap();await touch.locator('.win[data-win="editor"]').waitFor();
+  await touch.waitForFunction(()=>pudlLauncher.state(document.getElementById('catalog')).visible===false);
+  await touch.evaluate(()=>queryFocus=[]);await touch.locator('#launcher').tap();
+  assert.equal(await touch.locator('[data-start-query]').inputValue(),'Editor');
+  assert.deepEqual(await touch.evaluate(()=>queryFocus),[],'returning to launcher keeps browsing focus');
+  await touch.screenshot({path:out('launcher-touch-browse.png')});
+  assert.equal(await touch.locator('[data-launcher-pin]').isVisible(),false,'compact mode hides the desktop pin control');
+  assert.deepEqual(await touch.evaluate(()=>queryFocus),[],'pinning touch launcher does not summon the keyboard');
+  await touch.setViewportSize({width:900,height:850});
+  await touch.evaluate(()=>pudlLauncher.present(document.getElementById('catalog'),'closed',{focus:false}));
+  await touch.locator('[data-menu-id="site"][popovertarget="catalog"]').waitFor();
+  await touch.locator('[data-menu-id="site"]').tap();
+  await touch.waitForFunction(()=>document.activeElement.id==='catalog');
+  assert.deepEqual(await touch.evaluate(()=>queryFocus),[],'touch title route also keeps browsing focus');
+  await context.close();
+ }
+ await page.goto(ROOT+'/samples/compact-taskbar.html');await page.locator('[data-menu-id="site"]').waitFor();
+ await page.locator('[data-menu-id="site"]').click();assert.equal(await page.locator('[data-start-query]').evaluate(n=>n===document.activeElement),true,'mouse search behavior remains');
+ }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});
