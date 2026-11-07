@@ -101,7 +101,10 @@ const { launch, ROOT, out } = require('./lib');
       const mutations = []; const observer = new MutationObserver(records => mutations.push(...records));
       observer.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
       pudlStart.enhance(root); pudlStart.refresh(root); pudlStart.setState(root, pudlStart.state(root));
-      await turn(); observer.disconnect();
+      /* These APIs draw synchronously. Read their records before yielding
+         to independent popup and splitter work already queued by this test. */
+      mutations.push(...observer.takeRecords()); observer.disconnect();
+      await turn();
       const other = root.cloneNode(true); other.id = 'second'; other.removeAttribute('popover');
       other.querySelector('[data-start-items]').innerHTML = '<li data-start-item><a href="#other">Other</a></li>';
       document.body.appendChild(other); pudlStart.enhance(other); pudlStart.setState(other, { query: 'missing' });
