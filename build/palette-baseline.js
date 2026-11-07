@@ -2,9 +2,9 @@
 const { execFileSync } = require('node:child_process');
 
 /* The Standard rendering the palettes must leave unchanged. It moves only
-   with a deliberate change to Standard's own paint, such as the dark
-   destructive button's words in 0.97.5. */
-const revision = 'ed5e790a28f56b53bc3bfbe092e567318fb640ec';
+   with an approved change to Standard paint or geometry. Version 0.105.0
+   sets consistent taskbar entry heights and glyph-based folding. */
+const revision = '92b25d1ab0179ec7aca7cb54b7c5f8e49a209dfc';
 const files = ['dist/pudl.css', 'dist/pudl-windows.css'];
 
 function loadBaseline(root) {

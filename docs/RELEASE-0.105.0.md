@@ -14,6 +14,8 @@ Host evidence includes 41 screenshots, logs, hashes and rollback under `.local/b
 
 Release gates cover the full readable suite in Chromium, Firefox and WebKit, the full minified Chromium suite, generated fonts, skin assets, minifier freshness, reference rendering in both themes and package reference closure. Publication requires passing results, including hosted CI for the release commit. Local evidence is retained under `tests/output/release-01050-*`; publication provenance records the final counts and public artifact checks.
 
+The first full readable run retained a Chromium palette comparison failure. Its historical Standard baseline expected a taskbar tab approximately 27.19 pixels high, while the approved shared taskbar geometry uses 26 pixels in that fixture. The baseline now points to the accepted 0.105.0 runtime commit, preserving full paint and geometry comparisons without removing taskbar coverage. Original local and hosted CI results are retained; corrected results are recorded with publication provenance.
+
 ## Verification limits
 
 Physical-device touch, manual assistive-technology checks and real-site WebKit native modified-link behavior remain unclaimed. Browser touch emulation is covered. Consumer desktop testing remains subject to its existing hold. Publication does not authorize consumer installation, restart or production deployment; production remains on 0.104.0 at preparation time.
