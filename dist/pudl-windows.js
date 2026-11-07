@@ -5612,9 +5612,9 @@
        never reach document. Their ownership marker still reports closure. */
     new MutationObserver(soon).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-menu-for'] });
     if (document.fonts) {
-      /* Only full mode measures hypothetical ordinary buttons after fonts load.
-         Other modes must not rescan bars for unrelated application text. */
-      var fontsChanged = function () { if (layer.getAttribute('data-win-taskbar-stacks') === 'full') soon(); };
+      /* Every priority-folded bar caches natural text widths. A font swap
+         invalidates those measurements even when the bar itself stays fixed. */
+      var fontsChanged = soon;
       document.fonts.ready.then(fontsChanged); document.fonts.addEventListener('loadingdone', fontsChanged);
     }
   }
