@@ -1,5 +1,13 @@
 # PUDL 0.106.0 release verification
 
+## Intake hold
+
+The release is marked prerelease while two later WebKit failures are investigated. Consumer intake and the dependent standalone Editor implementation are held. The tag and published assets remain unchanged. Any correction to tagged inputs requires 0.106.1.
+
+The duplicate tag run 42889384107 failed the desktop menu's Alt-letter opening check and the destination-picture visibility assertion immediately after closing the last running window. The documentation follow-up run 42889704949 also failed the provider suite. These failures do not erase the passing 660-suite pre-tag gate, but that gate does not explain them. Linux source and minified probes now capture keyboard, focus and popover events and image-node replacement and readiness.
+
+Dinah independently reports 18 passing host suites and a hidden native-window check of stack depths, stable geometry, skin switching and the corrected separator. Its intake remains uncommitted and uninstalled. A matching yavc.app release bundling the cleared PUDL version is also required before Dinah can ship it.
+
 PUDL 0.106.0 is published as [v0.106.0](https://github.com/paulmooreparks/pudl/releases/tag/v0.106.0), fixed at commit `173aeff691839deef5153f78b9533307e780345b`. It supplies taskbar stack edges, firmer Standard raised boundaries, Alloy Bold and the corrected title/detail separator. Paul authorized publication and GK Companion intake in message 5469 after accepting the visual candidate. The standalone Editor follows that delivery and the host's launcher-label correction.
 
 ## Published artifacts
@@ -69,3 +77,7 @@ The Linux investigation used the browser's platform-font inspection. Standard an
 The corrected commit `bf3763159b656a57376ee9f4d719ac9e10e864d8` was checked by [hosted run 42881874063](https://github.com/paulmooreparks/pudl/actions/runs/42881874063). Fonts, readable Chromium/Firefox and minified Chromium passed. WebKit passed 164 of 165 suites and failed the existing RTL path-bar focus-scroll check: immediately after focusing the first off-screen link, the read still showed the initial end position. The full run therefore remains a failure and no tag is published. The original WebKit log and artifact are retained under `release-01060-ci-webkit-second-*`. The path-bar stylesheet is unchanged by this release. A separate Linux probe compares the immediate assertion with an observable focus/visibility wait and records subsequent rendering-frame state. This is an investigation, not a claim that the cause is closed.
 
 The timing probe reproduced the RTL failure with the link already focused and fonts loaded. The immediate position was still the initial end; two rendering frames later the list had moved 126 pixels and the first place was visible. A condition wait passed all twenty readable/minified Linux WebKit repetitions. The path-bar test now waits up to five seconds for the focused place to be visible before each focus-scroll measurement. It neither invokes scrolling nor relaxes the existing geometry assertions. This closes the immediate-measurement race; the production path-bar code remains unchanged. The original failure and frame trace remain in `release-01060-path-*` artifacts. The corrected final commit still requires a fresh complete hosted gate.
+
+## Tag-triggered follow-up findings
+
+The duplicate tag run [42889384107](https://github.com/paulmooreparks/pudl/actions/runs/42889384107) failed WebKit after the complete pre-tag gate had passed the identical commit. Its two failures are an Alt-menu opening timeout in `desktop-menubar.test.js` and an immediate close-last destination-picture visibility assertion in `taskbar-providers.test.js`. The tag, release archive and asset identities remain unchanged. The original tag-run log and WebKit artifact are retained under `release-01060-tag-webkit-*`. Consumer handoff completion is held while these cases are investigated; the earlier clean run does not close these new findings.
