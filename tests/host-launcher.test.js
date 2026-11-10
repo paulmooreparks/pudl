@@ -108,17 +108,12 @@ const { launch, ROOT, out } = require('./lib');
         await page.screenshot({ path: out('host-' + kind + '-' + theme + '.png') });
       }
       await page.setViewportSize({ width: 390, height: 844 });
+      await page.waitForFunction(() => pudlLauncher.state(document.getElementById('host-launcher')).compact);
       await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
       await checkTaskbar();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       assert.equal(await root.isVisible(), true, 'open desktop pane becomes a compact workspace launcher');
-      const narrowPin=await page.evaluate(()=>({visible:!!document.getElementById('keep-open').getClientRects().length,state:pudlLauncher.state(document.getElementById('host-launcher')),width:innerWidth}));
-      if(narrowPin.visible){
-        console.log('COMPACT_BEFORE '+JSON.stringify(narrowPin));
-        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-        console.log('COMPACT_AFTER '+JSON.stringify(await page.evaluate(()=>({visible:!!document.getElementById('keep-open').getClientRects().length,state:pudlLauncher.state(document.getElementById('host-launcher')),width:innerWidth}))));
-      }
-      assert.equal(narrowPin.visible, false);
+      assert.equal(await page.locator('#keep-open').isVisible(), false);
       await page.locator('.win-bar-launcher').click();
       assert.equal(await root.isVisible(), false);
       await page.locator('.win-bar-launcher').click();
