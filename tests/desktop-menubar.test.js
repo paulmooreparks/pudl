@@ -13,6 +13,12 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   const errors = [], warnings = [];
   const ctx = await b.newContext({ viewport: { width: 1400, height: 800 } });
   const p = await ctx.newPage();
+  await p.addInitScript(() => {
+    window.__trace=[];
+    for(const type of ['keydown','keyup','focusin','focusout','toggle']) window.addEventListener(type,e=>{
+      window.__trace.push({type,key:e.key,alt:e.altKey,target:e.target.id||e.target.className,active:document.activeElement?.outerHTML.slice(0,400),open:document.getElementById('menubar-panel')?.matches(':popover-open'),time:performance.now()});
+    },true);
+  });
   p.on('pageerror', e => errors.push(e.message));
   p.on('console', m => { if (m.type() === 'warning' && /pudl-menubar/.test(m.text())) warnings.push(m.text()); });
   await p.goto(FIX);
@@ -118,7 +124,9 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
      busy machine can stretch. */
   await p.waitForFunction(() => document.activeElement && document.activeElement.classList.contains('menu-action'), null, { timeout: 3000 }).catch(() => {});
   check('Alt held underlines the titles\' letters', held === 'underline');
-  check('Alt with a letter opens that title from a field, first row focused, the front applet\'s included', (await active()) === 'row:Save');
+  const afterChord=await active();
+  if(afterChord!=='row:Save') console.log('MENU_TRACE '+JSON.stringify(await p.evaluate(()=>__trace)));
+  check('Alt with a letter opens that title from a field, first row focused, the front applet\'s included', afterChord === 'row:Save', afterChord);
   await escape();
   check('the underlines go when Alt is released and focus leaves', await p.evaluate(() => !document.querySelector('.menubar-row').classList.contains('menubar-letters')));
   const keyed = await p.evaluate(() => document.querySelector('.menubar-title[data-letter="d"]').getAttribute('aria-keyshortcuts'));
