@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         minified: ['0', '1']
-        suite: ['desktop-menubar', 'taskbar-providers']
+        suite: ['desktop-menubar', 'menubar-toggle', 'taskbar-providers']
     steps:
       - uses: actions/checkout@v4
         with:
