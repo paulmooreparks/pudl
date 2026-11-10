@@ -18,7 +18,13 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: node tests/run.js chromium skins taskbar-providers
+      - run: |
+          status=0
+          node tests/run.js chromium skins || status=1
+          for attempt in 1 2 3 4 5; do
+            PUDL_RUN_OUTPUT=tests/output/provider-$attempt node tests/run.js chromium taskbar-providers || status=1
+          done
+          exit $status
         env:
           PUDL_MIN: ${{ matrix.minified }}
           PUDL_JOBS: '1'
