@@ -83,6 +83,18 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   check('Escape from a title with no panel returns focus to where it was', (await active()) === 'editor-text');
 
   /* 4. The accelerators, under the desktop host. */
+  await p.locator('.win[data-win="log"] .win-head').focus();
+  await p.waitForFunction(() => !document.querySelector('.menubar-title[data-letter="o"]'));
+  const immediateChord = await p.evaluate(() => {
+    /* A key can arrive before the queued menu redraw after focus changes
+       windows. Keep both events in one task to exercise that ordering. */
+    document.getElementById('editor-text').focus();
+    document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'o', altKey: true, bubbles: true, cancelable: true }));
+    const panel = document.getElementById('menubar-panel');
+    return panel.matches(':popover-open') && panel.textContent.includes('Save');
+  });
+  check('an applet mnemonic works immediately after focus returns to its window', immediateChord);
+  await escape();
   await p.locator('#editor-text').focus();
   await p.keyboard.press('Alt');
   check('Alt alone moves focus to the first title, from a field', await onFirstTitle(), await active());

@@ -1692,7 +1692,9 @@ The working [compact taskbar example](samples/compact-taskbar.html) adds priorit
 
 ## Status
 
-This is version 0.106.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.106.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
+
+Version 0.106.1 includes the corrected immediate window-menu mnemonic lookup. It retains the 0.106.0 features described below. See [the patch verification](docs/RELEASE-0.106.1.md).
 
 Version 0.106.0 adds raised rear edges to taskbar stacks, strengthens Standard control boundaries and introduces Alloy Bold with crisp controls and Standard active-title colors. The default title/detail separator is corrected to one middle dot. Hosts replace the full distribution and add a stylesheet link if they offer Alloy Bold. The existing default skin is unchanged. See [release preparation](docs/RELEASE-0.106.0.md).
 

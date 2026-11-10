@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.106.1
+
+A desktop title mnemonic now refreshes the active window's menu before looking up its letter. A key arriving immediately after focus switches windows can therefore open the newly active applet's menu before the scheduled redraw. The regression keeps focus change and key dispatch in one task and fails on the previous ordering.
+
+The provider-picture regression now checks that a glyph or picture remains visible while the replacement destination link's image loads, then waits for that image. This matches the existing picture-loading contract and changes no runtime picture behavior.
+
+This patch retains the stack edges, firmer Standard boundaries, Alloy Bold and corrected separator from 0.106.0. That release remains held after its later tag-triggered WebKit failures.
+
 ## 0.106.0
 
 Taskbar stacks expose one rear edge for two windows and two for three or more, retaining the exact count and front-face state marks. The edges use existing taskbar spacing and introduce no additional layout movement. RTL mirrors them. Ordinary buttons retain clipping, and restored singleton entries lose the decoration. Existing label and count-digit sizing behavior remains compatible.

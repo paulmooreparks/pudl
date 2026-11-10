@@ -43,9 +43,14 @@ const { launch, ROOT, out } = require('./lib');
     assert.equal(await pin('article-one').locator('.win-item-glyph').isVisible(), true, 'loading pictures retain the glyph');
     releasePicture(); releasePicture = null;
     await page.waitForFunction(() => document.querySelector('[data-win-pin="article-one"] .win-item-icon')?.naturalWidth > 0);
+    await pin('article-one').locator('.win-item-icon:not([hidden])').waitFor();
     assert.equal(await pin('article-one').locator('.win-item-icon').isVisible(), true);
     await page.evaluate(() => { window.savedPins = pudlWindows.taskbarState(); pudlWindows.close('article-one'); pudlWindows.close('article-two'); });
     assert.equal(await pin('article-one').getAttribute('data-win-pin-running'), 'false');
+    /* Closing the last window replaces its button with a destination link.
+       Its new image keeps the glyph until the image's load event. */
+    assert.equal(await pin('article-one').evaluate(node => [...node.querySelectorAll('.win-item-icon,.win-item-glyph')].some(mark => !mark.hidden && mark.getClientRects().length > 0)), true, 'close-last retains a visible identity mark while its new image loads');
+    await pin('article-one').locator('.win-item-icon:not([hidden])').waitFor();
     assert.equal(await pin('article-one').locator('.win-item-icon').isVisible(), true, 'close-last keeps destination picture');
     const saved = await page.evaluate(() => savedPins);
     assert.deepEqual(saved.references, [{ id: 'article-one', provider: 'articles' }, { id: 'article-two', provider: 'articles' }]);
