@@ -70,11 +70,12 @@ for (const engine of engines) {
         keptInput.value = 'Retained material edits';
         window.keptWindow = document.querySelector('.win[data-win="editor"]');
       }, skins);
+      const probe = label => page.evaluate(label => ({label, fonts:document.fonts.status, entries:[...document.querySelectorAll('.win-tab,.win-tab *')].map(n=>{const s=getComputedStyle(n),r=n.getBoundingClientRect();return {tag:n.className,text:n.textContent,rect:r.toJSON(),font:s.font,fontWeight:s.fontWeight,fontFamily:s.fontFamily,letterSpacing:s.letterSpacing,fontFeatureSettings:s.fontFeatureSettings,fontVariantNumeric:s.fontVariantNumeric,fontOpticalSizing:s.fontOpticalSizing,transform:s.transform,display:s.display};})}),label).then(x=>console.log('GEOMETRY '+JSON.stringify(x)));
       const controls = 'main .btn, main .form-input, main .form-select, main .form-textarea, .win, .win-head, .win-btn, .win-tab';
       for (const theme of ['light', 'dark']) {
         await page.selectOption('#theme', theme);
         await page.evaluate(() => pudlSkins.select('standard')); await settle(page);
-        const standard = await appearance(page, controls);
+        const standard = await appearance(page, controls); await probe('standard '+theme);
         const signatures = new Set();
         for (const skin of skins) {
           await page.locator('main input').first().focus();
@@ -84,7 +85,7 @@ for (const engine of engines) {
           page.on('request', requested);
           assert.equal(await page.evaluate(skin => pudlSkins.select(skin), skin), true);
           await settle(page); page.off('request', requested);
-          const after = await appearance(page, controls);
+          const after = await appearance(page, controls); await probe(skin+' '+theme);
           assert.deepEqual(after.map(({ paint, ...geometry }) => geometry), standard.map(({ paint, ...geometry }) => geometry), skin + ' geometry');
           signatures.add(JSON.stringify(after[0].paint));
           assert.equal(requests, 0, 'selection fetches no assets');

@@ -4,6 +4,7 @@ const { launch, ROOT, out } = require('./lib');
   const browser = await launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 960 } });
+    page.on('console',m=>console.log('PAGE '+m.text())); page.on('requestfailed',r=>console.log('REQUESTFAILED '+r.url()+' '+JSON.stringify(r.failure())));
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.route('**/stack-fragments/*.html', route => {
       const key = new URL(route.request().url()).pathname.split('/').at(-1).replace('.html', '');
