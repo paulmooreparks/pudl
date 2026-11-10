@@ -112,7 +112,13 @@ const { launch, ROOT, out } = require('./lib');
       await checkTaskbar();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       assert.equal(await root.isVisible(), true, 'open desktop pane becomes a compact workspace launcher');
-      assert.equal(await page.locator('#keep-open').isVisible(), false);
+      const narrowPin=await page.evaluate(()=>({visible:!!document.getElementById('keep-open').getClientRects().length,state:pudlLauncher.state(document.getElementById('host-launcher')),width:innerWidth}));
+      if(narrowPin.visible){
+        console.log('COMPACT_BEFORE '+JSON.stringify(narrowPin));
+        await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+        console.log('COMPACT_AFTER '+JSON.stringify(await page.evaluate(()=>({visible:!!document.getElementById('keep-open').getClientRects().length,state:pudlLauncher.state(document.getElementById('host-launcher')),width:innerWidth}))));
+      }
+      assert.equal(narrowPin.visible, false);
       await page.locator('.win-bar-launcher').click();
       assert.equal(await root.isVisible(), false);
       await page.locator('.win-bar-launcher').click();
