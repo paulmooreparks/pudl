@@ -2,7 +2,7 @@
 
 ## Intake hold
 
-The release is marked prerelease while two later WebKit failures are investigated. Consumer intake and the dependent standalone Editor implementation are held. The tag and published assets remain unchanged. Any correction to tagged inputs requires 0.106.1.
+The release remains marked prerelease and is superseded by [0.106.2](RELEASE-0.106.2.md), which closes the reproduced menu defects and records the corrected readiness checks. The original hold and failures are retained below. The 0.106.0 tag and published assets remain unchanged.
 
 The duplicate tag run 42889384107 failed the desktop menu's Alt-letter opening check and the destination-picture visibility assertion immediately after closing the last running window. The documentation follow-up run 42889704949 also failed the provider suite. These failures do not erase the passing 660-suite pre-tag gate, but that gate does not explain them. Linux source and minified probes now capture keyboard, focus and popover events and image-node replacement and readiness.
 

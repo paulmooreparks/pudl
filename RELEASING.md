@@ -20,6 +20,10 @@ Read and write release files explicitly as UTF-8, including on Windows. An impli
 
 9. Publish the GitHub release with its archive and checksum attached, because projects that copy PUDL download that pair rather than cloning the repository. Build the archive from the pushed tag, never from the working tree, so that it contains the tagged bytes and nothing else. It holds `CHANGELOG.md`, `LICENSE`, `README.md`, all of `dist/`, and the documents the release points readers to, under one folder named for the version. `git archive` makes the archive reproducible: the same tag and paths always give the same bytes, and the archive's comment is the tagged commit.
 
+   Keep the GitHub release as a draft until the complete branch and tag gates have finished successfully. A passing pre-tag run does not replace the tag-triggered result. Retain every failed gate's artifacts and establish whether its cause is a runtime defect or a test-readiness error before clearing intake; a later passing run alone does not establish that cause. Uploading frozen assets to the draft lets consumers prepare without treating the candidate as a cleared release.
+
+   Generate the complete distribution manifest with `node build/release-manifest.js v<version> pudl-<version>-dist-manifest.json` and attach it alongside the archive and checksum. The generator reads tagged Git blobs and emits the version, tag, commit, and each file's path, byte count, SHA-256 and SHA-384 integrity value as UTF-8 with LF. Preserve this complete schema when changing release tooling.
+
    ```sh
    v=0.5.0
    git archive --format=zip --prefix=pudl-$v/ -o pudl-$v.zip v$v CHANGELOG.md LICENSE README.md dist docs/EXAMPLE.md
