@@ -29,6 +29,14 @@ function check(name, ok, detail) {
     return { height: n.height, lines: new Set(places.map(p => p.top)).size, scrolls: nav.scrollWidth > nav.clientWidth + 1, olLeft: ol.getBoundingClientRect().left - n.left, olRight: n.right - ol.getBoundingClientRect().right, places };
   }, id);
 
+  // Focus can precede the browser's scroll update. Wait for the behavior
+  // being checked, without scrolling the element from the test itself.
+  const focusedPlaceInView = index => page.waitForFunction(index => {
+    const nav = document.getElementById('deep'), link = nav.querySelectorAll('a')[index];
+    const place = link.parentElement.getBoundingClientRect(), box = nav.getBoundingClientRect();
+    return document.activeElement === link && place.left >= box.left - 1.5 && place.right <= box.right + 1.5;
+  }, index, { timeout: 5000 });
+
   async function deepBar(label) {
     const d = await read('deep');
     check(label + ': eight places on one line', d.places.length === 8 && d.lines === 1, d);
@@ -57,9 +65,11 @@ function check(name, ok, detail) {
   if (engine === 'webkit') await page.locator('#deep a').first().focus();
   else for (let i = 0; i < 6; i++) await page.keyboard.press('Shift+Tab');
   check('Shift+Tab reaches the first place', await page.evaluate(() => document.activeElement === document.querySelector('#deep a')));
+  await focusedPlaceInView(0);
   let d = await read('deep');
   check('the focused first place is scrolled into view', d.places[0].inView && !d.places[7].inView, d);
   await page.locator('#deep a').last().focus();
+  await focusedPlaceInView(6);
   d = await read('deep');
   check('focusing the last link scrolls the end back into view', d.places[6].inView, d);
 
@@ -89,6 +99,7 @@ function check(name, ok, detail) {
   const rtlShort = await read('short');
   check('right to left: a short path starts at the right', rtlShort.olRight < 1 && !rtlShort.scrolls, rtlShort);
   await page.locator('#deep a').first().focus();
+  await focusedPlaceInView(0);
   d = await read('deep');
   check('right to left: focusing the first place scrolls it into view', d.places[0].inView, d);
 
