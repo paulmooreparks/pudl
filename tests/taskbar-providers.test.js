@@ -71,7 +71,7 @@ const { launch, ROOT, out } = require('./lib');
     const newTab = page.context().waitForEvent('page');
     await pin('article-two').click({ modifiers: ['Control'] });
     const articleTab = await newTab;
-    await articleTab.waitForURL('**/taskbar-provider-article.html?id=article-two', { timeout: 5000 });
+    try { await articleTab.waitForURL('**/taskbar-provider-article.html?id=article-two', { timeout: 5000 }); } catch(error) { console.log('ARTICLEURL '+articleTab.url()+' PINS '+await page.locator('.win-bar').innerHTML()); throw error; }
     assert.equal(await articleTab.locator('h1').textContent({ timeout: 5000 }), 'Native article');
     await articleTab.close();
     const switched = await page.evaluate(async () => {
