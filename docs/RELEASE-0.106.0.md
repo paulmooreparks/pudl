@@ -1,4 +1,30 @@
-# PUDL 0.106.0 release preparation
+# PUDL 0.106.0 release verification
+
+PUDL 0.106.0 is published as [v0.106.0](https://github.com/paulmooreparks/pudl/releases/tag/v0.106.0), fixed at commit `173aeff691839deef5153f78b9533307e780345b`. It supplies taskbar stack edges, firmer Standard raised boundaries, Alloy Bold and the corrected title/detail separator. Paul authorized publication and GK Companion intake in message 5469 after accepting the visual candidate. The standalone Editor follows that delivery and the host's launcher-label correction.
+
+## Published artifacts
+
+- Archive: [pudl-0.106.0.zip](https://github.com/paulmooreparks/pudl/releases/download/v0.106.0/pudl-0.106.0.zip), 7,207,814 bytes and SHA-256 `9eb094a2c67d910e32b8b5a5d11f686b9820dd5dc33cbd61faf914021ffea2bf`.
+- Checksum: [pudl-0.106.0.zip.sha256](https://github.com/paulmooreparks/pudl/releases/download/v0.106.0/pudl-0.106.0.zip.sha256), ASCII with LF for portable checksum tools.
+- Distribution manifest: [pudl-0.106.0-dist-manifest.json](https://github.com/paulmooreparks/pudl/releases/download/v0.106.0/pudl-0.106.0-dist-manifest.json), SHA-256 `364160290db2051822b8c20d3b401b595743053b93a51ba9f218ea187f5e17bc`.
+
+The archive was built twice from the pushed tag with identical bytes. A fresh download of the public archive, checksum and manifest verified all 505 archived files against tagged Git blobs, including exactly all 196 distribution files. The ZIP comment identifies the commit. All 105 CSS/JavaScript files fetched from jsDelivr at this exact tag match those bytes, and the branch README's 25 CDN examples use their verified SHA-384 hashes. The tag and archive remain unchanged by this verification follow-up.
+
+## Completed verification and limits
+
+[Hosted run 42886505549](https://github.com/paulmooreparks/pudl/actions/runs/42886505549) passed all five jobs for the release commit. Its retained artifacts contain 165 readable suites in each of Chromium, Firefox and WebKit and 165 minified Chromium suites, for 660 successful runs. Every individual result has effective exit zero, with no printed failures or timeouts. Generated fonts, token freshness, release skin admission and minifier freshness pass. Twenty local build unit checks also passed.
+
+The final-input focused checks additionally covered readable and minified assets in all three engines. The reference page was checked in both themes, including Start, Launcher and focus return, and then checked again from the extracted package. Package closure resolves 970 local references with no omissions. Independent visual and throwaway-host reviews, including Paul's visual acceptance, are scoped below and in the linked admission record.
+
+Physical touch, manual assistive-technology acceptance and the omitted live-host chat-state cases remain unclaimed. A prior native provider-navigation timeout did not reproduce in ten focused Linux repetitions or the final full gate; its original artifact is retained and its cause remains open. The diagnosed font-fallback and focus-scroll measurement races and their reproductions are recorded below. The tag-triggered duplicate CI run [42889384107](https://github.com/paulmooreparks/pudl/actions/runs/42889384107) was still running when this receipt was written; the completed gate above checked the identical immutable commit.
+
+## Consumer handoff
+
+Dinah owns GK Companion intake. It replaces the distribution whole in both vendor locations, links Alloy Bold in the main page and separate slideshow document, removes its two separator workarounds, and verifies themes, stack membership changes and clipping before installation. The new catalogue admits Alloy Bold at stylesheet SHA-256 `c68ce257c012822cfc29a37e2050be1c1380441c2b3d8f17149239fdd848955d`. Existing skin selection and defaults remain unchanged, and no database or preference migration is required.
+
+The pre-intake host commit is the rollback. Intake should include current and pressed stacks, bold-title state chips and native destination navigation where the host offers it, in addition to the accepted geometry checks. Dinah reports the Open Document launcher-label correction already installed. After the PUDL intake is installed and verified in GK Companion, the authorized standalone Editor implementation can start under Dinah's recorded host contract. PUDL retains ownership of this release handoff until Dinah accepts it.
+
+## Preparation and gate history
 
 PUDL 0.106.0 preparation combines the accepted taskbar stack appearance, stronger Standard raised boundaries, Alloy Bold and correction of the default title/detail separator. Publication follows the full hosted release gates; the candidate review itself is not a release. Paul approved the visual candidate and in message 5469 authorized delivery into GK Companion, including publication and consumer intake after the required gates pass. The standalone Editor work follows that delivery and the host's garbled Open Document label correction.
 
