@@ -33,3 +33,13 @@ Both complete hosted gates passed on the immutable release commit: [branch run 4
 Local readable/minified Chromium, Firefox and WebKit checks cover both menu corrections, mouse switching, open-menu update continuity, provider pictures and compact host studies. The reference page passes Start, launcher and focus-return checks without browser errors in both themes, including from the downloaded archive. Package closure resolves 972 local references without omissions. Physical touch and manual assistive-technology acceptance remain unclaimed.
 
 This release retains stack edges, firmer Standard boundaries, Alloy Bold and the corrected title separator from 0.106.0. Hosts replace the complete distribution and link `pudl-skin-alloy-bold.css` in each document that offers the skin. Preferences and defaults require no migration. A yavc.app release bundling the cleared PUDL version precedes Dinah's final intake. The standalone Editor implementation starts after that delivery and the launcher-label correction are installed and verified in GK Companion.
+
+Dinah accepted and closed the published handoff after independently verifying the public archive, checksum, final manifest, tag and all 196 files in both bundles. Its main and slideshow documents link Alloy Bold, and both separator workarounds are removed. Its 24 suites and hidden desktop checks ran against those same bytes.
+
+## Installed consumer receipt
+
+Dinah reports the combined PUDL 0.106.2 and yavc.app 0.2.66 intake pushed and installed in both programs. Dinah master is `81e582ff`, installed in `~/.dinah/bin`; GK Companion main is `5c2b67ec`, installed in `~/.gkc/bin`. The matching yavc.app tag is `88220c83`, and its bundled PUDL files match Dinah's distribution byte for byte. The 488 applet-package files match their published manifest and content digest.
+
+The host reports passing Go tests, release checks, 24 scoped browser suites and hidden desktop checks for stack depth and geometry, Alloy Bold selection, title separation and skin switching. GK Companion's tests and guard pass. Its hidden checks additionally cover theme contrast, the skin catalogue, window restoration across restart and both Tableau Viewer checks. The host's complete browser suite was not run under Paul's standing instruction; touch and manual assistive-technology checks remain unclaimed. Paul gets the installed changes after restarting each program.
+
+Rollback commits are Dinah `6f5f518f` and GK Companion `c85e6f91`, which retain PUDL 0.105.0 with yavc.app 0.2.65. The installed stacked buttons and launcher correction satisfy Paul's implementation gate. Dinah reports starting the standalone Editor under the accepted host contract. PUDL's consumer handoff is closed.
