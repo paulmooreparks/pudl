@@ -73,6 +73,13 @@ for (const engine of engines) {
       const fontSession = await page.context().newCDPSession(page); await fontSession.send('DOM.enable'); await fontSession.send('CSS.enable');
       const platformFonts = async () => {const doc=await fontSession.send('DOM.getDocument');const n=await fontSession.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'.win-stack-count'});return fontSession.send('CSS.getPlatformFontsForNode',{nodeId:n.nodeId});};
       const probe = label => page.evaluate(label => ({label, fonts:document.fonts.status, entries:[...document.querySelectorAll('.win-tab,.win-tab *')].map(n=>{const s=getComputedStyle(n),r=n.getBoundingClientRect();return {tag:n.className,text:n.textContent,rect:r.toJSON(),font:s.font,fontWeight:s.fontWeight,fontFamily:s.fontFamily,letterSpacing:s.letterSpacing,fontFeatureSettings:s.fontFeatureSettings,fontVariantNumeric:s.fontVariantNumeric,fontOpticalSizing:s.fontOpticalSizing,transform:s.transform,display:s.display};})}),label).then(async x=>{x.platformFonts=await platformFonts();console.log('GEOMETRY '+JSON.stringify(x));});
+      await probe('before standard-only interaction');
+      await page.locator('main input').first().focus();
+      const warmButton=page.getByRole('button',{name:'Open',exact:true});
+      await warmButton.hover(); await page.mouse.down(); await page.mouse.up(); await page.mouse.move(0,0); await page.keyboard.press('Tab'); await warmButton.focus();
+      await page.getByRole('button',{name:'Actions',exact:true}).click(); await page.keyboard.press('Escape');
+      await page.selectOption('#skin','standard'); await settle(page);
+      await probe('after standard-only interaction');
       const controls = 'main .btn, main .form-input, main .form-select, main .form-textarea, .win, .win-head, .win-btn, .win-tab';
       for (const theme of ['light', 'dark']) {
         await page.selectOption('#theme', theme);
