@@ -1,10 +1,10 @@
 const assert = require('assert/strict');
+const fs = require('fs');
 const { launch, ROOT, out } = require('./lib');
 (async () => {
   const browser = await launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 960 } });
-    page.on('console',m=>console.log('PAGE '+m.text())); page.on('requestfailed',r=>console.log('REQUESTFAILED '+r.url()+' '+JSON.stringify(r.failure())));
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.route('**/stack-fragments/*.html', route => {
       const key = new URL(route.request().url()).pathname.split('/').at(-1).replace('.html', '');
@@ -43,22 +43,14 @@ const { launch, ROOT, out } = require('./lib');
     assert.equal(await pin('article-one').locator('.win-item-glyph').isVisible(), true, 'loading pictures retain the glyph');
     releasePicture(); releasePicture = null;
     await page.waitForFunction(() => document.querySelector('[data-win-pin="article-one"] .win-item-icon')?.naturalWidth > 0);
+    await pin('article-one').locator('.win-item-icon:not([hidden])').waitFor();
     assert.equal(await pin('article-one').locator('.win-item-icon').isVisible(), true);
-    await page.evaluate(() => {
-      window.__pictureTrace=[];
-      window.__oldPicture=document.querySelector('[data-win-pin="article-one"] .win-item-icon');
-      window.__pictureSnap=label=>{
-        const img=document.querySelector('[data-win-pin="article-one"] .win-item-icon');
-        __pictureTrace.push({label,same:img===__oldPicture,hidden:img?.hidden,complete:img?.complete,width:img?.naturalWidth,html:img?.outerHTML,glyphHidden:img?.parentElement.querySelector('.win-item-glyph')?.hidden});
-      };
-      document.addEventListener('load',e=>{if(e.target.matches?.('.win-item-icon')) __pictureSnap('load');},true);
-      __pictureSnap('before');
-      window.savedPins = pudlWindows.taskbarState(); pudlWindows.close('article-one'); pudlWindows.close('article-two');
-      __pictureSnap('after');
-    });
-    await page.evaluate(async()=>{await new Promise(requestAnimationFrame);__pictureSnap('frame');});
-    console.log('PICTURE_TRACE '+JSON.stringify(await page.evaluate(()=>__pictureTrace)));
+    await page.evaluate(() => { window.savedPins = pudlWindows.taskbarState(); pudlWindows.close('article-one'); pudlWindows.close('article-two'); });
     assert.equal(await pin('article-one').getAttribute('data-win-pin-running'), 'false');
+    /* Closing the last window replaces its button with a destination link.
+       Its new image keeps the glyph until the image's load event. */
+    assert.equal(await pin('article-one').evaluate(node => [...node.querySelectorAll('.win-item-icon,.win-item-glyph')].some(mark => !mark.hidden && mark.getClientRects().length > 0)), true, 'close-last retains a visible identity mark while its new image loads');
+    await pin('article-one').locator('.win-item-icon:not([hidden])').waitFor();
     assert.equal(await pin('article-one').locator('.win-item-icon').isVisible(), true, 'close-last keeps destination picture');
     const saved = await page.evaluate(() => savedPins);
     assert.deepEqual(saved.references, [{ id: 'article-one', provider: 'articles' }, { id: 'article-two', provider: 'articles' }]);
@@ -84,7 +76,14 @@ const { launch, ROOT, out } = require('./lib');
     const newTab = page.context().waitForEvent('page');
     await pin('article-two').click({ modifiers: ['Control'] });
     const articleTab = await newTab;
-    try { await articleTab.waitForURL('**/taskbar-provider-article.html?id=article-two', { timeout: 5000 }); } catch(error) { console.log('ARTICLEURL '+articleTab.url()+' PINS '+await page.locator('.win-bar').innerHTML()); throw error; }
+    try {
+      await articleTab.waitForURL('**/taskbar-provider-article.html?id=article-two', { timeout: 5000 });
+    } catch (error) {
+      fs.writeFileSync(out('native-navigation-failure.json'), JSON.stringify({
+        source: page.url(), target: articleTab.url(), href: await pin('article-two').getAttribute('href'), errors
+      }, null, 2));
+      throw error;
+    }
     assert.equal(await articleTab.locator('h1').textContent({ timeout: 5000 }), 'Native article');
     await articleTab.close();
     const switched = await page.evaluate(async () => {

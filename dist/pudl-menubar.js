@@ -1740,9 +1740,11 @@
     }
     if (!chordHeld(e) || e.key.length !== 1 || e.defaultPrevented) return;
     var letter = e.key.toLowerCase();
+    /* Focus may have selected another window before its queued redraw.
+       Resolve its menu before consulting the title letters. */
+    if (!currentTarget()) render();
     if (!titleLetters[letter]) return;
     e.preventDefault();
-    if (!currentTarget()) render();
     var a = document.activeElement;
     if (a && !ownsFocus(a)) returnTo = a;
     if (collapsed) {
