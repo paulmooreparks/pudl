@@ -86,3 +86,14 @@ test('Glass scopes its enhancement to the selected identifier and supplies an op
   assert.ok(!css.includes('.win-head > :is('), 'titles must not have rectangular backing patches');
   assert.ok(!/\.win \{[^}]*backdrop-filter/.test(css), 'filter must not change the containing block of window popovers');
 });
+
+test('Alloy Bold inherits shared active-title defaults and preserves Alloy controls', () => {
+  const input = skin(); input.treatment = 'alloy';
+  const alloy = compile(input);
+  input.treatment = 'alloy-bold';
+  const bold = compile(input);
+  assert.ok(!/--win-active-(?:bg|fg|border|shadow):/.test(bold));
+  const withoutTitle = alloy.replace(/^  --win-active-(?:bg|fg|border|shadow):[^\n]*\n/gm, '');
+  assert.ok(bold.includes('--win-close-hover-fg: color-mix(in srgb, var(--danger) 40%, var(--text));'));
+  assert.equal(bold.replace(/^  --win-close-hover-fg:[^\n]*\n/gm, ''), withoutTitle);
+});

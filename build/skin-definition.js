@@ -44,7 +44,7 @@ function validate(definition) {
   }
   if (typeof definition.name !== 'string' || !definition.name.trim() || definition.name.length > 80 ||
       /[\u0000-\u001f\u007f-\u009f]/.test(definition.name)) throw new Error('skin.name must be a display name');
-  if (['standard', 'bevel', 'gel', 'glaze', 'matte', 'ink', 'alloy', 'glass'].indexOf(definition.treatment) < 0) throw new Error('skin.treatment is unsupported');
+  if (['standard', 'bevel', 'gel', 'glaze', 'matte', 'ink', 'alloy', 'alloy-bold', 'glass'].indexOf(definition.treatment) < 0) throw new Error('skin.treatment is unsupported');
   keys(definition.radii, ['radius', 'radius-sm', 'radius-xs', 'radius-pill'], 'skin.radii');
   Object.keys(definition.radii).forEach(key => number(definition.radii[key], key === 'radius-pill' ? 999 : 32, 'skin.radii.' + key));
   keys(definition.palette, ['light', 'dark'], 'skin.palette');

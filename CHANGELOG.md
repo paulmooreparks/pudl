@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.106.0
+
+Taskbar stacks expose one rear edge for two windows and two for three or more, retaining the exact count and front-face state marks. The edges use existing taskbar spacing and introduce no additional layout movement. RTL mirrors them. Ordinary buttons retain clipping, and restored singleton entries lose the decoration. Existing label and count-digit sizing behavior remains compatible.
+
+Standard raised-control boundaries now use a firmer neutral outline. Flat dividers retain their existing token. Alloy Bold adds Alloy's control treatment with Standard's active-title fill and text colors. Existing skin selection and defaults remain unchanged.
+
+The title/detail separator is corrected to a single middle dot in the window stylesheet and script, including minified copies. Hosts can remove separator workarounds after verifying the corrected distribution. A custom layer separator now also reaches taskbar and chooser detail text outside the layer, matching the title and accessible names.
+
+Replace the complete distribution, including its minified assets and catalogue. Hosts offering Alloy Bold must load `pudl-skin-alloy-bold.css` in each document that renders PUDL controls. There is no preference or database migration. See [release preparation](docs/RELEASE-0.106.0.md) and [skin admission](tests/skins/RELEASE-0.106.0-ADMISSION.md).
+
 ## 0.105.0
 
 Taskbars recover space through prioritized label folding and pin aggregation. Inactive ordinary entries fold before pins. Ordinary glyph buttons remain on the taskbar with horizontal scrolling, and the active destination stays directly available. The folded Windows popup contains only Arrange taskbar, the useful Minimize all or Restore all action, and a separate final Close all windows group.

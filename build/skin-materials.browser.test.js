@@ -7,7 +7,7 @@ const path = require('node:path');
 const pw = require('playwright');
 const { compile } = require('./skin-css');
 const root = path.resolve(__dirname, '..');
-const skins = ['matte', 'ink', 'alloy', 'glass'];
+const skins = ['matte', 'ink', 'alloy', 'alloy-bold', 'glass'];
 const engines = process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['chromium', 'firefox', 'webkit'];
 const min = process.env.PUDL_MIN === '1';
 const asset = name => fs.readFileSync(path.join(root, 'dist', min ? 'min' : '', name), 'utf8');
@@ -25,7 +25,7 @@ async function routeAssets(page, fallback = false) {
   await page.route('http://materials.test/**', route => {
     let file = decodeURIComponent(new URL(route.request().url()).pathname).slice(1);
     if (min && /^dist\/[^/]+\.(css|js)$/.test(file)) file = file.replace('dist/', 'dist/min/');
-    if (min && /^samples\/skins-[a-z]+\.css$/.test(file)) file = 'dist/min/pudl-skin-' + file.match(/skins-(.*)\.css$/)[1] + '.css';
+    if (min && /^samples\/skins-[a-z-]+\.css$/.test(file)) file = 'dist/min/pudl-skin-' + file.match(/skins-(.*)\.css$/)[1] + '.css';
     const resolved = path.resolve(root, file);
     if (!resolved.startsWith(root + path.sep) || !fs.existsSync(resolved)) return route.abort();
     let body = fs.readFileSync(resolved);
@@ -109,7 +109,7 @@ for (const engine of engines) {
           fs.mkdirSync(output, { recursive: true });
           await page.screenshot({ path: path.join(output, engine + '-' + skin + '-' + theme + '.png'), fullPage: true });
         }
-        assert.equal(signatures.size, 4, 'all four skins have distinct rendered controls');
+        assert.equal(signatures.size, 4, 'the four material families have distinct rendered controls');
       }
       const host = await page.addStyleTag({ content: '[data-theme="light"] { --accent: #123456; } [data-theme="dark"] { --accent: #abcdef; }' });
       for (const theme of ['light', 'dark']) for (const skin of skins) {

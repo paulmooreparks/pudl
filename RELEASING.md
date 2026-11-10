@@ -2,6 +2,8 @@
 
 A release is a tag. Projects copy a tagged release or load one from jsDelivr, which serves files straight from the tag and caches them for good, so a tag must never move once it has been pushed. A mistake in a release is fixed by the next release.
 
+Read and write release files explicitly as UTF-8, including on Windows. An implicit legacy-codepage read followed by a UTF-8 write can corrupt punctuation and currency symbols while still producing a syntactically valid file. Inspect the diff for changes beyond the intended version fields and verify the title-separator regression before packaging.
+
 1. Choose the version. A change to what a project sees or must do, such as a new palette, a renamed token or a new required file, raises the minor number while PUDL is below 1.0. A fix that changes nothing a project relies on raises the patch number.
 2. Update the version everywhere it appears: the header comment in `dist/pudl.css`, the version link in the topbar of `reference.html`, and the "Status" section of `README.md`.
 3. If the release takes a new version of the specification, copy `tokens/`, `glyphs/` and `VERSION` from that tag of [pudl-spec](https://github.com/paulmooreparks/pudl-spec) into `vendor/pudl-spec/`, run `node build/tokens.js`, and say in the changelog which specification version the release implements. Never edit `vendor/pudl-spec/` or the token block of `dist/pudl.css` by hand; the tests fail if the block and the vendored tokens disagree.

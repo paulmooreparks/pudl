@@ -22,7 +22,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
       let name = new URL(route.request().url()).pathname.slice(1);
       if (original && baseline.has(name)) return route.fulfill({ contentType: 'text/css', body: baseline.get(name) });
       if (process.env.PUDL_MIN === '1' && name.startsWith('dist/') && /\.(css|js)$/.test(name)) name = name.replace('dist/', 'dist/min/');
-      if (process.env.PUDL_MIN === '1' && /^samples\/skins-[a-z]+\.css$/.test(name)) name = 'dist/min/pudl-skin-' + name.match(/skins-(.*)\.css$/)[1] + '.css';
+      if (process.env.PUDL_MIN === '1' && /^samples\/skins-[a-z-]+\.css$/.test(name)) name = 'dist/min/pudl-skin-' + name.match(/skins-(.*)\.css$/)[1] + '.css';
       const file = path.join(root, name);
       if (!fs.existsSync(file)) return route.fulfill({ status: 404 });
       const ext = path.extname(file);
@@ -59,7 +59,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
     for (const id of ids) for (const form of ['light', 'dark']) {
       await p.selectOption('#palette', id); await p.selectOption('#theme', form);
       const syntaxKeys = Object.keys(palette(id, form)).filter(key => key.startsWith('syntax-'));
-      for (const skin of ['standard', 'bevel', 'gel', 'glaze', 'matte', 'ink', 'alloy', 'glass']) {
+      for (const skin of ['standard', 'bevel', 'gel', 'glaze', 'matte', 'ink', 'alloy', 'alloy-bold', 'glass']) {
         await p.selectOption('#skin', skin); await settle();
         const colours = await p.evaluate(syntaxKeys => {
           const probe = document.createElement('span'); document.body.appendChild(probe);

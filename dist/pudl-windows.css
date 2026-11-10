@@ -506,10 +506,10 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   margin-inline-start: -4px;
 }
-.win-title-detail::before { content: var(--win-title-sep, " Ã‚Â· "); white-space: pre; }
+.win-title-detail::before { content: var(--win-title-sep, " · "); white-space: pre; }
 .win[data-win-edge] .win-title-detail { font-size: var(--text-sm); }
 .win-item-detail { font-weight: 500; opacity: .8; min-width: 7ch; max-width: 40%; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.win-item-detail::before { content: var(--win-title-sep, " Ã‚Â· "); white-space: pre; }
+.win-item-detail::before { content: var(--win-title-sep, " · "); white-space: pre; }
 .win-item-title:has(+ .win-item-detail:not([hidden])) { flex: 2 1 auto; min-width: 0; }
 .win-chrome { flex: none; display: inline-flex; gap: 5px; align-items: center; }
 .win-statuses { display: inline-flex; flex: none; align-items: center; gap: var(--space-1); color: inherit; }
@@ -560,7 +560,7 @@
 .win-btn:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
 .win-btn:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring); }
 .win.active > .win-head .win-btn:focus-visible { box-shadow: var(--win-chrome-focus-shadow, 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring)); }
-.win-btn[data-win-action="close"]:hover { color: var(--danger); }
+.win-btn[data-win-action="close"]:hover { color: var(--win-close-hover-fg, var(--danger)); }
 
 /* The glyphs come from here, drawn from pudl.css's glyph masks, so the
    server renders each button empty with an aria-label, and the maximise
@@ -806,8 +806,29 @@
 
 .win-stack { cursor: pointer; font-family: inherit; }
 .win-stack::before { display: none; }
-.win-stack-count { flex: none; font-variant-numeric: tabular-nums; }
+.win-stack-count { flex: none; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .win-stack[aria-expanded="true"] { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Rear faces occupy the same reserved space for every taskbar entry. Only
+   their exposed strips are painted, so they never cover the front face. */
+.win-stack-edges { display: none; }
+.win-bar .win-dock > .win-tab[data-win-stack-depth] { position: relative; overflow: visible; }
+.win-bar .win-stack-edges { display: block; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; }
+.win-bar .win-stack-edges::before, .win-bar .win-stack-edges::after {
+  content: ""; display: none; position: absolute; inset: 0;
+  box-sizing: border-box; border: 1px solid var(--text-muted); border-radius: inherit;
+  background: var(--raise-grad); pointer-events: auto;
+  clip-path: polygon(calc(100% - 2px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(100% - 2px), calc(100% - 2px) calc(100% - 2px));
+}
+.win-bar [data-win-stack-depth] > .win-stack-edges::before { display: block; transform: translate(2px, 2px); }
+.win-bar [data-win-stack-depth="2"] > .win-stack-edges::after { display: block; transform: translate(4px, 4px); }
+.win-bar .win-stack-edges:dir(rtl)::before, .win-bar .win-stack-edges:dir(rtl)::after {
+  clip-path: polygon(0 0, 2px 0, 2px calc(100% - 2px), 100% calc(100% - 2px), 100% 100%, 0 100%);
+}
+.win-bar [data-win-stack-depth] > .win-stack-edges:dir(rtl)::before { transform: translate(-2px, 2px); }
+.win-bar [data-win-stack-depth="2"] > .win-stack-edges:dir(rtl)::after { transform: translate(-4px, 4px); }
+@media (forced-colors: active) {
+  .win-bar .win-stack-edges::before, .win-bar .win-stack-edges::after { background: Canvas; border-color: CanvasText; }
+}
 /* The list has a menu's metrics (0.96.4): the panel sets its own text
    size rather than taking the body's, and a row has a menu row's padding,
    type and 14px glyph. */

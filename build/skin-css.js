@@ -221,6 +221,14 @@ const ALLOY = {
   'tb-toggle-active-shadow': 'inset 0 2px 3px color-mix(in srgb, var(--shade) 45%, transparent)'
 };
 
+/* Alloy Bold inherits the shared Standard active-title formulas in both
+   modes while retaining Alloy's component treatment. */
+const ALLOY_BOLD = {
+  ...Object.fromEntries(Object.entries(ALLOY).filter(([key]) =>
+    !['win-active-bg', 'win-active-fg', 'win-active-border', 'win-active-shadow'].includes(key))),
+  'win-close-hover-fg': 'color-mix(in srgb, var(--danger) 40%, var(--text))'
+};
+
 const GLASS = {
   ...MATERIAL,
   'focus-ring': 'color-mix(in srgb, var(--accent) 90%, var(--surface))',
@@ -246,7 +254,7 @@ const GLASS = {
   'win-shadow-active': 'inset 0 1px 0 var(--light), 0 18px 48px color-mix(in srgb, var(--shade) 40%, transparent)'
 };
 
-const TREATMENTS = { bevel: BEVEL, gel: GEL, glaze: GLAZE, matte: MATTE, ink: INK, alloy: ALLOY, glass: GLASS };
+const TREATMENTS = { bevel: BEVEL, gel: GEL, glaze: GLAZE, matte: MATTE, ink: INK, alloy: ALLOY, 'alloy-bold': ALLOY_BOLD, glass: GLASS };
 
 function glassChrome(condition) {
   const root = ':where(:root' + condition + ')';

@@ -6,6 +6,8 @@ The host sets `data-win-group`, `data-win-group-label` and optional `data-win-gr
 
 ## Membership and presentation
 
+The working stack-edge implementation draws one raised rear edge for two represented roots and two edges for three or more. The exact count remains visible, using the monospace typography token to keep equal-digit counts stable. The edges use each skin's raised paint, remain visible behind a current or pressed front face, and mirror in RTL. They occupy existing taskbar spacing, add no focus stops, and share the front button's hit target. This appearance applies inside taskbars, including aggregate pins, and is not yet published. Existing singleton labels and count-digit changes retain their ordinary sizing behavior.
+
 Stack projection uses the represented roots of each taskbar after its omit-docked filter. Two or more represented roots form a stack; one remains an ordinary window button. The expanded group retains individual buttons and may still overflow. Projection never changes the canonical window order or URL. The host must restore its chosen expanded group from its own addressable application state.
 
 A stack sits at its earliest represented member's position. Its count means represented roots, not descendants. Attention sums the represented roots' own valid attention values; running is true when any represented root has its running attribute. Descendants contribute neither value. The current taskbar reads these attributes directly from the named root, so this preserves hosts' existing aggregation choices without double-counting children. The accessible name includes running state. Progress remains on individual rows; no aggregate percentage is defined.

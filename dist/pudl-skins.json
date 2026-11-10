@@ -50,6 +50,13 @@
       "admitted": true
     },
     {
+      "id": "alloy-bold",
+      "label": "Alloy Bold",
+      "stylesheet": "pudl-skin-alloy-bold.css",
+      "sha256": "c68ce257c012822cfc29a37e2050be1c1380441c2b3d8f17149239fdd848955d",
+      "admitted": true
+    },
+    {
       "id": "glass",
       "label": "Glass",
       "stylesheet": "pudl-skin-glass.css",

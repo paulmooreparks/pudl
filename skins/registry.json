@@ -30,6 +30,11 @@
     "sha256": "c62fd11e99c0278664c897dece48bbbda0bf429aba93caaa6beb5b365555e155"
   },
   {
+    "id": "alloy-bold",
+    "admitted": true,
+    "sha256": "c68ce257c012822cfc29a37e2050be1c1380441c2b3d8f17149239fdd848955d"
+  },
+  {
     "id": "glass",
     "admitted": true,
     "sha256": "3b89d92a98c57c09c9df2833a006da47332158807cd1f6a9009c675e15711993"

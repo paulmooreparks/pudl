@@ -1692,9 +1692,9 @@ The working [compact taskbar example](samples/compact-taskbar.html) adds priorit
 
 ## Status
 
-This is version 0.105.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.106.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
-Version 0.105.0 adds prioritized taskbar folding, a pin popup and an actions-only Windows popup. The launcher fills the workspace at compact widths, retains desktop presentation and dimensions, and offers Size controls for the current layout. Hosts update the full distribution and persist desktop preference separately from compact visibility. See [the launcher contract](docs/LAUNCHER.md) and [release verification](docs/RELEASE-0.105.0.md).
+Version 0.106.0 adds raised rear edges to taskbar stacks, strengthens Standard control boundaries and introduces Alloy Bold with crisp controls and Standard active-title colors. The default title/detail separator is corrected to one middle dot. Hosts replace the full distribution and add a stylesheet link if they offer Alloy Bold. The existing default skin is unchanged. See [release preparation](docs/RELEASE-0.106.0.md).
 
 The [responsive workspace guide](docs/RESPONSIVE-WORKSPACES.md) covers narrow placement policies, compact chrome, menu overflow, splitter targets and single-pane presentation, with adoption instructions for a reader application and a tools workspace.
 

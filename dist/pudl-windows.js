@@ -680,6 +680,7 @@
       var d = detailOf(key), inStack = node.hasAttribute('data-win-stack-row') && win.getAttribute('data-win-group');
       var groupLabel = inStack ? stackMetadata(win.getAttribute('data-win-group')).label : null;
       var groupDetail = inStack ? (win.getAttribute('data-win-group-detail') || '').trim() : '';
+      styleProp(detail, '--win-title-sep', JSON.stringify(titleSep()));
       setText(detail, d); setHidden(detail, !d || d === titleOf(key) || d === groupLabel || (!!groupDetail && d === groupDetail));
     }
     var badge = node.querySelector('.win-item-attention');
@@ -2514,10 +2515,10 @@
      the window, which
      retitle's third argument sets. It is drawn after the title, in the
      title bar, the tabs and the menus, after the separator the layer's
-     data-win-text-title-sep gives, " Ã‚Â· " unless it says otherwise. The
+     data-win-text-title-sep gives, " · " unless it says otherwise. The
      title alone is what titleOf and the heading say. */
   function detailOf(key) { return (wins[key] && wins[key].getAttribute('data-win-detail') || '').trim(); }
-  function titleSep() { return text('title-sep', ' Ã‚Â· '); }
+  function titleSep() { return text('title-sep', ' · '); }
   function fullTitle(key) { var d = detailOf(key); return titleOf(key) + (d ? titleSep() + d : ''); }
   function drawDetail(key) {
     var el = wins[key], head = el && el.querySelector('.win-head'), t = head && head.querySelector('.win-title');
@@ -4772,7 +4773,9 @@
   function stackMark(button, entry) {
     var meta = stackMetadata(entry.group), count = 0, execution = stackState(entry.keys);
     entry.keys.forEach(function (k) { var n = Number(wins[k].getAttribute('data-win-attention')); if (Number.isSafeInteger(n) && n > 0) count += n; });
-    if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-state"><span class="win-state win-item-running"></span></span>';
+    if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-state"><span class="win-state win-item-running"></span></span><span class="win-stack-edges" aria-hidden="true"></span>';
+    if (entry.keys.length > 1) setAttr(button, 'data-win-stack-depth', String(Math.min(2, entry.keys.length - 1)));
+    else button.removeAttribute('data-win-stack-depth');
     styleProp(button.querySelector('.win-item-glyph'), '--glyph', 'var(--glyph-' + meta.glyph + ', var(--glyph-window))');
     destinationPicture(button, meta);
     setText(button.querySelector('.win-item-title'), meta.label);

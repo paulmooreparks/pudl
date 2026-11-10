@@ -11,7 +11,7 @@ for(const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['c
  await page.route('http://skinpreview.test/**', route => {
    let file = new URL(route.request().url()).pathname.slice(1);
    if (process.env.PUDL_MIN && /^dist\/[^/]+\.(css|js)$/.test(file)) file = file.replace('dist/', 'dist/min/');
-   if (process.env.PUDL_MIN && /^samples\/skins-[a-z]+\.css$/.test(file)) file = 'dist/min/pudl-skin-' + file.match(/skins-(.*)\.css$/)[1] + '.css';
+   if (process.env.PUDL_MIN && /^samples\/skins-[a-z-]+\.css$/.test(file)) file = 'dist/min/pudl-skin-' + file.match(/skins-(.*)\.css$/)[1] + '.css';
    if (!fs.existsSync(file)) return route.abort();
    let body=fs.readFileSync(file);
    if (file.startsWith('dist/min/') && file.endsWith('.css')) body=body.toString().replace(/url\((["']?)\.\.\//g, (_, quote) => 'url(' + quote + 'http://skinpreview.test/dist/');

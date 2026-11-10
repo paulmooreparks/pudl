@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.105.0.
+   Version 0.106.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -502,6 +502,13 @@
   --dialog-bg: var(--surface-alt);
 }
 /* END TOKENS */
+
+/* Standard control paint is separate from the vendored palette formulas.
+   Neutral boundaries remain distinct even at a shallow theme Depth. */
+:root {
+  --raise-border: var(--text-muted);
+  --raise-border-hover: var(--text);
+}
 
 /* Annotation content stays flat; only its explicit actions are raised. */
 .selection-actions { position: fixed; z-index: 90; display: flex; flex-wrap: wrap; gap: var(--space-1); }

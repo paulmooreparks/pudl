@@ -169,6 +169,8 @@ Destination metadata must be authored on templates and server-rendered roots bef
 
 ## Shared pinned section and site menus
 
+The working stack-edge implementation adds one raised rear edge to taskbar entries representing two windows and two edges for three or more, while retaining the exact count. Both pinned and ordinary stacks use the same treatment. The decoration uses existing taskbar gaps and dock padding, so it does not add entry width or row height. Rear faces use the skin's raised treatment, remain visible behind the current front face, and mirror in RTL. They are part of the same hit target and do not add accessible controls. This behavior is not yet published.
+
 The managed `.win-dock` inside a `.win-bar` now supplies its own Pinned heading and section boundary. Hosts author neither the heading nor individual pinned buttons. Empty sections disappear. The shared controller folds the heading text before entry labels, then uses More for remaining overflow. Identity glyphs and pictures use standard padding, every entry type keeps the same row height, and coarse-pointer target sizing is independent of viewport width. The host may localize the heading with `data-win-text-taskbar-pinned` on the window layer.
 
 Pinning retains the ordinary taskbar behavior. A foreground singleton minimizes on activation, a minimized window restores, and a background window raises. Multiple instances use the existing chooser. Ordering APIs, dragging, keyboard moves and Arrange taskbar operate within the selected section. A before/after move across sections returns false. Pin or Unpin changes membership explicitly. Existing root-window order URLs remain separate from saved pin preferences.

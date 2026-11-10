@@ -8,7 +8,7 @@ A skin is authored as JSON. Its stylesheet is a generated artifact. The definiti
 
 The definition validator rejects unknown properties, invalid types, unsupported treatments and out-of-range values. Passing that validator establishes only that a definition can be compiled. A skin becomes supported only after its generated appearance passes the rendered conformance matrix. The build and release checks must require both stages. A custom stylesheet added by an application is outside this validated mechanism; CSS cannot protect a page against arbitrary styles its author supplies.
 
-The schema supports the `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy` and `glass` treatment families. Adding another family requires a compiler mapping; release admission additionally requires independent rendered tests. Skin authors cannot bypass this by naming a treatment themselves. The identifier `standard` is reserved for the built-in appearance and cannot be supplied as an external skin definition.
+The schema supports the `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy`, `alloy-bold` and `glass` treatment families. Adding another family requires a compiler mapping; release admission additionally requires independent rendered tests. Skin authors cannot bypass this by naming a treatment themselves. The identifier `standard` is reserved for the built-in appearance and cannot be supplied as an external skin definition.
 
 ## Version 1 definition
 
@@ -19,7 +19,7 @@ The root object contains exactly these properties. Every property is required.
 | `version` | The integer `1` |
 | `id` | A lowercase ASCII letter followed by lowercase letters, digits or hyphens, at most 40 characters; `standard` is reserved |
 | `name` | A nonempty display name of at most 80 characters, without control characters |
-| `treatment` | `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy` or `glass` |
+| `treatment` | `standard`, `bevel`, `gel`, `glaze`, `matte`, `ink`, `alloy`, `alloy-bold` or `glass` |
 | `radii` | An object containing `radius`, `radius-sm`, `radius-xs` and `radius-pill`, each a finite nonnegative CSS-pixel number |
 | `palette` | An object containing `light` and `dark` override objects with identical token names; empty objects inherit the Standard palette |
 
@@ -116,3 +116,7 @@ Load `pudl.css` and, for windowed pages, `pudl-windows.css`, followed by the off
 Registration accepts loaded stylesheets only in this release. It does not expose a pending registration state. A host loading a skin later waits for its link's load event, registers it and then applies the preference. A load failure leaves Standard effective and retains the desired preference. This bounded contract avoids claiming that a requested but unavailable skin is already rendered.
 
 Static loaded links MAY declare `data-pudl-skin="<id>"`. The runtime registers these links before its first selection reconciliation, so a host-rendered selected skin does not temporarily fall back during startup. Invalid or unavailable declared links are rejected by the same registration rules. Dynamically inserted links still require explicit registration after loading.
+
+## Alloy Bold
+
+Alloy Bold (`alloy-bold`) retains Alloy control geometry and material treatment while inheriting the shared Standard active-title background and foreground in light and dark modes. Its close-button hover foreground mixes the danger color toward neutral text to preserve glyph contrast. Its generated stylesheet is available in the skin preview. The registry admits its exact generated hash following the [0.106.0 review record](../tests/skins/RELEASE-0.106.0-ADMISSION.md); release publication remains separate. Existing defaults and admitted skin identities remain unchanged.

@@ -74,7 +74,13 @@ const { launch, ROOT } = require('./lib');
       const ordinary = await equalRow('separate', ['window']);
       await width(560);
       assert.equal(await equalRow('stacked', ['stack', 'window']), ordinary);
-      assert.equal(await page.locator('#probe').evaluate(dock => Array.from(dock.children).every(node => node.scrollHeight <= node.clientHeight + 1)), true, 'no entry clips its content');
+      assert.equal(await page.locator('#probe').evaluate(dock => Array.from(dock.children).every(node => {
+        const box = node.getBoundingClientRect();
+        /* Rear faces deliberately paint into the dock's reserved padding.
+           Check the foreground content bounds independently of that paint. */
+        return Array.from(node.children).filter(child => !child.classList.contains('win-stack-edges') && child.getClientRects().length)
+          .every(child => { const content = child.getBoundingClientRect(); return content.top >= box.top - .5 && content.bottom <= box.bottom + .5; });
+      })), true, 'no entry clips its foreground content');
     });
     await scenario('a narrow layout keeps stacks and windows level', async () => {
       await page.setViewportSize({ width: 520, height: 900 });
