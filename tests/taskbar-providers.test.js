@@ -44,7 +44,20 @@ const { launch, ROOT, out } = require('./lib');
     releasePicture(); releasePicture = null;
     await page.waitForFunction(() => document.querySelector('[data-win-pin="article-one"] .win-item-icon')?.naturalWidth > 0);
     assert.equal(await pin('article-one').locator('.win-item-icon').isVisible(), true);
-    await page.evaluate(() => { window.savedPins = pudlWindows.taskbarState(); pudlWindows.close('article-one'); pudlWindows.close('article-two'); });
+    await page.evaluate(() => {
+      window.__pictureTrace=[];
+      window.__oldPicture=document.querySelector('[data-win-pin="article-one"] .win-item-icon');
+      window.__pictureSnap=label=>{
+        const img=document.querySelector('[data-win-pin="article-one"] .win-item-icon');
+        __pictureTrace.push({label,same:img===__oldPicture,hidden:img?.hidden,complete:img?.complete,width:img?.naturalWidth,html:img?.outerHTML,glyphHidden:img?.parentElement.querySelector('.win-item-glyph')?.hidden});
+      };
+      document.addEventListener('load',e=>{if(e.target.matches?.('.win-item-icon')) __pictureSnap('load');},true);
+      __pictureSnap('before');
+      window.savedPins = pudlWindows.taskbarState(); pudlWindows.close('article-one'); pudlWindows.close('article-two');
+      __pictureSnap('after');
+    });
+    await page.evaluate(async()=>{await new Promise(requestAnimationFrame);__pictureSnap('frame');});
+    console.log('PICTURE_TRACE '+JSON.stringify(await page.evaluate(()=>__pictureTrace)));
     assert.equal(await pin('article-one').getAttribute('data-win-pin-running'), 'false');
     assert.equal(await pin('article-one').locator('.win-item-icon').isVisible(), true, 'close-last keeps destination picture');
     const saved = await page.evaluate(() => savedPins);

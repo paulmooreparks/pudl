@@ -13,6 +13,15 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   const errors = [], warnings = [];
   const ctx = await b.newContext({ viewport: { width: 1400, height: 800 } });
   const p = await ctx.newPage();
+  await p.addInitScript(() => {
+    window.__trace = [];
+    for (const type of ['keydown', 'keyup', 'focusin', 'focusout', 'blur', 'toggle']) {
+      window.addEventListener(type, e => {
+        const panel = document.getElementById('menubar-panel');
+        window.__trace.push({type, key:e.key, alt:e.altKey, target:e.target.id || e.target.className, active:document.activeElement?.outerHTML.slice(0,300), open:panel?.matches(':popover-open'), time:performance.now()});
+      }, true);
+    }
+  });
   p.on('pageerror', e => errors.push(e.message));
   p.on('console', m => { if (m.type() === 'warning' && /pudl-menubar/.test(m.text())) warnings.push(m.text()); });
   await p.goto(FIX);
@@ -20,7 +29,7 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   const log = () => p.evaluate(() => window.__log.splice(0));
   const active = () => p.evaluate(() => { const a = document.activeElement; return a.id || (a.classList.contains('menubar-title') ? 'title:' + a.textContent.trim() : a.querySelector && a.querySelector('.menubar-words') ? 'row:' + a.querySelector('.menubar-words').textContent : a.tagName); });
   const panelOpen = () => p.evaluate(() => { const m = document.getElementById('menubar-panel'); return m && m.matches(':popover-open'); });
-  const waitOpen = () => p.waitForFunction(() => { const m = document.getElementById('menubar-panel'); return m.matches(':popover-open') && !m.classList.contains('placing'); });
+  const waitOpen = async () => { try { await p.waitForFunction(() => { const m = document.getElementById('menubar-panel'); return m.matches(':popover-open') && !m.classList.contains('placing'); }, null, {timeout:5000}); } catch(e) { console.log('MENU_TRACE '+JSON.stringify(await p.evaluate(() => window.__trace))); throw e; } };
   /* Escape closes the panel; the next key waits for the close to settle,
      as a person's next press would. */
   const escape = async () => { await p.keyboard.press('Escape'); await p.waitForFunction(() => !document.getElementById('menubar-panel').matches(':popover-open')); };
