@@ -15,8 +15,14 @@ const FIX = ROOT + '/tests/fixtures/desktop-menubar.html';
   const p = await ctx.newPage();
   await p.addInitScript(() => {
     window.__trace=[];
+    const content=Object.getOwnPropertyDescriptor(Node.prototype,'textContent');
+    Object.defineProperty(Node.prototype,'textContent',{get:content.get,set(value){
+      if(this.id==='menubar-panel' && this.contains(document.activeElement)) __trace.push({type:'clear-focused-panel',stack:new Error().stack,time:performance.now()});
+      content.set.call(this,value);
+    }});
     for(const type of ['keydown','keyup','focusin','focusout','toggle']) window.addEventListener(type,e=>{
-      window.__trace.push({type,key:e.key,alt:e.altKey,target:e.target.id||e.target.className,active:document.activeElement?.outerHTML.slice(0,400),open:document.getElementById('menubar-panel')?.matches(':popover-open'),time:performance.now()});
+      if(type==='focusin' && e.target.classList?.contains('menu-action')) window.__lastFocus=e.target;
+      window.__trace.push({type,key:e.key,alt:e.altKey,target:e.target.id||e.target.className,active:document.activeElement?.outerHTML.slice(0,400),lastConnected:window.__lastFocus?.isConnected,lastVisibility:window.__lastFocus && getComputedStyle(__lastFocus).visibility,open:document.getElementById('menubar-panel')?.matches(':popover-open'),time:performance.now()});
     },true);
   });
   p.on('pageerror', e => errors.push(e.message));
