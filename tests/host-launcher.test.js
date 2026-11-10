@@ -108,6 +108,7 @@ const { launch, ROOT, out } = require('./lib');
         await page.screenshot({ path: out('host-' + kind + '-' + theme + '.png') });
       }
       await page.setViewportSize({ width: 390, height: 844 });
+      await page.waitForFunction(() => pudlLauncher.state(document.getElementById('host-launcher')).compact);
       await page.waitForFunction(() => document.documentElement.scrollWidth <= innerWidth);
       await checkTaskbar();
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

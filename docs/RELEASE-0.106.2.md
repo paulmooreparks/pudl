@@ -14,6 +14,8 @@ The provider picture failure was a test-readiness error. Replacing a running win
 
 Original failures and diagnostic Linux source/minified artifacts are retained under `tests/output`. Instrumentation was removed from the corrected repetition tests.
 
+A separate 0.106.1 full minified Chromium run failed the host study's immediate pin-visibility assertion after resizing to a compact viewport. The test now waits for the launcher's reported compact state before asserting the resulting controls, matching its existing wait when returning to the desktop viewport. The overflow and visibility assertions remain unchanged. Runtime launcher code is unchanged, and diagnostic repetitions retain the original failure for comparison.
+
 ## Gates and intake
 
 Local Chromium, Firefox and WebKit checks cover the menu corrections, mouse switching, open-menu update continuity and provider pictures. The full hosted matrices, source/minified Linux repetitions, generated assets, archive closure and public artifact verification remain required before handoff.
