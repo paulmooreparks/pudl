@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         minified: ['0', '1']
-        wait: ['0', '1']
+        suite: ['desktop-menubar', 'taskbar-providers']
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,15 +22,14 @@ jobs:
       - run: |
           status=0
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            PUDL_RUN_OUTPUT=tests/output/path-$attempt node tests/run.js webkit path-bar || status=1
+            PUDL_RUN_OUTPUT=tests/output/probe-$attempt node tests/run.js webkit ${{ matrix.suite }} || status=1
           done
           exit $status
         env:
           PUDL_MIN: ${{ matrix.minified }}
-          PUDL_PATH_WAIT: ${{ matrix.wait }}
           PUDL_JOBS: '1'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: path-${{ matrix.minified }}-${{ matrix.wait }}
+          name: probe-${{ matrix.minified }}-${{ matrix.suite }}
           path: tests/output/
