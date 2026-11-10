@@ -9,6 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         minified: ['0', '1']
+        wait: ['0', '1']
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,20 +18,19 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps webkit
       - run: |
           status=0
-          node tests/run.js chromium skins || status=1
-          for attempt in 1 2 3 4 5; do
-            PUDL_RUN_OUTPUT=tests/output/provider-$attempt node tests/run.js chromium taskbar-providers || status=1
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            PUDL_RUN_OUTPUT=tests/output/path-$attempt node tests/run.js webkit path-bar || status=1
           done
           exit $status
         env:
           PUDL_MIN: ${{ matrix.minified }}
+          PUDL_PATH_WAIT: ${{ matrix.wait }}
           PUDL_JOBS: '1'
-          PUDL_RUN_OUTPUT: tests/output/probe
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: probe-${{ matrix.minified }}
+          name: path-${{ matrix.minified }}-${{ matrix.wait }}
           path: tests/output/

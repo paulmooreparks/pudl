@@ -89,8 +89,16 @@ function check(name, ok, detail) {
   const rtlShort = await read('short');
   check('right to left: a short path starts at the right', rtlShort.olRight < 1 && !rtlShort.scrolls, rtlShort);
   await page.locator('#deep a').first().focus();
+  if (process.env.PUDL_PATH_WAIT === '1') await page.waitForFunction(() => {
+    const n=document.querySelector('#deep'),a=n.querySelector('a'),r=a.getBoundingClientRect(),b=n.getBoundingClientRect();
+    return document.activeElement===a && r.left>=b.left-1.5 && r.right<=b.right+1.5;
+  },null,{timeout:5000});
   d = await read('deep');
+  console.log('RTLINITIAL '+JSON.stringify({state:d,active:await page.evaluate(()=>document.activeElement.outerHTML),fonts:await page.evaluate(()=>document.fonts.status)}));
   check('right to left: focusing the first place scrolls it into view', d.places[0].inView, d);
+
+  await settle(); console.log('RTLAFTER2 '+JSON.stringify(await read('deep')));
+  await settle(); console.log('RTLAFTER4 '+JSON.stringify(await read('deep')));
 
   /* Forced colours keep the drawn separators. */
   await page.goto(ROOT + '/tests/fixtures/path-bar.html');
