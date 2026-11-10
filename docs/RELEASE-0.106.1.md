@@ -1,5 +1,7 @@
 # PUDL 0.106.1 verification
 
+The tag is fixed at `2c525b97f726fb673471a139c433dec640c0f539` and its GitHub release remains an unpublished draft. Repeated Linux checks found a second menu defect, where a stationary pointer boundary event switches the open menu and removes its focused row. The corrected release will be 0.106.2. No 0.106.1 intake is authorized by this record.
+
 PUDL 0.106.1 corrects a desktop menu race found during the duplicate 0.106.0 tag gate. Publication and consumer intake remain pending the complete gates. The 0.106.0 tag and assets remain immutable and its release is marked prerelease with a hold notice.
 
 ## Cause and correction

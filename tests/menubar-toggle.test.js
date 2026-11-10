@@ -29,6 +29,15 @@ function check(name, ok) {
   await second.focus();
   await p.keyboard.press('Enter');
   check('Enter opens the focused title', await isOpen());
+  const stationaryBoundary = await p.evaluate(() => {
+    const panel = document.getElementById('menubar-panel');
+    const focused = document.activeElement, anchor = panel.getAttribute('data-menu-anchor');
+    const other = [...document.querySelectorAll('.menubar-title')].find(t => t.id !== anchor && t.offsetParent && !t.closest('.menubar-one'));
+    /* Layout changes can send pointerover without pointer movement. */
+    other.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
+    return panel.getAttribute('data-menu-anchor') === anchor && document.activeElement === focused && panel.contains(focused);
+  });
+  check('a stationary pointer boundary event preserves the keyboard menu and focus', stationaryBoundary);
   await second.focus();
   await p.keyboard.press('Enter');
   check('Enter still moves focus into the open menu', await isOpen() && await panel.evaluate(el => el.contains(document.activeElement)));

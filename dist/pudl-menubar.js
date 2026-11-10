@@ -1559,8 +1559,9 @@
       toggle(t, e.detail === 0);
       return;
     }
-    /* With a panel open, moving to another title opens its panel. */
-    if (e.type === 'pointerover' && openTitle && openTitle !== t && panel.matches(':popover-open') && !t._menu.all && !openTitle._menu.all) open(t, null);
+    /* Boundary events also follow layout changes under a stationary
+       pointer. Only pointer movement switches an open keyboard menu. */
+    if (e.type === 'pointermove' && openTitle && openTitle !== t && panel.matches(':popover-open') && !t._menu.all && !openTitle._menu.all) open(t, null);
   }
 
   /* A row's click is the bar's alone: pudl-menu.js would close the panel
@@ -2227,7 +2228,7 @@
     document.addEventListener('pointerdown', rememberTaskbarReturn, true);
     document.addEventListener('focusin', rememberTaskbarReturn);
     built.addEventListener('click', onBarPointer);
-    built.addEventListener('pointerover', onBarPointer);
+    built.addEventListener('pointermove', onBarPointer);
     bar.addEventListener('keydown', onKey);
     function titleContext(e) {
       var title = e.target.closest && e.target.closest('.menubar-title');

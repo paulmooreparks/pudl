@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.106.2
+
+An open menu now switches titles on pointer movement rather than a pointer boundary event. Layout changes can send a boundary event under a stationary pointer; treating that event as movement could replace a keyboard-opened menu and remove its focused command. The regression checks that layout-only boundary events preserve the panel and focus, while ordinary mouse movement still switches titles.
+
+This patch includes the mnemonic ordering correction from the unpublished 0.106.1 tag and all 0.106.0 features. Hosts replace the full distribution; existing preferences require no migration.
+
 ## 0.106.1
 
 A desktop title mnemonic now refreshes the active window's menu before looking up its letter. A key arriving immediately after focus switches windows can therefore open the newly active applet's menu before the scheduled redraw. The regression keeps focus change and key dispatch in one task and fails on the previous ordering.
