@@ -70,6 +70,10 @@ for (const engine of engines) {
         keptInput.value = 'Retained material edits';
         window.keptWindow = document.querySelector('.win[data-win="editor"]');
       }, skins);
+      // Compare skins with a committed font, including the count. Linux Chromium
+      // can change the platform monospace fallback while its CSS family is unchanged.
+      // Default-font stack behavior is covered by taskbar-stack-edges.test.js.
+      await page.addStyleTag({ content: ':root { --mono: "Inter"; }' });
       const controls = 'main .btn, main .form-input, main .form-select, main .form-textarea, .win, .win-head, .win-btn, .win-tab';
       for (const theme of ['light', 'dark']) {
         await page.selectOption('#theme', theme);

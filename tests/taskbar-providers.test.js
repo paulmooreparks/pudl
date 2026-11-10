@@ -1,4 +1,5 @@
 const assert = require('assert/strict');
+const fs = require('fs');
 const { launch, ROOT, out } = require('./lib');
 (async () => {
   const browser = await launch();
@@ -70,7 +71,14 @@ const { launch, ROOT, out } = require('./lib');
     const newTab = page.context().waitForEvent('page');
     await pin('article-two').click({ modifiers: ['Control'] });
     const articleTab = await newTab;
-    await articleTab.waitForURL('**/taskbar-provider-article.html?id=article-two', { timeout: 5000 });
+    try {
+      await articleTab.waitForURL('**/taskbar-provider-article.html?id=article-two', { timeout: 5000 });
+    } catch (error) {
+      fs.writeFileSync(out('native-navigation-failure.json'), JSON.stringify({
+        source: page.url(), target: articleTab.url(), href: await pin('article-two').getAttribute('href'), errors
+      }, null, 2));
+      throw error;
+    }
     assert.equal(await articleTab.locator('h1').textContent({ timeout: 5000 }), 'Native article');
     await articleTab.close();
     const switched = await page.evaluate(async () => {
