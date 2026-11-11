@@ -56,6 +56,7 @@ function check(name, ok, detail) {
   check('the collapsed menu lists one identity with File beside shared titles', await panel.getByRole('menuitem', { name: 'Example', exact: true }).count() === 1 && await panel.getByRole('menuitem', { name: 'File', exact: true }).count() === 1 && !await panel.getByText('Notes', { exact: true }).count());
   await p.keyboard.press('Escape');
   await p.setViewportSize({ width: 1600, height: 800 });
+  await p.waitForFunction(() => !document.querySelector('.menubar-collapsed'));
   await p.locator('#note').focus();
   await identity.focus();
   await p.keyboard.press('Enter');

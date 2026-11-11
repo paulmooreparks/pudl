@@ -1694,9 +1694,9 @@ The working [compact taskbar example](samples/compact-taskbar.html) adds priorit
 
 ## Status
 
-This is version 0.107.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.107.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
-Version 0.107.0 adds opt-in single-application menu composition for standalone document hosts. The host and active content share one menu group, collapsed menu and ribbon while keeping their command ownership. Existing workspace bars retain their separate groups.
+Version 0.107.1 adds opt-in single-application menu composition for standalone document hosts. The host and active content share one menu group, collapsed menu and ribbon while keeping their command ownership. Existing workspace bars retain their separate groups.
 
 Version 0.106.2 includes the corrected immediate window-menu mnemonic lookup and preserves keyboard menu focus when layout changes beneath a stationary pointer. It retains the 0.106.0 features described below. See [the patch verification](docs/RELEASE-0.106.2.md).
 

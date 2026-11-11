@@ -14,9 +14,11 @@ Menus describe the scope of their commands. Opening a menu does not change the a
 
 ## Single-application bar
 
-Since 0.107.0, a host can set `data-menubar-composition="application"` on its `data-menubar` element when its active content is the application itself. PUDL draws the host and active content as one raised group with the host's identity and one hamburger. The default workspace presentation keeps separate site and applet groups.
+Since 0.107.1, a host can set `data-menubar-composition="application"` on its `data-menubar` element when its active content is the application itself. PUDL draws the host and active content as one raised group with the host's identity and one hamburger. The default workspace presentation keeps separate site and applet groups.
 
 The first title returned by the applet remains its identity. Its commands appear before the host identity's commands, with a separator when both contain entries. The host should put Close Window last in its own identity list. PUDL does not infer command roles from translated labels.
+
+While its commands initialize, an applet can return one identity title with an empty `items` array. An empty `titles` array instead selects the existing generic content-menu fallback, which includes Copy Link. An explicit empty identity prevents that temporary fallback without publishing unavailable commands.
 
 The combined title order is Application, File, Edit, View, domain titles, Window and Help. Other host titles retain their relative order among domain titles. Shared contributions still follow the host's entries, but their applet-name heading is omitted. Resident and Pins groups remain separate.
 

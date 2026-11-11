@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.107.1
+
+The application regression now waits for the menu bar to finish expanding before giving keyboard focus to its identity. In Linux WebKit the previous test sent Enter while that title was still hidden, leaving focus in the document. A recorded comparison reproduced that sequence in six readable and minified runs; all six runs with the readiness wait passed. The menu runtime is unchanged from 0.107.0.
+
+This patch carries the single-application composition feature below. Version 0.107.0 remains unpublished after its full gates found the readiness error. Hosts replace the complete distribution and set `data-menubar-composition="application"` on their standalone document bar. See [verification](docs/RELEASE-0.107.1.md).
+
 ## 0.107.0
 
 A document application can opt into `data-menubar-composition="application"` to combine its host and active content into one menu group. The applet's identity commands join the application identity, and its File, Edit and domain menus share the main bar with View, Window and Help. The collapsed menu and ribbon use the same composition. Commands retain their original source and shortcut scope. Existing workspace bars keep their separate groups.
