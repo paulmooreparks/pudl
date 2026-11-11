@@ -393,6 +393,37 @@
     return sameSource(frontSrc, findFront()) && (!menuScope || (menuScope.key === f.key && menuScope.scope === f.scope));
   }
 
+  function applicationComposition() { return bar.getAttribute('data-menubar-composition') === 'application'; }
+
+  /* Display entries retain their semantic menu and command owners. */
+  function layoutGroups(all) {
+    var host = all.find(function (m) { return m.kind === 'host'; });
+    var front = all.find(function (m) { return m.kind === 'front'; });
+    return all.filter(function (m) { return !applicationComposition() || m !== front; }).map(function (m) {
+      var entries = m.titles.map(function (t) { return { menu: m, title: t }; });
+      var kind = m.kind;
+      if (applicationComposition() && m === host) {
+        kind = 'application';
+        if (front) entries = entries.concat(front.titles.filter(function (t) { return t !== front.identity; }).map(function (t) { return { menu: front, title: t }; }));
+        function rank(e) {
+          var id = e.title.id;
+          return id === 'site' ? 0 : id === 'file' ? 1 : id === 'edit' ? 2 : id === 'view' ? 3 : id === 'window' ? 5 : id === 'help' ? 6 : 4;
+        }
+        entries.sort(function (a, b) { return rank(a) - rank(b); });
+      }
+      return { kind: kind, name: m.name, entries: entries, source: m };
+    });
+  }
+
+  function displayItems(m, t, all) {
+    if (applicationComposition() && m.kind === 'host' && t.id === 'site') {
+      var front = all.find(function (entry) { return entry.kind === 'front'; });
+      var identity = front && front.identity;
+      if (identity && identity.items.length) return identity.items.concat(t.items.length ? ['-'] : [], t.items);
+    }
+    return t.items;
+  }
+
   function assemble() {
     var host = hostMenu();
     var front = frontMenu(frontSrc);
@@ -419,6 +450,7 @@
         return true;
       });
       var identity = front.titles.shift();
+      front.identity = identity;
       front.titles.sort(function (a, b) {
         function rank(t) { return t.id === 'file' ? 0 : t.id === 'edit' ? 1 : 2; }
         return rank(a) - rank(b);
@@ -434,7 +466,7 @@
           }
           return true;
         });
-        if (add.length) target.items = target.items.concat(target.items.length ? ['-', { heading: front.name }] : [{ heading: front.name }], add);
+        if (add.length) target.items = target.items.concat(target.items.length ? ['-'] : [], applicationComposition() ? [] : [{ heading: front.name }], add);
       });
     }
     var all = [host].concat(residentMenus(), [pinsMenu(), front]).filter(Boolean);
@@ -446,11 +478,15 @@
        their chords; then each panel's rows, and its shortcuts. */
     titleLetters = {};
     var taken = {};
-    all.forEach(function (m) { m.titles.forEach(function (t) { t.letter = letterFor(t, taken, m.name + ': the title'); if (t.letter) titleLetters[t.letter] = t.label; }); });
+    layoutGroups(all).forEach(function (g) { g.entries.forEach(function (e) { var t = e.title; t.letter = letterFor(t, taken, g.name + ': the title'); if (t.letter) titleLetters[t.letter] = t.label; }); });
+    layoutGroups(all).forEach(function (g) { g.entries.forEach(function (e) { var items = displayItems(e.menu, e.title, all); check(items, e.menu.name); letters(items, e.menu.name + ': ' + e.title.label); }); });
     bound = [];
     all.forEach(function (m) {
       var keys = {};
-      m.titles.forEach(function (t) { check(t.items, m.name); letters(t.items, m.name + ': ' + t.label); listKeys(t.items, m, t, keys); });
+      m.titles.forEach(function (t) {
+        var shown = applicationComposition() && m.kind === 'front' && t === m.identity ? host.titles[0] : t;
+        listKeys(t.items, m, shown, keys);
+      });
     });
     return all;
   }
@@ -764,11 +800,11 @@
      take the menus just assembled. */
   function rebind() {
     var groups = built.querySelectorAll(':scope > .menubar-menu:not(.menubar-one)');
-    menus.forEach(function (m, i) {
-      var g = groups[i];
+    layoutGroups(menus).forEach(function (group, i) {
+      var g = groups[i], m = group.source;
       if (!g) return;
       var buttons = g.querySelectorAll(':scope > .menubar-title:not(.menubar-pins-more)');
-      m.titles.forEach(function (t, j) { if (buttons[j]) buttons[j]._menu = { menu: m, title: t }; });
+      group.entries.forEach(function (e, j) { if (buttons[j]) buttons[j]._menu = { menu: e.menu, title: e.title }; });
       var more = g.querySelector(':scope > .menubar-pins-more');
       if (more && m.pins) more._menu = { menu: m, title: { id: 'pins-items', label: text('items', 'Items'), items: m.pins.map(pinRow) } };
     });
@@ -897,7 +933,7 @@
       return pins ? pins.pins.map(pinRow) : [];
     }
     var fresh = findTitle(info.menu.kind, info.title.label);
-    return fresh ? fresh.items : info.title.items;
+    return displayItems(info.menu, fresh || info.title, menus);
   }
 
   /* The open panel brought to the commands now, under title, the same
@@ -1014,7 +1050,7 @@
        read afresh as each opens, and nothing is laid out. Bringing another
        window to the front often leaves the bar as it was, and building
        and measuring it again each time cost startup the most. */
-    var sig = menus.map(function (m) {
+    var sig = String(applicationComposition()) + ';' + menus.map(function (m) {
       return [m.kind, m.name, m.titles.map(function (t) { return (t.id || '') + ':' + t.label + ':' + (t.letter || '') + ':' + (t.content ? t.content.length : '') + ':' + (t.glyph || ''); }).join(','),
         (m.pins || []).map(function (p) { return p.label + '@' + p.href; }).join(',')].join('|');
     }).join(';');
@@ -1038,8 +1074,9 @@
     built.textContent = '';
 
     /* The full bar: each menu a raised group, its glyph first. */
-    menus.forEach(function (m) {
-      var g = el('div', 'menubar-menu' + (m.kind === 'front' ? ' menubar-front' : m.kind === 'pins' ? ' menubar-pins' : m.kind === 'resident' ? ' menubar-resident' : ''), { role: 'group', 'aria-label': m.name });
+    layoutGroups(menus).forEach(function (group) {
+      var m = group.source;
+      var g = el('div', 'menubar-menu' + (group.kind === 'application' ? ' menubar-application' : m.kind === 'front' ? ' menubar-front' : m.kind === 'pins' ? ' menubar-pins' : m.kind === 'resident' ? ' menubar-resident' : ''), { role: 'group', 'aria-label': m.name });
       var glyph = el('button', 'menubar-glyph', { type: 'button', tabindex: '-1', role: 'menuitem', 'aria-label': m.name, 'aria-haspopup': 'menu', 'aria-expanded': 'false' });      /* Open after the pointer gesture, so popover light dismiss cannot
          close a panel that was opened during the same pointer-down. */
       glyph.addEventListener('click', function (e) {
@@ -1049,7 +1086,7 @@
       });
       if (m.kind === 'host' && bar.hasAttribute('data-menubar-launcher')) glyph.setAttribute('popovertarget', bar.getAttribute('data-menubar-launcher'));
       g.appendChild(glyph);
-      m.titles.forEach(function (t) { g.appendChild(titleButton(t, m)); });
+      group.entries.forEach(function (e) { g.appendChild(titleButton(e.title, e.menu)); });
       if (m.kind === 'pins' && m.pins.length) {
         m.pins.forEach(function (p) { g.appendChild(pinLink(p)); });
         var more = titleButton({ id: 'pins-items', label: text('items', 'Items'), items: m.pins.map(pinRow) }, m);
@@ -1329,7 +1366,8 @@
      title leading to its commands. */
   function allItems() {
     var list = [];
-    menus.forEach(function (m, mi) {
+    layoutGroups(menus).forEach(function (group, mi) {
+      var m = group.source;
       if (mi) list.push('-');
       list.push({ heading: m.name });
       /* The Pins menu is short, so its commands stand in the section
@@ -1340,9 +1378,10 @@
         m.pins.forEach(function (pin) { list.push(pinRow(pin)); });
         return;
       }
-      m.titles.forEach(function (t) {
-        if (m.kind === 'host' && t.id === 'site' && bar.hasAttribute('data-menubar-launcher')) list.push({ id: t.id, label: (bar.getAttribute('data-menubar-launcher-label') || '').trim() || 'Open launcher', glyph: 'app', run: function () { requestLauncher(launcherControl, true, 'first'); } });
-        else list.push({ id: t.id, label: t.label, items: t.items, letter: t.letter, _title: t });
+      group.entries.forEach(function (e) {
+        var t = e.title;
+        if (e.menu.kind === 'host' && t.id === 'site' && bar.hasAttribute('data-menubar-launcher')) list.push({ id: t.id, label: (bar.getAttribute('data-menubar-launcher-label') || '').trim() || 'Open launcher', glyph: 'app', run: function () { requestLauncher(launcherControl, true, 'first'); } });
+        else list.push({ id: t.id, label: t.label, items: displayItems(e.menu, t, menus), letter: t.letter, _title: t });
       });
     });
     return list;
@@ -1865,7 +1904,7 @@
     });
   }
 
-  function sideOf(t) { return t._menu.menu.kind === 'front' ? 'front' : 'host'; }
+  function sideOf(t) { return !applicationComposition() && t._menu.menu.kind === 'front' ? 'front' : 'host'; }
 
   function chooseTab(t, focusWhere) {
     var side = sideOf(t);
@@ -1970,7 +2009,7 @@
     var label = t._menu.title.label;
     var fresh = findTitle(t._menu.menu.kind, label);
     var tb = el('div', 'toolbar', { role: 'toolbar', id: rowId, 'aria-label': label, 'data-toolbar-fold': '', 'data-toolbar-captions': bar.getAttribute('data-menubar-ribbon-captions') || 'none' });
-    ribbonGroups(fresh ? fresh.items : t._menu.title.items, label).forEach(function (g) { tb.appendChild(g); });
+    ribbonGroups(displayItems(t._menu.menu, fresh || t._menu.title, menus), label).forEach(function (g) { tb.appendChild(g); });
     if (old && old.getAttribute('aria-label') === label) { reconcileRibbon(old, tb, t); return; }
     var focusedCommand = old && old.contains(document.activeElement) ? document.activeElement._item : null;
     if (old) old.replaceWith(tb); else ribbonRow.appendChild(tb);

@@ -12,6 +12,16 @@ Each group forms one slightly raised surface around its glyph, identity, and men
 
 Menus describe the scope of their commands. Opening a menu does not change the active content or selection on which those commands operate. Settings labels distinguish this instance's settings from defaults for future instances where both exist.
 
+## Single-application bar
+
+Since 0.107.0, a host can set `data-menubar-composition="application"` on its `data-menubar` element when its active content is the application itself. PUDL draws the host and active content as one raised group with the host's identity and one hamburger. The default workspace presentation keeps separate site and applet groups.
+
+The first title returned by the applet remains its identity. Its commands appear before the host identity's commands, with a separator when both contain entries. The host should put Close Window last in its own identity list. PUDL does not infer command roles from translated labels.
+
+The combined title order is Application, File, Edit, View, domain titles, Window and Help. Other host titles retain their relative order among domain titles. Shared contributions still follow the host's entries, but their applet-name heading is omitted. Resident and Pins groups remain separate.
+
+The collapsed menu and ribbon use the same composition. Applet commands retain their source, current enabled state and content shortcut scope; composition does not turn them into host commands. The site-menu pin APIs still describe the semantic host titles and do not expose the applet's File or Edit menus as site destinations. A host launcher, when configured, continues to own its identity control, so a document application that needs the merged identity commands must leave `data-menubar-launcher` unset.
+
 ## Site bar
 
 The standard order is **Site name, Go, Applets, View, Window, Help**. A site omits menus for which it has no meaningful commands. The remaining menus retain their relative order. Site-specific menus may appear after Applets and before View when their purpose cannot fit a standard menu. They must not become destinations for applet command contributions.

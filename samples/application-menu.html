@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en-US" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Single-application menu</title>
+  <link rel="stylesheet" href="../dist/pudl.css">
+  <script src="../dist/pudl-menu.js" defer></script>
+  <script src="../dist/pudl-applets.js" defer></script>
+  <script src="application-menu.js" defer></script>
+  <script src="../dist/pudl-menubar.js" defer></script>
+  <script src="../dist/pudl-toolbar.js" defer></script>
+  <style>
+    body { margin: 0; }
+    .topbar { justify-content: flex-start; padding: 6px 12px; }
+    main { max-width: 60rem; margin: auto; padding: var(--space-4); }
+    textarea { width: 100%; min-height: 16rem; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <nav class="menubar" data-menubar data-menubar-composition="application" data-menubar-ribbon aria-label="Notebook">
+      <ul data-menubar-source hidden>
+        <li data-menubar-id="site">Notebook
+          <ul><li><a href="../docs/MENU-BARS.md">Menu conventions</a></li></ul>
+        </li>
+        <li data-menubar-id="view">View<ul></ul></li>
+        <li data-menubar-id="help">Help
+          <ul><li><a href="../reference.html">PUDL reference</a></li></ul>
+        </li>
+      </ul>
+      <a class="brand" href="../reference.html">Notebook</a>
+    </nav>
+    <div class="topbar-chrome"></div>
+  </header>
+  <main>
+    <h1>One document, one application</h1>
+    <p>This sample combines the page's identity with the document's commands. File and Edit share its menu surface with View and Help. Narrow the window or choose Show as ribbon to see the same composition in those presentations.</p>
+    <div data-applet="application-note"></div>
+  </main>
+</body>
+</html>

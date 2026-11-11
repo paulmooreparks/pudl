@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.107.0
+
+A document application can opt into `data-menubar-composition="application"` to combine its host and active content into one menu group. The applet's identity commands join the application identity, and its File, Edit and domain menus share the main bar with View, Window and Help. The collapsed menu and ribbon use the same composition. Commands retain their original source and shortcut scope. Existing workspace bars keep their separate groups.
+
+Hosts take the complete distribution and opt their standalone page into the new mode. Applet menu providers need no change. The [menu conventions](docs/MENU-BARS.md#single-application-bar) describe identity ordering and shared contributions.
+
 ## 0.106.2
 
 An open menu now switches titles on pointer movement rather than a pointer boundary event. Layout changes can send a boundary event under a stationary pointer; treating that event as movement could replace a keyboard-opened menu and remove its focused command. The regression checks that layout-only boundary events preserve the panel and focus, while ordinary mouse movement still switches titles.

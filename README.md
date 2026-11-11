@@ -911,6 +911,8 @@ A **launcher** is a menu button first in the row that holds a window dock, whose
 
 The [menu-bar conventions](docs/MENU-BARS.md) define the site and applet groups, standard menu order, and command ownership. The [adoption guide](docs/MENU-BAR-ADOPTION.md) applies them to a tools workspace and to a reader application. The [0.40.0 migration guide](docs/MENU-BAR-MIGRATION.md) covers stable IDs, scoped contributions, generated window commands, and fallback menu changes.
 
+A standalone document application can add `data-menubar-composition="application"` to combine its host and active content into one group. The applet identity's commands join the application identity, while File, Edit and domain titles join the main bar. The [single-application sample](samples/application-menu.html) shows the menu, collapsed menu and ribbon; the [composition contract](docs/MENU-BARS.md#single-application-bar) defines ordering and ownership.
+
 The optional `pudl-menubar.js` gives an application a menu bar in its topbar, as a Mac's is: one bar however many windows are open, showing the menus of what the reader is in. It holds the **host menu**, the site's own, which is always there, and to its right the **front menu**, for whatever is in front: the applet or article in the front window, or, with no window in front, the one on the page. Each menu is one raised surface in the topbar's chip colours with the menu glyph at its start, and its titles are flat words that take their press from it. Load it after `pudl-menu.js`, and after `pudl-windows.js` and `pudl-applets.js` if the page has them.
 
 The host renders its menu as a hidden list inside the bar, beside whatever should show without script, which the bar hides once it is built:
@@ -1692,7 +1694,9 @@ The working [compact taskbar example](samples/compact-taskbar.html) adds priorit
 
 ## Status
 
-This is version 0.106.2, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This is version 0.107.0, and PUDL is below 1.0, so a minor release may still change what a project sees.
+
+Version 0.107.0 adds opt-in single-application menu composition for standalone document hosts. The host and active content share one menu group, collapsed menu and ribbon while keeping their command ownership. Existing workspace bars retain their separate groups.
 
 Version 0.106.2 includes the corrected immediate window-menu mnemonic lookup and preserves keyboard menu focus when layout changes beneath a stationary pointer. It retains the 0.106.0 features described below. See [the patch verification](docs/RELEASE-0.106.2.md).
 
