@@ -1,0 +1,34 @@
+name: Application focus probe
+on:
+  push:
+    branches: [debug/application-menus]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        minified: ['0', '1']
+        ready: ['0', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps webkit
+      - run: |
+          status=0
+          for attempt in 1 2 3; do
+            PUDL_RUN_OUTPUT=tests/output/probe-$attempt node tests/run.js webkit menubar-application || status=1
+          done
+          exit $status
+        env:
+          PUDL_MIN: ${{ matrix.minified }}
+          PUDL_WAIT_READY: ${{ matrix.ready }}
+          PUDL_JOBS: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-${{ matrix.minified }}-${{ matrix.ready }}
+          path: tests/output/

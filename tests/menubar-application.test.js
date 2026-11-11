@@ -1,7 +1,7 @@
 /* A standalone application composes host and document menus while retaining
    the document's command ownership and shortcut scope. */
 const { launch, ROOT, out } = require('./lib');
-let failures = 0;
+let failures = 0, diagnosticPage;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? '  ' + detail : ''));
   if (!ok) failures++;
@@ -9,6 +9,18 @@ function check(name, ok, detail) {
 (async () => {
   const browser = await launch();
   const p = await browser.newPage({ viewport: { width: 1600, height: 800 } });
+  diagnosticPage = p;
+  await p.addInitScript(() => {
+    window.__menuTrace = [];
+    function record(e) {
+      const a = document.activeElement, identity = document.querySelector('.menubar-application > .menubar-title[data-menu-id="site"]');
+      __menuTrace.push({ event: e.type, key: e.key, width: innerWidth, collapsed: !!document.querySelector('.menubar-collapsed'),
+        active: a && { tag: a.tagName, id: a.id, text: a.textContent.slice(0, 80) }, identityVisible: !!(identity && identity.getClientRects().length) });
+      if (__menuTrace.length > 100) __menuTrace.shift();
+    }
+    document.addEventListener('focusin', record, true);
+    document.addEventListener('keydown', record, true);
+  });
   const errors = [];
   p.on('pageerror', e => errors.push(e.message));
   await p.route('**/tests/fixtures/menubar.html', async route => {
@@ -56,6 +68,7 @@ function check(name, ok, detail) {
   check('the collapsed menu lists one identity with File beside shared titles', await panel.getByRole('menuitem', { name: 'Example', exact: true }).count() === 1 && await panel.getByRole('menuitem', { name: 'File', exact: true }).count() === 1 && !await panel.getByText('Notes', { exact: true }).count());
   await p.keyboard.press('Escape');
   await p.setViewportSize({ width: 1600, height: 800 });
+  if (process.env.PUDL_WAIT_READY === '1') await p.waitForFunction(() => !document.querySelector('.menubar-collapsed'));
   await p.locator('#note').focus();
   await identity.focus();
   await p.keyboard.press('Enter');
@@ -94,4 +107,7 @@ function check(name, ok, detail) {
   await browser.close();
   console.log(failures ? failures + ' FAILED' : 'ALL PASSED');
   process.exit(failures ? 1 : 0);
-})().catch(e => { console.error(e); process.exit(2); });
+})().catch(async e => {
+  if (diagnosticPage) console.log('FOCUS_TRACE ' + JSON.stringify(await diagnosticPage.evaluate(() => ({ trace: __menuTrace, panel: document.getElementById('menubar-panel').outerHTML }))));
+  console.error(e); process.exit(2);
+});
