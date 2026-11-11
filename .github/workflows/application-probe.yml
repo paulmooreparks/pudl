@@ -1,7 +1,7 @@
 name: Application focus probe
 on:
   push:
-    branches: [debug/application-menus]
+    branches: [debug/application-focus-complete]
 jobs:
   probe:
     runs-on: ubuntu-latest

@@ -1,0 +1,39 @@
+name: Native popup probe
+on:
+  push:
+    branches: [debug/application-menus]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        minified: ['0', '1']
+        runtime: ['current', 'prior']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - if: matrix.runtime == 'prior'
+        run: |
+          git show v0.106.2:dist/pudl-menubar.js > dist/pudl-menubar.js
+          git show v0.106.2:dist/min/pudl-menubar.js > dist/min/pudl-menubar.js
+      - run: |
+          status=0
+          for attempt in $(seq 1 20); do
+            PUDL_RUN_OUTPUT=tests/output/probe-$attempt node tests/run.js chromium compact-taskbar-popups || status=1
+          done
+          exit $status
+        env:
+          PUDL_MIN: ${{ matrix.minified }}
+          PUDL_JOBS: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-${{ matrix.minified }}-${{ matrix.runtime }}
+          path: tests/output/

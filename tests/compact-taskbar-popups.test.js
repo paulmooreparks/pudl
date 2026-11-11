@@ -1,7 +1,23 @@
 const assert=require('assert/strict');
 const {launch,ROOT,out}=require('./lib');
+let diagnosticPage, targetTrace=[], requestTrace=[];
 (async()=>{const browser=await launch();try{
  const page=await browser.newPage({viewport:{width:1440,height:850}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ diagnosticPage=page;
+ const cdp=await browser.newBrowserCDPSession();
+ for(const event of ['Target.targetCreated','Target.targetInfoChanged','Target.targetDestroyed']) cdp.on(event,data=>targetTrace.push({event,data}));
+ await cdp.send('Target.setDiscoverTargets',{discover:true});
+ page.context().on('request',r=>{if(r.isNavigationRequest())requestTrace.push({event:'request',url:r.url()});});
+ page.context().on('requestfailed',r=>requestTrace.push({event:'failed',url:r.url(),failure:r.failure()}));
+ await page.addInitScript(()=>{
+  window.__nativeTrace=[];
+  function record(e,phase){
+   const a=e.target.closest&&e.target.closest('a');
+   if(a&&a.textContent==='Native reference')__nativeTrace.push({event:e.type,phase,at:performance.now(),ctrl:e.ctrlKey,meta:e.metaKey,button:e.button,trusted:e.isTrusted,prevented:e.defaultPrevented,connected:a.isConnected,href:a.href,target:a.target,open:!!a.closest(':popover-open')});
+  }
+  for(const type of ['pointerdown','pointerup','click','auxclick'])document.addEventListener(type,e=>record(e,'capture'),true);
+  document.addEventListener('toggle',e=>{if(e.target.classList.contains('context-menu'))__nativeTrace.push({event:'toggle',at:performance.now(),state:e.newState,connected:e.target.isConnected});},true);
+ });
  await page.goto(ROOT+'/samples/compact-taskbar.html');await page.locator('[data-menu-id="view"]').waitFor();
  await page.locator('[data-menu-id="view"]').click({button:'right'});
  await page.getByRole('menuitem',{name:'Pin to taskbar',exact:true}).click();
@@ -24,6 +40,7 @@ const {launch,ROOT,out}=require('./lib');
   window.linkSource=document.createElement('a');linkSource.href='/reference.html';linkSource.target='_blank';linkSource.rel='noopener';linkSource.textContent='Native reference';document.body.append(linkSource);
   window.sourceClicks=0;linkSource.addEventListener('click',()=>sourceClicks++);
   pudlMenu.openAt(20,100,[{id:'native',label:'Native reference',source:linkSource}]);
+  document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a');if(a&&a.textContent==='Native reference')__nativeTrace.push({event:'click',phase:'final-bubble',at:performance.now(),prevented:e.defaultPrevented,connected:a.isConnected,open:!!a.closest(':popover-open')});});
  });
  const link=page.getByRole('menuitem',{name:'Native reference',exact:true});
  assert.equal(await link.evaluate(n=>n.tagName),'A');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener');
@@ -53,4 +70,4 @@ const {launch,ROOT,out}=require('./lib');
  assert.equal(await page.locator('[data-win-dock] [data-win-tab="article"]').count(),1,'pinning through Windows preserves one logical entry');
  assert.equal(await page.locator('[data-win-dock] [data-win-tab="article"]').getAttribute('data-win-pin'),'article');
  assert.deepEqual(errors,[]);await page.screenshot({path:out('compact-menu-popup.png')});
-}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});
+}catch(e){console.log('NATIVE_TRACE '+JSON.stringify({targets:targetTrace,requests:requestTrace,document:await page.evaluate(()=>({events:__nativeTrace,href:linkSource.href,sourceClicks,html:document.querySelector('.context-menu')?.outerHTML}))}));await page.screenshot({path:out('native-failure.png')});throw e;}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});
