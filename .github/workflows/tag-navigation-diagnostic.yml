@@ -1,0 +1,44 @@
+name: One tagged navigation diagnostic
+
+on:
+  push:
+    branches: ['diagnostic/01072-tag-navigation-20261115']
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: driver
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: eac9f3041c948e85a42e4067f9b03d9d0975bd85
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.4
+      - name: Install immutable checkout dependencies
+        working-directory: source
+        run: npm ci
+      - name: Install pinned Chromium
+        working-directory: source
+        run: npx playwright install --with-deps chromium
+      - name: Copy external capture harness
+        run: cp -a driver/diagnostics/tag-navigation-linux source/diagnostic
+      - name: Execute the single authorized diagnostic
+        working-directory: source
+        run: python3 diagnostic/supervise.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tagged-navigation-linux-diagnostic
+          path: source/diagnostic/
+          if-no-files-found: error
