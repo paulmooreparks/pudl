@@ -119,6 +119,35 @@
 
   function shown(s) { return String(s || '').split('+').map(function (p) { return p === 'Mod' ? (/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘' : 'Ctrl') : p; }).join('+'); }
 
+  /* Describe shortcuts accepted by the dispatcher. */
+  function rowShortcuts(shortcut) {
+    var parts = normal(shortcut).split('+'), key = parts.pop();
+    if (key === ' ') key = 'Space';
+    else if (!(Array.from(key).length === 1 && !/[\s\p{C}]/u.test(key)) &&
+        !/^(Enter|Tab|Escape|Backspace|Delete|Insert|Home|End|PageUp|PageDown|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|F(?:[1-9]|[12][0-9]|3[0-5]))$/.test(key)) return null;
+    /* spelling() treats Control, Meta and their combination as Mod. */
+    var mod = parts[0] === 'Mod';
+    if (mod) parts.shift();
+    var tail = parts.concat(key).join('+');
+    return mod ? ['Control+', 'Meta+', 'Control+Meta+'].map(function (prefix) { return prefix + tail; }).join(' ') : tail;
+  }
+
+  /* Host-owned bindings declare their own standard ARIA chords. */
+  function hostRowShortcuts(shortcut) {
+    var chords = String(shortcut).trim().split(/\s+/);
+    if (!chords[0]) return null;
+    var valid = chords.every(function (chord) {
+      var parts = chord.split('+'), key = parts.pop(), seen = new Set();
+      if (!(Array.from(key).length === 1 && !/[\s\p{C}]/u.test(key)) &&
+          !/^(Space|Plus|Enter|Tab|Escape|Backspace|Delete|Insert|Home|End|PageUp|PageDown|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|F(?:[1-9]|[12][0-9]|3[0-5]))$/.test(key)) return false;
+      return parts.every(function (part) {
+        if (!/^(Control|Meta|Alt|Shift|AltGraph)$/.test(part) || seen.has(part)) return false;
+        seen.add(part); return true;
+      });
+    });
+    return valid ? chords.join(' ') : null;
+  }
+
   function glyphEl(name) {
     var g = document.createElement('span');
     g.className = 'glyph';
@@ -347,7 +376,12 @@
       b.appendChild(box);
     } else b.appendChild(words);
     var key = val(c, 'shortcut');
-    if (key) { var k = document.createElement('span'); k.className = 'menu-row-key'; k.textContent = shown(key); b.appendChild(k); }
+    if (key) {
+      var k = document.createElement('span'); k.className = 'menu-row-key'; k.textContent = shown(key);
+      k.setAttribute('aria-hidden', 'true'); b.appendChild(k);
+      var shortcuts = val(c, 'bind') === false ? hostRowShortcuts(key) : rowShortcuts(key);
+      if (shortcuts) b.setAttribute('aria-keyshortcuts', shortcuts);
+    }
     if (val(c, 'danger')) b.classList.add('danger');
     if (val(c, 'disabled')) b.setAttribute('aria-disabled', 'true');
     /* The row runs its command as it is now: a menu kept open through an

@@ -405,3 +405,9 @@ The [skin contract](SKINS.md) defines validated definitions, generated treatment
 The [Start contract](proposals/start-control.md) defines the declarative hooks and `pudlStart` API. `pudl:start-change` bubbles from the root with `{query, category, count, reason}`. Hosts own routing, preferences and command dismissal policy. `enhance`, `refresh`, `state`, `setState`, `open`, `close` and `destroy` take the root element; multiple roots are independent.
 
 The working compact-navigation candidate adds `pudlStart.focus(root, mode)` and optional `{ focus: 'browse' }` arguments to Start and launcher opening. Source-backed native context rows and owned menu toggles are described in [Menu bars](MENU-BARS.md#native-navigation-popup-rows). These additions ship in 0.105.0.
+
+## Date and time commit notifications
+
+With pudl-date.js, a changed committed value is written to the named original input and emits one bubbling input event followed synchronously by one bubbling change event on that original. Accepted Enter/blur entry, picker choice and clearing use this commit path. Unchanged values and rejected drafts emit neither source event. Typing in the unnamed proxy is not a committed source notification. A host may listen to the original change event to act on a committed value; the component does not submit or navigate automatically. Host value assignment and pudlDate.refresh do not emit those events. The original remains the submitted ISO value.
+
+Picker commitments recheck current semantic date/time constraints, effective source locks and available coherent ownership. Stale or ineligible picker activation changes no source value and dispatches no input/change. Open time-list refresh reconciles rows by time value, preserving the query's DOM focus and logical active option separately from selected source value; a retained ineligible active option is ARIA-disabled until navigation leaves it. This correction adds no public focus API.

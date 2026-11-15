@@ -424,7 +424,7 @@
     if (style === 'iso') locale = withOption(locale, 'calendar', 'gregory');
     var model = isDate ? Model(locale) : null;
     var id = 'pudl-date-' + (++uid);
-    var bad = false, shown = '';
+    var bad = false, shown = '', reported = false, generation = 0, owner = null, activationSerial = 0;
 
     var wrap = document.createElement('span');
     wrap.className = 'combo ' + (isDate ? 'date-field' : 'time-field');
@@ -473,7 +473,7 @@
     /* Inside a modal dialog the panel must be in the dialog, since all else
        is inert while it is open. It takes the field's direction, which it
        would otherwise lose by living elsewhere. */
-    (wrap.closest('dialog') || document.body).appendChild(panel);
+    (wrap.closest('dialog, [popover]') || document.body).appendChild(panel);
     field.setAttribute('role', 'combobox');
     field.setAttribute('aria-haspopup', isDate ? 'dialog' : 'listbox');
     field.setAttribute('aria-expanded', 'false');
@@ -512,10 +512,12 @@
         if (style === 'iso') return v;
         return (model[style] || model.short).format(when(v));
       }
+      if (/^\d{2}:\d{2}:/.test(v)) return v;
       var n = minutes(v);
       return n === null ? v : timeFmt.format(at(n));
     }
     function say(v) {
+      if ((isDate && !split(v)) || (!isDate && /^\d{2}:\d{2}:/.test(v))) return v;
       if (isDate) return model.full.format(when(v));
       return timeSay.format(at(minutes(v)));
     }
@@ -555,13 +557,95 @@
     /* Whether a value is inside the input's min and max, and a time on its
        step, counted from min as the browser counts it. A time whose min is
        later than its max runs past midnight, as the browser's does. */
-    function allowed(v) {
-      var lo = input.min, hi = input.max;
-      if (isDate) return (!lo || v >= lo) && (!hi || v <= hi);
-      var s = stepSeconds();
-      if (s && ((minutes(v) - (minutes(lo) || 0)) * 60) % s !== 0) return false;
-      if (lo && hi && lo > hi) return v >= lo.slice(0, 5) || v <= hi.slice(0, 5);
-      return (!lo || v >= lo.slice(0, 5)) && (!hi || v <= hi.slice(0, 5));
+    /* HTML date days and time milliseconds, independent of native type support.
+       BigInt keeps fractional step lattices exact instead of rounding seconds. */
+    function numeric(v) {
+      var m;
+      if (isDate) {
+        m = /^(\d{4,})-(\d{2})-(\d{2})$/.exec(v || '');
+        if (!m) return null;
+        var y = BigInt(m[1]), month = +m[2], day = +m[3];
+        var leap = y % 4n === 0n && (y % 100n !== 0n || y % 400n === 0n);
+        var lengths = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        if (y < 1n || month < 1 || month > 12 || day < 1 || day > lengths[month - 1]) return null;
+        var prior = y - 1n, days = 365n * prior + prior / 4n - prior / 100n + prior / 400n;
+        for (var i = 1; i < month; i++) days += BigInt(lengths[i - 1]);
+        return (days + BigInt(day - 1) - 719162n) * 86400000n;
+      }
+      m = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/.exec(v || '');
+      if (!m || +m[1] > 23 || +m[2] > 59 || +(m[3] || 0) > 59) return null;
+      return BigInt((+m[1] * 3600 + +m[2] * 60 + +(m[3] || 0)) * 1000 + +(m[4] || '').padEnd(3, '0'));
+    }
+    function stepRatio() {
+      var raw = input.getAttribute('step') || '';
+      if (raw.toLowerCase() === 'any') return null;
+      var m = /^[\t\n\f\r ]*([+-]?(?:\d+(?:\.\d*)?|\.\d+))(?:[eE]([+-]?\d+))?/.exec(raw);
+      if (!m || !Number.isFinite(parseFloat(raw)) || parseFloat(raw) <= 0) m = [null, isDate ? '1' : '60', '0'];
+      var parts = m[1].split('.'), decimals = (parts[1] || '').length - Number(m[2] || 0);
+      var n = BigInt(parts.join('')) * (isDate ? 86400000n : 1000n), d = 1n;
+      if (decimals > 0) d = 10n ** BigInt(decimals); else n *= 10n ** BigInt(-decimals);
+      return { n: n, d: d };
+    }
+    function constraint(v) {
+      if (!v) return input.required ? 'required' : '';
+      var n = numeric(v), lo = numeric(input.getAttribute('min')), hi = numeric(input.getAttribute('max'));
+      if (n === null) return 'unknown';
+      if (!isDate && lo !== null && hi !== null && lo > hi) {
+        if (n < lo && n > hi) return 'outside';
+      } else if ((lo !== null && n < lo) || (hi !== null && n > hi)) return 'outside';
+      var step = stepRatio(), base = lo === null ? numeric(input.getAttribute('value')) : lo;
+      if (base === null) base = 0n;
+      return step && ((n - base) * step.d) % step.n !== 0n ? 'step' : '';
+    }
+    function allowed(v) { return !constraint(v); }
+    /* Proposal eligibility remains meaningful after an intentional picker close. */
+    function proposalAllowed(v) {
+      return !locked() && input.isConnected && input.nextSibling === wrap && wrap.nextSibling === echo &&
+        field.form === input.form && owner === input.form && available() &&
+        panel.parentNode === (wrap.closest('dialog, [popover]') || document.body) &&
+        !input.closest('[inert]') && !field.closest('[inert]') &&
+        !!field.getClientRects().length && !/^(hidden|collapse)$/.test(getComputedStyle(field).visibility) && allowed(v);
+    }
+    function pickerAllowed(v, row) {
+      if (!proposalAllowed(v) || !isOpen()) return false;
+      return !row || (row.isConnected && panel.contains(row) && !row.closest('[hidden]') &&
+        !row.disabled && row.getAttribute('aria-disabled') !== 'true' && row.__pickerGeneration === generation);
+    }
+    function activationState() {
+      return JSON.stringify(['min', 'max', 'step', 'value', 'required', 'readonly', 'disabled', 'form'].map(function (name) {
+        return input.getAttribute(name);
+      }));
+    }
+    function activationTicket(v, row) {
+      var serial = ++activationSerial;
+      if (!pickerAllowed(v, row)) return null;
+      return { serial: serial, generation: generation, value: input.value, hook: input.__pudlDateShow,
+        parent: input.parentNode, form: input.form, surface: wrap.closest('dialog, [popover]'), state: activationState() };
+    }
+    function currentActivation(v, ticket) {
+      return input.__pudlDate === true && ticket && ticket.serial === activationSerial && ticket.generation === generation &&
+        ticket.value === input.value && ticket.hook === input.__pudlDateShow && ticket.parent === input.parentNode &&
+        ticket.form === input.form && ticket.surface === wrap.closest('dialog, [popover]') &&
+        ticket.state === activationState() && proposalAllowed(v);
+    }
+    function validationMessage() {
+      if (input.matches(':disabled') || input.readOnly) return '';
+      var text = field.value.trim(), same = text === shown;
+      var v = same ? input.value : text ? parse(text) : '';
+      var reason = !same && text && !v ? 'unknown' : constraint(v);
+      if (reason === 'unknown') return words(input, 'unknown', isDate ? 'Not a date yet' : 'Not a time yet') + '; ' + example();
+      if (reason === 'required') return words(input, 'required', isDate ? 'Choose a date' : 'Choose a time');
+      if (reason === 'outside' || reason === 'step') {
+        var outside = words(input, 'outside', isDate ? '{date} is outside the dates allowed' : '{date} is not one of the times allowed').replace('{date}', say(v));
+        return reason === 'step' ? words(input, 'step', outside) : outside;
+      }
+      if (!same && v !== input.value) return (v ? say(v) + '; ' : '') + words(input, 'confirm', 'Press Enter or leave this field to confirm the value');
+      return input.willValidate && !input.validity.valid ? input.validationMessage : '';
+    }
+    function validity() {
+      var message = validationMessage();
+      field.setCustomValidity(message);
+      return message;
     }
 
     function example() {
@@ -584,11 +668,15 @@
           if (!allowed(v)) msg = words(input, 'outside', isDate ? '{date} is outside the dates allowed' : '{date} is not one of the times allowed').replace('{date}', msg);
         }
       }
+      var error = validity();
+      if (error && reported) msg = error;
       if (echo.textContent !== msg) echo.textContent = msg;
     }
 
     function mark() {
-      if (bad || input.getAttribute('aria-invalid') === 'true') field.setAttribute('aria-invalid', 'true');
+      var message = validity();
+      var quiet = input.required && !field.value.trim() && !reported && !input.validity.customError;
+      if ((!quiet && (bad || message)) || input.getAttribute('aria-invalid') === 'true') field.setAttribute('aria-invalid', 'true');
       else field.removeAttribute('aria-invalid');
     }
     function show() {
@@ -598,9 +686,13 @@
       mark();
       tell();
     }
-    function commit(v) {
-      if (input.value !== v) { input.value = v; fire(input); }
+    function commit(v, ticket) {
+      if (ticket && !currentActivation(v, ticket)) return;
+      generation++;
+      var changed = input.value !== v;
+      if (changed) input.value = v;
       show();
+      if (changed) fire(input);
     }
     /* Takes what is typed, when the reader leaves the field or presses
        Enter. Text that is still what the field showed changes nothing. The
@@ -634,7 +726,14 @@
       field.setAttribute('aria-expanded', yes ? 'true' : 'false');
       opener.setAttribute('aria-expanded', yes ? 'true' : 'false');
     }
-    function locked() { return input.disabled || input.readOnly; }
+    function locked() { return input.matches(':disabled') || input.readOnly; }
+    /* Keep the manual picker within its owner's light-dismiss ancestry. */
+    document.addEventListener('beforetoggle', function (event) {
+      if (event.newState === 'closed' && event.target !== panel && event.target.contains(wrap)) close(false);
+    }, true);
+    document.addEventListener('close', function (event) {
+      if (event.target.matches && event.target.matches('dialog') && event.target.contains(wrap)) close(false);
+    }, true);
 
     function key(cls, word, fallback, kind) {
       var b = document.createElement('button');
@@ -745,6 +844,7 @@
             if (n < 0 || n >= count) continue;
             var v = addDays(start, n);
             cell.setAttribute('data-date', v);
+            cell.__pickerGeneration = generation;
             cell.textContent = model.day(v);
             cell.setAttribute('aria-label', model.full.format(when(v)));
             cell.tabIndex = v === day ? 0 : -1;
@@ -787,10 +887,10 @@
         if (input.max && v > input.max) v = input.max;
         return v;
       }
-      function choose(v) {
-        if (!v || !allowed(v)) return;
-        close(true);
-        commit(v);
+      function choose(v, row) {
+        var ticket = v && activationTicket(v, row);
+        if (!ticket || !close(true, ticket, v)) return;
+        commit(v, ticket);
       }
 
       function showChooser(yes) {
@@ -890,7 +990,7 @@
           case 'End': to = addDays(v, 6 - dow); break;
           case 'PageUp': to = e.shiftKey ? byYears(v, -1) : byMonths(v, -1); break;
           case 'PageDown': to = e.shiftKey ? byYears(v, 1) : byMonths(v, 1); break;
-          case 'Enter': case ' ': e.preventDefault(); choose(cell.getAttribute('aria-disabled') ? '' : v); return;
+          case 'Enter': case ' ': e.preventDefault(); choose(v, cell); return;
           default: return;
         }
         e.preventDefault();
@@ -898,7 +998,7 @@
       });
       body.addEventListener('click', function (e) {
         var cell = e.target.closest('[data-date]');
-        if (cell && !cell.getAttribute('aria-disabled')) choose(cell.getAttribute('data-date'));
+        if (cell && !cell.getAttribute('aria-disabled')) choose(cell.getAttribute('data-date'), cell);
       });
       /* The arrow keys turn the month, or in the chooser the year. They
          keep focus, unless the turn disabled the one pressed, which gives
@@ -913,7 +1013,12 @@
         focusDay = today();
         if (!chooser.hidden) showChooser(false); else draw(focusDay, true);
       });
-      clearKey.addEventListener('click', function () { close(true); commit(''); });
+      clearKey.addEventListener('click', function () {
+        clearKey.__pickerGeneration = generation;
+        var ticket = activationTicket('', clearKey);
+        if (!ticket || !close(true, ticket, '')) return;
+        commit('', ticket);
+      });
 
       /* Tab goes round the panel's keys and the one day or month in the
          Tab order. Escape leaves the chooser for the days, and closes the
@@ -956,38 +1061,68 @@
         return s >= 300 ? Math.round(s / 60) : 30;
       }
       function draw() {
-        panel.textContent = '';
-        var each = step();
-        var base = minutes(input.min) || 0;
-        var now = input.value.slice(0, 5);
-        rows = [];
+        var prior = rows[active], value = prior && prior.getAttribute('data-time');
+        var scroll = panel.scrollTop, old = new Map(), values = [];
+        rows.forEach(function (row) { old.set(row.getAttribute('data-time'), row); });
+        var each = step(), base = minutes(input.min) || 0;
         for (var k = 0; k * each < 1440; k++) {
           var v = hhmm((base + k * each) % 1440);
-          if (!allowed(v)) continue;
-          var row = document.createElement('div');
-          row.className = 'menu-action combo-row';
-          row.id = id + '-' + rows.length;
-          row.setAttribute('role', 'option');
-          row.setAttribute('aria-selected', v === now ? 'true' : 'false');
-          row.setAttribute('data-time', v);
-          var text = document.createElement('span');
-          text.className = 'menu-row-text';
-          text.textContent = format(v);
-          row.appendChild(text);
-          row.addEventListener('pointerdown', function (e) { e.preventDefault(); });
-          row.addEventListener('click', function () { choose(this.getAttribute('data-time')); });
-          panel.appendChild(row);
-          rows.push(row);
+          if (allowed(v)) values.push(v);
         }
-        active = -1;
+        /* An engaged option remains readable until deliberate navigation leaves it. */
+        if (prior && document.activeElement === field && isOpen() &&
+            field.getAttribute('aria-activedescendant') === prior.id && values.indexOf(value) < 0) {
+          var overnight = minutes(input.min) !== null && minutes(input.max) !== null && minutes(input.min) > minutes(input.max);
+          var order = function (v) { var n = minutes(v); return overnight ? (n - base + 1440) % 1440 : n; };
+          var insert = values.findIndex(function (v) { return order(v) > order(value); });
+          values.splice(insert < 0 ? values.length : insert, 0, value);
+        }
+        var next = [], before = panel.firstChild;
+        values.forEach(function (v) {
+          var row = old.get(v);
+          if (!row) {
+            row = document.createElement('div');
+            row.className = 'menu-action combo-row';
+            row.id = id + '-time-' + v.replace(':', '');
+            row.setAttribute('role', 'option');
+            row.setAttribute('data-time', v);
+            var text = document.createElement('span');
+            text.className = 'menu-row-text'; row.appendChild(text);
+            row.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+            row.addEventListener('click', function () { choose(this); });
+          }
+          row.__pickerGeneration = generation;
+          row.setAttribute('aria-selected', String(numeric(v) === numeric(input.value)));
+          if (allowed(v)) row.removeAttribute('aria-disabled'); else row.setAttribute('aria-disabled', 'true');
+          row.firstChild.textContent = format(v);
+          if (row !== before) panel.insertBefore(row, before);
+          before = row.nextSibling;
+          next.push(row); old.delete(v);
+        });
+        old.forEach(function (row) { row.remove(); });
+        rows = next; active = value == null ? -1 : values.indexOf(value);
+        rows.forEach(function (row, i) { row.classList.toggle('is-active', i === active); });
+        if (active < 0) field.removeAttribute('aria-activedescendant');
+        else field.setAttribute('aria-activedescendant', rows[active].id);
+        panel.scrollTop = scroll;
       }
       function light(i) {
-        if (rows[active]) rows[active].classList.remove('is-active');
+        var old = rows[active];
+        if (old) old.classList.remove('is-active');
         active = rows[i] ? i : -1;
         if (active < 0) { field.removeAttribute('aria-activedescendant'); return; }
         rows[active].classList.add('is-active');
         rows[active].scrollIntoView({ block: 'nearest' });
         field.setAttribute('aria-activedescendant', rows[active].id);
+        if (old && old !== rows[active] && old.getAttribute('aria-disabled') === 'true') draw();
+      }
+      function stepActive(delta) {
+        draw();
+        for (var n = 1; n <= rows.length; n++) {
+          var from = active < 0 ? (delta > 0 ? -1 : 0) : active;
+          var i = (from + delta * n + rows.length * 2) % rows.length;
+          if (rows[i].getAttribute('aria-disabled') !== 'true') { light(i); return; }
+        }
       }
       /* The row nearest the time typed, else the value, else the time now,
          measured round the clock. */
@@ -1002,25 +1137,37 @@
         });
         return best;
       }
-      function choose(v) {
-        close(false);
-        commit(v);
+      function choose(row) {
+        var v = row && row.getAttribute('data-time');
+        var ticket = activationTicket(v, row);
+        if (rows.indexOf(row) < 0 || !ticket || !close(false, ticket, v)) return;
+        commit(v, ticket);
       }
       return {
         open: function () { draw(); light(nearest()); },
-        redraw: function () {},
+        redraw: function () { if (isOpen()) draw(); },
         key: function (e) {
-          if (e.key === 'ArrowDown') { e.preventDefault(); if (rows.length) light((active + 1) % rows.length); return true; }
-          if (e.key === 'ArrowUp') { e.preventDefault(); if (rows.length) light(active <= 0 ? rows.length - 1 : active - 1); return true; }
-          if (e.key === 'Enter' && rows[active]) { e.preventDefault(); choose(rows[active].getAttribute('data-time')); return true; }
+          if (e.key === 'ArrowDown') { e.preventDefault(); stepActive(1); return true; }
+          if (e.key === 'ArrowUp') { e.preventDefault(); stepActive(-1); return true; }
+          if (e.key === 'Enter' && rows[active]) { e.preventDefault(); choose(rows[active]); return true; }
           return false;
         },
         reset: function () { light(-1); }
       };
     }
 
+    function available() {
+      if (!wrap.isConnected || !wrap.getClientRects().length) return false;
+      for (var parent = wrap.parentElement; parent; parent = parent.parentElement) {
+        if (parent.matches('dialog') && !parent.open) return false;
+        if (parent.hasAttribute('popover') && !parent.matches(':popover-open')) return false;
+      }
+      return true;
+    }
     function open() {
-      if (locked()) return;
+      if (locked() || !available()) return;
+      var panelOwner = wrap.closest('dialog, [popover]') || document.body;
+      if (panel.parentNode !== panelOwner) { close(false); panelOwner.appendChild(panel); }
       if (isDate) settle();
       if (!isOpen()) panel.showPopover();
       expanded(true);
@@ -1030,11 +1177,14 @@
     }
     /* back is true where focus goes back to the field, as it does when the
        calendar is closed from its keys or by choosing. */
-    function close(back) {
+    function close(back, ticket, value) {
       if (isOpen()) panel.hidePopover();
+      if (ticket && !currentActivation(value, ticket)) return false;
       expanded(false);
       if (picker.reset) picker.reset();
-      if (back) field.focus();
+      if (ticket && !currentActivation(value, ticket)) return false;
+      if (back && available() && !locked()) field.focus();
+      return !ticket || currentActivation(value, ticket);
     }
 
     field.addEventListener('keydown', function (e) {
@@ -1055,7 +1205,7 @@
       }
     });
     field.addEventListener('input', function () {
-      tell();
+      generation++; mark(); tell();
       if (isOpen() && !isDate) close(false);
     });
     field.addEventListener('blur', function () { settle(); });
@@ -1109,22 +1259,83 @@
 
     /* The input's state, copied to the field and kept in step. */
     function sync() {
-      field.disabled = input.disabled;
-      field.required = input.required;
+      var moved = !input.isConnected || input.nextSibling !== wrap;
+      var focused = document.activeElement === field;
+      if (moved) {
+        generation++;
+        close(false);
+        if (input.isConnected) { input.after(wrap); wrap.after(echo); }
+        else { wrap.remove(); echo.remove(); }
+      }
+      if (!input.isConnected) {
+        if (owner) owner.removeEventListener('reset', reset);
+        owner = null;
+        return;
+      }
+      if (wrap.nextSibling !== echo) wrap.after(echo);
+      var panelOwner = wrap.closest('dialog, [popover]') || document.body;
+      if (panel.parentNode !== panelOwner) { close(false); panelOwner.appendChild(panel); }
+      var disabled = input.matches(':disabled');
+      if (field.disabled !== disabled) field.disabled = disabled;
+      field.required = false;
+      field.setAttribute('aria-required', String(input.required));
       field.readOnly = input.readOnly;
       if (input.hasAttribute('placeholder')) field.setAttribute('placeholder', input.getAttribute('placeholder'));
       else field.removeAttribute('placeholder');
       field.setAttribute('aria-describedby', ((input.getAttribute('aria-describedby') || '') + ' ' + echo.id).trim());
+      var reference = input.getAttribute('form');
+      if (reference !== null) { if (field.getAttribute('form') !== reference) field.setAttribute('form', reference); }
+      else {
+        if (field.hasAttribute('form')) field.removeAttribute('form');
+
+      }
+      if (owner !== input.form) {
+        generation++;
+        if (owner) owner.removeEventListener('reset', reset);
+        owner = input.form;
+        if (owner) owner.addEventListener('reset', reset);
+      }
       panel.dir = getComputedStyle(wrap).direction;
       if (locked() && isOpen()) close(false);
-      if (document.activeElement !== field) show();
-      else { mark(); tell(); }
+      mark(); tell();
       picker.redraw();
+      var surface = wrap.closest('dialog, [popover]');
+      if (moved && focused && !field.disabled && field.getClientRects().length &&
+          (!surface || (surface.matches('dialog') ? surface.open : surface.matches(':popover-open')))) field.focus({ preventScroll: true });
     }
-    sync();
-    new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ['disabled', 'required', 'readonly', 'placeholder', 'aria-describedby', 'aria-invalid', 'min', 'max', 'step', 'value'] });
-    if (input.form) input.form.addEventListener('reset', function () { setTimeout(function () { bad = false; show(); }, 0); });
-    input.__pudlDateShow = show;
+    function reset(event) {
+      var form = owner, ticket = ++generation;
+      setTimeout(function () {
+        if (event.defaultPrevented || ticket !== generation || !input.isConnected || input.form !== form) return;
+        reported = false; show(); sync();
+      }, 0);
+    }
+    input.addEventListener('invalid', function (event) { reported = true; sync(); event.preventDefault(); });
+    field.addEventListener('invalid', function () { reported = true; sync(); });
+    show(); sync();
+    new MutationObserver(sync).observe(input, { attributes: true, attributeFilter: ['disabled', 'required', 'readonly', 'placeholder', 'aria-describedby', 'aria-invalid', 'min', 'max', 'step', 'value', 'form'] });
+    /* Native state captures indirect first-legend and external-form changes. */
+    function dependencies() {
+      var chain = [], parent = input.parentElement;
+      while (parent) { chain.push(parent); parent = parent.parentElement; }
+      return [input.isConnected, input.form, input.matches(':disabled'),
+        input.nextSibling, wrap.nextSibling, panel.parentNode,
+        wrap.closest('dialog, [popover]')].concat(chain);
+    }
+    var observedDependencies = dependencies();
+    new MutationObserver(function (records) {
+      var current = dependencies();
+      var relevant = current.length !== observedDependencies.length ||
+        current.some(function (value, i) { return value !== observedDependencies[i]; }) ||
+        records.some(function (r) {
+          return r.type === 'attributes' && (r.target === input || r.target.contains(input));
+        });
+      if (!relevant) return;
+      if (isOpen() && (!wrap.isConnected || !wrap.getClientRects().length)) close(false);
+      sync();
+      observedDependencies = dependencies();
+    }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'form', 'id', 'hidden', 'class', 'open'] });
+    input.__pudlDateShow = function () { generation++; reported = false; show(); sync(); };
   }
 
   function enhanceOne(input) {

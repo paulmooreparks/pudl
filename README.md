@@ -371,7 +371,11 @@ A searchable select is a select whose value must be one of its options, marked `
 <span class="form-select-wrap"><select class="form-select" id="currency" name="currency" data-combo>…</select></span>
 ```
 
-Without the script it is a plain select. With it, a combo box stands in its place and filters as the reader types, the select's label moves to the field, and the hidden select keeps the value, fires `input` and `change` and is what the form sends. Leaving with text that names no option puts the choice back. After setting the select's value from a script, call `pudlCombo.refresh(select)`.
+Without the script it is a plain select. With it, a combo box stands in its place and filters as the reader types, the select's label moves to the field, and the hidden select keeps the value, fires `input` and `change` and is what the form sends. Leaving with text that names no option puts the choice back. After setting the select's value from a script, call `pudlCombo.refresh(select)`. The named select also remains the constraint-validity authority; its unnamed search field mirrors that validity, including an empty required value whose option has a nonempty label.
+
+A validation attempt exposes one persistent error described by the visible search field. PUDL cancels default reporting only for the hidden select; the visible proxy's invalid event remains available for native form reporting. Static checkValidity calls do not move focus through component code. Native form.reportValidity and ordinary submission can report the visible field, but the browser chooses its reporting and focus behavior. Calling reportValidity directly on the hidden select returns its native result and exposes the error; it does not report or focus a different element.
+
+After silent host changes to value, selectedIndex, setCustomValidity, constraints or form ownership, call pudlCombo.refresh(select) before immediate validation or requestSubmit. Mutation observers do not make same-stack host changes synchronous. Set custom errors on the source select, never its generated query field. Required accessibility follows the source through aria-required; the query's empty string does not invalidate an otherwise valid committed choice. External form association and effective fieldset disabling follow the source. Reset synchronization runs in a later task after native reset, respects cancelled resets and ignores queued work superseded by an edit, refresh, reassociation or newer reset. A host resetting and immediately validating must refresh after reset returns. Without enhancement the native select retains its normal validation and submission behavior.
 
 `data-combo-src` on the `.combo`, or on the select, is an address on the page's own origin with `{q}` for what is typed. After a pause in typing the script asks it and puts the `option` elements it returns, as `text/html`, into the list, taking only each option's value, text and keys; a searchable select keeps its chosen option among them. `data-combo-complete` on the field or the select completes a match as the reader types, which is off unless asked for. In a toolbar the field keeps its own keys, and the arrow keys pass over the opener, which carries `data-toolbar-skip`, the mark that keeps any control out of a toolbar's arrow order. `samples/combo.html` has every case to try.
 
@@ -1694,9 +1698,11 @@ The working [compact taskbar example](samples/compact-taskbar.html) adds priorit
 
 ## Status
 
-This is version 0.107.1, and PUDL is below 1.0, so a minor release may still change what a project sees.
+This source prepares version 0.107.2, and PUDL is below 1.0, so a minor release may still change what a project sees.
 
-Version 0.107.1 adds opt-in single-application menu composition for standalone document hosts. The host and active content share one menu group, collapsed menu and ribbon while keeping their command ownership. Existing workspace bars retain their separate groups.
+Version 0.107.2 repairs searchable-select validation, date/time picker authority, toolbar fitting and linked segments, and command-row names and shortcut metadata. Replace the complete matching distribution and continue loading one base stylesheet. Publication remains pending the required release gates.
+
+Version 0.107.1 added opt-in single-application menu composition for standalone document hosts. The host and active content share one menu group, collapsed menu and ribbon while keeping their command ownership. Existing workspace bars retain their separate groups.
 
 Version 0.106.2 includes the corrected immediate window-menu mnemonic lookup and preserves keyboard menu focus when layout changes beneath a stationary pointer. It retains the 0.106.0 features described below. See [the patch verification](docs/RELEASE-0.106.2.md).
 
@@ -1756,3 +1762,27 @@ In 0.100.0 launcher destinations execute immediately while a static selection hi
 In 0.101.0 layout addresses preserve the complete window stack independently of taskbar order. Update the window script, window stylesheet and region script together. See [the stack contract](docs/WINDOW-STACK.md).
 
 In 0.102.0 taskbars can retain registered destinations, combining their running instances under one pin. Standard window menus share Pin to taskbar and Unpin from taskbar. Hosts own identity, permissions and saved preferences, and can await window opening results before independent applet initialization. See [the pin contract](docs/TASKBAR-PINS.md), [working example](samples/taskbar-pinning.html) and [release record](docs/RELEASE-0.102.0.md).
+
+### Searchable select relocation (0.107.2 correction)
+
+Authored select wrappers may be moved without moving generated controls. Refresh reconciles their placement and current form/fieldset semantics synchronously. Internal observer repair preserves the local draft and feedback; detached sources have no visible orphan controls, and reinsertion reuses the enhanced instance. Silent host mutations still require refresh before immediate validation.
+
+### Current picker choices after host changes (0.107.2 correction)
+
+Open time suggestions reconcile current constraints on refresh while retaining surviving time-value identities. The selected source value and the keyboard's active option remain separate. A newly ineligible active option remains visibly ARIA-disabled until navigation leaves it; it cannot commit, and navigation skips it. Refresh does not request focus or open a picker.
+
+Date/time picker activation checks current semantic constraints, effective disabled/readonly state, placement, ownership and availability before changing the source. A stale or disallowed activation leaves the source unchanged and emits no input/change. Fresh valid activation retains the existing changed-value event contract. Host custom errors remain host-owned. This correction adds no focus API or parser behavior; calendar full refresh reconciliation and autofocus custody remain separate design work.
+
+### Folded toolbar navigation links (0.107.2 correction)
+
+Direct anchor children of a toolbar's segmented control remain native links when folded. The folded row preserves its destination, target, relationship, download, language, referrer and accessible naming attributes, with aria-current retained as navigation state. Button choices retain their existing checked semantics. Authored hidden choices are omitted. An aria-disabled or disabled link has no destination in its folded row.
+
+A folded link is a semantic copy. Listeners attached directly to the original node are not copied or invoked; native activation and document-delegated handlers operate on the visible anchor. Navigation data attributes are copied except command and toolbar binding internals. The existing region route receives seg-choice and data-region-link metadata when the source belongs to a region. Hosts that require direct listeners must attach their behavior through delegation on the visible navigation surface. IDs are not duplicated.
+
+While a fold menu is open, authored link destination, naming, current, disabled and visibility changes reconcile in place. Removing a focused row keeps focus within the open menu when an eligible row remains. Closing, native navigation and outside focus remain governed by the browser and existing menu behavior. Modifier delivery, new-window policy and download handling remain browser and host policy.
+
+### Command row names and shortcuts (0.107.2 correction)
+
+Command menu rows keep their visible shortcut hint separate from their accessible name. Representable shortcuts are exposed through `aria-keyshortcuts`, while meaningful command detail, state and disabled reasons remain accessible. The command dispatcher accepts either Control or Meta for its `Mod`, `Ctrl`, `Cmd` and `Meta` modifier spellings, so row metadata lists those accepted alternatives rather than using the platform's display glyph. Metadata does not install a binding. The existing dispatcher does not recognize `Control` as a modifier spelling; use a supported command spelling. A literal space key can be represented as ARIA `Space`, but a command shortcut named `Space` is not a dispatcher alias. Unsupported key spellings keep their visible hint without invented ARIA metadata.
+
+For commands with bind:false, row metadata uses the host-authored standard ARIA chord or space-separated alternatives without passing through PUDL activation parsing. Standard Control, Meta, Alt, Shift and AltGraph keep their authored meanings, and standard Space/Plus key names are accepted. The host implements those bindings. Ambiguous Mod, Ctrl and Cmd declarations and unsupported keys retain visible hints but receive no host-binding metadata. An invalid alternative list is omitted as a whole. Component-owned shortcuts retain the existing dispatcher interpretation described above.

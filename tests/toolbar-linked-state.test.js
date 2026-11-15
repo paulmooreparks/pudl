@@ -1,0 +1,15 @@
+const {launch,ROOT}=require('./lib');
+(async()=>{const b=await launch();const p=await b.newPage();let failures=0;const check=(n,v)=>{console.log((v?'PASS ':'FAIL ')+n);if(!v)failures++;};const settle=()=>p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+try{await p.goto(ROOT+'/tests/fixtures/toolbar-linked-segments.html');await p.evaluate(()=>document.fonts.ready);await settle();await p.locator('.toolbar-fold > button:visible,.toolbar-more > button:visible').first().click();const panel=p.locator('.menu-panel:popover-open');
+await panel.getByRole('menuitem',{name:'Week',exact:true}).focus();await p.locator('#week').evaluate(e=>e.setAttribute('aria-disabled','true'));await settle();
+check('live disabling removes destination and relocates component focus',await panel.getByRole('menuitem',{name:'Week',exact:true}).getAttribute('href')===null&&await p.evaluate(()=>document.activeElement.textContent!=='Week'&&!!document.activeElement.closest('.menu-panel')));
+await p.locator('#week').evaluate(e=>{e.removeAttribute('aria-disabled');e.removeAttribute('aria-current');});await settle();
+check('reenabling restores native destination and removes stale current',await panel.getByRole('menuitem',{name:'Week',exact:true}).getAttribute('href')==='#week'&&await panel.getByRole('menuitem',{name:'Week',exact:true}).getAttribute('aria-current')===null);
+await p.locator('#hidden').evaluate(e=>{e.hidden=false;e.textContent='Revealed';});await settle();check('revealed source inserted in authored order',(await panel.locator('a').allTextContents()).join('|')==='Week|Rooms|Revealed|Locked');
+await p.locator('#hidden').evaluate(e=>e.parentElement.style.display='none');await settle();check('host CSS-hidden segment removes all its rows',await panel.locator('a').count()===0);
+check('empty menu returns owned focus to its visible opener',await panel.evaluate(e=>document.activeElement===e.previousElementSibling));
+await p.locator('#hidden').evaluate(e=>e.parentElement.style.display='');await settle();
+await p.evaluate(()=>{window.sourceClicks=0;window.delegatedClicks=0;document.querySelector('#week').addEventListener('click',()=>sourceClicks++);document.addEventListener('click',e=>{if(e.target.closest('.menu-panel .seg-choice[data-route="week"]'))delegatedClicks++;});});
+await panel.getByRole('menuitem',{name:'Week',exact:true}).click();await p.waitForURL(/#week$/);
+check('native semantic copy preserves delegated handling without source listener forwarding',await p.evaluate(()=>sourceClicks===0&&delegatedClicks===1));
+}finally{await b.close();}process.exitCode=failures?1:0;})().catch(e=>{console.error(e);process.exitCode=1;});

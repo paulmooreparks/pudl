@@ -1,0 +1,31 @@
+# Observer churn repair plan
+
+The isolated successor starts from the frozen 0.107.2 composition over 0fbb579. before.json pins its copied files. Attribution reproduced six calls: four date sync computed-direction reads, then two master-detail refresh document searches caused by date panel dir writes. The disconnected idle control records zero. The tagged baseline comparison is retained separately. No windows, font or master-detail change is proposed.
+
+Before editing, the approved delta is to compare native form/effective-disabled and placement/ancestor identities on structural batches, while preserving relevant source/ancestor attribute invalidation. First-legend and external-ID association changes must use current native state even when changed subtrees exclude the source. Keep original tests and frozen files unchanged. Combo remains excluded pending separate evidence. Add an owned indirect-dependency regression, regenerate date min/map, replay original churn and focused date authority/relocation tests across source/min and three engines. Return held hashes and cleanup for independent review.
+
+## Attributed cause and scope
+
+The Chromium frozen stack diagnostic reproduces the original six calls. Four getComputedStyle stacks enter date sync at line 1296 from its global observer. Two querySelectorAll stacks enter pudl-md refresh with selector .md-layout[data-md-persistent]. Date sync writes panel.dir, and the master-detail observer regards any dir mutation as a structural invalidation. The cascade occurs at the churn root's append/removal. The idle diagnostic and tagged churn diagnostic both report empty call lists. No windows/font scheduling change is included.
+
+The repair narrows structural invalidation through a cached array of native form, effective disabled, connection, placement and ancestor identities. It preserves source/ancestor attribute invalidation. This catches first-legend changes and external form/duplicate-ID resolution without a page-wide lookup or geometry read. Native state comparison still runs for observer batches; the repair does not promise zero JavaScript overhead or removal of all observer deliveries. Unrelated shared-ancestor child edits now avoid full sync and the consequent master-detail cascade. Combo remains unchanged and outside this candidate.
+
+The newly introduced path is absent from v0.107.1 and entered through the unreleased date overlay. Front Office local candidate/runtime sources contain the affected date bytes, whereas the inspected local Studio/yavc copies lack the global observer. Installed/deployed identities and visible application lag have not been verified. The old master-detail global dir behavior exists independently, so this diagnosis does not clear every possible older performance issue.
+
+## Evidence qualifications
+
+The first patch preparation failed on Python's default Windows text decoder before any source write. The subsequent diagnostic therefore retained the original six-call failure in repaired-stacks.log. The successful edit explicitly used UTF-8; non-ASCII source lines match the frozen input. The final repaired diagnostic is repaired-final-stacks.log. All earlier failures remain retained. No wait or original assertion was modified.
+
+The original perf-churn test, date authority/validation/relocation suites and all frozen files remain byte-identical. The new dependency regression uses native outcomes and no public refresh for first-legend insertion/removal and external form replacement, loss/recovery and duplicate-ID precedence. It also checks unchanged source value and zero source input/change notifications. Final detailed per-form/engine exits, printed-failure and timeout fields are in results.json. This is a focused repair gate; the previous complete release run and its other findings remain authoritative for release disposition.
+
+The dependency checks use HTML's documented [form-owner reset rules](https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#association-of-controls-and-forms) and [disabled fieldset first-legend exception](https://html.spec.whatwg.org/multipage/form-elements.html#attr-fieldset-disabled). Browser measurements verify the implementation without defining these contracts.
+
+## Final held handoff
+
+Final focused execution passes 42/42, comprising seven suites across source/minified Chromium, Firefox and WebKit. All raw exits are zero, with zero printed failures and zero suite timeouts. The unchanged perf-churn assertion passes six times. Generated parity checks 48/48. The 893-file frozen-preservation audit reports zero changed files, and changed-from-frozen.json lists only the three date delivery files. Original tests remain unchanged. The stack-control failures and failed decoder preparation remain preserved separately from final closure.
+
+The source SHA256 is f7e8aa8117071887a213ab0079f6cfd1c40a373860c58967f7dee6cc3fa4cf3a. Minified SHA256 is e115035b25f65269df1a489f39699a106d07c700bca71bfc9271bccd91a8949e. Map SHA256 is 9841bc40793a4f140ce560be8a2d6a83f1e7a6721232f74c9be45a12f12b8e32. final-manifest.json pins these files, the owned test and this handoff. before.json, incremental-source.diff and changed-from-frozen.json establish provenance over the exact frozen 0.107.2 composition.
+
+A separate uninstrumented Chromium invented-host measurement used 40 append/remove pairs with two and twenty enhanced fields. With two fields, frozen p50/p95 were 0.2/0.2 ms per pair and repaired 0/0.1 ms; with twenty fields, frozen values were 1.2/2.2 ms and repaired 0.1/0.2 ms. The zero is timer granularity, not zero cost. These are total synchronous/microtask update durations in a synthetic host, without stack wrappers, and do not measure deployed application latency or establish visible lag. Full samples and harness are in attribution/impact.log and impact.js.
+
+All three owned servers were stopped after browser closure; cleanup.json records refused connections on ports 25181, 25182 and 25183. The browser slot is returned for independent verification. The successor worktree is C:/Users/paul/source/repos/pudl-perf-fixes on fix/field-observer-churn. Candidate bytes are held. The lead should assign independent verification of the exact manifest before any integration decision. No commit, tag, package, installation, consumer modification or release occurred.

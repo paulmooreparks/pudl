@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PUDL required empty fields</title>
+<link rel="stylesheet" href="/dist/pudl.css">
+<script defer src="/dist/pudl-combo.js"></script>
+<script defer src="/dist/pudl-date.js"></script>
+</head>
+<body>
+<form>
+<label class="form-group"><span class="form-label">Who</span><span class="form-select-wrap"><select class="form-select" id="who" name="who" required data-combo><option value="">Choose</option><option value="a">Alpha</option><option value="b">Beta</option></select></span></label>
+<label class="form-group"><span class="form-label">Day</span><input class="form-input" type="date" id="day" name="day" required data-date></label>
+<label class="form-group"><span class="form-label">Start</span><input class="form-input" type="time" id="start" name="start" required data-date></label>
+<label class="form-group"><span class="form-label">Note</span><input class="form-input" type="text" id="note" name="note" required></label>
+<button class="btn" type="submit">Send</button>
+</form>
+</body>
+</html>

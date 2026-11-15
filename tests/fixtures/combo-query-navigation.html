@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Searchable select: typing into a field that shows a choice</title>
+<script defer src="/dist/pudl-combo.js"></script>
+</head>
+<body>
+<p>Every name on this page is invented.</p>
+<form>
+  <p><button type="button" id="before-a">Start here for case A</button></p>
+  <p><label>Case A, the empty choice has words
+    <span class="form-select-wrap"><select name="a" data-combo>
+      <option value="" selected>Choose a person</option>
+      <option value="p1">Ada Invented</option>
+      <option value="p2">Priya Example</option>
+      <option value="p3">Wen Hui Sample</option>
+    </select></span></label></p>
+
+  <p><button type="button" id="before-b">Start here for case B</button></p>
+  <p><label>Case B, a person is already chosen
+    <span class="form-select-wrap"><select name="b" data-combo>
+      <option value="">Choose a person</option>
+      <option value="p1" selected>Ada Invented</option>
+      <option value="p2">Priya Example</option>
+      <option value="p3">Wen Hui Sample</option>
+    </select></span></label></p>
+
+  <p><button type="button" id="before-c">Start here for case C, for comparison</button></p>
+  <p><label>Case C, the empty choice has no words
+    <span class="form-select-wrap"><select name="c" data-combo>
+      <option value="" selected></option>
+      <option value="p1">Ada Invented</option>
+      <option value="p2">Priya Example</option>
+      <option value="p3">Wen Hui Sample</option>
+    </select></span></label></p>
+</form>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fault 2: topbar wraps</title>
+<link rel="stylesheet" href="/dist/pudl.css">
+<script defer src="/dist/pudl-menu.js"></script><script defer src="/dist/pudl-toolbar.js"></script><script defer src="/dist/pudl-menubar.js"></script>
+</head><body>
+<header class="topbar">
+<nav class="menubar" data-menubar aria-label="Site"><ul data-menubar-source hidden><li>Site name<ul><li><a href="#">Home</a></li></ul></li><li>Go<ul><li><a href="#">Somewhere</a></li></ul></li></ul></nav>
+<div class="toolbar" role="toolbar" aria-label="Tools" data-toolbar-fold>
+<div class="toolbar-group" data-toolbar-group="One" data-toolbar-glyph="back"><button class="btn btn-sm" type="button">First command</button><button class="btn btn-sm" type="button">Second command</button></div>
+<div class="toolbar-group" data-toolbar-group="Two" data-toolbar-glyph="forward"><button class="btn btn-sm" type="button">Third command</button><button class="btn btn-sm" type="button">Fourth command</button></div>
+<div class="toolbar-group" data-toolbar-group="Three" data-toolbar-glyph="plus"><button class="btn btn-sm" type="button">Fifth command</button></div>
+</div></header>
+<p>Open this page about 700 pixels wide. The toolbar drops to a second row under the menubar instead of folding beside it. With data-menubar-ribbon on the menubar it stays on one row.</p>
+</body></html>

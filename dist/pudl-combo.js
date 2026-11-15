@@ -8,7 +8,7 @@
        <input class="form-input" id="currency" name="currency" list="currencies" autocomplete="off">
        <datalist id="currencies">
          <option value="PHP">Philippine peso</option>
-         …
+         Ã¢â‚¬Â¦
        </datalist>
      </span>
 
@@ -19,7 +19,7 @@
    options, marked data-combo:
 
      <span class="form-select-wrap">
-       <select class="form-select" name="currency" data-combo>…</select>
+       <select class="form-select" name="currency" data-combo>Ã¢â‚¬Â¦</select>
      </span>
 
    Without the script it is a plain select. With it, a combo box stands in
@@ -47,18 +47,18 @@
    field. An option's data-combo-keys, separated by commas, are words to
    look it up by, unseen:
 
-     <option value="₱" data-combo-keys="PHP, Philippines">PHP · Philippine peso</option>
+     <option value="Ã¢â€šÂ±" data-combo-keys="PHP, Philippines">PHP Ã‚Â· Philippine peso</option>
 
-   Typing PHP, peso or Philippines finds the row, and choosing it puts ₱ in
+   Typing PHP, peso or Philippines finds the row, and choosing it puts Ã¢â€šÂ± in
    the field. Leaving the field, or pressing Enter, with exactly a key
    typed that only one option has looks the option up and puts its value
-   in the field too, so the reader with no ₱ on the keyboard types PHP and
-   gets ₱. Showing the code in the text as well tells the reader why a row
+   in the field too, so the reader with no Ã¢â€šÂ± on the keyboard types PHP and
+   gets Ã¢â€šÂ±. Showing the code in the text as well tells the reader why a row
    was found.
 
    The words the script uses are the page's own where the .combo or the
    select carries data-combo-text-open ("Show the suggestions"),
-   data-combo-text-searching ("Searching…") or data-combo-text-more
+   data-combo-text-searching ("SearchingÃ¢â‚¬Â¦") or data-combo-text-more
    ("{n} more; type to narrow them."). pudlCombo.enhance(root) takes in
    fields added later, and pudlCombo.refresh(select) shows a searchable
    select's value after a script has set it. (0.72.0)
@@ -70,7 +70,7 @@
 
      <span class="combo" data-combo-tokens>
        <input class="form-input" id="tags" name="tags" list="tag-options" value="receipts, q4">
-       <datalist id="tag-options">…</datalist>
+       <datalist id="tag-options">Ã¢â‚¬Â¦</datalist>
      </span>
 
    Without the script the reader types the values into the one field,
@@ -151,7 +151,7 @@
     var complete = field.hasAttribute('data-combo-complete') || (select && select.hasAttribute('data-combo-complete'));
     var src = host.getAttribute('data-combo-src');
     var id = 'pudl-combo-' + (++uid);
-    var rows = [], active = -1, timer = 0, asking = null, lastQ = null;
+    var rows = [], active = -1, timer = 0, asking = null, lastQ = null, editing = false, listRevision = 0;
 
     var opener = document.createElement('button');
     opener.type = 'button';
@@ -233,11 +233,14 @@
       place();
     }
     function close() {
-      if (isOpen()) panel.hidePopover();
+      listRevision++;
       field.setAttribute('aria-expanded', 'false');
       opener.setAttribute('aria-expanded', 'false');
       field.removeAttribute('aria-activedescendant');
       active = -1;
+      /* Closing can call host code synchronously. Publish the old close
+         before that boundary so a newer opening keeps its own state. */
+      if (isOpen()) panel.hidePopover();
     }
 
     function note(text) {
@@ -296,7 +299,8 @@
     }
     var shownQ = '';
     function show(list, q) {
-      if (!list.length) { close(); return false; }
+      listRevision++;
+      if (!list.length) { draw([], q); close(); return false; }
       shownQ = q || '';
       draw(list, q);
       open();
@@ -335,11 +339,12 @@
       var now = options().filter(function (x) { return x.value === o.value; })[0];
       if (!now) { follow(); return; }
       o = now;
+      editing = false;
       close();
       if (tok) { tok.commit([o.value], true); lastQ = ''; return; }
       if (strict) {
         field.value = o.label;
-        if (select.value !== o.value) { select.value = o.value; fire(select); }
+        if (select.value !== o.value) { select.value = o.value; if (select.__pudlComboSync) select.__pudlComboSync(); fire(select); }
       } else if (field.value !== o.value) {
         field.value = o.value;
         field.__pudlComboSaid = o.value;
@@ -366,6 +371,7 @@
         if (hit) { choose(hit); return; }
       }
       field.value = chosenLabel();
+      editing = false;
     }
 
     /* Options from the server, after a pause in typing. */
@@ -379,7 +385,7 @@
         var ctl = asking = new AbortController();
         panel.textContent = '';
         rows = [];
-        note(words(host, 'searching', 'Searching…'));
+        note(words(host, 'searching', 'SearchingÃ¢â‚¬Â¦'));
         open();
         fetch(url, { signal: ctl.signal, credentials: 'same-origin', headers: { Accept: 'text/html' } }).then(function (res) {
           var type = res.headers.get('content-type') || '';
@@ -420,6 +426,7 @@
         }
       }
       lastQ = q;
+      editing = true;
       if (src) { ask(q); return; }
       if (!q) { close(); return; }
       show(matching(q), q);
@@ -427,18 +434,20 @@
 
     field.addEventListener('keydown', function (e) {
       if (e.ctrlKey || e.metaKey) return;
-      var q = lastQ === field.value ? field.value : '';
+      /* A closed filtered list retains its query until settlement or an
+         explicit browse request. Label equality does not imply browsing. */
+      var q = strict ? (editing ? lastQ : '') : (lastQ === field.value ? field.value : '');
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (!isOpen()) {
           var list = q ? matching(q) : options();
-          if (!show(list.length ? list : options(), list.length ? q : '')) return;
+          if (!show(list, q)) return;
           if (!e.altKey) setActive(0);
         } else if (!e.altKey && rows.length) setActive((active + 1) % rows.length);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         if (e.altKey) { close(); return; }
-        if (!isOpen()) { if (show(options(), '')) setActive(rows.length - 1); return; }
+        if (!isOpen()) { if (show(q ? matching(q) : options(), q)) setActive(rows.length - 1); return; }
         if (rows.length) setActive(active <= 0 ? rows.length - 1 : active - 1);
       } else if (e.key === 'Enter') {
         if (isOpen() && rows[active]) { e.preventDefault(); choose(rows[active].option); return; }
@@ -454,6 +463,7 @@
           if (tok.escape()) { e.preventDefault(); e.stopPropagation(); }
         } else if (strict) {
           if (field.value !== chosenLabel()) { e.preventDefault(); e.stopPropagation(); field.value = chosenLabel(); }
+          editing = false;
         } else if (field.value && !field.required) {
           e.preventDefault(); e.stopPropagation();
           field.value = '';
@@ -479,6 +489,7 @@
       if (field.disabled || field.readOnly) return;
       if (isOpen()) { close(); field.focus(); return; }
       field.focus();
+      editing = false;
       if (!show(options(), '')) return;
       if (tok) return;
       var at = rows.map(function (r) { return r.option.value; }).indexOf(current());
@@ -803,17 +814,105 @@
     }
 
     if (strict) {
+      var reported = false, error = null, form = null, generation = 0;
       field.value = chosenLabel();
-      var sync = function () {
-        field.disabled = select.disabled;
-        field.required = select.required;
-        if (document.activeElement !== field) field.value = chosenLabel();
-      };
-      new MutationObserver(sync).observe(select, { attributes: true, attributeFilter: ['disabled', 'required'], childList: true, subtree: true });
-      select.addEventListener('change', sync);
-      var form = select.form;
-      if (form) form.addEventListener('reset', function () { setTimeout(sync, 0); });
-      select.__pudlComboSync = sync;
+      function errorState(message) {
+        if (message && !error) {
+          error = document.createElement('p');
+          error.className = 'form-error'; error.id = id + '-error';
+          wrap.after(error);
+        }
+        if (error) {
+          if (error.textContent !== message) error.textContent = message;
+          error.hidden = !message;
+          var descriptions = (field.getAttribute('aria-describedby') || '').split(/\s+/).filter(function (v) { return v && v !== error.id; });
+          if (message) descriptions.push(error.id);
+          if (descriptions.length) field.setAttribute('aria-describedby', descriptions.join(' '));
+          else field.removeAttribute('aria-describedby');
+        }
+        if (message || select.getAttribute('aria-invalid') === 'true') field.setAttribute('aria-invalid', 'true');
+        else if (!select.hasAttribute('aria-invalid')) field.removeAttribute('aria-invalid');
+        else field.setAttribute('aria-invalid', select.getAttribute('aria-invalid'));
+      }
+      function reset(event) {
+        var owner = form, ticket = ++generation;
+        /* Reset fires before native values change. A later task reads the
+           completed algorithm, unless reset was cancelled or an edit won. */
+        setTimeout(function () {
+          if (event.defaultPrevented || ticket !== generation || !select.isConnected || select.form !== owner) return;
+          shownQ = '';
+          draw([], '');
+          var retirement = listRevision + 1;
+          close();
+          if (ticket !== generation || retirement !== listRevision || !select.isConnected || select.form !== owner) return;
+          reported = false; field.value = chosenLabel(); editing = false; sync();
+        }, 0);
+      }
+      function sync() {
+        var outer = select.closest('.form-select-wrap') || select;
+        var moved = !select.isConnected || outer.nextSibling !== wrap;
+        var focused = document.activeElement === field;
+        var query = field.value;
+        if (moved) {
+          generation++;
+          if (isOpen()) close(false);
+          if (select.isConnected) outer.after(wrap); else wrap.remove();
+          if (error) { if (select.isConnected) wrap.after(error); else error.remove(); }
+
+        }
+        if (!select.isConnected) {
+          if (form) form.removeEventListener('reset', reset);
+          form = null;
+          return;
+        }
+        if (error && wrap.nextSibling !== error) wrap.after(error);
+        var panelOwner = wrap.closest('dialog') || document.body;
+        if (panel.parentNode !== panelOwner) { close(); panelOwner.appendChild(panel); }
+        var disabled = select.matches(':disabled');
+        if (field.disabled !== disabled) field.disabled = disabled;
+        /* A query may be empty while its committed selection is valid.
+           Required semantics follow the select, not the query string. */
+        if (field.required) field.required = false;
+        if (field.getAttribute('aria-required') !== String(select.required)) field.setAttribute('aria-required', String(select.required));
+        var reference = select.getAttribute('form');
+        if (reference !== null) {
+          if (field.getAttribute('form') !== reference) field.setAttribute('form', reference);
+        } else {
+          if (field.hasAttribute('form')) field.removeAttribute('form');
+
+        }
+        if (form !== select.form) {
+          generation++;
+          if (form) form.removeEventListener('reset', reset);
+          form = select.form;
+          if (form) form.addEventListener('reset', reset);
+        }
+        var message = select.willValidate && !select.validity.valid ? select.validationMessage : '';
+        field.setCustomValidity(message);
+        if (!message) reported = false;
+        errorState(reported ? message : '');
+        if (moved) field.value = query;
+        var surface = wrap.closest('dialog, [popover]');
+        if (moved && focused && !field.disabled && field.getClientRects().length &&
+            (!surface || (surface.matches('dialog') ? surface.open : surface.matches(':popover-open')))) field.focus({ preventScroll: true });
+
+      }
+      function changed() { generation++; if (document.activeElement !== field) { field.value = chosenLabel(); editing = false; } sync(); }
+      select.addEventListener('input', changed);
+      select.addEventListener('change', changed);
+      field.addEventListener('input', function () { generation++; });
+      select.addEventListener('invalid', function (event) {
+        reported = true; sync(); event.preventDefault();
+      });
+      /* Leave the proxy's event uncancelled for native interactive reporting.
+         Static validation fires the same event and never focuses it here. */
+      field.addEventListener('invalid', function () { reported = true; sync(); });
+      new MutationObserver(sync).observe(select, { attributes: true, attributeFilter: ['disabled', 'required', 'form', 'aria-invalid', 'aria-describedby'], childList: true, characterData: true, subtree: true });
+      /* Form ownership and effective fieldset disabling can change outside
+         the select itself. Equality guards keep our writes observer-stable. */
+      new MutationObserver(sync).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'form', 'id'] });
+      select.__pudlComboSync = changed;
+      sync();
     }
   }
 

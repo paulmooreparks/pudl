@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.107.1.
+   Version 0.107.2.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -738,7 +738,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .topbar > .menubar-ribbon-toggle:last-child { margin-inline-end: 0; }
 /* A topbar holding a menu bar that folds itself keeps to one line, so the
    bar, not the topbar's wrapping, decides what gives way. */
-.topbar:has(> [data-menubar][data-menubar-ribbon]) { flex-wrap: nowrap; }
+.topbar:has(> [data-menubar].menubar-ready):has(> :is([data-fold-order], .toolbar-fold-ready, [data-menubar-ribbon])) { flex-wrap: nowrap; }
 /* The first thing in the bar to give way: Show as ribbon as its glyph
    alone, its words its name and its tooltip. */
 .menubar-ribbon-toggle.menubar-ribbon-toggle-glyph > .toolbar-words { display: none; }
@@ -2433,7 +2433,8 @@ button.link {
    row's end. A group's name is flat and muted, since it only says what
    the group holds. A control's words and its badge are spans that
    pudl-commands.js fills, or a page writes. */
-.toolbar[data-toolbar-fold] { flex-wrap: nowrap; overflow: hidden; }
+.toolbar[data-toolbar-fold]:not(.toolbar-fold-ready) > .toolbar-group { flex-wrap: wrap; max-inline-size: 100%; }
+.toolbar[data-toolbar-fold].toolbar-fold-ready { flex-wrap: nowrap; overflow: hidden; }
 .toolbar[data-toolbar-fold] > .toolbar-group { flex: none; border-inline-start: 0; }
 /* The rule between groups is drawn only between groups still on the row. */
 .toolbar[data-toolbar-fold] > .toolbar-group:not([data-toolbar-stage="5"]) ~ .toolbar-group:not([data-toolbar-stage="5"]) { border-inline-start: 1px solid var(--border); }

@@ -275,7 +275,7 @@
       }
       if (c.matches('.seg, [data-command-choice]')) {
         heading(panel, c.getAttribute('aria-label'));
-        c.querySelectorAll('button').forEach(function (b) { panel.appendChild(proxyRow(b, true)); });
+        segmentRows(c, group, panel);
         return;
       }
       var field = fieldIn(c);
@@ -306,6 +306,113 @@
         if (only) copyMenu(inner, panel);
         else panel.appendChild(subRow(panel, btn.getAttribute('aria-label') || btn.textContent.trim(), btn.querySelector('.glyph'), function (into) { copyMenu(inner, into); }));
       } else panel.appendChild(proxyRow(btn, false));
+    });
+  }
+
+  /* Folded navigation remains a native anchor. Source listeners are not
+     copied; document-delegated navigation sees the semantic copy. */
+  function segmentRows(seg, group, panel) {
+    var start = document.createComment('segment'), end = document.createComment('/segment');
+    panel.appendChild(start); panel.appendChild(end);
+    var rows = new Map(), bar = group.closest('.toolbar');
+    function visible(c) {
+      var stage = group.getAttribute('data-toolbar-stage');
+      group.setAttribute('data-toolbar-stage', '1');
+      var chain = [], node = c;
+      while (node && node !== bar) { chain.push(node); node = node.parentElement; }
+      var yes = chain.every(function (n) {
+        var css = getComputedStyle(n);
+        return !n.hidden && css.display !== 'none' && css.visibility !== 'hidden' && css.visibility !== 'collapse';
+      });
+      if (stage == null) group.removeAttribute('data-toolbar-stage');
+      else group.setAttribute('data-toolbar-stage', stage);
+      return yes;
+    }
+    function syncLink(source, row) {
+      var attrs = {};
+      Array.prototype.forEach.call(source.attributes, function (a) {
+        if (/^(href|target|rel|download|hreflang|type|referrerpolicy|ping|title|lang|dir|aria-.+)$/.test(a.name) ||
+            (/^data-/.test(a.name) && !/^data-(command|toolbar)/.test(a.name))) attrs[a.name] = a.value;
+      });
+      attrs.role = 'menuitem';
+      attrs['class'] = 'menu-action seg-choice';
+      if (source.closest('[data-region], [data-region-link]') && !('data-region-link' in attrs)) attrs['data-region-link'] = '';
+      delete attrs['aria-checked']; delete attrs['aria-pressed'];
+      if (!source.hasAttribute('href') || source.hasAttribute('disabled') || source.getAttribute('aria-disabled') === 'true') {
+        delete attrs.href; attrs['aria-disabled'] = 'true';
+      }
+      Array.prototype.slice.call(row.attributes).forEach(function (a) {
+        if (a.name !== 'tabindex' && !(a.name in attrs)) row.removeAttribute(a.name);
+      });
+      Object.keys(attrs).forEach(function (name) {
+        if (row.getAttribute(name) !== attrs[name]) row.setAttribute(name, attrs[name]);
+      });
+      var copy = source.cloneNode(true);
+      copy.querySelectorAll('*').forEach(function (n) {
+        Array.prototype.slice.call(n.attributes).forEach(function (a) {
+          if (a.name === 'id' || /^on/i.test(a.name)) n.removeAttribute(a.name);
+        });
+      });
+      if (row.innerHTML !== copy.innerHTML) row.innerHTML = copy.innerHTML;
+    }
+    function sync() {
+      var choices = group.isConnected && group.parentElement === bar && seg.parentElement === group ?
+        Array.prototype.filter.call(seg.querySelectorAll('button, :scope > a'), function (c) { return visible(c); }) : [];
+      var focused = document.activeElement, lost = false;
+      rows.forEach(function (row, source) {
+        if (choices.indexOf(source) < 0) {
+          if (row === focused || row.contains(focused)) lost = true;
+          row.remove(); rows.delete(source);
+        }
+      });
+      var before = start.nextSibling;
+      choices.forEach(function (source) {
+        var row = rows.get(source);
+        if (!row) {
+          row = source.tagName === 'A' ? el('a', 'menu-action seg-choice') : proxyRow(source, true);
+          row.__toolbarSource = source;
+          if (source.tagName === 'A') row.addEventListener('click', function (e) {
+            if (!row.hasAttribute('href') || row.getAttribute('aria-disabled') === 'true') e.preventDefault();
+            else panel.__toolbarNavigating = true;
+          });
+          rows.set(source, row);
+        }
+        if (source.tagName === 'A') {
+          syncLink(source, row);
+          if (row === focused && row.getAttribute('aria-disabled') === 'true') lost = true;
+        }
+        if (row !== before) panel.insertBefore(row, before || end);
+        before = row.nextSibling;
+      });
+      if (lost && (document.activeElement === document.body || document.activeElement === focused)) {
+        var next = Array.prototype.find.call(panel.querySelectorAll('.menu-action'), function (r) { return r.getAttribute('aria-disabled') !== 'true'; });
+        if (!next && panel.previousElementSibling && panel.previousElementSibling.getClientRects().length) next = panel.previousElementSibling;
+        if (next) next.focus();
+      }
+    }
+    sync();
+    var observer = new MutationObserver(function (records) {
+      if (records.some(function (r) {
+        var target = r.target.nodeType === 1 ? r.target : r.target.parentElement;
+        return target && (!target.closest('.toolbar-fold, .toolbar-more') &&
+          !(r.type === 'attributes' && r.attributeName === 'data-toolbar-stage'));
+      })) sync();
+    });
+    observer.observe(bar, { subtree: true, childList: true, characterData: true, attributes: true });
+    panel.addEventListener('beforetoggle', function done(e) {
+      if (e.newState !== 'closed') return;
+      observer.disconnect(); panel.removeEventListener('beforetoggle', done);
+      var active = document.activeElement, source = active && active.__toolbarSource;
+      if (bar.__fitLater && source && source.tagName === 'A' && !panel.__toolbarNavigating) {
+        var invoker = panel.previousElementSibling;
+        bar.addEventListener('pudl:toolbar-fit', function recover() {
+          var now = document.activeElement;
+          if (now !== document.body && now !== invoker && !panel.contains(now)) return;
+          if (source.isConnected && source.hasAttribute('href') && inSight(source, bar) && source.getClientRects().length) source.focus();
+          else if (invoker && invoker.getClientRects().length) invoker.focus();
+        }, { once: true });
+      }
+      panel.__toolbarNavigating = false;
     });
   }
 
@@ -572,6 +679,7 @@
     if (bar.__fold) return bar.__fold;
     bar.__fold = { groups: [] };
     foldParts(bar);
+    bar.classList.add('toolbar-fold-ready');
     var pending = 0;
     var again = function () { if (!pending) pending = requestAnimationFrame(function () { pending = 0; fit(bar); }); };
     /* A change of width folds it again in the next frame; a change of what
@@ -712,8 +820,10 @@
     if (bar.querySelector('.menu-panel:popover-open')) return;
     var was = f.groups.map(function (g) { return g.getAttribute('data-toolbar-stage'); });
     var more = bar.hasAttribute('data-toolbar-more');
+    /* Remove only our folded presentation before checking authored visibility.
+       A stage-5 group has no rectangles until its own stage is reset. */
+    f.groups.forEach(function (g) { g.setAttribute('data-toolbar-stage', '1'); });
     var groups = foldable(f);
-    groups.forEach(function (g) { g.setAttribute('data-toolbar-stage', '1'); });
     bar.removeAttribute('data-toolbar-more');
     bar.style.setProperty('--toolbar-most', span(bar) + 'px');
     /* Folded furthest is the narrower of every group as its menu button

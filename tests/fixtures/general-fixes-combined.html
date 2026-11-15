@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Combined general corrections</title>
+<link rel="stylesheet" href="/dist/pudl.css">
+<script defer src="/dist/pudl-commands.js"></script><script defer src="/dist/pudl-menu.js"></script>
+<script defer src="/dist/pudl-toolbar.js"></script><script defer src="/dist/pudl-combo.js"></script><script defer src="/dist/pudl-date.js"></script>
+<script defer src="/tests/fixtures/general-fixes-combined.js"></script>
+<body><main id="scope">
+<div id="bar" class="toolbar" role="toolbar" aria-label="Actions" data-toolbar-fold style="width:220px">
+<div class="toolbar-group" data-toolbar-group="Editing"><button class="btn" data-command="save"></button><button class="btn" data-command="plain"></button></div>
+<div class="toolbar-group" data-toolbar-group="Views"><div class="seg"><a href="#week" aria-current="page">Week</a><a href="#rooms">Rooms</a></div></div>
+</div><button type="button" id="open-owner" popovertarget="owner">Edit fixture</button>
+<section id="owner" popover="auto"><form id="form">
+<label for="room">Room</label><span class="form-select-wrap"><select class="form-select" data-combo id="room" name="room" required><option value="">Choose room</option><option value="a">Room A</option></select></span>
+<label for="date">Date</label><input id="date" type="date" name="date" required value="2026-11-13" data-date data-date-style="iso">
+<label for="time">Time</label><input id="time" type="time" name="time" value="10:00" data-date data-date-style="iso" data-time-list="30">
+<button id="submit">Submit</button></form></section><button id="outside" type="button">Outside</button></main>

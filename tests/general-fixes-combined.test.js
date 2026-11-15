@@ -1,0 +1,54 @@
+const assert = require('assert/strict');
+const {launch, ROOT} = require('./lib');
+(async()=>{
+  const browser = await launch();
+  try {
+    const page = await browser.newPage({viewport:{width:1400,height:900}});
+    const errors=[];
+    page.on('pageerror', error=>errors.push(error.message));
+    await page.goto(ROOT+'/tests/fixtures/general-fixes-combined.html');
+    await page.waitForSelector('#date-text', {state:'attached'});
+    await page.evaluate(()=>document.fonts.ready);
+    await page.evaluate(()=>{bar.style.width='1400px';pudlToolbar.fit(bar);});
+    await page.waitForFunction(()=>document.querySelector('#bar [data-command="save"]').getClientRects().length);
+    await page.locator('#bar [data-command="save"]').click();
+    assert.equal(await page.evaluate(()=>calls),1);
+    await page.evaluate(()=>{bar.style.width='110px';pudlToolbar.fit(bar);});
+    await page.locator('#bar .toolbar-fold > button:visible,#bar .toolbar-more > button:visible').first().click();
+    const panel = page.locator('.menu-panel:popover-open');
+    const save = panel.getByRole('button',{name:'Save',exact:true});
+    await save.waitFor();
+    assert.equal(await save.getAttribute('aria-keyshortcuts'),'Alt+F9');
+    await save.click();
+    assert.equal(await page.evaluate(()=>calls),2);
+    await page.evaluate(()=>{bar.style.width='1400px';pudlToolbar.fit(bar);});
+    await page.waitForFunction(()=>document.querySelector('#bar a[href="#rooms"]').getClientRects().length);
+    await page.locator('#bar .seg > a[href="#rooms"]').click();
+    assert.equal(new URL(page.url()).hash,'#rooms');
+    console.log('PASS combined toolbar restores native links and executes one folded command');
+
+    await page.locator('#open-owner').click();
+    assert.equal(await page.locator('#form').evaluate(form=>form.checkValidity()),false);
+    await page.evaluate(()=>{room.value='a';pudlCombo.refresh(room);});
+    await page.locator('#date-text').fill('invalid draft');
+    assert.equal(await page.locator('#form').evaluate(form=>form.checkValidity()),false);
+    assert.equal(await page.locator('#date').inputValue(),'2026-11-13');
+    await page.locator('#date-text').fill('2026-11-13');
+    await page.locator('#outside').evaluate(()=>document.getElementById('date-text').blur());
+    await page.locator('#date-text').locator('..').locator('.combo-open').click();
+    const child=page.locator('.date-panel:popover-open');
+    assert.equal(await child.evaluate(element=>element.parentNode.id),'owner');
+    await child.locator('[data-date="2026-11-14"]').click();
+    assert.equal(await page.locator('#owner').evaluate(element=>element.matches(':popover-open')),true);
+    assert.deepEqual(await page.evaluate(()=>sourceEvents),['date:input','date:change']);
+    assert.equal(await page.locator('#form').evaluate(form=>form.checkValidity()),true);
+    assert.deepEqual(await page.locator('#form').evaluate(form=>[...new FormData(form)]),[['room','a'],['date','2026-11-14'],['time','10:00']]);
+    await page.locator('#time-text').locator('..').locator('.combo-open').click();
+    await page.locator('.time-list:popover-open [data-time="10:30"]').click();
+    assert.deepEqual(await page.evaluate(()=>sourceEvents),['date:input','date:change','time:input','time:change']);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(()=>!owner.matches(':popover-open'));
+    assert.deepEqual(errors,[]);
+    console.log('PASS combined native values, rejected draft, nested date/time ownership and exact source events');
+  } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

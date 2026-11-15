@@ -1,0 +1,29 @@
+# Date/time relocation and nested-picker independent review
+
+The authored-relocation correction passes independent revalidation. Date/time packaging still requires revision because pointer selection in a nested picker closes its parent auto popover. Keyboard selection retains the parent. This separate defect reproduces in tagged v0.107.1 and both held candidate forms across Chromium, Firefox and WebKit.
+
+## Relocation closure
+
+The original independent probe was copied byte for byte into tests/output/verification-date-relocation-20261113-1701/probe.cjs. It exits 0 and closes all twelve original source/minified first-legend failures. Its tagged and supplied-page observations remain separate from candidate closure. Earlier REVISE evidence was not overwritten.
+
+The six focused suites pass source 18/18 in 52 seconds and minified 18/18 in 60 seconds, serially on checked port 8893. Both terminal exits are 0, and all 36 raw/effective suite records are zero with no printed failures or timeouts. The suites cover authored-only first-legend movement in both directions, form association, validation, owner cleanup and existing field behavior. Complete directories, capabilities and logs are retained in the independent evidence directory.
+
+extra.cjs passes twelve additional source/minified date/time combinations across the three engines, terminal exit 0. It verifies that authored-input movement preserves the rejected draft, described echo, source value and proxy/echo adjacency. Old-form reset and cancelled new-form reset preserve the draft; refresh followed by a later edit supersedes queued reset work. Detachment suppresses both generated field and echo without taking outside focus, and reinsertion reuses the draft. Explicit refresh replaces that draft with the supplied source value, as documented. Moving into a modal dialog places the picker within the dialog, and closing the dialog closes the picker without a component focus call into the closed owner. Retained text selection and focus are recorded as profile observations.
+
+The source now reconciles adjacency before computing effective disabled state and ownership. Structural and owner changes invalidate reset tickets, while detached sources unbind their reset listener. Internal reconciliation preserves the draft; public refresh intentionally replaces it. No new public disposal API is introduced. The original native capability, fractional-step rejection, direct-source reporting and host refresh limits remain in force.
+
+## Remaining nested-picker blocker
+
+nested-v2.cjs serves the supplied 4-date-in-popover-closes.html with resource URL substitutions. Its time control changes only the input type and initial value. The unchanged tagged CSS and recorded source/minified JavaScript hashes identify the tested assets. These are isolated HTTP tests with actual Playwright pointer and keyboard input, rather than native file-opening evidence. Normal CSS is shared by the custom probe because this candidate changes no CSS; the supplied minified regression matrix separately routes the full minified assets.
+
+All 36 choice cases complete. All eighteen pointer cases close the parent, comprising six tagged controls and twelve candidate cases. All eighteen keyboard cases retain it. Every changed choice writes the original value and emits exactly one input event followed by one change event. No page errors occur. Before/after captures, owner/picker state, focus observations, original-input events and served hashes are retained. The corrected probe exits 1 because it preserves the parent-retention assertion. This failure remains separate from relocation closure and its passing matrices.
+
+The initial nested harness timed out before any choice because it waited for a visible generated opener while the parent was still closed. Its script, exit 2, log and partial record remain intact. The corrected harness waits for attachment before opening the parent and then performs the original actions. It does not change the product or weaken the parent-retention assertion.
+
+Both the tag and candidate mount the manual picker under the nearest dialog or body, leaving it outside an auto-popover owner's ancestry. The [HTML light-dismiss algorithm](https://html.spec.whatwg.org/multipage/popover.html#popover-light-dismiss) uses pointer targets and their open popover ancestry; manual mode does not itself join the auto/hint stack. This documented mechanism supports the accepted nearest containing popover/dialog correction without pointer suppression. The replacement must preserve modal containment, parent-close cleanup, Escape order, move/detach behavior and source event counts. That correction has not been implemented or certified by this review.
+
+## Provenance and ownership
+
+The held source SHA256 is 3acc54b86d890bf38e7ab52f7070a058086968dd42319a2138dfe2314c19b7d2. The minified SHA256 is a46806558324567e3f32a9654c9d818c4f6cbb8eb54d9ec6a52ff570c85e68e9, and its map is 249904e0ba75a6ada7cd7a17427a8c3e657a26ab04bb41a1827c6561f8c27e1a. before-independent.json measures held files independently before execution; audit.json measures them again after all checks with no runtime, documentation, fixture or test drift. The copied original probe is byte-identical to the earlier independent script. nested-summary.json retains the separate failure accounting.
+
+All owned browser runners and servers have exited. Port 8893 has no listener. The previously reported port 8786 was neither used nor altered. Execution ownership returns to the lead with PASS for relocation and REVISE for nested-picker composition. No runtime, existing test, commit, package, installation or consumer file was changed. Browser-owned reporting focus, actual assistive speech, real browser-chrome zoom and deployed host behavior remain outside this evidence.

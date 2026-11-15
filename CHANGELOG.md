@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.107.2
+
+Searchable selects preserve native constraint validity and authored relocation. Edited queries retain filtering on keyboard reopening, unmatched settlement silently preserves the existing selection, and completed reset retires obsolete popup rows and activation. Deliberate optional clearing remains available. Empty required date/time fields retain native validity without premature error presentation until the existing invalid-event reporting trigger. Completed reset restores that quiet state; rejected drafts, authored errors and native custom errors retain feedback. Date and time controls reject invalid drafts and stale picker commits, retain nested owner behavior and preserve host refresh after source events. Their structural observer skips unrelated synchronization while retaining native form-owner and first-legend dependencies. Toolbar fitting restores controls after widening, while folded linked segments retain native navigation. Command rows expose useful names and shortcut metadata without mixing visual key hints into the name.
+
+Projects update the four component scripts and the matched base CSS together. They continue loading one base stylesheet. The [candidate release record](docs/RELEASE-0.107.2.md) records adoption limits and outstanding publication gates. This candidate does not include scheduler or held toolbar Space work.
+
 ## 0.107.1
 
 The application regression now waits for the menu bar to finish expanding before giving keyboard focus to its identity. In Linux WebKit the previous test sent Enter while that title was still hidden, leaving focus in the document. A recorded comparison reproduced that sequence in six readable and minified runs; all six runs with the readiness wait passed. The menu runtime is unchanged from 0.107.0.
