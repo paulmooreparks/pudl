@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.107.2.
+   Version 0.108.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -981,8 +981,12 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 }
 [data-row-actions]:hover { color: var(--text); background: var(--raise-grad-hover); border-color: var(--raise-border-hover); }
 [data-row-actions]:active { background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
-:is([data-row-hot], [data-row-focus], [data-menu-for], [aria-selected="true"], [aria-current]:not([aria-current="false"]),
-    :has(> [aria-selected="true"], > [aria-current]:not([aria-current="false"]))) > [data-row-actions],
+/* A row whose link is selected or current is found from the link, which
+   comes before the button since the button is the last thing in its row
+   (0.108.0). Asking the row whether it has such a link made Chromium
+   restyle every row with actions in the page for any insertion anywhere. */
+:is([data-row-hot], [data-row-focus], [data-menu-for], [aria-selected="true"], [aria-current]:not([aria-current="false"])) > [data-row-actions],
+:is([aria-selected="true"], [aria-current]:not([aria-current="false"])) ~ [data-row-actions],
 tr:is([data-row-hot], [data-row-focus], [data-menu-for], [aria-selected="true"], [aria-current]:not([aria-current="false"])) > :is(td, th) > [data-row-actions] { visibility: visible; }
 [data-menu-for] > [data-row-actions],
 tr[data-menu-for] > :is(td, th) > [data-row-actions] { color: var(--text); background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
@@ -1050,15 +1054,15 @@ tr[data-menu-for] > :is(td, th) > [data-row-actions] { color: var(--text); backg
 .status-area {
   order: 1;
   display: inline-flex; align-items: center; flex: none; gap: 1px;
-  padding: 1px; border-radius: var(--radius-sm);
-  border: 1px solid var(--tb-border, var(--raise-border));
-  background: var(--tb-chip); box-shadow: var(--tb-chip-shadow);
+  padding: var(--menubar-status-padding, 1px); border-radius: var(--radius-sm);
+  border: var(--menubar-status-border, 1px solid var(--tb-border, var(--raise-border)));
+  background: var(--menubar-status-bg, var(--tb-chip)); box-shadow: var(--menubar-status-shadow, var(--tb-chip-shadow));
 }
 .status-item {
   box-sizing: border-box; display: inline-flex; align-items: center; gap: 4px; height: 26px;
   padding: 0 6px; border-radius: var(--radius-xs);
   font: 600 var(--text-sm) var(--font); white-space: nowrap; text-decoration: none;
-  color: var(--tb-chrome-fg);
+  color: var(--menubar-status-fg, var(--tb-chrome-fg));
   background: none; border: 0; cursor: pointer;
 }
 .status-item > .glyph { --glyph-size: 16px; }
@@ -1070,21 +1074,28 @@ tr[data-menu-for] > :is(td, th) > [data-row-actions] { color: var(--text); backg
 /* A badge mixes its status colour into the text colour of what it sits
    on, which here is the topbar's, dark in the light theme unless a menu
    bar has lightened it. */
-.status-item > .badge:is(.warn, .danger, .positive, .accent) { color: color-mix(in srgb, var(--badge-color) 62%, var(--tb-fg)); }
-.status-item:hover { color: var(--tb-chrome-hover-fg); background: color-mix(in srgb, var(--tb-fg) 12%, transparent); }
-.status-item:active { color: var(--tb-chrome-hover-fg); background: color-mix(in srgb, #000 24%, var(--tb-bg)); box-shadow: var(--tb-active-shadow, inset 0 1px 3px color-mix(in srgb, #000 50%, transparent)); }
-.status-item:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--tb-focus-ring, var(--focus-ring)); }
-.topbar:has([data-menubar]) .status-item:focus-visible { box-shadow: 0 0 0 2px var(--focus-ring); }
-/* Beside a menu bar: the group's surface and the titles' colours. */
-.topbar:has([data-menubar]) .status-area {
-  border: var(--menubar-group-border-width, 1px) solid var(--menubar-group-border, var(--raise-border));
-  padding: calc(2px - var(--menubar-group-border-width, 1px));
-  background: var(--menubar-group-bg, var(--raise-grad)); box-shadow: var(--menubar-group-shadow, var(--raise-shadow));
+.status-item > .badge:is(.warn, .danger, .positive, .accent) { color: color-mix(in srgb, var(--badge-color) 62%, var(--menubar-status-on, var(--tb-fg))); }
+.status-item:hover { color: var(--menubar-status-hover-fg, var(--tb-chrome-hover-fg)); background: var(--menubar-status-hover-bg, color-mix(in srgb, var(--tb-fg) 12%, transparent)); }
+.status-item:active { color: var(--menubar-status-hover-fg, var(--tb-chrome-hover-fg)); background: var(--menubar-status-active-bg, color-mix(in srgb, #000 24%, var(--tb-bg))); box-shadow: var(--menubar-status-active-shadow, var(--tb-active-shadow, inset 0 1px 3px color-mix(in srgb, #000 50%, transparent))); }
+.status-item:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--menubar-status-ring, var(--tb-focus-ring, var(--focus-ring))); }
+/* Beside a menu bar the status area takes the group's surface and the
+   titles' colours. Whether there is a menu bar is asked of the topbar
+   alone, which sets the values the status area reads (0.108.0). When each
+   status item asked it, Chromium restyled every badge in the page for any
+   insertion anywhere, such as text streaming into a window. */
+.topbar:has([data-menubar]) {
+  --menubar-status-border: var(--menubar-group-border-width, 1px) solid var(--menubar-group-border, var(--raise-border));
+  --menubar-status-padding: calc(2px - var(--menubar-group-border-width, 1px));
+  --menubar-status-bg: var(--menubar-group-bg, var(--raise-grad));
+  --menubar-status-shadow: var(--menubar-group-shadow, var(--raise-shadow));
+  --menubar-status-fg: color-mix(in srgb, var(--text) 80%, var(--surface-alt));
+  --menubar-status-hover-fg: var(--text);
+  --menubar-status-hover-bg: color-mix(in srgb, var(--text) 12%, transparent);
+  --menubar-status-active-bg: var(--raise-active-bg);
+  --menubar-status-active-shadow: var(--raise-active-shadow);
+  --menubar-status-ring: var(--focus-ring);
+  --menubar-status-on: var(--text);
 }
-.topbar:has([data-menubar]) .status-item { color: color-mix(in srgb, var(--text) 80%, var(--surface-alt)); }
-.topbar:has([data-menubar]) .status-item:hover { color: var(--text); background: color-mix(in srgb, var(--text) 12%, transparent); }
-.topbar:has([data-menubar]) .status-item:active { color: var(--text); background: var(--raise-active-bg); box-shadow: var(--raise-active-shadow); }
-.topbar:has([data-menubar]) .status-item > .badge:is(.warn, .danger, .positive, .accent) { color: color-mix(in srgb, var(--badge-color) 62%, var(--text)); }
 
 /* === Section tabs: a notebook ============================================
    After the notebook widget of desktop toolkits. The bar is a recessed
@@ -3034,7 +3045,13 @@ button.filter-chip-x { padding: 0; flex: none; cursor: pointer; }
   background: var(--surface-alt);
   border-inline-end-color: var(--accent);
 }
-.md-row:has(> [aria-current]:not([aria-current="false"])) .md-item,
+/* The current row's link, which is its .md-item, is found from the link
+   itself rather than by asking the row (0.108.0), since asking the row
+   made Chromium restyle every row's link for any insertion anywhere. */
+.md-row > .md-item[aria-current]:not([aria-current="false"]),
+.md-row > [aria-current]:not([aria-current="false"]) .md-item,
+.md-row > [aria-current]:not([aria-current="false"]) ~ .md-item,
+.md-row > [aria-current]:not([aria-current="false"]) ~ * .md-item,
 .md-row.active .md-item { font-weight: 700; color: var(--text); }
 .md-item {
   flex: 1; min-width: 0;
@@ -3112,8 +3129,12 @@ button.filter-chip-x { padding: 0; flex: none; cursor: pointer; }
 /* A node's actions button (0.81.0) is the node's last child, after its
    branch, and stands at the end of the node's own line. */
 .tree li:has(> [data-row-actions]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-.tree li:has(> [data-row-actions]) > a { grid-column: 1; grid-row: 1; min-width: 0; }
-.tree li:has(> [data-row-actions]) > ul { grid-column: 1 / -1; grid-row: 2; }
+/* The node's link and branch take their places in that grid. Neither
+   property does anything in a node that is not a grid, so they are set
+   on every node (0.108.0); asking the node first made Chromium restyle
+   every node's link for any insertion anywhere. */
+.tree li > a { grid-column: 1; grid-row: 1; min-width: 0; }
+.tree li > ul { grid-column: 1 / -1; grid-row: 2; }
 .tree li > [data-row-actions] { grid-column: 2; grid-row: 1; margin-inline: 4px; }
 .md-row > [data-row-actions] { margin-inline: 4px 8px; }
 
@@ -4033,8 +4054,8 @@ del.diff-word { text-decoration-color: var(--diff-del); }
     forced-color-adjust: none;
     background: Highlight; color: HighlightText; border-color: Highlight;
   }
-  .md-row:has(> [aria-current]:not([aria-current="false"])) .md-item,
-  .md-row:has(> [aria-current]:not([aria-current="false"])) .md-meta,
+  .md-row > .md-item[aria-current]:not([aria-current="false"]), .md-row > [aria-current]:not([aria-current="false"]) :is(.md-item, .md-meta),
+  .md-row > [aria-current]:not([aria-current="false"]) ~ :is(.md-item, .md-meta), .md-row > [aria-current]:not([aria-current="false"]) ~ * :is(.md-item, .md-meta),
   .md-row.active .md-item, .md-row.active .md-meta { color: HighlightText; }
   .md-row:not(.active):not(:has(> [aria-current]:not([aria-current="false"]))) { border-inline-end-color: Canvas; }
   .switch[aria-checked="true"] .switch-track { forced-color-adjust: none; background: Highlight; border-color: Highlight; }

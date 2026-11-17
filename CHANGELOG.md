@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.108.0
+
+A page with many windows open does less work for each small change. Measured in a desktop application's page with 32 windows and about 300,000 elements, one run after the other against 0.107.2, a piece of streamed text in the front window took 18 ms instead of 25, a change to one window's state 64 ms instead of 81, bringing a window to the front 142 ms instead of 168, and opening one more window 1.35 s instead of 1.72. Three streamed pieces restyled 204 elements instead of 7,803.
+
+- The window layer keeps the layer's size from one reading until a resize observer says it changed, so laying out the windows, or building a window menu for every window, no longer lays the page out again for each window. Every script call that can change the arrangement reads the size afresh.
+- A change to one window's marks, such as `data-win-state`, `data-win-attention` or `data-win-progress`, redraws that window's title state and its own tabs and leaves the others alone. A write of the value an attribute already had is passed over.
+- The stacking order, the taskbar's order and the address read each window's parent once, where they had read every window's parent once for every window.
+- Four stylesheet rules no longer ask an ancestor whether it holds something from the element they style: the status area beside a menu bar, a row's actions button on a selected or current row, the current row's link, and a tree node's link and branch. Chromium answered those questions by restyling every badge, actions button, row link or tree link in the page whenever anything was inserted near them. The status area now reads values the topbar sets on itself, as `--menubar-status-*` custom properties, so a page's own rule for `.status-item` now applies beside a menu bar as it does elsewhere.
+- The commands script follows its controls and the open popovers as they come and go, so drawing the controls when the commands change searches nothing beyond them, and it looks for a modal dialog only when a key would run a command.
+- The menu script finds a row's actions button among each ancestor's own children instead of with a selector, which had searched everything beneath each ancestor whenever the pointer crossed into an element.
+- `pudlWindows.top()` gives the key of the window in front, and `pudlWindows.isOpen(key)` whether a window is open, without the copy of the whole arrangement that `state()` makes.
+
+Projects replace `pudl.css`, `pudl-windows.js`, `pudl-commands.js` and `pudl-menu.js` together, or the whole distribution. Nothing in their markup changes. A page that calls `state()` only for `.top` or `.open` can call `top()` or `isOpen(key)` instead.
+
 ## 0.107.2
 
 Searchable selects preserve native constraint validity and authored relocation. Edited queries retain filtering on keyboard reopening, unmatched settlement silently preserves the existing selection, and completed reset retires obsolete popup rows and activation. Deliberate optional clearing remains available. Empty required date/time fields retain native validity without premature error presentation until the existing invalid-event reporting trigger. Completed reset restores that quiet state; rejected drafts, authored errors and native custom errors retain feedback. Date and time controls reject invalid drafts and stale picker commits, retain nested owner behavior and preserve host refresh after source events. Their structural observer skips unrelated synchronization while retaining native form-owner and first-legend dependencies. Toolbar fitting restores controls after widening, while folded linked segments retain native navigation. Command rows expose useful names and shortcut metadata without mixing visual key hints into the name.

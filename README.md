@@ -1698,7 +1698,9 @@ The working [compact taskbar example](samples/compact-taskbar.html) adds priorit
 
 ## Status
 
-The latest release is [0.107.2](https://github.com/paulmooreparks/pudl/releases/tag/v0.107.2). PUDL is below 1.0, so a minor release may still change what a project sees.
+The latest release is [0.108.0](https://github.com/paulmooreparks/pudl/releases/tag/v0.108.0). PUDL is below 1.0, so a minor release may still change what a project sees.
+
+Version 0.108.0 makes a page with many windows do less work for each small change: the window layer stops laying the page out once per window, a change to one window's state redraws only that window's marks, four stylesheet rules stop restyling every badge and row on any insertion, and the commands and menu scripts stop searching the whole page. `pudlWindows.top()` and `pudlWindows.isOpen(key)` answer the common questions without copying the arrangement. Replace the stylesheet and the window, command and menu scripts together.
 
 Version 0.107.2 repairs searchable-select validation, date/time picker authority, toolbar fitting and linked segments, and command-row names and shortcut metadata. Replace the complete matching distribution and continue loading one base stylesheet. Canonical main CI passed all 752 required suite executions. Tag CI reached combined coverage of 752/752 across two attempts; its original 751/752 navigation timeout remains unexplained and preserved. The public archive and all 196 distribution files were checked against the immutable tag; all 105 CDN stylesheet and script responses matched before these 25 examples were updated.
 

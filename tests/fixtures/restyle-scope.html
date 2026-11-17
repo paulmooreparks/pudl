@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Restyle scope</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <style>body { margin: 0; } .list { width: 320px; list-style: none; padding: 0; margin: 0; }</style>
+</head>
+<body>
+  <!-- A test fixture for how far an insertion restyles (0.108.0): a topbar
+       with a menu bar and a status area of many badged items, a plain
+       topbar with one, and a long list whose rows have actions buttons, one
+       row current and one selected, beside a box that text is put into.
+       It loads only the stylesheet, so what is measured is the stylesheet
+       alone. The rows and items are made by the script below. -->
+  <header class="topbar" id="with-bar">
+    <nav data-menubar aria-label="Menu"></nav>
+    <nav class="status-area" aria-label="Status" id="status"></nav>
+  </header>
+  <header class="topbar" id="plain">
+    <nav class="status-area" aria-label="Status"><a class="status-item" href="#" id="plain-item">Plain <span class="badge warn">1</span></a></nav>
+  </header>
+  <ul class="list" id="list" aria-label="Rows"></ul>
+  <div id="box"></div>
+  <script>
+    (function () {
+      var status = document.getElementById('status'), list = document.getElementById('list');
+      for (var i = 0; i < 300; i++) {
+        var item = document.createElement('a');
+        item.className = 'status-item'; item.href = '#'; item.id = 'item-' + i;
+        item.innerHTML = 'Item <span class="badge ' + ['warn', 'danger', 'positive', 'accent'][i % 4] + '">' + i + '</span>';
+        status.appendChild(item);
+      }
+      for (var j = 0; j < 400; j++) {
+        var row = document.createElement('li');
+        row.className = 'md-row'; row.id = 'row-' + j;
+        row.innerHTML = '<a class="md-item" href="#r' + j + '"' + (j === 1 ? ' aria-current="page"' : j === 2 ? ' aria-selected="true"' : j === 3 ? ' aria-current="false"' : '') + '>Row ' + j + '</a><button data-row-actions></button>';
+        list.appendChild(row);
+      }
+    })();
+  </script>
+</body>
+</html>

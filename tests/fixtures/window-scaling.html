@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window scaling</title>
+  <link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-toolbar.js" defer></script>
+  <script src="../../dist/pudl-commands.js" defer></script>
+  <script src="../../dist/pudl-windows.js" defer></script>
+  <style>
+    body { margin: 0; }
+    .win-host { height: calc(100vh - 100px); }
+    .win-bar { position: fixed; inset-inline: 0; bottom: 0; }
+  </style>
+</head>
+<body>
+  <!-- A test fixture for what one change costs among many windows
+       (0.108.0): two dozen windows, one a child of another, a taskbar, and
+       a toolbar of commands. -->
+  <div class="toolbar" aria-label="Commands" id="tools"><div class="toolbar-group"><button class="btn" data-command="save">Save</button><button class="btn" data-command="print">Print</button></div></div>
+  <div class="win-host"><main class="win-layer" data-win-layer data-win-menu data-win-src="#w-{key}"></main></div>
+  <footer class="win-bar"><nav id="dock" class="win-dock" data-win-dock aria-label="Windows"></nav></footer>
+  <script>
+    var keys = [];
+    for (var i = 0; i < 24; i++) keys.push('w' + i);
+    document.querySelector('[data-win-layer]').setAttribute('data-win-default', keys.join(','));
+    keys.forEach(function (key, index) {
+      var template = document.createElement('template');
+      template.id = 'w-' + key;
+      template.innerHTML = '<section class="win"><header class="win-head"><h2 class="win-title"></h2><nav class="win-chrome" aria-label="Window"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><p>Content</p></div></section>';
+      var win = template.content.firstElementChild;
+      win.setAttribute('data-win', key);
+      win.querySelector('.win-title').textContent = 'Window ' + index;
+      win.style.cssText = '--win-x:' + (0.01 + index * 0.02) + ';--win-y:' + (0.01 + index * 0.015) + ';--win-w:.35;--win-h:.4';
+      if (key === 'w5') win.setAttribute('data-win-parent', 'w4');
+      document.body.appendChild(template);
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+      window.pudlCommands.register(document.body, [
+        { id: 'save', label: 'Save', shortcut: 'Mod+S', run: function () { window.__saved = (window.__saved || 0) + 1; } },
+        { id: 'print', label: 'Print', run: function () {} }
+      ]);
+    });
+  </script>
+</body>
+</html>

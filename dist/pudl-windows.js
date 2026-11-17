@@ -116,6 +116,33 @@
   var taskbarProviders = new Map(), taskbarReferences = new Map(), taskbarResolutions = new Map(), taskbarScope = '';
   var windowChoice = 0;    // explicit selection, independent of popup focus recovery
   var wins = {};           // key -> window element
+
+  /* The layer's size, kept from one reading until the layer is resized
+     (0.108.0). Laying out the windows writes each one's placement and then
+     asks whether the layer is narrow, and a fresh read after each write
+     made the browser lay the page out again for every window; a window
+     menu built for every window did the same. Two resize observers, one on
+     each of the layer's boxes, forget the reading, and the HTML standard
+     runs them after layout and before paint, so a resize is never drawn
+     with the old size: the observer that refits the windows to it runs in
+     the same step. Every script call that can change the arrangement
+     forgets it too, since the page may have resized the layer in the same
+     task, before the observers have run. Until the observers are in place,
+     and in a browser without them, every read is fresh. */
+  var layerBox = null, layerWatched = false;
+  function layerSize(side) {
+    if (!layerWatched) return side === 'w' ? layer.clientWidth : layer.clientHeight;
+    if (!layerBox) layerBox = { w: layer.clientWidth, h: layer.clientHeight };
+    return layerBox[side];
+  }
+  function layerWidth() { return layerSize('w'); }
+  function layerHeight() { return layerSize('h'); }
+  function forgetLayerSize() { layerBox = null; }
+  function watchLayerSize() {
+    if (!window.ResizeObserver) return;
+    ['content-box', 'border-box'].forEach(function (box) { new ResizeObserver(forgetLayerSize).observe(layer, { box: box }); });
+    layerWatched = true;
+  }
   var zOrder = [];         // keys, bottom to top
   var openers = {};        // key -> element that opened it, for returning focus
   var pending = {};        // key -> true while its window is loading
@@ -203,14 +230,14 @@
     if (groups.length === 1) { delete d.tree; delete d.activeGroup; }
   }
   function dockBounds(edge) {
-    var w = layer.clientWidth, h = layer.clientHeight;
+    var w = layerWidth(), h = layerHeight();
     var top = dockSizePx('top'), bottom = dockSizePx('bottom');
     return sideEdge(edge) ? { x: edge === 'left' ? 0 : w - dockSizePx(edge), y: top, w: dockSizePx(edge), h: Math.max(0, h - top - bottom) }
       : { x: 0, y: edge === 'top' ? 0 : h - dockSizePx(edge), w: w, h: dockSizePx(edge) };
   }
   function dockSizePx(edge) {
     var value = getComputedStyle(layer).getPropertyValue('--dock-' + edge).trim();
-    return value.indexOf('%') >= 0 ? parseFloat(value) / 100 * (sideEdge(edge) ? layer.clientWidth : layer.clientHeight) : parseFloat(value) || 0;
+    return value.indexOf('%') >= 0 ? parseFloat(value) / 100 * (sideEdge(edge) ? layerWidth() : layerHeight()) : parseFloat(value) || 0;
   }
   function dockTrack() { return matchMedia('(pointer: coarse)').matches ? 20 : 12; }
   function groupMin(g, edge) {
@@ -350,7 +377,7 @@
   /* Whether automatic docks are collapsed at the layer's present size: the
      side docks by its width, the top and bottom docks by its height. */
   function autoCollapsed(edge) {
-    return sideEdge(edge) ? layer.clientWidth <= railThreshold() : layer.clientHeight <= collapseThreshold();
+    return sideEdge(edge) ? layerWidth() <= railThreshold() : layerHeight() <= collapseThreshold();
   }
   /* A collapsed shared dock: an icon rail at a side, its tab strip alone at
      the top or bottom. Either slides a window out over the central area. */
@@ -392,7 +419,7 @@
     var p = effectivePlacement(st, key);
     if (!p || dockEdge(p) || contentSized(key)) return out;
     var z = zoneFilled(p), share = z ? z.w : p.w;
-    var W = layer.clientWidth, inner = W, candidates = [];
+    var W = layerWidth(), inner = W, candidates = [];
     ['left', 'right'].forEach(function (edge) {
       var front = edgeFront(st, edge);
       if (!front) return;
@@ -1282,7 +1309,7 @@
     var el = wins[key];
     if (!el || contentSized(key) || narrowPolicy(el) !== 'maximized') return false;
     var width = Number(layer.getAttribute('data-win-narrow-width'));
-    return layer.clientWidth <= (width > 0 && isFinite(width) ? width : NARROW);
+    return layerWidth() <= (width > 0 && isFinite(width) ? width : NARROW);
   }
 
   function effectivePlacement(st, key) {
@@ -1650,7 +1677,7 @@
 
   function dockEdge(p) { return p && p.mode.indexOf('dock-') === 0 ? p.mode.slice(5) : null; }
 
-  function narrowLayer() { return !!layer && layer.clientWidth <= NARROW; }
+  function narrowLayer() { return !!layer && layerWidth() <= NARROW; }
 
   /* The edge a docked window shows on: its own, except that a side dock
      shows at the bottom of a layer too narrow to have room beside it. */
@@ -1660,18 +1687,28 @@
   }
 
   /* The stacking order a state implies: the order as it stands, windows
-     new to it on top, and the state's top window above them all. */
+     new to it on top, and the state's top window above them all. Each
+     window's parent is read once, and the order is built with sets
+     (0.108.0); it had looked up every window's parent once for each top
+     window, which grew with the cube of the windows open. */
   function stackOf(st) {
     var source = Array.isArray(st.zOrder) ? st.zOrder : zOrder;
-    var order = source.filter(function (k, i) { return st.open.indexOf(k) >= 0 && source.indexOf(k) === i; });
-    st.open.forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });
-    if (st.top && order.indexOf(st.top) >= 0) { order.splice(order.indexOf(st.top), 1); order.push(st.top); }
-    var roots = order.filter(function (k) { return !parentOf(st, k); });
-    if (st.top && st.open.indexOf(st.top) >= 0) {
-      var root = rootOf(st, st.top); roots.splice(roots.indexOf(root), 1); roots.push(root);
+    var open = new Set(st.open), seen = new Set(), order = [];
+    source.forEach(function (k) { if (open.has(k) && !seen.has(k)) { seen.add(k); order.push(k); } });
+    st.open.forEach(function (k) { if (!seen.has(k)) { seen.add(k); order.push(k); } });
+    if (st.top && seen.has(st.top)) { order.splice(order.indexOf(st.top), 1); order.push(st.top); }
+    var parents = new Map(), children = new Map();
+    order.forEach(function (k) {
+      var p = parentOf(st, k, open);
+      parents.set(k, p);
+      if (p) { if (!children.has(p)) children.set(p, []); children.get(p).push(k); }
+    });
+    var roots = order.filter(function (k) { return !parents.get(k); });
+    if (st.top && open.has(st.top)) {
+      var root = parents.get(st.top) || st.top; roots.splice(roots.indexOf(root), 1); roots.push(root);
     }
     var result = [];
-    roots.forEach(function (root) { result.push(root); order.forEach(function (k) { if (parentOf(st, k) === root) result.push(k); }); });
+    roots.forEach(function (root) { result.push(root); (children.get(root) || []).forEach(function (k) { result.push(k); }); });
     return result;
   }
 
@@ -1760,7 +1797,7 @@
     if (!st.open.length && !dockPreference) return [];
     var parts = ['open=' + st.open.join(',')];
     if (st.open.length) parts.push('z.order=' + stackOf(st).join(','));
-    var taskOrder = taskbarKeys(st), defaultOrder = st.open.filter(function (k) { return !parentOf(st, k); });
+    var taskOrder = taskbarKeys(st), openSet = new Set(st.open), defaultOrder = st.open.filter(function (k) { return !parentOf(st, k, openSet); });
     if (taskOrder.join(',') !== defaultOrder.join(',')) parts.push('tb.order=' + taskOrder.join(','));
     if (st.top) parts.push('top=' + st.top);
     var mins = st.open.filter(function (k) { return st.min[k]; });
@@ -1842,7 +1879,8 @@
     });
     var mine = windowParams(st);
     if (defaults.length) {
-      if (isDefault(st)) mine = [];
+      /* isDefault(st), without working the parameters out twice. */
+      if (bare !== null && mine.join('&') === bare) mine = [];
       else if (!mine.length) mine = ['open='];
     }
     parts = parts.concat(mine);
@@ -1853,19 +1891,30 @@
      fact about the content, so it lives in the markup, not the URL. It
      holds only while the parent is open and is itself a top-level window;
      otherwise the window stands on its own. */
-  function parentOf(st, key) {
+  /* open, when given, is a set of st.open, for a caller asking about every
+     window. */
+  function parentOf(st, key, open) {
     var el = wins[key];
     var p = el && el.getAttribute('data-win-parent');
-    if (!p || p === key || st.open.indexOf(p) < 0) return null;
+    if (!p || p === key || !(open ? open.has(p) : st.open.indexOf(p) >= 0)) return null;
     var pe = wins[p];
     var grand = pe && pe.getAttribute('data-win-parent');
-    return grand && st.open.indexOf(grand) >= 0 ? null : p;
+    return grand && (open ? open.has(grand) : st.open.indexOf(grand) >= 0) ? null : p;
   }
 
   function rootOf(st, key) { return parentOf(st, key) || key; }
 
   function childrenOf(st, key) {
     return st.open.filter(function (k) { return parentOf(st, k) === key; });
+  }
+  /* Every open window's children at once, for a caller asking about many. */
+  function childrenByParent(st) {
+    var open = new Set(st.open), map = new Map();
+    st.open.forEach(function (k) {
+      var p = parentOf(st, k, open);
+      if (p) { if (!map.has(p)) map.set(p, []); map.get(p).push(k); }
+    });
+    return map;
   }
 
   /* A docked window shows while it is the front of its edge, minimised or
@@ -2721,7 +2770,11 @@
      (0.69.3), each found by its window's key, moved only when out of
      place, and changed only where it differs; before, every tab was made
      again whenever the windows were laid out. */
-  function renderDocks(only) {
+  /* With marked, a set of window keys, only the entries of those windows
+     are drawn again, and the rest are left as they are (0.108.0): a change
+     to a window's marks, such as its execution state or its attention
+     count, alters nothing else in a dock. */
+  function renderDocks(only, marked) {
     var front = active(state);
     var topRoot = front ? rootOf(state, front) : null;
     document.querySelectorAll('[data-win-dock]').forEach(function (dock) {
@@ -2748,6 +2801,11 @@
         var a = have.get(entry.id), k = entry.keys[0];
         var destination = entry.pin && taskbarDestinations.get(entry.pin), tag = entry.group || (destination && !destination.href) ? 'BUTTON' : 'A';
         if (a && (a.tagName !== tag || (a.getAttribute('data-win-stack') || null) !== entry.group)) { if (stackPopup && stackPopup.button === a) stackPopup.close(false); a.remove(); a = null; }
+        if (a && marked && !entry.keys.some(function (key) { return marked.has(key); })) {
+          if (divider && i === pinnedCount) nodes.push(divider);
+          nodes.push(a);
+          return;
+        }
         if (!a) {
           a = document.createElement(tag.toLowerCase());
           if (entry.pin) a.setAttribute('data-win-pin', entry.pin);
@@ -2826,6 +2884,7 @@
     var front = active(state);
     var topRoot = front ? rootOf(state, front) : null;
     var stale = new Set(document.querySelectorAll('.md-row-child[data-win-child]'));
+    var kids = childrenByParent(state);
     document.querySelectorAll('.md-row a[data-win-open]').forEach(function (link) {
       var row = link.closest('.md-row');
       if (!row || row.classList.contains('md-row-child') || row.__pudlSeen === renderRows.pass) return;
@@ -2840,7 +2899,7 @@
       if (state.open.indexOf(key) < 0 || row.closest('[popover]')) return;
 
       var after = row;
-      childrenOf(state, key).forEach(function (c) {
+      (kids.get(key) || []).forEach(function (c) {
         var child = after.nextElementSibling;
         if (!(child && child.getAttribute('data-win-child') === c)) {
           child = document.createElement('div');
@@ -2883,7 +2942,9 @@
     var md = layer.getAttribute('data-win-pane') === 'off' ? null : layer.closest('.md-layout');
     if (md) {
       var any = state.open.some(function (k) { return defaults.indexOf(k) < 0 && !isHidden(state, k); });
-      md.setAttribute('data-md-pane', any ? 'detail' : 'list');
+      var pane = any ? 'detail' : 'list';
+      /* Turning the panes over can resize the layer. */
+      if (md.getAttribute('data-md-pane') !== pane) { md.setAttribute('data-md-pane', pane); forgetLayerSize(); }
     }
     linkAll('a[data-win-back]', urlFor(allMinimized(state)), anyShowing(state));
     linkAll('a[data-win-restore]', urlFor(allRestored(state)), anyMinimized(state));
@@ -4703,8 +4764,8 @@
   }
   function taskbarReorderEnabled() { return !!layer && layer.hasAttribute('data-win-taskbar-reorder'); }
   function taskbarKeys(st) {
-    var roots = st.open.filter(function (k) { return !parentOf(st, k); });
-    return (st.taskbarOrder || []).concat(roots).filter(function (k, i, all) { return roots.indexOf(k) >= 0 && all.indexOf(k) === i; });
+    var open = new Set(st.open), roots = new Set(st.open.filter(function (k) { return !parentOf(st, k, open); })), seen = new Set();
+    return (st.taskbarOrder || []).concat(Array.from(roots)).filter(function (k) { if (!roots.has(k) || seen.has(k)) return false; seen.add(k); return true; });
   }
   function taskbarProjection(dock) {
     return taskbarKeys(state).filter(function (k) { return !dock.hasAttribute('data-win-dock-omit-docked') || !shownEdge(state, k); });
@@ -5796,6 +5857,7 @@
     taskbarProviders.set('pudl-site-menus', { resolve: resolveSiteMenu, pinnable: true });
     layer = document.querySelector('[data-win-layer]');
     if (!layer) return;
+    watchLayerSize();
     srcTemplate = layer.getAttribute('data-win-src') || '';
     /* The layer names the default windows, not the windows themselves,
        because a default window the address has closed is not in the page. */
@@ -5998,7 +6060,7 @@
       }
       layer.dispatchEvent(new CustomEvent('pudl:windows-policy', { bubbles: true }));
     }
-    window.addEventListener('resize', refreshPolicy);
+    window.addEventListener('resize', function () { forgetLayerSize(); refreshPolicy(); });
     var policyFrame = 0;
     if (window.ResizeObserver) new ResizeObserver(function () {
       if (!layer.hasAttribute('data-win-dock-splits')) { refreshPolicy(); return; }
@@ -6006,12 +6068,47 @@
     }).observe(layer);
     new MutationObserver(refreshPolicy).observe(layer, { subtree: true, attributes: true,
       attributeFilter: ['data-win-narrow', 'data-win-narrow-width', 'data-win-size', 'data-win-dock-rail-width', 'data-win-dock-collapse-height', 'data-win-room'] });
-    new MutationObserver(function () {
-      Object.keys(wins).forEach(function (key) { titleState(wins[key]); });
-      document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
+    /* A change to a window's own marks redraws that window's title state
+       and its own tabs, and leaves every other window alone (0.108.0); an
+       application whose windows run agents changes them many times a
+       second. Any other change here, to a window's picture, its group or
+       its pin, or to the layer, can move or regroup the tabs, so the docks
+       are drawn again whole. A write of the value an attribute already had
+       changes nothing and is passed over. */
+    var MARKS = ['data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress'];
+    new MutationObserver(function (records) {
+      var marked = new Set(), whole = false;
+      records.forEach(function (r) {
+        if (r.target.getAttribute(r.attributeName) === r.oldValue) return;
+        var key = r.target.getAttribute('data-win');
+        if (MARKS.indexOf(r.attributeName) >= 0 && key && wins[key] === r.target) marked.add(key);
+        else whole = true;
+      });
+      if (whole) {
+        Object.keys(wins).forEach(function (key) { titleState(wins[key]); });
+        document.querySelectorAll('[data-win-tab]').forEach(function (tab) { windowMark(tab, tab.getAttribute('data-win-tab')); });
+        if (taskbarDrag) taskbarDrag.cancel();
+        renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
+        return;
+      }
+      if (!marked.size) return;
+      var keys = Array.from(marked);
+      keys.forEach(function (key) { titleState(wins[key]); });
+      /* Tabs in a dock are drawn by renderDocks, with their own titles. */
+      document.querySelectorAll(keys.map(function (key) { return '[data-win-tab="' + CSS.escape(key) + '"]'; }).join(',')).forEach(function (tab) {
+        if (!tab.parentElement || !tab.parentElement.hasAttribute('data-win-dock')) windowMark(tab, tab.getAttribute('data-win-tab'));
+      });
+      Object.keys(dockGroups).forEach(function (id) {
+        var group = dockGroups[id], touched = false;
+        keys.forEach(function (key) {
+          var tab = group.querySelector('[data-dock-key="' + CSS.escape(key) + '"]');
+          if (tab) { windowMark(tab, key); touched = true; }
+        });
+        if (touched) soonPositionDockMenus(group);
+      });
       if (taskbarDrag) taskbarDrag.cancel();
-      renderDocks(); fitBarsSoon(); renderDockGroups(); if (taskbarArrangement) taskbarArrangement.refresh();
-    }).observe(layer, { subtree: true, attributes: true,
+      renderDocks(null, marked); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh();
+    }).observe(layer, { subtree: true, attributes: true, attributeOldValue: true,
       attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-pinnable', 'data-win-destination-provider', 'data-win-destination', 'data-win-group', 'data-win-group-label', 'data-win-group-detail', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
@@ -6126,8 +6223,23 @@
       seen: function (key) { return !!wins[key] && seenWins.has(wins[key]); },
       reload: reload,
       update: update,
-      state: function () { return copy(state); }
+      state: function () { return copy(state); },
+      /* The window in front of the arrangement, and whether a window is
+         open (0.108.0): what most callers of state() want, without a copy
+         of the whole arrangement. */
+      top: function () { return state.top; },
+      isOpen: function (key) { return state.open.indexOf(key) >= 0; }
     };
+    /* Every call but those that only report reads the layer's size afresh
+       before it acts, since the page may have resized the layer earlier
+       in the same task. The reports, which a page may ask for every window
+       while it draws a menu, keep the reading. */
+    var REPORTS = ['menuCommands', 'effectivePlacement', 'shown', 'seen', 'state', 'top', 'isOpen', 'detailOf', 'iconOf', 'switcherKeys', 'shareURL', 'taskbarState', 'dockPresentation', 'group'];
+    Object.keys(window.pudlWindows).forEach(function (name) {
+      var fn = window.pudlWindows[name];
+      if (typeof fn !== 'function' || REPORTS.indexOf(name) >= 0) return;
+      window.pudlWindows[name] = function () { forgetLayerSize(); return fn.apply(this, arguments); };
+    });
 
     sync(false);
   }

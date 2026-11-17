@@ -964,12 +964,20 @@
      hidden from assistive technology. Left empty it shows the more
      glyph. A row is the nearest element holding the button as a child, or
      a table row holding it in a cell. */
+  /* Each ancestor's own children are looked at, not searched for with a
+     selector (0.108.0): a selector for a child is answered by searching
+     everything beneath, and this runs whenever the pointer crosses into an
+     element, from that element up to the body. */
+  function holdsButton(n) {
+    for (var c = n.firstElementChild; c; c = c.nextElementSibling) if (c.hasAttribute('data-row-actions')) return true;
+    return false;
+  }
   function rowOf(el) {
     for (var n = el; n && n !== document.body; n = n.parentElement) {
       /* A cell holding the button belongs to its table row (0.81.1). */
       if (n.tagName === 'TD' || n.tagName === 'TH') continue;
-      if (n.querySelector(':scope > [data-row-actions]')) return n;
-      if (n.tagName === 'TR' && n.querySelector(':scope > :is(td, th) > [data-row-actions]')) return n;
+      if (holdsButton(n)) return n;
+      if (n.tagName === 'TR') for (var cell = n.firstElementChild; cell; cell = cell.nextElementSibling) if ((cell.tagName === 'TD' || cell.tagName === 'TH') && holdsButton(cell)) return n;
     }
     return null;
   }
