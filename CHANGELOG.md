@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.108.1 (2026-11-16)
+
+- Row-action buttons remain visible at rest and use ordinary enabled-button Tab navigation without changing reserved geometry.
+- Empty glyph row actions receive Actions when no valid authored name is available; unresolved labelled-by references remain intact and can resolve later.
+- Row-action documentation and regressions cover both themes, dynamic insertion, native activation, focus return and the bounded naming cases.
+
+
 ## 0.108.0
 
 A page with many windows open does less work for each small change. Measured in a desktop application's page with 32 windows and about 300,000 elements, one run after the other against 0.107.2, a piece of streamed text in the front window took 18 ms instead of 25, a change to one window's state 64 ms instead of 81, bringing a window to the front 142 ms instead of 168, and opening one more window 1.35 s instead of 1.72. Three streamed pieces restyled 204 elements instead of 7,803.

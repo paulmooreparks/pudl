@@ -1,0 +1,53 @@
+# Always-visible row actions
+
+## Scoped acceptance and release assembly
+
+The lead accepts scoped PASS from independent review 10170, docs/proposals/row-actions-naming-independent-review-2026-11-16.md (SHA256 prefix b90da9f6945a). The corrected 174-entry manifest 3f4aec7e1f1c7b201ae615b0b6b629bc476ab1eeca6c28e2cb2cee7875fd9664 binds the accepted input. Independent regressions pass 36/36 and the six engine/form probes pass 108 checks. This establishes the scoped correction, not completion of the full release gates.
+
+Build and Release owns a separate release assembly from freshly checked remote main and these accepted bytes. Recheck remote version allocation before confirming provisional 0.107.3. Preserve the engineer's held candidate, prior archives and all earlier release evidence. Include only the reviewed row-action runtime/generated assets, supporting tests and contract/docs, plus bounded release notes and required version metadata. Classify every delta and verify inherited files and dependencies. Do not include scheduler, lifecycle, glyph or other held candidates.
+
+Freeze the assembled tree and exact commit/archive inventories before the complete serial release gate. Run the repository's required static, unit, font, skin and generated checks, complete reference checks in both themes and the full enumerated source/minified release matrix. Preserve raw/effective results and all failures; stop on a failed gate or unexplained drift without a rerun or relaxed assertion. Inspect the actual assembled row-action journey for visibility, Tab access, naming and stable geometry. Browser execution ownership passes to Build, with other work coordinated to avoid contention.
+
+Return the frozen source, full accounting, classified delta and exact conditional release plan for independent final review. Paul's requested normal release remains authorized; this assembly handoff ends before staging, commit, push or tag so the integrated result can be reviewed. Consumer adoption remains with Dinah and yavc.app after publication. The lead retains disposition ownership until Build accepts custody.
+
+## Corrected candidate submitted for revalidation
+
+The lead read handoff 10152, docs/proposals/row-actions-naming-held-handoff-2026-11-16.md (SHA256 prefix dcd33bfad1bd). The corrected 174-entry manifest is 3f4aec7e1f1c7b201ae615b0b6b629bc476ab1eeca6c28e2cb2cee7875fd9664. Engineer coverage reports 60/60 final affected executions and 72 naming checks. Accepted CSS bytes are unchanged. The previous candidate is preserved in held-before.zip, so the old manifest must be checked against that archived state rather than corrected runtime files.
+
+Verification owns independent revalidation and the browser slot. Recheck the demonstrated naming defects in source/minified forms across all three engines, valid authored precedence and later target resolution. Review the bounded documented rule for resolving references without extending it into a general accessible-name implementation. Confirm that the incremental delta leaves accepted CSS and unrelated behavior unchanged, reconcile the new manifest and archived prior state, and run appropriate affected checks to detect regressions. Preserve original tests, waits and all evidence; make no candidate edit. Return a durable acceptance or revision recommendation with exact identities, accounting, limitations and cleanup. Release assembly remains pending this disposition; the engineer retains byte custody.
+
+## Naming correction required before release assembly
+
+The lead accepts the scoped REVISE finding in Verification report 10134, docs/proposals/row-actions-visible-independent-review-2026-11-16.md (SHA256 prefix 1ad1cc7cabd0). Empty aria-label/title and unresolved aria-labelledby suppress the Actions fallback in all six source/minified engine combinations. Valid authored names pass. Visibility, geometry, ordinary button traversal and menu behavior passed independent checks; the WebKit link-expectation correction is accepted only with the separately demonstrated complete button traversal.
+
+The Implementation Engineer owns the bounded correction in the existing isolated worktree and receives the browser slot. Supply Actions for the demonstrated empty, whitespace-only and unresolved naming inputs on otherwise unnamed glyph buttons. Preserve valid authored names and normal labelled-by precedence, including a target that becomes available later; do not delete unresolved authored references. Use documented naming semantics without attempting a general accessible-name engine. Document the supported fallback behavior and add cases that reproduce the finding, valid-name controls and later target resolution. Keep the accepted CSS and unrelated behavior unchanged.
+
+Preserve the original 181-entry held manifest and independent evidence before editing. Seal corrected delivery and evidence in a new manifest, with an incremental diff and all attempts retained. Verify source/minified behavior in all three engines, affected regressions and generated freshness, then return for independent revalidation. No release assembly, staging, commit or publication proceeds before that review. Preserve the separate classification of Verification's harness errors and actual naming failures.
+
+## Held candidate and independent review
+
+The lead read engineer handoff 10100, docs/proposals/row-actions-visible-held-handoff-2026-11-16.md (SHA256 prefix 64574dac06d2). The candidate is held in pudl-row-actions-visible on fix/row-actions-always-visible. Its 181-entry manifest is a6e6407c490b7d03bc5b797ae94426a3d76319402202994ffb7cf2437e2a98a6. Reported final checks pass 60/60; the full history retains one initial WebKit reverse-link failure among 66 executions. No release acceptance is implied by this report.
+
+Verification owns independent code and rendered-behavior review of these held bytes, with the browser execution slot for this bounded task. Reconcile the six runtime/generated files and documentation/test delta against the baseline. Check all contract behaviors, naming and dynamic insertion, source/minified parity and actual Tab traversal across engines and themes. Review the WebKit test correction against documented behavior and ensure it does not excuse skipping an enabled action button or weaken the new contract. Preserve the initial red and complete accounting. Check initialization against authored attributes and dynamic mutations for unintended accessibility or focus changes. Verify geometry and existing activation/return behavior without adding waits or rerunning failures away.
+
+Return a durable recommendation, exact reviewed identities, raw/effective results, limitations and cleanup. Do not alter candidate bytes, integrate another held candidate, commit or publish. The engineer retains held-byte custody while Verification owns execution; the lead retains review disposition until acceptance. Version 0.107.3 remains provisional.
+
+Dinah Team Lead request 10073 conveys Paul's instruction that row action buttons must always be visible and ordinary Tab stops everywhere in Dinah, delivered through a normal PUDL release. This supersedes the old data-row-actions hover/focus reveal and assistive-technology exclusion contract. It authorizes a bounded PUDL correction and release preparation. Dinah and yavc.app retain their own adoption responsibilities.
+
+## Scope and behavior
+
+Every enabled data-row-actions button in an otherwise visible, interactive list row, tree node, table row or box must be visible at rest and reachable through ordinary sequential keyboard navigation. Pointer movement, selection and focus must not determine its visibility. Hidden/inert containers and genuinely disabled controls keep their native semantics. Do not use positive tabindex or make non-actionable content focusable.
+
+Remove PUDL's forced tabindex=-1 and aria-hidden=true treatment for these controls. Establish the normal enabled-button Tab contract and accessible exposure during initialization and dynamic insertion. Audit relevant roving-focus code for any later exclusion of these buttons. Preserve authored accessible names and provide a meaningful fallback for empty glyph-only buttons. Row-specific naming belongs in examples where needed to distinguish repeated actions. Do not claim screen-reader verification from DOM attributes alone.
+
+Keep existing size, margins, alignment and reserved space. Hover/focus may retain visual feedback but cannot reveal a hidden control. Menu-open highlighting remains valid. Preserve pointer activation, native Enter/Space activation, second-press closing, menu anchoring, focus return, row ownership, right-click, Shift+F10/Menu-key access, tree geometry and touch behavior. No unrelated menu lifecycle or held candidate work is included.
+
+## Implementation and verification ownership
+
+The Implementation Engineer owns an isolated worktree based on freshly checked remote main. At intake, remote main is ad46b82c7dbe78b627b38f8bcb0e1d9b7a96a6c7 and remote v0.107.3 is absent. Use 0.107.3 only as a provisional target until Build rechecks release allocation. Do not edit or stage runtime files in the lead checkout, revert others' work, or integrate held candidates.
+
+Inspect dist/pudl.css around data-row-actions and dist/pudl-menu.js readyButtons, plus relevant focus handlers and generated variants. Update README and docs/CONTRACT.md, which currently promise hidden controls outside the Tab order. Audit existing row-action surfaces and tests before deciding the final file scope. Regenerate affected minified assets through the repository build process.
+
+Tests that assert the superseded behavior must be replaced with assertions proving the new contract. Preserve unrelated assertions and waits. Verify real Tab/Shift+Tab traversal, Enter/Space menu opening and focus restoration, at-rest visibility with the pointer elsewhere, stable geometry across hover/focus/selection, dynamic insertion, list/tree/table/box layouts, disabled and hidden-container semantics, and source/minified parity. Inspect both themes in Chromium, Firefox and WebKit with the unchanged candidate. Run affected menu and row-action regressions and required generated checks; retain any failure without hiding retries or longer waits.
+
+Return the scoped diff, precise hashes, complete raw/effective accounting and cleanup for independent review. No commit, tag or publication is assigned to the engineer. Build will own normal release assembly after independent acceptance, preserving the prior 0.107.2 evidence and unresolved receipt-CI timeout. The lead retains coordination until each owner accepts its handoff.

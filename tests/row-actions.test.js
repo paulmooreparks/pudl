@@ -1,8 +1,4 @@
-/* A row's actions button (0.81.0): shown only where it belongs with its
-   place kept, opening the row's own context menu against itself with the
-   row marked, closing on a second press, out of the Tab order and hidden
-   from assistive technology, in a row list and in a tree; and a long press
-   opening a context menu. */
+/* Row actions remain visible and keyboard reachable without changing menu geometry. */
 const { launch, ROOT } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
@@ -23,17 +19,17 @@ function check(name, ok, extra) {
     return row.getAttribute('data-name') + ':' + (getComputedStyle(btn).visibility === 'visible' ? 'shown' : 'hidden');
   }).join(' '));
   const at = await shown();
-  check('at rest only the current row shows its button', at === 'Alpha:hidden Beta:shown Gamma:hidden articles:hidden site:hidden One:hidden Two:hidden', at);
+  check('all row actions are visible at rest', !at.includes(':hidden'), at);
   const kept = await p.evaluate(() => { const r = document.querySelector('[data-name="Alpha"] [data-row-actions]').getBoundingClientRect(); return r.width === 24 && r.height === 24; });
-  check('a hidden button keeps its place', kept);
-  const a11y = await p.evaluate(() => [...document.querySelectorAll('[data-row-actions]')].every(btn => btn.getAttribute('tabindex') === '-1' && btn.getAttribute('aria-hidden') === 'true' && btn.type === 'button'));
-  check('the buttons are out of the Tab order and hidden from assistive technology', a11y);
+  check('the button retains its 24px geometry', kept);
+  const a11y = await p.evaluate(() => [...document.querySelectorAll('[data-row-actions]')].every(btn => btn.tabIndex === 0 && btn.getAttribute('aria-hidden') !== 'true' && !!btn.getAttribute('aria-label') && btn.type === 'button'));
+  check('the buttons are Tab stops with accessible labels', a11y);
 
   await p.hover('[data-name="Gamma"] .md-item');
-  check('the row under the pointer shows its button', /Gamma:shown/.test(await shown()) && /Alpha:hidden/.test(await shown()), await shown());
+  check('the row under the pointer shows its button', /Gamma:shown/.test(await shown()) && /Alpha:shown/.test(await shown()), await shown());
   await p.hover('[data-name="articles"] > a');
   const nested = await shown();
-  check('in a tree, only the node under the pointer shows it, not its parent', /articles:shown/.test(nested) && /site:hidden/.test(nested), nested);
+  check('tree actions stay visible on both parent and child', /articles:shown/.test(nested) && /site:shown/.test(nested), nested);
   await p.focus('[data-name="Alpha"] .md-item');
   check('a row with focus in it shows its button', /Alpha:shown/.test(await shown()), await shown());
 
@@ -67,7 +63,7 @@ function check(name, ok, extra) {
   /* In a table the row is the tr, not the cell holding the button
      (0.81.1). */
   await p.hover('[data-name="Two"] td:first-child');
-  check('in a table, pointing at any cell of a row shows its button', /Two:shown/.test(await shown()) && /One:hidden/.test(await shown()), await shown());
+  check('in a table, pointing at any cell of a row shows its button', /Two:shown/.test(await shown()) && /One:shown/.test(await shown()), await shown());
   await p.click('[data-name="Two"] [data-row-actions]');
   await p.waitForSelector('.context-menu:popover-open');
   const table = await p.evaluate(() => ({ rows: [...document.querySelector('.context-menu:popover-open').querySelectorAll('.menu-action')].map(r => r.textContent.trim()),

@@ -1,0 +1,5 @@
+# Proposed PUDL 0.108.1
+
+This candidate makes row-action buttons visible at rest and ordinary Tab stops, preserving authored names and supplying the reviewed bounded Actions fallback. It starts at main 65480377efc75769e60f34411eeb47bac798a0b9 and retains the released 0.108.0 performance changes. The restyle-scope visibility expectation follows the approved policy while its performance probes, thresholds, waits and qualifications remain unchanged.
+
+Version allocation and release remain held. The proposed full gate contains 192 suites across three readable engines and minified Chromium, requiring 768 records with a 576/192 barrier. Preparation builds/static/pure checks are separate from native/browser validation, which is not authorized by this record. Old 0.107.3 failures and partial results retain their identities and supply no combined passing credit. Fresh final-source review, canonical main/tag CI, reproducible tagged archive, public/CDN byte checks and a scoped README integrity receipt remain mandatory before release acceptance.

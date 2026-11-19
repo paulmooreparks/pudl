@@ -956,14 +956,10 @@
      a tree or a table, opens the row's context menu: pressing it fires
      pudl:contextmenu on the row, so the page gives the same rows it gives
      a right-click, and the menu opens against the button with the row
-     marked. It shows only on the row under the pointer, the selected or
-     current row, a row with focus in it and a row whose menu is open;
-     elsewhere it keeps its place empty, so nothing shifts. The keyboard
-     reaches the same menu with Shift+F10 or the Menu key on the row, so
-     the button is for the pointer: it is no stop in the Tab order and is
-     hidden from assistive technology. Left empty it shows the more
-     glyph. A row is the nearest element holding the button as a child, or
-     a table row holding it in a cell. */
+     marked. The button stays visible and participates in ordinary Tab
+     navigation. Empty buttons receive an Actions label unless the author
+     supplies a name. A row is the nearest element holding the button as
+     a child, or a table row holding it in a cell. */
   /* Each ancestor's own children are looked at, not searched for with a
      selector (0.108.0): a selector for a child is answered by searching
      everything beneath, and this runs whenever the pointer crosses into an
@@ -986,8 +982,14 @@
     (root || document).querySelectorAll('[data-row-actions]').forEach(function (b) {
       if (b.__pudlRowActions) return;
       b.__pudlRowActions = true;
-      b.setAttribute('tabindex', '-1');
-      b.setAttribute('aria-hidden', 'true');
+      b.removeAttribute('tabindex');
+      b.removeAttribute('aria-hidden');
+      var labelled = (b.getAttribute('aria-labelledby') || '').trim().split(/\s+/).some(function (id) {
+        return id && b.ownerDocument.getElementById(id);
+      });
+      /* Keep unresolved references: a later target takes precedence over
+         this fallback through the browser's normal naming rules. */
+      if (!labelled && !(b.getAttribute('aria-label') || '').trim() && !(b.getAttribute('title') || '').trim() && !b.textContent.trim()) b.setAttribute('aria-label', 'Actions');
       if (b.tagName === 'BUTTON' && !b.hasAttribute('type')) b.type = 'button';
     });
   }
@@ -996,7 +998,7 @@
       var added = records[i].addedNodes;
       for (var k = 0; k < added.length; k++) {
         var n = added[k];
-        if (n.nodeType === 1 && (n.hasAttribute('data-row-actions') || (n.firstElementChild && n.querySelector('[data-row-actions]')))) { readyButtons(n.parentNode || n); return; }
+        if (n.nodeType === 1 && (n.hasAttribute('data-row-actions') || (n.firstElementChild && n.querySelector('[data-row-actions]')))) { readyButtons(n.parentNode || n); }
       }
     }
   }).observe(document.documentElement, { childList: true, subtree: true });

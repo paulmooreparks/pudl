@@ -2,10 +2,11 @@
    badge and every row with actions in the page (0.108.0). Two rules had
    asked, from each badge and each actions button, whether an ancestor held
    a menu bar or a selected link, and Chromium answered that by restyling
-   all of them for any insertion anywhere. The rules now ask the topbar
-   itself, and the link before the button. This checks, in every engine,
-   that the rules still give what they gave, and in Chromium, from its
-   trace, how many elements one insertion restyles. */
+   all of them for any insertion anywhere. The status area now reads the
+   topbar's scoped values. Row actions stay visible under the approved
+   0.108.1 contract. This checks that visibility and retained styling in
+   every engine, and in Chromium, from its trace, how many elements one
+   insertion restyles. */
 const { launch, ROOT, engine } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
@@ -59,7 +60,7 @@ function check(name, ok, detail) {
     };
   });
   check('the current row\'s link is bold and the others are not', look.weights[1] === '700' && look.weights[0] !== '700' && look.weights[3] !== '700', JSON.stringify(look.weights));
-  check('the actions show on the current and the selected rows only', look.actions.join() === 'hidden,visible,visible,hidden', look.actions.join());
+  check('all row actions stay visible at rest', look.actions.join() === 'visible,visible,visible,visible', look.actions.join());
   check('a status item beside a menu bar takes the titles\' colour', look.barColor === look.barColorWanted, look.barColor + ' vs ' + look.barColorWanted);
   check('a status item with no menu bar keeps the topbar\'s colour', look.plainColor === look.plainColorWanted, look.plainColor + ' vs ' + look.plainColorWanted);
   check('the status area beside a menu bar takes the group\'s surface', look.barBg === look.barBgWanted && look.barBg !== 'none', look.barBg + ' vs ' + look.barBgWanted);

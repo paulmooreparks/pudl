@@ -848,10 +848,10 @@ tree.addEventListener('pudl:contextmenu', e => {
 });
 ```
 
-**A row's actions button** (0.81.0). A `button` marked `data-row-actions`, the last thing in a row, opens the row's context menu, so a reader with a pointer can see the row has one. Left empty it shows the `more` glyph. Pressing it fires `pudl:contextmenu` on the row, so the menu is the one your handler already gives a right-click; it opens against the button with the row marked, and a second press closes it. It shows only on the row under the pointer, the selected or current row, a row with focus in it and a row whose menu is open, and keeps its place empty on the rest, so a long list is not a column of identical buttons. The keyboard reaches the same menu with Shift+F10 or the Menu key, so PUDL takes the button out of the Tab order and hides it from assistive technology. A row is the nearest element holding the button as a child, or a table row holding it in a cell; in a tree it goes after the node's branch, and stands at the end of the node's own line:
+**A row's actions button** (0.81.0). A `button` marked `data-row-actions`, the last thing in a row, opens the row's context menu, so a reader with a pointer can see the row has one. Left empty it shows the `more` glyph. Pressing it fires `pudl:contextmenu` on the row, so the menu is the one your handler already gives a right-click; it opens against the button with the row marked, and a second press closes it. The button stays visible at rest and is an ordinary Tab stop. Native Enter and Space open its menu; Escape returns focus to the button. Shift+F10 and the Menu key remain available on the row. Empty buttons receive the accessible name "Actions" when there is no nonblank aria-label, title or text and no resolving aria-labelledby reference. Unresolved labelled-by references remain intact so a target added later takes precedence over the fallback. Authors remain responsible for the content of resolving references. Give repeated actions row-specific names, such as `aria-label="Actions for Report"`. Disabled buttons and hidden or inert containers retain their native behavior. A row is the nearest element holding the button as a child, or a table row holding it in a cell; in a tree it goes after the node's branch, and stands at the end of the node's own line:
 
 ```html
-<li class="md-row"><a class="md-item" href="/files/report">Report</a><button data-row-actions></button></li>
+<li class="md-row"><a class="md-item" href="/files/report">Report</a><button data-row-actions aria-label="Actions for Report"></button></li>
 
 <li><a href="/folders/site" aria-expanded="true">site</a>
   <ul>…</ul><button data-row-actions></button></li>
@@ -1697,6 +1697,8 @@ The tests drive the samples and the reference page in real browsers through Play
 The working [compact taskbar example](samples/compact-taskbar.html) adds prioritized label folding, pin aggregation, an actions-only Windows popup and touch browsing without forced search focus. The responsive launcher fills the workspace in compact mode, preserves desktop pinning and dimensions, and offers contextual Size controls. Its [proposal](docs/proposals/compact-taskbar-navigation.md) records the approved design. These additions ship in 0.105.0. See [release verification](docs/RELEASE-0.105.0.md).
 
 ## Status
+
+The prepared 0.108.1 candidate makes row-action buttons visible at rest and ordinary Tab stops while retaining the 0.108.0 performance changes. Validation and publication remain pending; CDN examples retain their verified 0.108.0 identities.
 
 The latest release is [0.108.0](https://github.com/paulmooreparks/pudl/releases/tag/v0.108.0). PUDL is below 1.0, so a minor release may still change what a project sees.
 
