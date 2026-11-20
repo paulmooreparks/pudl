@@ -34,6 +34,12 @@ jobs:
   browsers:
     name: ${{ matrix.target.browser }} ${{ matrix.target.form }} ${{ matrix.shard }}/2
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --init --ipc=host
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +58,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.target.browser }}
+      - name: Require the package version matched by the browser image
+        run: node -e 'if (require("playwright/package.json").version !== "1.63.0") throw new Error("Update the pinned browser image with Playwright")'
       - run: |
           if [ '${{ matrix.target.form }}' = minified ]; then
             export PUDL_MIN=1

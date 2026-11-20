@@ -1,0 +1,15 @@
+# Preinstalled browser dependencies for CI
+
+The sharded speed PR completed in 617 seconds, but its same-tree main run took 1276 seconds. Main's longest WebKit job spent 739 seconds in setup and 512 seconds running suites. Original installation logs identify 723.959 seconds of dependency acquisition/configuration followed by 4.183 seconds of browser/FFmpeg downloads. Firefox shows 585.346 seconds versus 3.171 seconds. All installs succeeded; repeated APT Ign lines do not establish the underlying network or mirror cause.
+
+Browser jobs will use Microsoft's official Playwright 1.63.0 Noble image, matching the repository's pinned npm package. The registry returned HTTP 200 and OCI index digest sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27, with Linux amd64 and arm64 manifests. The workflow pins both tag and digest, retains npm ci and Node 22, and rejects an installed Playwright version that no longer matches the image. Future package updates must update the image binding in the same change.
+
+The image already contains browser binaries and their system dependencies, so browser jobs no longer run the per-shard APT/browser installation command. Playwright documents this image for trusted end-to-end testing and GitHub container jobs. The container uses its default user and the documented init and host IPC options. The test server and browsers run inside the same job container. No custom image, persistent browser service or process controller is introduced.
+
+All eight isolated shards retain one worker, assertions, timeouts, unique original artifacts and the exact complete-outcome gate. Font and generated/static jobs are unchanged. The new environment is a changed tested input, so it requires fresh original outcomes and independent review. Prior native-host outcomes cannot substitute for this validation.
+
+The first full hosted run must report image-pull/container initialization, package setup, suite execution and total elapsed time separately. It must retain all 760 original suite rows, required nested outcomes and complete static/font gates. Image pulls repeat across jobs and may offset the saved APT work. No latency improvement is claimed before that measurement.
+
+This workflow-only change is separate from the taskbar product fix and does not change its distribution or README integrity values. Work is isolated in C:/Users/paul/source/repos/pudl-browser-ci-image-20261120 on perf/browser-ci-image-20261120. The accepted sharding tree is the initial base. Build must preserve both tasks' source and evidence when integrating them, then validate the resulting main tree before product publication.
+
+Official contracts are [Playwright CI](https://playwright.dev/docs/ci) and [Playwright Docker](https://playwright.dev/docs/docker). The registry manifest was read from https://mcr.microsoft.com/v2/playwright/manifests/v1.63.0-noble. Original diagnosis, registry response and digest observation are retained under the speed audit worktree's tests/output/test-release-speed-ci-20261120 directory. No local image pull or browser execution ran during preparation.
