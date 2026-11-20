@@ -5,6 +5,9 @@
      node tests/run.js chromium firefox webkit
      node tests/run.js firefox regions       # one engine, suites matching "regions"
 
+   PUDL_SHARD=1/2 selects the first of two disjoint suite partitions.
+   CI uses separate runners for shards and keeps PUDL_JOBS=1 in each.
+
    A suite is a script that prints PASS and FAIL lines and exits non-zero
    on any failure. Screenshots and PDFs land in tests/output/.
 
@@ -19,6 +22,7 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 const { suiteResult } = require('./suite-result');
+const { selectSuites } = require('./suite-plan');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PUDL_PORT || 8765);
@@ -64,6 +68,7 @@ function runSuite(file, engine) {
     const directory = RUN_OUTPUT && path.join(RUN_OUTPUT, engine, file.replace(/\.test\.js$/, ''));
     if (directory) fs.mkdirSync(directory, { recursive: true });
     const log = directory && path.join(directory, 'output.log');
+    if (log) fs.writeFileSync(log, '', { flag: 'wx' });
     const env = Object.assign({}, process.env, { PUDL_BROWSER: engine, PUDL_ROOT: 'http://127.0.0.1:' + PORT });
     if (directory) env.PUDL_OUTPUT_DIR = path.join(directory, 'screenshots');
     const child = spawn(process.execPath, [path.join(__dirname, file)], {
@@ -86,10 +91,12 @@ function runSuite(file, engine) {
 }
 
 (async () => {
-  const suites = fs.readdirSync(__dirname)
+  const available = fs.readdirSync(__dirname)
     .filter(f => f.endsWith('.test.js'))
     .filter(f => !filters.length || filters.some(x => f.includes(x)))
     .sort();
+  const plan = selectSuites(available, [], process.env.PUDL_SHARD);
+  const suites = plan.suites;
   const server = await serve();
   const runStarted = Date.now();
   const queue = [];
@@ -115,7 +122,7 @@ function runSuite(file, engine) {
   server.close();
 
   const bad = results.filter(r => r.code !== 0);
-  if (RUN_OUTPUT) fs.writeFileSync(path.join(RUN_OUTPUT, 'results.json'), JSON.stringify({ jobs: JOBS, suiteTimeoutSeconds: SUITE_TIMEOUT / 1000, minified: process.env.PUDL_MIN === '1', results }, null, 2) + '\n');
+  if (RUN_OUTPUT) fs.writeFileSync(path.join(RUN_OUTPUT, 'results.json'), JSON.stringify({ jobs: JOBS, suiteTimeoutSeconds: SUITE_TIMEOUT / 1000, minified: process.env.PUDL_MIN === '1', revision: process.env.PUDL_RUN_REVISION || null, shard: plan.shard, totalSuites: plan.totalSuites, suites, results }, null, 2) + '\n');
   const slow = results.slice().sort((a, b) => b.secs - a.secs).slice(0, 5)
     .map(r => r.engine + ' ' + r.suite.replace('.test.js', '') + ' ' + r.secs.toFixed(1) + 's').join(', ');
   console.log('\nSlowest: ' + slow);

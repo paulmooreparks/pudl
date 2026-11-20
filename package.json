@@ -3,8 +3,9 @@
   "private": true,
   "description": "Browser tests for PUDL and the maintainer's minifier. A project using PUDL builds nothing and depends on nothing; this file exists only for the tests and build/minify.js.",
   "scripts": {
-    "test": "node tests/run.js chromium",
-    "test:all": "node tests/run.js chromium firefox webkit"
+    "test:static": "node tests/tokens.check.js && node build/palette-themes.js --check && node --test build/skin-definition.test.js build/skin-css.test.js build/suite-result.test.js build/palette-themes.test.js build/suite-plan.test.js build/verify-shards.test.js",
+    "test": "npm run test:static && node tests/run.js chromium",
+    "test:all": "npm run test:static && node tests/run.js chromium firefox webkit"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
