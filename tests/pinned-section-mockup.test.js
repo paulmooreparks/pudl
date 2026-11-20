@@ -29,12 +29,13 @@ const { launch, ROOT, out, engine } = require('./lib');
     }
     await association();
     const desktopHeight=await page.locator('.win-bar').evaluate(n=>n.getBoundingClientRect().height);
-    assert.ok(desktopHeight<=40,'desktop taskbar remains compact: '+desktopHeight);
+    assert.equal(desktopHeight,43,'30px entries plus 6px block padding on each side and 1px border');
     for(const width of [850,700,600,561,560,559,480,390,320,210,1440]) {
       await page.setViewportSize({width,height:1000});await settle();await association();
       assert.ok(Math.abs((await page.locator('.win-bar').evaluate(n=>n.getBoundingClientRect().height))-desktopHeight)<.5,'no mouse-driven height jump at '+width);
       assert.ok((await page.locator('.win-bar').boundingBox()).width<=width+1,'the shell constrains the taskbar to viewport width at '+width);
       const h=await page.locator('.win-bar :is(.win-tab,.btn,.icon-btn):visible').evaluateAll(ns=>ns.map(n=>n.getBoundingClientRect().height));
+      assert.ok(h.length>0&&h.every(height=>height===30),'visible buttons keep the requested 30px at '+width+': '+h);
       assert.ok(Math.max(...h)-Math.min(...h)<.5,'buttons share a height at '+width+': '+h);
       assert.ok(await page.locator('.win-bar [data-win-dock]').evaluate(n=>n.scrollWidth<=n.clientWidth+1),'no taskbar scrollbar at '+width);
     }
@@ -134,7 +135,7 @@ const { launch, ROOT, out, engine } = require('./lib');
       for(const width of [1440,390]) {
         await t.setViewportSize({width,height:1000});await t.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
         const rects=await t.locator('.win-bar :is(.win-tab,.btn,.icon-btn):visible').evaluateAll(ns=>ns.map(n=>({w:n.getBoundingClientRect().width,h:n.getBoundingClientRect().height})));
-        assert.ok(rects.every(r=>r.w>=40&&r.h>=40),'touch targets have width and height independent of viewport');
+        assert.ok(rects.length>0&&rects.every(r=>r.w>=40&&r.h===30),'coarse targets retain 40px minimum width and the shared 30px height independent of viewport');
       }
       await touch.close();
     }

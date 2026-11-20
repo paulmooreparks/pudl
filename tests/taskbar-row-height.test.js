@@ -3,7 +3,7 @@
    must still be the same height, whatever the skin, theme, execution state,
    text size and width, and across the switch between stacks and windows. */
 const assert = require('assert/strict');
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, out } = require('./lib');
 
 (async () => {
   const browser = await launch();
@@ -11,11 +11,17 @@ const { launch, ROOT } = require('./lib');
   try {
     const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
     const errors = [];
+    const peerIds = ['probe-action', 'probe-icon', 'probe-status', 'probe-status-link', 'probe-tray'];
+    const peerMarkup = '<button class="btn" id="probe-action" style="font-size:10px">Action</button>' +
+      '<button class="icon-btn" id="probe-icon" aria-label="Settings" style="font-size:14px"><span class="glyph" aria-hidden="true"></span></button>' +
+      '<div class="status-area" id="probe-tray" aria-label="Status tray"><button class="status-item" id="probe-status">Ready</button>' +
+      '<a class="status-item" id="probe-status-link" href="#status">Details</a></div>';
     page.on('pageerror', error => errors.push(error.message));
     const settle = () => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
     async function load() {
       await page.goto(ROOT + '/tests/fixtures/taskbar-stacks-full.html');
       await page.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.includes('child'));
+      await page.evaluate(markup => document.getElementById('wide-bar').insertAdjacentHTML('beforeend', markup), peerMarkup);
       await settle();
     }
     async function width(value) {
@@ -32,7 +38,39 @@ const { launch, ROOT } = require('./lib');
       for (const kind of expectKinds) assert(kinds.has(kind), label + ': the row shows a ' + kind + ' ' + JSON.stringify(found));
       const heights = found.map(entry => entry.height);
       assert(Math.max(...heights) - Math.min(...heights) < 0.5, label + ': entries differ in height ' + JSON.stringify(found));
+      const peers = await page.locator('#wide-bar').evaluate(bar => Array.from(bar.querySelectorAll(
+        ':scope > .btn, :scope > .icon-btn, :scope > .status-area, :scope > .status-area > .status-item'))
+        .filter(node => node.getClientRects().length).map(node => ({ name: node.id || 'tray', height: node.getBoundingClientRect().height })));
+      assert.deepEqual(peers.map(peer => peer.name).sort(), peerIds, label + ': all expected peers and tray actions are visible');
+      for (const peer of peers) assert(Math.abs(peer.height - heights[0]) < .5, label + ': peer/action differs ' + JSON.stringify(peer));
+      const rearFaces = await page.locator('#probe > [data-win-stack]').evaluateAll(stacks => stacks.filter(n => n.getClientRects().length).map(stack => {
+        const box = stack.getBoundingClientRect(), dock = stack.parentElement.getBoundingClientRect();
+        const edges = stack.querySelector('.win-stack-edges');
+        const offsets = ['::before', '::after'].map(pseudo => getComputedStyle(edges, pseudo)).filter(style => style.display !== 'none')
+          .map(style => new DOMMatrixReadOnly(style.transform).m42);
+        return { offsets, fits: box.bottom + Math.max(...offsets) <= dock.bottom + .5 };
+      }));
+      for (const faces of rearFaces) {
+        assert(faces.offsets.length > 0 && faces.offsets.every(offset => offset === 2 || offset === 4), label + ': visible rear offsets');
+        assert(faces.fits, label + ': rear faces remain inside the actual dock');
+      }
       return heights[0];
+    }
+    async function trayBoundary(label) {
+      const paint = await page.locator('#wide-bar > .status-area').evaluate(tray => {
+        const style = getComputedStyle(tray);
+        return { width: parseFloat(style.outlineWidth), style: style.outlineStyle, color: style.outlineColor, background: style.backgroundColor,
+          height: tray.getBoundingClientRect().height, actions: Array.from(tray.children).map(n => ({ id: n.id, height: n.getBoundingClientRect().height })) };
+      });
+      assert(paint.width >= 1 && paint.style !== 'none' && paint.color !== 'rgba(0, 0, 0, 0)' && paint.color !== paint.background,
+        label + ': tray boundary remains visible ' + JSON.stringify(paint));
+      assert.deepEqual(paint.actions.map(action => action.id).sort(), ['probe-status', 'probe-status-link'], label + ': both tray actions exist');
+      assert(paint.height > 0 && paint.actions.every(action => action.height === paint.height), label + ': every inner action matches the visible tray');
+      // Include the surrounding focus paint in the retained invented-fixture image.
+      const box = await page.locator('#probe-tray').boundingBox();
+      assert(box && box.width > 0 && box.height > 0, label + ': tray is rendered');
+      await page.screenshot({ path: out('tray-' + label.replace(/[^a-z0-9]+/gi, '-') + '.png'),
+        clip: { x: box.x - 6, y: box.y - 6, width: box.width + 12, height: box.height + 12 } });
     }
     async function scenario(name, action) {
       try { await load(); await action(); console.log('PASS ' + name); }
@@ -46,6 +84,7 @@ const { launch, ROOT } = require('./lib');
     await scenario('stacks and ordinary entries are one height at the default size', async () => {
       await width(1250);
       const ordinary = await equalRow('separate', ['window']);
+      assert.equal(ordinary, 30, 'the normal row matches the requested 30px');
       await width(560);
       assert.equal(await equalRow('stacked', ['stack', 'window']), ordinary, 'stacking does not change the row height');
     });
@@ -64,6 +103,12 @@ const { launch, ROOT } = require('./lib');
           const ordinary = await equalRow('separate', ['window']);
           await width(560);
           assert.equal(await equalRow('stacked', ['stack', 'window']), ordinary);
+          assert.equal(ordinary, 30, 'every skin keeps the requested normal height');
+          await page.locator('#probe-status').hover(); await trayBoundary(skin + '-' + theme + '-hover');
+          await page.mouse.down(); await trayBoundary(skin + '-' + theme + '-active'); await page.mouse.up();
+          await page.locator('#probe-status').focus(); await page.keyboard.press('Tab');
+          assert.equal(await page.locator('#probe-status-link').evaluate(n => n.matches(':focus-visible') && getComputedStyle(n).boxShadow !== 'none'), true, 'tray action keyboard focus remains visible');
+          await trayBoundary(skin + '-' + theme + '-focus');
         });
       }
     }
@@ -72,6 +117,7 @@ const { launch, ROOT } = require('./lib');
       await states();
       await width(1250);
       const ordinary = await equalRow('separate', ['window']);
+      assert(ordinary > 30, 'shared row grows with enlarged root text');
       await width(560);
       assert.equal(await equalRow('stacked', ['stack', 'window']), ordinary);
       assert.equal(await page.locator('#probe').evaluate(dock => Array.from(dock.children).every(node => {
@@ -98,6 +144,37 @@ const { launch, ROOT } = require('./lib');
       await width(560);
       assert.equal(await equalRow('stacked', ['stack']), ordinary);
     });
+    await scenario('forced colors preserve equal action heights and the tray boundary', async () => {
+      await page.setViewportSize({ width: 1500, height: 1000 });
+      await page.emulateMedia({ forcedColors: 'active' });
+      await width(560); await equalRow('forced colors', ['stack']);
+      await page.locator('#probe-status').focus(); await page.keyboard.press('Tab');
+      const focus = await page.locator('#probe-status-link').evaluate(n => {
+        const style = getComputedStyle(n);
+        const reference = document.createElement('span'); reference.style.color = 'Highlight'; n.append(reference);
+        const highlight = getComputedStyle(reference).color; reference.remove();
+        return { visible: n.matches(':focus-visible'), active: n === document.activeElement,
+          width: parseFloat(style.outlineWidth), style: style.outlineStyle, color: style.outlineColor, highlight };
+      });
+      assert(focus.active && focus.visible && focus.width >= 2 && focus.style === 'solid' && focus.color === focus.highlight,
+        'forced-color keyboard focus retains the system Highlight outline ' + JSON.stringify(focus));
+      await trayBoundary('forced-colors-focus');
+      await page.emulateMedia({ forcedColors: 'none' });
+    });
+    const touch = await browser.newPage({ viewport: { width: 1100, height: 900 }, hasTouch: true, isMobile: true });
+    try {
+      await touch.goto(ROOT + '/tests/fixtures/taskbar-stacks-full.html');
+      await touch.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.includes('child'));
+      await touch.evaluate(markup => document.getElementById('wide-bar').insertAdjacentHTML('beforeend', markup), peerMarkup);
+      const targets = await touch.locator('#wide-bar').evaluate(bar => ({ coarse: matchMedia('(pointer: coarse)').matches,
+        buttons: Array.from(bar.querySelectorAll('.win-tab, .btn, .icon-btn, .status-area, .status-item')).filter(n => n.getClientRects().length)
+          .map(n => ({ id: n.id, height: n.getBoundingClientRect().height, width: n.getBoundingClientRect().width, peer: n.matches('.win-tab, .btn, .icon-btn') })) }));
+      assert.deepEqual(targets.buttons.filter(target => target.id.startsWith('probe-')).map(target => target.id).sort(), peerIds, 'touch page retains every expected peer and tray action');
+      assert(targets.buttons.length > 3);
+      assert(targets.buttons.every(target => target.height === 30), 'normal and coarse-media buttons all retain 30px height');
+      if (targets.coarse) assert(targets.buttons.filter(target => target.peer).every(target => target.width >= 40), 'coarse peer minimum widths remain');
+      console.log('PASS taskbar action height with coarse-pointer capability=' + targets.coarse);
+    } finally { await touch.close(); }
     assert.equal(failures, 0, 'every scenario must pass');
     assert.deepEqual(errors, [], 'no browser errors');
     console.log('ALL PASSED');

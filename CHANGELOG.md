@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.108.2 (2026-11-20)
+
+- Taskbar window buttons, stacks, action buttons and tray actions share a 30px height at the normal text size. The bordered tray keeps the same outer height, and stack rear faces remain visible.
+- Browser CI splits each engine/form across two isolated serial runners and checks every original result and log. Static checks run once, and the redundant stale-date diagnostic remains available outside automatic enumeration.
+
+Projects replace the complete matching distribution. The taskbar sizing fix requires no markup change.
+
 ## 0.108.1 (2026-11-16)
 
 - Row-action buttons remain visible at rest and use ordinary enabled-button Tab navigation without changing reserved geometry.
