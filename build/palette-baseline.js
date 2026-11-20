@@ -7,6 +7,25 @@ const { execFileSync } = require('node:child_process');
 const revision = '92b25d1ab0179ec7aca7cb54b7c5f8e49a209dfc';
 const files = ['dist/pudl.css', 'dist/pudl-windows.css'];
 
+// Paul's 0.108.2 sizing policy changes only these historical declarations.
+// Exact single-match guards prevent silently accepting a different baseline.
+function taskbarSizingBaseline(windows) {
+  for (const [before, after] of [
+    ['\n.win-bar {\n', '\n.win-bar {\n  --win-bar-entry-height: max(30px, calc(1.125rem + 12px));\n'],
+    ['height: var(--win-bar-entry-height, calc(1.5em + 8px)); min-height: var(--win-bar-entry-height, calc(1.5em + 8px));',
+      'height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height);'],
+    ['.win-bar > .status-area {\n  order: 0;', '.win-bar > .status-area {\n  order: 0;\n' +
+      '  box-sizing: border-box; height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height);\n' +
+      '  padding: 0; border: 0;\n' +
+      '  outline: var(--menubar-status-border, 1px solid var(--tb-border, var(--raise-border))); outline-offset: -1px;'],
+    ['  .win-bar { --win-bar-entry-height: max(40px, calc(1.5em + 8px)); }\n', '']
+  ]) {
+    if (windows.split(before).length !== 2) throw new Error('Approved taskbar baseline declaration changed: ' + before);
+    windows = windows.replace(before, after);
+  }
+  return windows + '\n.win-bar > .status-area > .status-item { height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height); }\n';
+}
+
 function loadBaseline(root) {
   try {
     const baseline = new Map(files.map(file => [file, execFileSync('git', ['show', revision + ':' + file], {
@@ -29,7 +48,7 @@ function loadBaseline(root) {
     windows = windows.replace(count, '.win-stack-count { flex: none; font-family: var(--mono); font-variant-numeric: tabular-nums; }');
     // The new decorative span is inert when comparing historical foreground geometry.
     windows += '\n.win-stack-edges { display: none; }\n';
-    baseline.set('dist/pudl-windows.css', Buffer.from(windows));
+    baseline.set('dist/pudl-windows.css', Buffer.from(taskbarSizingBaseline(windows)));
     return baseline;
   } catch (cause) {
     throw new Error('Palette baseline setup failed: both CSS files from commit ' + revision +
@@ -37,4 +56,4 @@ function loadBaseline(root) {
   }
 }
 
-module.exports = { loadBaseline, revision, files };
+module.exports = { loadBaseline, revision, files, taskbarSizingBaseline };
