@@ -866,6 +866,7 @@
    padding, or between its controls, goes to the nearest control, so the
    bar's edge is part of every button on it. */
 .win-bar {
+  --win-bar-entry-height: max(30px, calc(1.125rem + 12px));
   display: flex; align-items: center; gap: 6px; flex: none; min-width: 0;
   padding: 6px 12px max(6px, env(safe-area-inset-bottom));
   background: var(--surface-alt); border-top: 1px solid var(--border);
@@ -879,7 +880,7 @@
    window links or stacks, and keep it when their labels fold. */
 .win-bar :is(.win-tab, .btn, .icon-btn) {
   box-sizing: border-box; font-size: var(--text-xs); line-height: 1.5;
-  height: var(--win-bar-entry-height, calc(1.5em + 8px)); min-height: var(--win-bar-entry-height, calc(1.5em + 8px));
+  height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height);
 }
 /* Short of room the bar shrinks window titles, compacts the tray, folds
    entry labels to identity glyphs and finally offers remaining entries
@@ -944,18 +945,22 @@
 .win-bar:has([data-win-back][aria-disabled="true"]):has([data-win-restore]:not([aria-disabled="true"])) [data-win-back] { display: none; }
 .win-bar > .status-area {
   order: 0;
+  /* Paint the tray boundary inward so its actions share the peer height. */
+  box-sizing: border-box; height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height);
+  padding: 0; border: 0;
+  outline: var(--menubar-status-border, 1px solid var(--tb-border, var(--raise-border))); outline-offset: -1px;
   --tb-chip: var(--raise-grad); --tb-chip-shadow: var(--raise-shadow); --tb-border: var(--raise-border);
   --tb-fg: var(--text); --tb-bg: var(--surface-alt);
   --tb-chrome-fg: color-mix(in srgb, var(--text) 80%, var(--surface-alt)); --tb-chrome-hover-fg: var(--text);
 }
+.win-bar > .status-area > .status-item { height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height); }
 @media (max-width: 560px) {
   .win-bar { padding-inline: 6px; gap: 4px; }
   .win-bar .win-dock > .win-tab { max-width: 175px; min-width: 96px; }
 }
 
-/* Input capability sets touch target size, independently of available width. */
+/* Coarse pointers keep wider targets while sharing the taskbar row height. */
 @media (pointer: coarse) {
-  .win-bar { --win-bar-entry-height: max(40px, calc(1.5em + 8px)); }
   .win-bar :is(.win-tab, .btn, .icon-btn) { min-width: 40px; }
   .win-bar[data-win-bar-glyphs]:not([data-win-bar-priority]) :is(.win-tab, .btn:has(.win-bar-label)) { min-width: 40px; }
 }

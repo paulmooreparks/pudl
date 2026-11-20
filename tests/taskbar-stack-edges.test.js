@@ -143,7 +143,10 @@ const skins = ['standard', ...require('./skins/skin-list')(__dirname + '/..')];
     const coarse = await touch.locator('#all [data-win-stack="alpha"]').evaluate(n => ({
       rect:n.getBoundingClientRect().toJSON(), depth:n.getAttribute('data-win-stack-depth'), coarse:matchMedia('(pointer: coarse)').matches
     }));
-    if (coarse.coarse) assert.ok(coarse.rect.width >= 40 && coarse.rect.height >= 40, 'touch targets keep both dimensions');
+    if (coarse.coarse) {
+      assert.ok(coarse.rect.width >= 40, 'coarse targets keep their minimum width');
+      assert.equal(coarse.rect.height, 30, 'coarse targets share the 30px taskbar height');
+    }
     assert.equal(coarse.depth, '2');
     await touch.screenshot({path:out('stack-edges-touch.png')}); await touch.close();
     console.log('PASS enlarged text and compact touch targets retain the rear faces');
