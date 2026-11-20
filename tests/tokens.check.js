@@ -1,6 +1,6 @@
 /* The token block of dist/pudl.css is what the vendored specification's
    tokens produce. It needs no browser, so it runs the same in every
-   engine. */
+   engine. Run it once with npm run test:static. */
 const { execFileSync } = require('child_process');
 const path = require('path');
 try {

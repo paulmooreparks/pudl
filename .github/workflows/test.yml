@@ -3,7 +3,6 @@ name: Tests
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
 
 jobs:
@@ -17,8 +16,8 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r build/fonts-requirements.txt
       - run: python build/fonts.py --check
-  minified:
-    name: Minified copies
+  generated:
+    name: Generated copies and static contracts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,28 +29,20 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node build/skins.js --check --release
-      - run: node --test build/skin-definition.test.js build/skin-css.test.js build/suite-result.test.js
+      - run: npm run test:static
       - run: node build/minify.js --check
-      - run: npx playwright install --with-deps chromium
-      - run: node tests/run.js chromium
-        env:
-          PUDL_MIN: '1'
-          PUDL_JOBS: '1'
-          PUDL_SUITE_TIMEOUT: '300'
-          PUDL_RUN_OUTPUT: tests/output/ci-minified
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: output-minified
-          path: tests/output/
-          if-no-files-found: ignore
   browsers:
-    name: ${{ matrix.browser }}
+    name: ${{ matrix.target.browser }} ${{ matrix.target.form }} ${{ matrix.shard }}/2
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        target:
+          - { browser: chromium, form: source }
+          - { browser: firefox, form: source }
+          - { browser: webkit, form: source }
+          - { browser: chromium, form: minified }
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,15 +52,44 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: node tests/run.js ${{ matrix.browser }}
+      - run: npx playwright install --with-deps ${{ matrix.target.browser }}
+      - run: |
+          if [ '${{ matrix.target.form }}' = minified ]; then
+            export PUDL_MIN=1
+          else
+            unset PUDL_MIN
+          fi
+          node tests/run.js ${{ matrix.target.browser }}
         env:
           PUDL_JOBS: '1'
+          PUDL_SHARD: ${{ matrix.shard }}/2
           PUDL_SUITE_TIMEOUT: '300'
-          PUDL_RUN_OUTPUT: tests/output/ci-${{ matrix.browser }}
+          PUDL_RUN_REVISION: ${{ github.sha }}
+          PUDL_RUN_OUTPUT: tests/output/ci-${{ matrix.target.browser }}-${{ matrix.target.form }}-${{ matrix.shard }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: output-${{ matrix.browser }}
-          path: tests/output/
-          if-no-files-found: ignore
+          name: output-${{ matrix.target.browser }}-${{ matrix.target.form }}-${{ matrix.shard }}
+          path: tests/output/ci-${{ matrix.target.browser }}-${{ matrix.target.form }}-${{ matrix.shard }}/
+          if-no-files-found: error
+  complete:
+    name: Complete test gate
+    if: always()
+    needs: [fonts, generated, browsers]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every prerequisite job
+        env:
+          FONTS: ${{ needs.fonts.result }}
+          GENERATED: ${{ needs.generated.result }}
+          BROWSERS: ${{ needs.browsers.result }}
+        run: test "$FONTS" = success && test "$GENERATED" = success && test "$BROWSERS" = success
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: output-*
+          path: tests/output/shards
+      - run: node tests/verify-shards.js tests/output/shards '${{ github.sha }}'
