@@ -840,6 +840,7 @@
       if (val(c, 'hidden') || typeof c.panel === 'function') return;
       var row = { id: c.id, label: val(c, 'label') || c.id };
       if (val(c, 'detail')) row.detail = String(val(c, 'detail'));
+      if (val(c, 'reasons')) row.reasons = String(val(c, 'reasons'));
       if (val(c, 'bind') === false) row.bind = false;
       var glyph = val(c, 'glyph'), key = val(c, 'shortcut'), checked = val(c, 'checked'), choice = val(c, 'choice');
       if (glyph) row.glyph = glyph;

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invented menu maintenance fixture</title>
+<link rel="stylesheet" href="../../dist/pudl.css">
+<script src="../../dist/pudl-menu.js" defer></script>
+<script src="../../dist/pudl-menubar.js" defer></script>
+<script src="../../dist/pudl-combo.js" defer></script>
+</head><body>
+<header class="topbar"><nav class="menubar" data-menubar data-menubar-reasons="tooltip" aria-label="Workbench">
+<ul data-menubar-source hidden>
+  <li>Workbench<ul>
+    <li id="nested-first">First<ul><li>Second<ul><li><button id="leaf">Leaf</button></li></ul></li><li><button>Sibling</button></li></ul></li>
+    <li><button disabled data-menu-reason="Connect first" data-menu-detail="Connection settings">Unavailable</button></li>
+    <li><button disabled data-menu-reasons="inline" data-menu-reason="Local policy">Inline reason</button></li>
+    <li><button data-shortcut="Mod+C" data-shortcut-bind="false">Display copy</button></li>
+    <li><button data-shortcut="Mod+Q">Bound location</button></li>
+  </ul></li>
+  <li data-menubar-id="other">Other<ul><li><button>Other command</button></li></ul></li>
+</ul></nav></header>
+<button id="outside">Outside</button>
+<form id="form"><label for="pick">Remote city</label><select id="pick" data-combo><option value="kept" selected>Kept city</option><option value="alpha">Alpha city</option></select></form>
+<script>window.runs=0; document.getElementById('leaf').onclick=()=>window.runs++;</script>
+</body></html>

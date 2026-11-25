@@ -6,6 +6,7 @@
   <title>Context menus</title>
   <link rel="stylesheet" href="../../dist/pudl.css">
   <script src="../../dist/pudl-menu.js" defer></script>
+  <script src="../../dist/pudl-commands.js" defer></script>
   <style>body { margin: 24px; } textarea { width: 360px; height: 120px; } #plain { margin-top: 12px; padding: 20px; border: 1px dashed #999; width: 300px; }</style>
 </head>
 <body>
@@ -42,7 +43,7 @@
         { label: 'Delete', danger: true, run: function () { ran.push('delete'); } }
       ];
     }
-    document.getElementById('editor').addEventListener('pudl:contextmenu', function (e) { e.detail.add(rows()); });
+    document.getElementById('editor').addEventListener('pudl:contextmenu', function (e) { e.detail.handlesEdit(); e.detail.add(rows()); });
     document.getElementById('in-dialog').addEventListener('pudl:contextmenu', function (e) { e.detail.add({ label: 'Inside', run: function () { ran.push('inside'); } }); });
     document.getElementById('rows').addEventListener('pudl:contextmenu', function (e) {
       var a = e.detail.target.closest('a');

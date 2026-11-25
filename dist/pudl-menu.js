@@ -214,6 +214,11 @@
        below the element or above it, never over it (0.81.1); one opened
        at a point opens below the point or above it. */
     var downAt = at.bottom != null ? at.bottom : at.y, upAt = at.top != null ? at.top : at.y;
+    /* A keyboard target may remain outside the visual viewport after a
+       host restores focus without scrolling. Clamp either opening edge,
+       as horizontal point placement already does. */
+    downAt = Math.max(v.top + EDGE, Math.min(downAt, v.bottom - EDGE));
+    upAt = Math.max(v.top + EDGE, Math.min(upAt, v.bottom - EDGE));
     var below = Math.max(0, v.bottom - downAt - EDGE), above = Math.max(0, upAt - v.top - EDGE);
     var down = below >= natural || below >= above;
     fitHeight(panel, down ? below : above, natural);
@@ -564,7 +569,7 @@
      submenu and Left closes it, Enter and Space choose, and Escape closes
      one level. A press outside, Tab, or the window losing focus closes the
      menu, and focus goes back to where it was. Shift with a right-click
-     leaves the browser's own menu to open. */
+     uses the same application menu (0.109.0). */
   var MAC = /Mac|iPhone|iPad|iPod/.test(navigator.platform || '');
   function keyShown(k) {
     var parts = k.split('+'), key = parts.pop();
@@ -576,6 +581,208 @@
   }
   function keyAria(k) {
     return k.split('+').map(function (p) { return p === 'Mod' ? (MAC ? 'Meta' : 'Control') : p === 'Ctrl' ? 'Control' : p; }).join('+');
+  }
+
+  /* The transport is chosen once for each operation. A rejected host
+     operation is never retried against the browser clipboard. */
+  var clipboardTransport = null;
+  var editGeneration = 0, restoringEdit = false;
+  ['pointerdown', 'keydown', 'focusin', 'input'].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      if (!restoringEdit && !(event.target.closest && event.target.closest('.context-menu'))) editGeneration++;
+    }, true);
+  });
+  window.pudlClipboard = {
+    setTransport: function (transport) {
+      if (transport != null && (typeof transport.readText !== 'function' || typeof transport.writeText !== 'function')) {
+        throw new TypeError('A clipboard transport must provide readText and writeText.');
+      }
+      clipboardTransport = transport || null;
+      editGeneration++;
+    },
+    readText: function () {
+      var transport = clipboardTransport || navigator.clipboard;
+      return Promise.resolve().then(function () {
+        if (!transport || typeof transport.readText !== 'function') throw new Error('Clipboard reading is unavailable.');
+        return transport.readText();
+      }).then(function (text) {
+        if (typeof text !== 'string') throw new TypeError('The clipboard transport must return text.');
+        return text;
+      });
+    },
+    writeText: function (text) {
+      var transport = clipboardTransport || navigator.clipboard;
+      return Promise.resolve().then(function () {
+        if (!transport || typeof transport.writeText !== 'function') throw new Error('Clipboard writing is unavailable.');
+        return transport.writeText(String(text));
+      }).then(function () {});
+    }
+  };
+
+  function editError(target, operation, error) {
+    var event = new CustomEvent('pudl:edit-error', { bubbles: true, cancelable: true,
+      detail: { target: target, operation: operation, error: error } });
+    (target.isConnected ? target : document).dispatchEvent(event);
+    if (!event.defaultPrevented) {
+      if (window.pudlToast) window.pudlToast(error.message || String(error), { kind: 'danger' });
+      else if (window.console) console.error('pudl-menu:', error);
+    }
+  }
+
+  /* Snapshot before any menu takes focus. A pending read/write may not
+     edit a disconnected, changed or newly read-only target. */
+  function editSnapshot(target) {
+    var field = target.closest('input, textarea');
+    if (field) {
+      if (field.tagName === 'INPUT' && !/^(text|search|url|tel|password|email|number)$/.test(field.type)) return null;
+      var start = field.selectionStart, end = field.selectionEnd;
+      return { node: field, field: true, type: field.type, value: field.value, start: start, end: end,
+        direction: field.selectionDirection, protected: field.type === 'password',
+        text: start == null ? '' : field.value.slice(start, end) };
+    }
+    var root = target.isContentEditable ? target : null;
+    while (root && root.parentElement && root.parentElement.isContentEditable) root = root.parentElement;
+    var selection = window.getSelection();
+    var range = selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
+    if (root && range && (!root.contains(range.startContainer) || !root.contains(range.endContainer))) range = null;
+    if (!root && (!range || range.collapsed)) return null;
+    return { node: root || target, field: false, editable: !!root, range: range,
+      startNode: range && range.startContainer, start: range && range.startOffset,
+      endNode: range && range.endContainer, end: range && range.endOffset,
+      value: root ? root.innerHTML : null, text: range ? range.toString() : '' };
+  }
+
+  function editLive(s, writing) {
+    var n = s.node;
+    if (!n.isConnected || n.ownerDocument !== document || n.closest('[inert]')) return false;
+    if (s.field) return !n.disabled && n.type === s.type && n.value === s.value && (!writing || (!n.readOnly && s.start != null));
+    if (s.editable && (n.innerHTML !== s.value || !n.isContentEditable || (writing && n.getAttribute('aria-readonly') === 'true'))) return false;
+    if (writing && !s.editable) return false;
+    return !!(s.range && s.startNode.isConnected && s.endNode.isConnected &&
+      s.range.startContainer === s.startNode && s.range.startOffset === s.start &&
+      s.range.endContainer === s.endNode && s.range.endOffset === s.end && s.range.toString() === s.text &&
+      (!s.editable || (n.contains(s.range.startContainer) && n.contains(s.range.endContainer))));
+  }
+
+  function restoreEdit(s) {
+    restoringEdit = true;
+    try {
+      s.node.focus({ preventScroll: true });
+      if (s.field && s.start != null) s.node.setSelectionRange(s.start, s.end, s.direction);
+      else if (s.range) {
+        var selection = window.getSelection();
+        selection.removeAllRanges(); selection.addRange(s.range);
+      }
+    } finally { restoringEdit = false; }
+  }
+
+  function ownsEdit(s, generation) {
+    if (generation !== editGeneration || !editLive(s, true)) return false;
+    var active = document.activeElement;
+    if (s.field) return active === s.node && s.node.selectionStart === s.start && s.node.selectionEnd === s.end;
+    if (active !== s.node && !(s.node.contains(active) && active.isContentEditable)) return false;
+    var selection = window.getSelection();
+    if (!selection || selection.rangeCount !== 1) return false;
+    var range = selection.getRangeAt(0);
+    return range.startContainer === s.startNode && range.startOffset === s.start &&
+      range.endContainer === s.endNode && range.endOffset === s.end;
+  }
+
+  function requireEdit(s, generation) {
+    if (!ownsEdit(s, generation)) throw new Error('The editing target or selection changed while the clipboard operation was pending.');
+  }
+
+  function replaceEdit(s, text, deleting, generation) {
+    requireEdit(s, generation);
+    restoreEdit(s);
+    requireEdit(s, generation);
+    /* This untrusted, cancellable preflight precedes mutation even where
+       execCommand omits beforeinput. A browser may also emit its own
+       beforeinput; application handlers keep receiving that native event. */
+    var inputType = deleting ? 'deleteContentBackward' : 'insertText';
+    var before = new InputEvent('beforeinput', { bubbles: true, composed: true, cancelable: true,
+      inputType: inputType, data: deleting ? null : text });
+    if (!s.node.dispatchEvent(before)) return;
+    requireEdit(s, generation);
+    /* execCommand's editing actions are documented to preserve the
+       native undo buffer. No direct value/DOM fallback loses that history.
+       Clipboard commands themselves always use the transport above. */
+    var input = false;
+    function observed() { input = true; }
+    s.node.addEventListener('input', observed);
+    var changed;
+    try { changed = document.execCommand(deleting ? 'delete' : 'insertText', false, text); }
+    finally { s.node.removeEventListener('input', observed); }
+    if (!changed) throw new Error('This browser could not apply the edit with Undo support.');
+    if (!input) s.node.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true,
+      inputType: inputType, data: deleting ? null : text }));
+  }
+
+  function genericEditRows(target) {
+    var s = editSnapshot(target);
+    if (!s) return [];
+    var menuGeneration = editGeneration;
+    var selected = !!s.text && !s.protected && editLive(s, false);
+    var writable = editLive(s, true);
+    var readable = !s.protected && !!(clipboardTransport || (navigator.clipboard && navigator.clipboard.writeText));
+    var pasteable = !!(clipboardTransport || (navigator.clipboard && navigator.clipboard.readText));
+    function command(id, label, shortcut, glyph, enabled, action) {
+      var row = { id: id, label: label, shortcut: shortcut, bind: false, disabled: !enabled,
+        run: function () {
+          if (menuGeneration !== editGeneration) {
+            editError(s.node, id, new Error('The editing menu no longer owns its original target.'));
+            return Promise.resolve();
+          }
+          var generation = ++editGeneration;
+          return Promise.resolve().then(function () {
+            if (!editLive(s, id === 'cut' || id === 'paste')) throw new Error('The editing target is no longer available.');
+            if (id === 'cut' || id === 'paste') {
+              restoreEdit(s);
+              requireEdit(s, generation);
+            }
+            return action(generation);
+          }).catch(function (error) { editError(s.node, id, error); });
+        } };
+      if (s.field && s.start == null && id !== 'select-all') {
+        row.reason = 'This input type does not expose text selection positions. Use native editing shortcuts.';
+      }
+      if (id === 'copy') row.glyph = glyph;
+      else {
+        var ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 16 16'); svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.5');
+        svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+        var path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', id === 'cut' ? 'M5.5 6.5L13 2M5.5 9.5L13 14M6 4.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM6 11.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z' :
+          id === 'paste' ? 'M6 3H3v11h10V3h-3M6 2h4v3H6ZM5.5 8h5M5.5 11h5' : 'M5 2H2v3M11 2h3v3M14 11v3h-3M5 14H2v-3M5 5h6v6H5Z');
+        svg.appendChild(path); row.icon = [svg];
+      }
+      return row;
+    }
+    function copy(generation) {
+      if (generation !== editGeneration || !editLive(s, false) || !selected) throw new Error('The selected text is no longer available.');
+      return window.pudlClipboard.writeText(s.text);
+    }
+    return [
+      command('cut', 'Cut', 'Mod+X', 'cut', selected && writable && readable, function (generation) {
+        return copy(generation).then(function () { replaceEdit(s, '', true, generation); });
+      }),
+      command('copy', 'Copy', 'Mod+C', 'copy', selected && readable, copy),
+      command('paste', 'Paste', 'Mod+V', 'paste', writable && pasteable, function (generation) {
+        requireEdit(s, generation);
+        return window.pudlClipboard.readText().then(function (text) { if (text) replaceEdit(s, text, false, generation); });
+      }),
+      command('select-all', 'Select All', 'Mod+A', 'select', s.node.isConnected && !s.node.disabled, function () {
+        if (!s.node.isConnected || s.node.disabled) return;
+        if (s.field) { s.node.focus({ preventScroll: true }); s.node.select(); }
+        else {
+          var selection = window.getSelection(), range = document.createRange();
+          if (s.editable) s.node.focus({ preventScroll: true });
+          range.selectNodeContents(s.editable ? s.node : document.body);
+          selection.removeAllRanges(); selection.addRange(range);
+        }
+      })
+    ];
   }
 
   var ctx = { panels: [], owner: null, marked: null, quiet: false };
@@ -604,7 +811,11 @@
       ctx.marked = null;
       var owner = ctx.owner;
       ctx.owner = null;
-      if (owner && owner.isConnected && (!document.activeElement || document.activeElement === document.body)) owner.focus({ preventScroll: true });
+      if (owner && owner.isConnected && (!document.activeElement || document.activeElement === document.body)) {
+        restoringEdit = true;
+        try { owner.focus({ preventScroll: true }); }
+        finally { restoringEdit = false; }
+      }
     }
   }
 
@@ -656,12 +867,25 @@
       main.className = 'menubar-words';
       main.textContent = c.label;
       words.appendChild(main);
-      var detail = c.disabled && c.reason ? c.reason : c.detail;
+      var reason = c.disabled && c.reason;
+      var tooltipReason = (c.reasons || panel.__reasons) === 'tooltip';
+      var detail = tooltipReason ? c.detail : reason || c.detail;
+      var descriptionId = panel.id + '-reason-' + panel.children.length;
       if (detail) {
         var d = document.createElement('span');
         d.className = 'menubar-detail';
         d.textContent = detail;
+        if (reason && !tooltipReason) d.id = descriptionId;
         words.appendChild(d);
+      }
+      if (reason) {
+        r.title = String(reason);
+        r.setAttribute('aria-describedby', descriptionId);
+        if (tooltipReason) {
+          var description = document.createElement('span');
+          description.id = descriptionId; description.className = 'visually-hidden';
+          description.textContent = reason; words.appendChild(description);
+        }
       }
       r.appendChild(words);
       /* A row's mark is the elements it gives as mark, cloned, after its
@@ -705,7 +929,8 @@
     if (!mark || mark.nodeType !== 1 || !ctx.panels.length || ctx.marked !== mark) return false;
     function update(panel, items) {
       var oldRows = ctxRows(panel), focus = document.activeElement, index = oldRows.indexOf(focus);
-      var fresh = document.createElement('div'); fresh.id = panel.id + '-refresh-' + (++ctxUid); fillContext(fresh, rowsFrom(items, ctx.owner));
+      var fresh = document.createElement('div'); fresh.id = panel.id + '-refresh-' + (++ctxUid);
+      fresh.__reasons = panel.__reasons; fillContext(fresh, rowsFrom(items, ctx.owner));
       var retained = new Set(), cursor = panel.firstChild;
       Array.from(fresh.children).forEach(function (made) {
         var model = made._row, prior = model && oldRows.find(function (r) { return !retained.has(r) && (model.id ? r._row.id === model.id : r._row.label === model.label); });
@@ -728,7 +953,7 @@
           var parentIndex = oldRows.indexOf(sub.__parentRow); closeContext(panel.__level + 1);
           if (ownedFocus) { var surviving = ctxRows(panel); if (surviving.length) surviving[Math.min(Math.max(parentIndex, 0), surviving.length - 1)].focus(); }
         }
-        else { sub.setAttribute('aria-label', sub.__parentRow._row.label); update(sub, sub.__parentRow._row.items); }
+        else { sub.setAttribute('aria-label', sub.__parentRow._row.label); sub.__reasons = sub.__parentRow._row.reasons || panel.__reasons; update(sub, sub.__parentRow._row.items); }
       }
       if (index >= 0 && retained.has(focus)) focus.focus({ preventScroll: true });
       if (index >= 0 && !retained.has(focus)) { var next = ctxRows(panel); if (next.length) next[Math.min(index, next.length - 1)].focus(); }
@@ -745,6 +970,7 @@
     panel.setAttribute('popover', 'manual');
     panel.setAttribute('role', 'menu');
     if (label) panel.setAttribute('aria-label', label);
+    panel.__reasons = parentRow ? parentRow._row.reasons || parentRow.closest('.context-menu').__reasons : ctx.reasons;
     fillContext(panel, rows);
     /* Keep context actions within their owner's popup. Native light dismissal
        then treats choosing an auxiliary action as an inside interaction. */
@@ -800,7 +1026,9 @@
     var c = r._row;
     if (c.items && c.items.length) { openSub(panel, r); return; }
     if (c.disabled) return;
-    closeContext(0);
+    restoringEdit = true;
+    try { closeContext(0); }
+    finally { restoringEdit = false; }
     if (typeof c.run === 'function') c.run();
     else if (c.source && typeof c.source.click === 'function') c.source.click();
   }
@@ -843,6 +1071,8 @@
     rows = rowsFrom(rows, opts.owner);
     if (!rows.some(function (r) { return r && r !== '-' && typeof r.label === 'string'; })) return null;
     ctx.owner = opts.owner || document.activeElement;
+    var policy = ctx.owner && ctx.owner.closest && ctx.owner.closest('[data-menu-reasons], [data-menubar-reasons]');
+    ctx.reasons = opts.reasons || (policy && (policy.getAttribute('data-menu-reasons') || policy.getAttribute('data-menubar-reasons'))) || 'inline';
     var point = { x: x, y: y };
     /* opts.edges, the top and bottom edges of an element the menu opens
        against, as anchorPoint gives them (0.81.1). */
@@ -860,10 +1090,11 @@
 
   /* Asks the page for rows, by pudl:contextmenu on the target. */
   function ask(target, x, y, keyboard) {
-    var asked = { rows: [], mark: null };
+    var asked = { rows: [], mark: null }, editsHandled = false;
     var detail = {
       x: x, y: y, keyboard: keyboard, target: target,
       add: function (r) { asked.rows = asked.rows.concat(Array.isArray(r) ? r : [r]); },
+      handlesEdit: function () { editsHandled = true; },
       mark: function (el) { asked.mark = el && el.nodeType === 1 ? el : null; },
       /* How many rows have been given so far, so a handler further out,
          such as PUDL's own for a dock tab, gives way to one nearer the
@@ -876,7 +1107,14 @@
     };
     /* Cancelable, so a page can say that nothing further out should
        answer, as it would for an event of its own (0.79.0). */
-    target.dispatchEvent(new CustomEvent('pudl:contextmenu', { bubbles: true, cancelable: true, detail: detail }));
+    var uncanceled = target.dispatchEvent(new CustomEvent('pudl:contextmenu', { bubbles: true, cancelable: true, detail: detail }));
+    if (uncanceled && !editsHandled) {
+      var edits = genericEditRows(target);
+      if (edits.length) {
+        if (asked.rows.length && asked.rows[asked.rows.length - 1] !== '-') asked.rows.push('-');
+        asked.rows = asked.rows.concat(edits);
+      }
+    }
     return asked;
   }
 
@@ -912,10 +1150,6 @@
     if (e.defaultPrevented || !e.target || !e.target.closest) return;
     var sourceRow = e.target.closest('.context-menu .menu-action');
     if (e.target.closest('.context-menu') && !(sourceRow && sourceRow._row && sourceRow._row.source)) { e.preventDefault(); return; }
-    /* Shift with a right-click always gives the browser's own menu, with
-       its spelling suggestions and its copy, paste and inspect, the thing
-       readers miss most where a page replaces it. */
-    if (e.shiftKey) return;
     var asked = ask(e.target, e.clientX, e.clientY, false);
     if (!asked.rows.length) return;
     e.preventDefault();

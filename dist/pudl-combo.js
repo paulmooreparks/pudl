@@ -232,7 +232,26 @@
       opener.setAttribute('aria-expanded', 'true');
       place();
     }
+    var remoteEpoch = 0, remoteTicket = null, remoteRequest = null, remoteAllowed = true;
+    function retireRemote() {
+      remoteEpoch++; remoteTicket = null; remoteRequest = null;
+      clearTimeout(timer);
+      if (asking) { asking.abort(); asking = null; }
+    }
+    panel.addEventListener('beforetoggle', function (event) {
+      if (event.newState === 'closed') {
+        retireRemote();
+        if (field.getAttribute('aria-expanded') === 'true') {
+          remoteAllowed = false;
+          listRevision++; field.setAttribute('aria-expanded', 'false'); opener.setAttribute('aria-expanded', 'false');
+          field.removeAttribute('aria-activedescendant'); active = -1;
+        }
+      }
+    });
+    field.addEventListener('blur', function () { remoteAllowed = false; retireRemote(); });
+    document.addEventListener('reset', function (event) { if (strict && event.target === select.form) { remoteAllowed = false; retireRemote(); } }, true);
     function close() {
+      retireRemote();
       listRevision++;
       field.setAttribute('aria-expanded', 'false');
       opener.setAttribute('aria-expanded', 'false');
@@ -379,7 +398,9 @@
       clearTimeout(timer);
       if (asking) { asking.abort(); asking = null; }
       if (!q) { close(); return; }
+      var epoch = remoteEpoch;
       timer = setTimeout(function () {
+        if (epoch !== remoteEpoch || document.activeElement !== field) return;
         var url = src.replace('{q}', encodeURIComponent(q));
         if (!sameOrigin(url)) return;
         var ctl = asking = new AbortController();
@@ -392,7 +413,7 @@
           if (!res.ok || !sameOrigin(res.url) || type.indexOf('text/html') !== 0) throw new Error('refused');
           return res.text();
         }).then(function (html) {
-          if (asking !== ctl) return;
+          if (asking !== ctl || epoch !== remoteEpoch || !source.isConnected || document.activeElement !== field) return;
           asking = null;
           var t = document.createElement('template');
           t.innerHTML = html;
@@ -415,6 +436,7 @@
 
     field.addEventListener('input', function (e) {
       if (!e.isTrusted) return;
+      retireRemote(); remoteAllowed = true;
       if (tok) tok.split();
       var q = field.value;
       if (complete && e.inputType && e.inputType.indexOf('insert') === 0 && q) {
@@ -434,6 +456,8 @@
 
     field.addEventListener('keydown', function (e) {
       if (e.ctrlKey || e.metaKey) return;
+      if (e.key === 'Escape' || e.key === 'Tab' || (e.altKey && e.key === 'ArrowUp')) remoteAllowed = false;
+      if (e.key === 'ArrowDown' || (e.key === 'ArrowUp' && !e.altKey)) remoteAllowed = true;
       /* A closed filtered list retains its query until settlement or an
          explicit browse request. Label equality does not imply browsing. */
       var q = strict ? (editing ? lastQ : '') : (lastQ === field.value ? field.value : '');
@@ -475,7 +499,7 @@
     });
     /* A browser's own change for a chosen value comes before the field is
        focused again, if it comes at all. */
-    field.addEventListener('focus', function () { field.__pudlComboSaid = undefined; });
+    field.addEventListener('focus', function () { field.__pudlComboSaid = undefined; remoteAllowed = true; });
     field.addEventListener('blur', function () {
       setTimeout(function () {
         if (document.activeElement === field) return;
@@ -487,8 +511,8 @@
     opener.addEventListener('pointerdown', function (e) { e.preventDefault(); });
     opener.addEventListener('click', function () {
       if (field.disabled || field.readOnly) return;
-      if (isOpen()) { close(); field.focus(); return; }
-      field.focus();
+      if (isOpen()) { close(); field.focus(); remoteAllowed = false; return; }
+      field.focus(); remoteAllowed = true;
       editing = false;
       if (!show(options(), '')) return;
       if (tok) return;
@@ -814,6 +838,40 @@
     }
 
     if (strict) {
+      select.__pudlComboRemote = {
+        begin: function () {
+          syncOwnership(ownershipObserver.takeRecords());
+          if (!remoteAllowed || !select.isConnected || !wrap.isConnected || select.matches(':disabled') || field.disabled || field.readOnly || !field.getClientRects().length || field.closest('[inert]') || document.activeElement !== field) return null;
+          remoteTicket = Object.freeze({});
+          remoteRequest = { epoch: remoteEpoch, query: field.value, value: select.value, source: select.innerHTML,
+            owner: select.form, outer: select.closest('.form-select-wrap') || select };
+          return remoteTicket;
+        },
+        replace: function (ticket, optionElements, settings) {
+          syncOwnership(ownershipObserver.takeRecords());
+          var request = remoteRequest;
+          if (!remoteAllowed || !ticket || ticket !== remoteTicket || request.epoch !== remoteEpoch || request.query !== field.value ||
+              request.value !== select.value || request.source !== select.innerHTML || request.owner !== select.form ||
+              !select.isConnected || !wrap.isConnected || request.outer.nextSibling !== wrap ||
+              select.matches(':disabled') || field.disabled || field.readOnly || !field.getClientRects().length || field.closest('[inert]') || document.activeElement !== field) return false;
+          if (!Array.isArray(optionElements) || !optionElements.every(function (option) {
+            return option instanceof HTMLOptionElement && option.ownerDocument === document;
+          })) throw new TypeError('replaceOptions requires an array of option elements from this document');
+          var start = field.selectionStart, end = field.selectionEnd, direction = field.selectionDirection;
+          var selected = select.selectedIndex < 0 ? null : select.options[select.selectedIndex].cloneNode(true);
+          var fragment = document.createDocumentFragment();
+          optionElements.forEach(function (option) { fragment.appendChild(option.cloneNode(true)); });
+          if (selected && !Array.prototype.some.call(fragment.children, function (option) { return option.value === request.value; })) fragment.appendChild(selected);
+          remoteTicket = null;
+          select.replaceChildren(fragment);
+          if (selected) select.value = request.value; else select.selectedIndex = -1;
+          field.value = request.query; lastQ = request.query; editing = true;
+          field.setSelectionRange(start, end, direction);
+          if (settings && settings.open === true) show(matching(request.query), request.query);
+          else follow();
+          return true;
+        }
+      };
       var reported = false, error = null, form = null, generation = 0;
       field.value = chosenLabel();
       function errorState(message) {
@@ -854,6 +912,7 @@
         var focused = document.activeElement === field;
         var query = field.value;
         if (moved) {
+          retireRemote();
           generation++;
           if (isOpen()) close(false);
           if (select.isConnected) outer.after(wrap); else wrap.remove();
@@ -900,7 +959,11 @@
       function changed() { generation++; if (document.activeElement !== field) { field.value = chosenLabel(); editing = false; } sync(); }
       select.addEventListener('input', changed);
       select.addEventListener('change', changed);
-      field.addEventListener('input', function () { generation++; });
+      field.addEventListener('input', function (event) {
+        generation++;
+        if (event.isTrusted) select.dispatchEvent(new CustomEvent('pudl:combo-query', { bubbles: true,
+          detail: { query: field.value, ticket: select.__pudlComboRemote.begin() } }));
+      });
       select.addEventListener('invalid', function (event) {
         reported = true; sync(); event.preventDefault();
       });
@@ -910,7 +973,22 @@
       new MutationObserver(sync).observe(select, { attributes: true, attributeFilter: ['disabled', 'required', 'form', 'aria-invalid', 'aria-describedby'], childList: true, characterData: true, subtree: true });
       /* Form ownership and effective fieldset disabling can change outside
          the select itself. Equality guards keep our writes observer-stable. */
-      new MutationObserver(sync).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'form', 'id'] });
+      function syncOwnership(records) {
+        records = records.filter(function (record) {
+          if (record.type !== 'attributes' || ['hidden', 'inert'].indexOf(record.attributeName) < 0) return true;
+          return record.target === field || record.target === select || record.target.contains(select) || record.target.contains(wrap);
+        });
+        if (!records.length) return;
+        if (records.some(function (record) {
+          if (record.type === 'attributes') return record.target === field || record.target === select || record.target === wrap || record.target.contains(select) || record.target.contains(wrap);
+          return Array.prototype.some.call(record.removedNodes, function (node) {
+            return node === select || node === wrap || (node.nodeType === 1 && (node.contains(select) || node.contains(wrap)));
+          });
+        })) retireRemote();
+        sync();
+      }
+      var ownershipObserver = new MutationObserver(syncOwnership);
+      ownershipObserver.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'form', 'id', 'hidden', 'inert'] });
       select.__pudlComboSync = changed;
       sync();
     }
@@ -1006,6 +1084,10 @@
 
   window.pudlCombo = {
     enhance: enhance,
+    beginOptions: function (select) { return select && select.__pudlComboRemote ? select.__pudlComboRemote.begin() : null; },
+    replaceOptions: function (select, ticket, options, settings) {
+      return !!(select && select.__pudlComboRemote && select.__pudlComboRemote.replace(ticket, options, settings));
+    },
     refresh: function (el) { if (el && el.__pudlComboSync) el.__pudlComboSync(); },
     /* A token field's values, given its input (0.80.0): values(), set(list),
        add(value) and remove(value). Null for anything else. */
