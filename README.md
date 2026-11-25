@@ -96,7 +96,7 @@ With the menu script as well:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.109.0/dist/pudl-menu.js" defer
-        integrity="sha384-ujfztEsIvbfu2LhLj6rI2xzO2nMOC/g7R1jialPI2SwAB3JNuQ0cDvEGTW5sKHR1"
+        integrity="sha384-hQNKm1oqhv6VvBoJi1/NFWUc7ZMKJGmtlCa048P0EKKb4zHS4go7JgHYJLjsYoCZ"
         crossorigin="anonymous"></script>
 ```
 

@@ -59,3 +59,14 @@ The following hashes identify the assigned files after allocation 11. They are l
 | tests/combo-remote-options.test.js | 16000ed96266574d1ccdf01dcc2226f9c46455e2884f95cabbe789ac9f881e82 |
 | tests/desktop-menu-maintenance.test.js | 9d29803263a0ca15c1f7e0a1c68ee9b0be32145351789377c16ebd0a9ad1dfcb |
 | tests/fixtures/desktop-menu-maintenance.html | 0f653a21047255363f2fe99043c78f7cb41f721dfda8c119cfdbaf755fa107c0 |
+
+## Hosted RTL placement follow-up
+
+Verification message 11388 withheld acceptance despite successful original hosted execution because the RTL leaf returned over its root ancestor while outward room remained. The focused maintenance test now measures both flyouts against their actual invoker rows, requires ample outward room in the 1200px fixture, asserts the outward direction at each level and uses elementFromPoint at each ancestor invoker's center to detect top-layer obstruction. Open counts and viewport bounds alone no longer establish success. LTR/RTL images remain retained.
+
+Local allocation 12 at tests/output/desktop-menu-focused-20261125-implementation-12 reproduces the defect on the unchanged shared placement. RTL has ample room for both panels, but the leaf turns right and the root invoker is obscured. This original failure is retained. A separate 660px full-width case now requires genuinely insufficient preferred-side room, a contained opposite-side leaf and preserved keyboard chain closure for each direction. It retains additional nested-menu-edge-ltr/rtl PNGs. The existing narrow Back, ancestor preservation and keyboard checks remain present.
+
+Only tests/desktop-menu-maintenance.test.js and this note changed for the engineer's correction. Syntax/whitespace pass. Shared placement is lead-owned and was not edited by the engineer. The new insufficient-room case and corrected outward chain still require rendered validation against that reviewed shared fix; no pass or publication acceptance is claimed from this expected-failure demonstration. The prior freeze/hash table describes the pre-follow-up boundary and is superseded for this test file only.
+## Strengthened test freeze
+
+The strengthened maintenance test is frozen at SHA256 AA29D5883B3DED79832C36E7B5ECCA825179F43FFE5E99B4955F1CA6592CD305, verified from the working file on 25 November. No further engineer source, fixture or test edits are pending. This implementation note is frozen after this entry. The lead's corrected-source allocation at tests/output/desktop-edit-rtl-lead-20261125-1 and Verification's independent disposition in message 11491 supply the subsequent rendered review; the expected failure in allocation 12 remains unchanged. Build may proceed with the assigned regeneration and metadata handoff. Renewed hosted source-bound acceptance remains pending.

@@ -56,6 +56,19 @@ const { launch, ROOT, out } = require('./lib');
       assert.equal(await page.locator('.menubar-sub:popover-open').evaluateAll(nodes => nodes.every(n => {
         const r = n.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + .5 && r.top >= 0 && r.bottom <= innerHeight + .5;
       })), true, dir + ' flyouts stay within viewport');
+      const chain = await page.locator('.menubar-sub:popover-open').evaluateAll((nodes, dir) => nodes.map(popup => {
+        const invoker = document.getElementById(popup.getAttribute('data-menu-anchor'));
+        const row = invoker.getBoundingClientRect(), box = popup.getBoundingClientRect();
+        const hit = document.elementFromPoint(row.x + row.width / 2, row.y + row.height / 2);
+        return { ample: dir === 'rtl' ? row.left - box.width + 2 >= 12 : row.right + box.width - 2 <= innerWidth - 12,
+          outward: dir === 'rtl' ? box.right <= row.left + 2.5 : box.left >= row.right - 2.5,
+          invokerVisible: hit === invoker || invoker.contains(hit),
+          row: { left: row.left, right: row.right }, popup: { left: box.left, right: box.right } };
+      }), dir);
+      assert.equal(chain.length, 2, 'both nested levels supply geometry');
+      assert(chain.every(level => level.ample), dir + ' fixture has room for both outward levels ' + JSON.stringify(chain));
+      assert(chain.every(level => level.outward), dir + ' every flyout continues outward when room exists ' + JSON.stringify(chain));
+      assert(chain.every(level => level.invokerVisible), dir + ' top-layer children leave ancestor invokers hit-visible ' + JSON.stringify(chain));
       await page.screenshot({ path: out('nested-menu-' + dir + '.png') });
       await page.keyboard.press('ArrowLeft');
       assert.equal(await second.evaluate(n => n === document.activeElement), true, 'Left restores immediate invoker');
@@ -64,6 +77,28 @@ const { launch, ROOT, out } = require('./lib');
       assert.equal(await first.evaluate(n => n === document.activeElement), true);
       await page.keyboard.press('Escape'); assert.equal(await expanded(), 0);
     }
+    for (const dir of ['ltr', 'rtl']) {
+      await page.setViewportSize({ width: 660, height: 800 });
+      await page.evaluate(dir => { document.documentElement.dir = dir; }, dir);
+      await title().click();
+      await root().getByRole('menuitem', { name: 'First', exact: true }).click();
+      const second = page.locator('#menubar-sub > .menu-action').filter({ hasText: /^Second$/ });
+      await second.focus(); await page.keyboard.press('ArrowRight');
+      assert.equal(await page.locator('.menubar-panel:popover-open').count(), 3, 'edge case keeps full-width flyouts');
+      const fallback = await page.locator('#menubar-sub .menubar-sub').evaluate((popup, dir) => {
+        const row = document.getElementById(popup.getAttribute('data-menu-anchor')).getBoundingClientRect();
+        const box = popup.getBoundingClientRect();
+        return { preferredFits: dir === 'rtl' ? row.left - box.width + 2 >= 0 : row.right + box.width - 2 <= innerWidth,
+          flipped: dir === 'rtl' ? box.right > row.right : box.left < row.left,
+          contained: box.left >= 0 && box.right <= innerWidth + .5 && box.top >= 0 && box.bottom <= innerHeight + .5 };
+      }, dir);
+      assert.equal(fallback.preferredFits, false, dir + ' edge fixture actually lacks preferred-side room');
+      assert(fallback.flipped && fallback.contained, dir + ' insufficient room flips the leaf within the viewport ' + JSON.stringify(fallback));
+      await page.screenshot({ path: out('nested-menu-edge-' + dir + '.png') });
+      await page.keyboard.press('Escape'); await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+      assert.equal(await expanded(), 0);
+    }
+    await page.setViewportSize({ width: 1200, height: 800 });
     await title().click();
     await root().getByRole('menuitem', { name: 'First', exact: true }).click();
     await page.locator('#menubar-sub > .menu-action').filter({ hasText: /^Second$/ }).click();

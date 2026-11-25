@@ -61,6 +61,7 @@
   var openPanels = new Set(Array.prototype.filter.call(document.querySelectorAll(PLACED), function (p) { return placed(p) && isOpen(p); }));
   function placed(el) { return !!(el && el.classList && !el.hasAttribute('data-start') && (el.classList.contains('menu-panel') || el.classList.contains('popover'))); }
   var opening = new WeakSet();
+  var besideSides = new WeakMap();
 
   var insets;
   function viewport() {
@@ -141,7 +142,16 @@
     if (beside) {
       fitHeight(panel, v.bottom - v.top - EDGE * 2, natural);
       var width = panel.offsetWidth;
-      panel.style.left = Math.max(v.left, Math.min(v.right - width, r.right + width + EDGE <= v.right ? r.right - 2 : r.left - width + 2)) + 'px';
+      var parent = btn.closest(PLACED);
+      var side = parent && parent.getAttribute('data-menu-placement') === 'beside' ? besideSides.get(parent) : null;
+      if (!side) side = getComputedStyle(btn).direction === 'rtl' ? 'left' : 'right';
+      var left = r.left - width + 2, right = r.right - 2;
+      var fitsLeft = left >= v.left + EDGE, fitsRight = right + width <= v.right - EDGE;
+      /* Keep the chain moving outward, including after an earlier edge
+         flip. Reverse only when its preferred side lacks room. */
+      if (side === 'left' ? !fitsLeft && fitsRight : !fitsRight && fitsLeft) side = side === 'left' ? 'right' : 'left';
+      besideSides.set(panel, side);
+      panel.style.left = Math.max(v.left, Math.min(v.right - width, side === 'left' ? left : right)) + 'px';
       panel.style.top = Math.max(v.top + EDGE, Math.min(r.top - 6, v.bottom - panel.offsetHeight - EDGE)) + 'px';
       panel.scrollTop = scroll;
       cues(panel);
