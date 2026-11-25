@@ -4,6 +4,14 @@ This document lists everything a project may rely on in PUDL. From 1.0 on, nothi
 
 The [menu-bar conventions](MENU-BARS.md) describe command placement and ownership. The [0.40.0 migration guide](MENU-BAR-MIGRATION.md) explains the identifiers, contribution limits, and generated-menu changes supported by the API below.
 
+The [shared editing menu contract](EDIT-MENUS.md) describes the candidate 0.109.0 text clipboard transport, explicit editor ownership and selection-safe generic editing. Acceptance is pending independent source and hosted review.
+
+The [remote option contract](REMOTE-OPTIONS.md) documents the candidate 0.109.0 pudlCombo.beginOptions(select) and replaceOptions(select,ticket,options,{open:true}) lifecycle for asynchronous searchable selects.
+
+Candidate 0.109.0 disabled-reason presentation accepts data-menubar-reasons="tooltip" on a bar, data-menu-reasons="tooltip" on a source list/row, and reasons:'tooltip' in applet menu/title/item descriptors or pudlMenu.openAt options. The alternative inline preserves the default visible reason. Descendants inherit the closest policy and may override it. Tooltip reasons retain title and a valid aria-describedby target; explicit detail remains visible. Context-menu refresh preserves that policy and description binding. Commands converted through pudlCommands.menuRows retain reasons.
+
+Candidate 0.109.0 markup commands use data-shortcut-bind="false" to show a key without binding it. Applet descriptors use bind:false. Reservation checks still apply to bound shortcuts. Closed menu titles and submenu invokers clear aria-expanded, and wide nested flyouts retain unaffected ancestors while Left closes only the inner branch; narrow menus keep Back navigation.
+
 The [responsive workspace contract and adoption guide](RESPONSIVE-WORKSPACES.md) defines narrow placement, compact chrome, menu overflow, splitter tracks, and mounted single-pane presentation introduced in 0.41.0.
 
 The [shared dock contract](SHARED-DOCKS.md) defines the opt-in tabs, responsive icon rails and required windows introduced in 0.55.0, and the shared top and bottom docks, collapsed strips and tab order added in 0.57.0.
@@ -268,7 +276,9 @@ Each is a `CustomEvent`. The ones marked "bubbles" can be heard on the document.
 | `pudl:ribbon-fold` | a `.ribbon`, bubbles | `folded` | When the ribbon folds into menus or shows again (0.78.0) |
 | `pudl:code-copy`, `pudl:code-download` | the code block's `pre`, bubbles | `ok` for a copy, `name` for a download | After each action |
 | `pudl:tab-close` | a document tab, bubbles | | When its close button is pressed, or Delete on it; the host closes it or not |
-| `pudl:contextmenu` | what was under the pointer or has focus, bubbles, cancelable | `add(rows)`, `mark(element)`, `anchor(element)`, `count()`, `x`, `y`, `keyboard`, `target` | On a right-click, Shift+F10 or the Menu key; rows added open a context menu in place of the browser's (0.74.0), and `mark` says which element it acts on (0.76.0); `anchor` opens the menu against an element rather than at the pointer, `count` says how many rows nearer handlers have added, and `preventDefault()` stops handlers further out (0.79.0) |
+| `pudl:contextmenu` | what was under the pointer or has focus, bubbles, cancelable | `add(rows)`, `handlesEdit()`, `mark(element)`, `anchor(element)`, `count()`, `x`, `y`, `keyboard`, `target` | On a delivered right-click, Shift+F10 or Menu key; rows open an application menu. `mark` identifies its subject; `anchor` selects an element edge; `count` reports supplied rows. In 0.109.0 `handlesEdit` claims editor transactions before generic rows are appended after dispatch. Canceling preserves supplied rows and suppresses default generic contribution. |
+| `pudl:combo-query` | enhanced source select, bubbles | `query`, `ticket` | In 0.109.0, trusted typing in its generated proxy starts an application-owned remote request. Consume the ticket through replaceOptions; a stale response cannot mutate or reopen. |
+| `pudl:edit-error` | editing target, or document if disconnected, bubbles, cancelable | `target`, `operation`, `error` | In 0.109.0, reports an unsupported, failed or stale generic edit. Cancel to supply host error presentation; otherwise use pudlToast when loaded or console reporting. |
 | `pudl:menubar-ribbon` | the menu bar, bubbles | `ribbon` | When the bar unfolds into a ribbon or folds back (0.79.0, stable in 0.80.0) |
 | `pudl:token-check` | a token field's input, bubbles | `value`, `refuse(message)`, `replace(value)` | Before each value is added, typed, pasted, chosen or given by a script; `refuse` turns it away with a message, `replace` adds another in its place, and repeats are found after it (0.80.0) |
 | `pudl:token-refused` | a token field's input, bubbles | `refused` (a list of `{ value, message }`), `source` (`reader` or `script`) | After values were refused (0.80.0) |

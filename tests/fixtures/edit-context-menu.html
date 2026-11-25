@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shared editing fixture</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-menu.js" defer></script>
+  <style>body { padding: 24px; } input, textarea, [contenteditable], p { display: block; margin: 12px 0; width: 380px; } [contenteditable] { border: 1px solid #888; padding: 12px; }</style>
+</head>
+<body>
+  <label>Summary<input id="plain" class="form-input" value="Alpha Beta Gamma"></label>
+  <label>History<input id="history" class="form-input" value="Before"></label>
+  <label>Notes<textarea id="notes" class="form-input">First line
+Second line</textarea></label>
+  <label>Read only<input id="readonly" class="form-input" value="Reference text" readonly></label>
+  <label>Secret<input id="password" type="password" value="invented-secret"></label>
+  <label>Disabled<input id="disabled" value="Unavailable" disabled></label>
+  <label>Email<input id="email" type="email" value="fixture@example.test"></label>
+  <label>Number<input id="number" type="number" value="12345"></label>
+  <label>Email text<input id="email-text" type="text" inputmode="email" value="fixture@example.test"></label>
+  <label>Decimal text<input id="decimal-text" type="text" inputmode="decimal" value="123.45"></label>
+  <label>Owned editor<input id="owned" value="Editor transaction"></label>
+  <label>Canceling owner<input id="canceled-owner" value="Application selection"></label>
+  <div id="rich" contenteditable="true" role="textbox" aria-label="Rich text">Alpha <strong>Beta</strong> Gamma</div>
+  <div id="rich-reference" contenteditable="true" role="textbox" aria-label="Native editing reference">Alpha <strong>Beta</strong> Gamma</div>
+  <div id="rich-readonly" contenteditable="true" aria-readonly="true" role="textbox" aria-label="Read only rich text">Alpha <strong>Beta</strong> Gamma</div>
+  <p id="article" tabindex="0">Invented document text for copying.</p>
+  <script>
+    window.clipboard = 'Pasted';
+    window.writes = []; window.errors = []; window.errorDetails = []; window.changes = [];
+    document.addEventListener('pudl:edit-error', function (e) {
+      errors.push(e.detail.operation);
+      errorDetails.push({ operation: e.detail.operation, message: e.detail.error.message });
+      e.preventDefault();
+    });
+    document.addEventListener('input', function (e) { changes.push({ id: e.target.id, type: e.type }); });
+    document.addEventListener('change', function (e) { changes.push({ id: e.target.id, type: e.type }); });
+    document.addEventListener('DOMContentLoaded', function () {
+      pudlClipboard.setTransport({
+        readText: function () { return Promise.resolve(clipboard); },
+        writeText: function (text) { writes.push(text); clipboard = text; return Promise.resolve(); }
+      });
+      document.addEventListener('pudl:contextmenu', function (e) {
+        if (e.detail.target.id === 'owned') {
+          e.detail.handlesEdit();
+          e.detail.add({ id: 'paste', label: 'Editor Paste', run: function () { changes.push({ id: 'owned', type: 'transaction' }); } });
+        }
+        if (e.detail.target.id === 'article') e.detail.add({ label: 'Inspect selection', run: function () {} });
+        if (e.detail.target.id === 'canceled-owner') {
+          e.detail.add({ label: 'Application owns request', run: function () {} });
+          e.preventDefault();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

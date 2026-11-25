@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.109.0 (2026-11-25)
+
+This release extends desktop editing and menu integration while retaining the 0.108.2 taskbar sizing.
+
+- Generic Cut, Copy, Paste and Select All menus cover supported native text fields, ordinary contenteditable and selected document text. Editors claim their own transactional editing through pudl:contextmenu detail.handlesEdit(). Application rows merge with generic rows after dispatch finishes. Keyboard context-menu placement clamps offscreen targets to keep the actions visible.
+- window.pudlClipboard provides text read/write Promises and a setTransport host adapter. Configured host failures reject without transport retries. Pending edits revalidate their original target, selection and operation ownership before mutation. The editing guide records native Undo, event and unsupported-selection capability limits.
+- Delivered Shift+right-click events use PUDL's menu. Firefox may bypass page dispatch for the physical gesture, so embedded hosts must suppress their native menu through their documented host option and verify the installed result.
+- pudlCombo.beginOptions and replaceOptions provide asynchronous request ownership, query/caret preservation, selected-value retention and explicit list opening without synthetic keys. The select emits pudl:combo-query for application lookups.
+- Menubar titles clear aria-expanded when their panels close. Commands with bind:false retain reserved/browser shortcut labels without intercepting those keys.
+- Disabled reasons can remain tooltips and accessible descriptions while explicit detail stays visible. Markup and applet menus accept inherited tooltip/inline policies, including context-row descriptors and openAt options.
+- Full-width menubars support deeper flyouts while retaining ancestor panels and branch-local keyboard dismissal. Narrow layouts retain Back navigation.
+
+Hosts adopting this release should follow docs/EDIT-MENUS.md and docs/REMOTE-OPTIONS.md. Rich editor mutations remain editor-owned. Email and number fields show disabled Cut, Copy and Paste rows with an explanatory reason. Their native shortcuts remain untouched and Select All calls the documented select() method, which may do nothing when the control has no selectable text. Applications needing full menu editing can use text fields with email/decimal inputmode and their own validation, losing automatic email/number validation and any native number spinner. Native clipboard permissions, physical default-menu suppression and installed host acceptance require downstream verification.
+
 ## 0.108.2 (2026-11-20)
 
 - Taskbar window buttons, stacks, action buttons and tray actions share a 30px height at the normal text size. The bordered tray keeps the same outer height, and stack rear faces remain visible.

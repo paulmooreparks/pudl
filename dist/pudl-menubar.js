@@ -84,7 +84,7 @@
   function titleChord(letter) { return (MAC ? 'Ctrl+Alt+' : 'Alt+') + letter.toUpperCase(); }
   var titleLetters = {};   // letter -> the title's label, for the bar as built
 
-  var bar, source, pinsSource, built, panel, sub, frontSrc = null, menus = [], openTitle = null, returnTo = null;
+  var bar, source, pinsSource, built, panel, sub, submenus = [], frontSrc = null, menus = [], openTitle = null, returnTo = null;
   var launcherControl = null;
   function isLauncher(title) { return !!(bar && bar.hasAttribute('data-menubar-launcher') && title && title._menu && title._menu.menu && title._menu.menu.kind === 'host' && title._menu.title.id === 'site'); }
   function syncLauncherControl(control, target) {
@@ -175,6 +175,9 @@
         if (on === 'true' || on === 'false') { item.checked = on === 'true'; if (radio && cmd.hasAttribute('aria-checked')) item.radio = radio; }
         if (cmd.disabled || cmd.getAttribute('aria-disabled') === 'true') item.disabled = true;
         if (cmd.hasAttribute('data-shortcut')) item.shortcut = cmd.getAttribute('data-shortcut');
+        if (cmd.getAttribute('data-shortcut-bind') === 'false') item.bind = false;
+        var policy = cmd.closest('[data-menu-reasons], [data-menubar-reasons]');
+        if (policy) item.reasons = policy.getAttribute('data-menu-reasons') || policy.getAttribute('data-menubar-reasons');
         /* More of a markup row (pudl-host-row-extras.md): dangerous, a
            glyph, a second line, and why it is disabled. */
         if (cmd.hasAttribute('data-menu-danger')) item.danger = true;
@@ -279,8 +282,8 @@
     if (src.kind === 'applet') {
       var m = src.applet.menus ? src.applet.menus() : null;
       if (m && Array.isArray(m.titles) && m.titles.length) {
-        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || []), mnemonic: t.mnemonic ? String(t.mnemonic) : undefined, glyph: t.glyph ? String(t.glyph) : null }; });
-        if (m.into) Object.keys(m.into).forEach(function (k) { into[k] = normal(m.into[k] || []); });
+        titles = m.titles.map(function (t) { return { id: menuId(t.label, t.id), label: String(t.label || ''), items: normal(t.items || [], t.reasons || m.reasons), mnemonic: t.mnemonic ? String(t.mnemonic) : undefined, glyph: t.glyph ? String(t.glyph) : null }; });
+        if (m.into) Object.keys(m.into).forEach(function (k) { into[k] = normal(m.into[k] || [], m.reasons); });
         name = titles[0].label;
       } else {
         name = src.scope.key ? titleOfScope(src.scope) : (src.applet.root.getAttribute('aria-label') || src.applet.name);
@@ -319,7 +322,7 @@
     }).filter(Boolean);
   }
 
-  function normal(list) {
+  function normal(list, reasons) {
     return list.map(function (c) {
       if (c === '-') return '-';
       if (c && c.heading) return { heading: String(c.heading) };
@@ -334,10 +337,11 @@
       if (c.glyph) item.glyph = String(c.glyph);
       if (c.detail) item.detail = String(c.detail);
       if (c.reason) item.reason = String(c.reason);
+      item.reasons = c.reasons || reasons;
       /* How the command shows in the bar unfolded into a ribbon (0.79.0):
          its glyph alone, or not at all. */
       if (c.glyphOnly) item.glyphOnly = true;
-      if (c.items) item.items = normal(c.items);
+      if (c.items) item.items = normal(c.items, item.reasons);
       if (!item.run && !item.items) return null;
       return item;
     }).filter(Boolean);
@@ -535,7 +539,7 @@
   function listKeys(items, m, t, keys) {
     items.forEach(function (c) {
       if (!c || c === '-' || c.heading) return;
-      if (c.shortcut) {
+      if (c.shortcut && c.bind !== false) {
         if (keys[c.shortcut]) warn(m.name + ': ' + shown(c.shortcut) + ' is bound to both "' + keys[c.shortcut] + '" and "' + c.label + '"; the first wins');
         else keys[c.shortcut] = c.label;
         bound.push({ key: c.shortcut, shown: shown(c.shortcut), label: c.label, title: t.label, source: m.kind, disabled: !!c.disabled });
@@ -594,8 +598,8 @@
       seen[c.label] = true;
       if (c.shortcut) {
         var k = combo(c.shortcut);
-        if (!k || RESERVED.indexOf(k) >= 0 || (!desktop() && BROWSER_KEYS.indexOf(k) >= 0)) { warn(who + ': ' + c.shortcut + ' on "' + c.label + '" is a key a page may not take, and the command keeps no shortcut'); delete c.shortcut; }
-        else if (desktop() && /^(Ctrl\+)?Alt\+[A-Z0-9]$/.test(k) && k === titleChord(k.slice(-1)) && titleLetters[k.slice(-1).toLowerCase()]) {
+        if (!k || (c.bind !== false && (RESERVED.indexOf(k) >= 0 || (!desktop() && BROWSER_KEYS.indexOf(k) >= 0)))) { warn(who + ': ' + c.shortcut + ' on "' + c.label + '" is a key a page may not take, and the command keeps no shortcut'); delete c.shortcut; }
+        else if (c.bind !== false && desktop() && /^(Ctrl\+)?Alt\+[A-Z0-9]$/.test(k) && k === titleChord(k.slice(-1)) && titleLetters[k.slice(-1).toLowerCase()]) {
           warn(who + ': ' + c.shortcut + ' on "' + c.label + '" is the letter that opens the title "' + titleLetters[k.slice(-1).toLowerCase()] + '", and the command keeps no shortcut'); delete c.shortcut;
         }
         else c.shortcut = k;
@@ -884,7 +888,7 @@
      (pudl-menu.js, __pudlKeepScroll). */
   function reconcile(host, list, skip) {
     var kids = Array.prototype.slice.call(host.children);
-    var lead = kids.slice(0, skip || 0), old = kids.slice(skip || 0).filter(function (n) { return n !== sub; });
+    var lead = kids.slice(0, skip || 0), old = kids.slice(skip || 0).filter(function (n) { return !n.classList.contains('menubar-sub'); });
     var used = new Set(), wanted = [], made = false;
     list.forEach(function (c) {
       var n = null;
@@ -979,19 +983,21 @@
     reconcile(panel, list, path.length ? 2 : 0);
     /* The submenu beside the panel stays open while its row is there and
        enabled, its rows brought to its command's items now. */
-    if (subOpen) {
-      if (subFrom && panel.contains(subFrom) && enabledRow(subFrom) && subFrom._item && subFrom._item.items) {
-        reconcile(sub, subFrom._item.items, 0);
-        sub.setAttribute('aria-label', subFrom._item.label);
-        placeSub();
-      } else closeSub();
-    }
+    submenus.slice().forEach(function (popup) {
+      if (submenus.indexOf(popup) < 0 || !popup.parentElement) return;
+      var from = popup._from;
+      if (from && panel.contains(from) && enabledRow(from) && from._item && from._item.items) {
+        reconcile(popup, from._item.items, 0);
+        popup.setAttribute('aria-label', from._item.label);
+      } else closeSub(popup.parentElement);
+    });
+    placeSub();
     if (window.pudlMenu && window.pudlMenu.place) window.pudlMenu.place(panel);
     var now = document.activeElement;
     if (!hadFocus || (now && now !== document.body && !panel.contains(now) && !built.contains(now))) return;
     if (panel.contains(now) && enabledRow(now)) return;
     var target = null;
-    if (inSub && sub.matches(':popover-open')) target = firstEnabled(sub);
+    if (inSub && sub && sub.matches(':popover-open')) target = firstEnabled(sub);
     else if (inSub) target = enabledRow(subFrom) && panel.contains(subFrom) ? subFrom : null;
     else if (cut) target = items(panel).filter(function (r) { return r._item && sameItem(r._item, cut) && enabledRow(r); })[0] || null;
     target = target || firstEnabled(panel) || (title.isConnected && !title.disabled ? title : null);
@@ -1271,7 +1277,16 @@
   function ensurePanel() {
     if (panel) return;
     panel = el('div', 'menu-panel menubar-panel', { popover: '', role: 'menu', id: 'menubar-panel' });
+    panel.addEventListener('beforetoggle', function (e) {
+      if (e.target !== panel || e.newState !== 'closed') return;
+      closeSub();
+      panel.__path = null;
+      if (openTitle) associate(openTitle, false);
+      openTitle = null;
+      soon();
+    });
     panel.addEventListener('toggle', function (e) {
+      if (e.target !== panel) return;
       /* The bar says when a menu opens and closes (0.96.9), so a host does
          not redraw a menu's source while a reader is in it. */
       if (e.newState === 'open') bar.dispatchEvent(new CustomEvent('pudl:menubar-open', { bubbles: true }));
@@ -1318,12 +1333,18 @@
     lettered(wordsEl, c.label, c.letter);
     label.appendChild(wordsEl);
     /* A second line: a disabled row's reason, else its detail. */
-    var second = c.disabled && c.reason ? c.reason : c.detail;
+    var tooltipReason = c.reasons === 'tooltip' || (!c.reasons && bar.getAttribute('data-menubar-reasons') === 'tooltip');
+    var second = c.disabled && c.reason && !tooltipReason ? c.reason : c.detail;
     if (second) {
       var d = el('span', 'menubar-detail', { id: 'menubar-d' + (++uid) });
       d.textContent = second;
       label.appendChild(d);
-      if (c.disabled && c.reason) { r.setAttribute('aria-describedby', d.id); r.title = c.reason; }
+      if (c.disabled && c.reason && !tooltipReason) { r.setAttribute('aria-describedby', d.id); r.title = c.reason; }
+    }
+    if (c.disabled && c.reason && tooltipReason) {
+      var reason = el('span', 'visually-hidden', { id: 'menubar-d' + (++uid) });
+      reason.textContent = c.reason; label.appendChild(reason);
+      r.setAttribute('aria-describedby', reason.id); r.title = c.reason;
     }
     r.appendChild(label);
     if (c.letter) r.setAttribute('data-letter', c.letter);
@@ -1461,13 +1482,21 @@
     open(title, keyboard ? 'first' : null);
   }
 
-  function closeSub() {
-    if (sub && sub.matches(':popover-open')) sub.hidePopover();
-    if (panel) panel.querySelectorAll('.menubar-has-sub[aria-expanded="true"]').forEach(function (r) { r.setAttribute('aria-expanded', 'false'); });
+  function closeSub(host) {
+    var closing = submenus.filter(function (popup) { return !host || (popup !== host && (popup.parentElement === host || host.contains(popup))); });
+    closing.reverse().forEach(function (popup) {
+      if (popup._from) popup._from.setAttribute('aria-expanded', 'false');
+      if (popup.matches(':popover-open')) popup.hidePopover();
+      popup.remove();
+      submenus.splice(submenus.indexOf(popup), 1);
+    });
+    sub = submenus[0] || null;
   }
 
   function closeAll(focusTitle) {
     var t = openTitle;
+    if (t) associate(t, false);
+    openTitle = null;
     closeSub();
     if (panel && panel.matches(':popover-open')) panel.hidePopover();
     if (panel) panel.__path = null;
@@ -1489,30 +1518,34 @@
       if (first) first.focus();
       return;
     }
-    if (!sub) {
-      sub = el('div', 'menu-panel menubar-panel menubar-sub', { popover: 'manual', role: 'menu', id: 'menubar-sub' });
-      /* pudl-menu.js places a panel as it opens, on the way down; this
-         listener on the panel itself runs after it, and puts the submenu
-         beside its row instead. */
-      sub.addEventListener('toggle', function (e) { if (e.newState === 'open') placeSub(); });
+    if (c.disabled) return;
+    var hostPanel = r.closest('.menu-panel');
+    var existing = submenus.find(function (popup) { return popup._from === r; });
+    if (existing && existing.matches(':popover-open')) {
+      if (focusFirst && items(existing)[0]) items(existing)[0].focus();
+      return;
     }
-    if (sub.parentNode !== panel) panel.appendChild(sub);
-    closeSub();
-    fill(sub, c.items);
-    sub.setAttribute('aria-label', c.label);
+    closeSub(hostPanel);
+    var popup = el('div', 'menu-panel menubar-panel menubar-sub', { popover: 'manual', role: 'menu', id: submenus.length ? 'menubar-sub-' + (++uid) : 'menubar-sub' });
+    popup.addEventListener('toggle', function (e) { if (e.newState === 'open') placeSub(); });
+    hostPanel.appendChild(popup);
+    fill(popup, c.items);
+    popup.setAttribute('aria-label', c.label);
     r.setAttribute('aria-expanded', 'true');
-    sub._from = r;
+    popup._from = r;
     if (!r.id) r.id = 'menubar-row-' + (++uid);
-    sub.setAttribute('data-menu-anchor', r.id);
-    sub.setAttribute('data-menu-placement', 'beside');
-    sub.showPopover();
+    popup.setAttribute('data-menu-anchor', r.id);
+    popup.setAttribute('data-menu-placement', 'beside');
+    submenus.push(popup); sub = submenus[0];
+    popup.showPopover();
     placeSub();
-    if (focusFirst) { var f = items(sub)[0]; if (f) f.focus(); }
+    if (focusFirst) { var f = items(popup)[0]; if (f) f.focus(); }
   }
 
   function placeSub() {
-    if (!sub._from || !sub.matches(':popover-open')) return;
-    if (window.pudlMenu) window.pudlMenu.place(sub);
+    submenus.forEach(function (popup) {
+      if (popup._from && popup.matches(':popover-open') && window.pudlMenu) window.pudlMenu.place(popup);
+    });
   }
 
   function items(p) {
@@ -1624,9 +1657,8 @@
   function onPanelOver(e) {
     var r = e.target.closest('.menu-action');
     if (!r || !panel.contains(r) || panel.classList.contains('sheet') || (openTitle && openTitle._menu.all)) return;
-    if (sub && sub.contains(r)) return;
-    if (r.classList.contains('menubar-has-sub')) { if (!sub || sub._from !== r || !sub.matches(':popover-open')) openSub(r, false); }
-    else closeSub();
+    if (r.classList.contains('menubar-has-sub')) openSub(r, false);
+    else closeSub(r.closest('.menu-panel'));
   }
 
   /* From an open panel the arrows go from menu to menu, past the pins. */
@@ -1641,7 +1673,8 @@
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     var t = e.target;
     var title = t.closest && t.closest('.menubar-title, .menubar-pin');
-    var inSub = sub && sub.contains(t);
+    var activeSub = t.closest && t.closest('.menubar-sub');
+    var inSub = !!activeSub;
     var r = t.closest && t.closest('.menubar-panel .menu-action');
     var list = titles();
 
@@ -1693,18 +1726,19 @@
       if (openTitle && !openTitle._siteTearoff && !openTitle._menu.all) { var n = step(menuTitles(list), openTitle, 1); n.focus(); open(n, 'first'); }
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      if (inSub) { var from = sub._from; closeSub(); if (from) from.focus(); return; }
+      if (inSub) { var from = activeSub._from; closeSub(activeSub.parentElement); if (from) from.focus(); return; }
       var back = host.querySelector(':scope > .menubar-back');
       if (back) { back._back(); return; }
       if (openTitle && !openTitle._siteTearoff && !openTitle._menu.all) { var p = step(menuTitles(list), openTitle, -1); p.focus(); open(p, 'first'); }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
-      if (inSub) { var f = sub._from; closeSub(); if (f) f.focus(); return; }
+      if (inSub) { var f = activeSub._from; closeSub(activeSub.parentElement); if (f) f.focus(); return; }
       closeAll(true);
     } else if (e.key === 'Tab') {
+      var priorTitle = openTitle;
       closeAll(false);
-      if (openTitle) openTitle.focus();
+      if (priorTitle) priorTitle.focus();
     } else if (e.key === ' ' && r.tagName === 'A') {
       e.preventDefault();
       r.click();

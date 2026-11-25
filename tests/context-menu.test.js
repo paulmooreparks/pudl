@@ -1,7 +1,7 @@
 /* Context menus (0.74.0): a right-click, Shift+F10 or the Menu key asks
    the page for rows by pudl:contextmenu and opens a menu of them at the
    point, where the browser's own menu opens if no one answers. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, engine, out } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -42,13 +42,19 @@ function check(name, ok, detail) {
   await p.mouse.click(600, 500);
   check('a press outside closes it', await open() === 0);
 
-  /* Firefox opens its own menu for Shift with a right-click without
-     telling the page at all, which leaves the last result unset. */
+  /* Firefox can bypass contextmenu dispatch for native Shift+right-click.
+     Hosts disable the browser's menu; PUDL handles every delivered event. */
   await p.evaluate(() => { window.lastNative = null; });
   await p.keyboard.down('Shift');
   await p.mouse.click(box.x + 40, box.y + 30, { button: 'right' });
   await p.keyboard.up('Shift');
-  check('Shift with a right-click leaves the browser\'s own menu to open', await open() === 0 && await p.evaluate(() => window.lastNative) !== false);
+  const shiftDispatch = await p.evaluate(() => window.lastNative);
+  if (shiftDispatch === null && engine === 'firefox') console.log('CAPABILITY firefox native Shift+right-click did not dispatch contextmenu; host menu suppression needs installed validation');
+  else check('a delivered Shift right-click opens the application menu', await open() === 1 && shiftDispatch === false);
+  await p.keyboard.press('Escape');
+  await p.evaluate(() => document.getElementById('editor').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, shiftKey: true, clientX: 80, clientY: 80 })));
+  check('Shift does not bypass PUDL when contextmenu is delivered', await open() === 1 && await p.evaluate(() => window.lastNative) === false);
+  await p.keyboard.press('Escape');
 
   /* Nothing answers. */
   const pbox = await p.locator('#plain').boundingBox();
@@ -126,6 +132,40 @@ function check(name, ok, detail) {
   check('in a modal dialog the menu lives in the dialog', inDialog);
   await p.click('.context-menu:popover-open .menu-action');
   check('and its rows can be pressed', await ran() === 'inside');
+
+  await p.evaluate(() => {
+    document.getElementById('dlg').close();
+    const owner = document.getElementById('plain'); owner.focus();
+    const rows = pudlCommands.menuRows([
+      { id: 'unavailable', label: 'Unavailable', disabled: true, reason: 'Start service', detail: 'Live data', run() {} },
+      { id: 'nested', label: 'Nested', reasons: 'inline', items: [
+        { id: 'inner', label: 'Inner unavailable', disabled: true, reason: 'Parent policy', detail: 'Hidden by inline reason', run() {} }
+      ] }
+    ], owner);
+    pudlMenu.openAt(200, 200, rows, { owner, for: owner, reasons: 'tooltip' });
+  });
+  const reasonState = await p.evaluate(() => {
+    const row = document.querySelector('.context-menu:popover-open [title="Start service"]');
+    const id = row.getAttribute('aria-describedby'), description = document.getElementById(id);
+    return { title: row.title, detail: row.querySelector('.menubar-detail').textContent,
+      description: description.textContent, hidden: description.classList.contains('visually-hidden') };
+  });
+  check('context reason policy preserves a tooltip, hidden accessible description and independent detail',
+    JSON.stringify(reasonState) === JSON.stringify({ title: 'Start service', detail: 'Live data', description: 'Start service', hidden: true }), JSON.stringify(reasonState));
+  await p.screenshot({ path: out('context-reasons-tooltip.png') });
+  await p.keyboard.press('ArrowRight');
+  check('a submenu descriptor overrides the inherited context reason policy', await p.locator('.context-menu:popover-open').last().locator('.menubar-detail').textContent() === 'Parent policy');
+  await p.keyboard.press('ArrowLeft');
+  const updatedReason = await p.evaluate(() => {
+    const owner = document.getElementById('plain');
+    pudlMenu.updateContext([{ id: 'unavailable', label: 'Unavailable', disabled: true, reason: 'Updated service', detail: 'Updated detail' }], owner);
+    const row = document.querySelector('.context-menu:popover-open .menu-action');
+    const description = document.getElementById(row.getAttribute('aria-describedby'));
+    return { title: row.title, detail: row.querySelector('.menubar-detail').textContent,
+      description: description && description.textContent, hidden: description && description.classList.contains('visually-hidden') };
+  });
+  check('context refresh retains the policy and a live description target', JSON.stringify(updatedReason) === JSON.stringify({ title: 'Updated service', detail: 'Updated detail', description: 'Updated service', hidden: true }), JSON.stringify(updatedReason));
+  await p.evaluate(() => pudlMenu.closeContext());
 
   await browser.close();
   console.log(failures ? failures + ' check(s) failed' : 'all checks passed');
