@@ -1,6 +1,18 @@
 # PUDL carryover
 
-## Current 0.110.1 patch candidate
+## Current 0.112.0 candidate
+
+The 0.112.0 candidate has frozen runtime, public contracts and browser inputs for matched menu/taskbar bands, optional identity glyph colours, membership pin buttons, launcher command return focus and host-owned shortcut presentation. Version metadata and generated copies are prepared, with local generated/static checks and light/dark reference captures retained. Independent metadata review, full ordinary hosted PR/main validation, immutable packaging, publication and independent public-byte acceptance remain pending. No 0.112.0 release has been published.
+
+Local browser evidence combines ordinary successful children, corrected Chromium/WebKit taskbar suite results and a complete instrumented Firefox functional result. The earlier obsolete Arrange assertion failures remain retained. Two later ordinary Firefox runs failed for unconfirmed reasons, and instrumented success does not clear either failure. The actual generated candidate must pass its complete ordinary four-form hosted workflow without retries or waivers. Forced-colour baseline contrast and browser/native-platform limitations remain documented with the retained source evidence.
+
+The published baseline is 0.110.1 at release commit cd8d526fe847d64ae232a2b591c97fe666929d50, annotated tag 8bc9fd3dc86523c4cef5dc3d7a5153bb2b38176b. Its public assets and CDN bytes were independently verified. Dock-tab folding and skin startup migration are separate future work and are excluded from this candidate.
+
+Firefox [issue 43](https://github.com/paulmooreparks/pudl/issues/43) remains open with an unknown cause, and [issue 44](https://github.com/paulmooreparks/pudl/issues/44) remains open with investigation stopped. PUDL maintainers own closure. Sites serving Firefox visitors should not adopt 0.112.0 until both defects close. New passing results establish no cause or closure. Downstream installed-host acceptance remains separate from library publication.
+
+All earlier preparation records below are historical. The 0.110.1 release subsequently completed its library publication and public-byte gates; those older pending statements describe their original preparation stage.
+
+## Historical 0.110.1 patch candidate
 
 The 0.110.1 launcher placement patch has prepared metadata and generated copies on fix/launcher-placement-20261127 from main 8e25327b14817ca1347d9ef678d566e0db79dc8c. The frozen source has 45 passing original outcomes across three browser engines. Hosted PR and main validation, immutable packaging and public-byte acceptance remain pending. The patch has not been published. The held 0.111 skin migration is separate.
 

@@ -24,10 +24,14 @@ function check(name, ok, detail) {
   check('the maximized window leaves room for both docks', note.x >= left.width && note.width < 800, { left, note });
   for (const edge of ['left', 'right']) {
     const toggle = page.locator('[data-dock-edge="' + edge + '"] .win-dock-toggle');
+    check('the ' + edge + ' automatic open dock is unpressed', await toggle.getAttribute('aria-pressed') === 'false' && await page.evaluate(e => pudlWindows.state().docks[e].mode === 'auto', edge));
     const before = await toggle.boundingBox();
     await toggle.click();
+    check('the ' + edge + ' first activation pins the automatic dock open', await toggle.getAttribute('aria-pressed') === 'true' && await page.evaluate(e => pudlWindows.state().docks[e].mode === 'open', edge));
+    await toggle.click();
+    check('the ' + edge + ' subsequent activation unpins to rail', await toggle.getAttribute('aria-pressed') === 'false' && await page.evaluate(e => pudlWindows.state().docks[e].mode === 'rail', edge));
     const after = await toggle.boundingBox();
-    check('the ' + edge + ' Collapse and Pin buttons keep the same position', Math.abs(before.x - after.x) < .5 && Math.abs(before.y - after.y) < .5, { before, after });
+    check('the ' + edge + ' pin button keeps the same position', Math.abs(before.x - after.x) < .5 && Math.abs(before.y - after.y) < .5, { before, after });
     const firstTab = await page.locator('[data-dock-edge="' + edge + '"] [role="tab"]').first().boundingBox();
     check('the ' + edge + ' rail puts Pin above its tabs', after.y + after.height <= firstTab.y);
     await toggle.click();
@@ -123,6 +127,7 @@ function check(name, ok, detail) {
   const canonical = await page.evaluate(() => JSON.stringify(pudlWindows.state().place));
   await tab('workspace').click();
   check('a rail opens its window over the central area', await win('workspace').isVisible() && JSON.stringify(await win('note').boundingBox()) === JSON.stringify(before));
+  check('transient peek leaves automatic preference unpressed', await page.locator('[data-dock-edge="left"] .win-dock-toggle').getAttribute('aria-pressed') === 'false' && await page.evaluate(() => pudlWindows.state().docks.left.mode === 'auto'));
   check('the flyout button remains depressed', await tab('workspace').evaluate(el => el.hasAttribute('data-dock-peek') && getComputedStyle(el).boxShadow.includes('inset')));
   await page.locator('#workspace-search').fill('Still mounted');
   await page.screenshot({ path: out('shared-docks-rail.png') });
@@ -164,10 +169,16 @@ function check(name, ok, detail) {
   await page.locator('[data-dock-edge="left"] .win-dock-toggle').click();
   await page.locator('#editor').click();
   check('pinning keeps the dock open', await win('workspace').isVisible() && await page.evaluate(() => pudlWindows.state().docks.left.mode === 'open'));
+  check('pinning from peek establishes pressed membership', await page.locator('[data-dock-edge="left"] .win-dock-toggle').getAttribute('aria-pressed') === 'true');
+  await page.setViewportSize({ width: 1400, height: 850 });
+  check('explicit open remains pressed when wide', await page.locator('[data-dock-edge="left"] .win-dock-toggle').getAttribute('aria-pressed') === 'true');
+  await page.setViewportSize({ width: 800, height: 700 });
+  check('explicit open remains pressed when narrow', await page.locator('[data-dock-edge="left"] .win-dock-toggle').getAttribute('aria-pressed') === 'true');
   await mode('left', 'auto');
   check('rail interactions preserve canonical window placement', canonical === await page.evaluate(() => JSON.stringify(pudlWindows.state().place)));
   await page.setViewportSize({ width: 1400, height: 850 });
   await page.waitForFunction(() => !document.querySelector('[data-dock-edge="left"]').hasAttribute('data-dock-rail'));
+  check('automatic widening does not create pinned membership', await page.locator('[data-dock-edge="left"] .win-dock-toggle').getAttribute('aria-pressed') === 'false');
   check('automatic rails reopen when the layer widens', await win('workspace').isVisible() && await page.locator('#workspace-search').inputValue() === 'Still mounted');
   await page.evaluate(() => pudlWindows.dock('workspace', 'right'));
   check('the required window can move to the other side and stays first', await page.locator('[data-dock-edge="right"] [role="tab"]').first().getAttribute('data-dock-key') === 'workspace');

@@ -33,6 +33,7 @@
     }
     var current = 'closed', returnPopup = false, destroyed = false, signature = '';
     var feedback = null, clickAction = null, inputIntent = 'search', requestInvoker = null;
+    var commandSession = false, returnTarget = null, presenting = false;
     var size = { width: 720, height: 600 }, popupHost = options.popupHost || document.body;
     var pin = root.querySelector('[data-launcher-pin]'), sizeButton = root.querySelector('[data-launcher-size]');
     var widthField = root.querySelector('[data-launcher-width]'), heightField = root.querySelector('[data-launcher-height]');
@@ -84,7 +85,7 @@
         else { attr(control, 'popovertarget', root.id); attr(control, 'aria-haspopup', 'dialog'); }
       });
       if (taskbarButton) { var hideTaskbar = !compactMode && !options.taskbarAlways && !!titleButton(); if (taskbarButton.hidden !== hideTaskbar) taskbarButton.hidden = hideTaskbar; }
-      if (pin) { if (pin.hidden !== compactMode) pin.hidden = compactMode; attr(pin, 'aria-pressed', String(pinned())); attr(pin, 'title', pinned() ? 'Unpin launcher' : 'Pin launcher'); }
+      if (pin) { if (pin.hidden !== compactMode) pin.hidden = compactMode; attr(pin, 'aria-pressed', String(pinned())); attr(pin, 'title', pin.getAttribute('aria-label') || 'Pin launcher'); }
       if (sizeButton) { if (sizeButton.disabled) sizeButton.disabled = false; attr(sizeButton, 'title', 'Set launcher size'); }
       [widthField, heightField].forEach(function (field, index) {
         if (!field) return;
@@ -144,17 +145,31 @@
       var control = [visibleRequest(), anchor(), button(), window.pudlMenubar && pudlMenubar.launcherButton({ visible: true })].find(function (node) { return node && node.isConnected && node.getClientRects().length; });
       if (control) control.focus({ preventScroll: true });
     }
+    function clearReturnTarget() { commandSession = false; returnTarget = null; }
+    function focusReturnTarget() {
+      var target = returnTarget, view = root.ownerDocument.defaultView;
+      if (commandSession && target instanceof view.HTMLElement && target.ownerDocument === root.ownerDocument && target.isConnected &&
+          !target.matches(':disabled, [aria-disabled="true"]') && !target.closest('[hidden], [inert], [aria-disabled="true"]') &&
+          target.getClientRects().length && view.getComputedStyle(target).visibility === 'visible') {
+        target.focus({ preventScroll: true });
+        if (target.getRootNode().activeElement === target) return;
+      }
+      focusInvoker();
+    }
     function present(next, settings) {
       if (destroyed || ['popup', 'pane', 'collapsed', 'closed'].indexOf(next) < 0) return false;
       settings = settings || {};
+      if ((!settings.reason || settings.reason === 'api') && (next === 'popup' || next === 'pane')) clearReturnTarget();
       if ((!settings.reason || settings.reason === 'api') && (next === 'popup' || next === 'pane')) requestInvoker = null;
       if (compactMode && (!settings.reason || /^(api|init|pin|unpin)$/.test(settings.reason))) desktopPresentation = next;
       cancelFeedback();
       if (!settings.reason || settings.reason === 'api' || settings.reason === 'init') returnPopup = false;
       if (!settings.force && signature && current === next && (next !== 'popup' || popup())) {
-        if (settings.focus) { if (next === 'pane' || next === 'popup') pudlStart.focus(root, settings.focus === 'browse' ? 'browse' : 'search'); else focusInvoker(); }
+        if (settings.focus) { if (next === 'pane' || next === 'popup') pudlStart.focus(root, settings.focus === 'browse' ? 'browse' : 'search'); else focusReturnTarget(); }
+        if (next === 'closed' || next === 'collapsed') clearReturnTarget();
         return true;
       }
+      presenting = true;
       current = next;
       if (popup()) root.hidePopover();
       if (sizePanel && sizePanel.matches(':popover-open')) sizePanel.hidePopover();
@@ -173,7 +188,9 @@
       if (next === 'popup' || compactMode && next === 'pane') { place(true); pudlStart.open(root, anchor(), { focus: settings.focus === false ? false : settings.focus === 'browse' ? 'browse' : 'search' }); place(); }
       pudlSplit.refresh(layout); pudlSplit.refresh(root);
       if (settings.focus && next === 'pane') pudlStart.focus(root, settings.focus === 'browse' ? 'browse' : 'search');
-      if (settings.focus && (next === 'closed' || next === 'collapsed')) focusInvoker();
+      if (settings.focus && (next === 'closed' || next === 'collapsed')) focusReturnTarget();
+      presenting = false;
+      if (next === 'closed' || next === 'collapsed') clearReturnTarget();
       changed(settings.reason || 'api'); return true;
     }
     function open(settings) {
@@ -181,6 +198,8 @@
       requestInvoker = settings.invoker || null;
       var mode = settings.focus === 'browse' ? 'browse' : 'search';
       if ((!compactMode && current === 'pane') || popup()) { pudlStart.focus(root, mode); return true; }
+      commandSession = Object.prototype.hasOwnProperty.call(settings, 'returnFocus');
+      returnTarget = commandSession ? settings.returnFocus : null;
       return present(current === 'collapsed' ? 'pane' : 'popup', { focus: mode, reason: 'open' });
     }
     function toggle(settings) {
@@ -254,6 +273,7 @@
       action = action || clickAction;
       if (action && !root.contains(action)) action = null;
       if (action && !eligible(action)) return false;
+      clearReturnTarget();
       returnPopup = false;
       if (feedback) return true;
       if (!action || (current !== 'pane' && !popup())) { if (popup()) present(pinned() ? 'collapsed' : 'closed', { reason: 'activate' }); return true; }
@@ -291,7 +311,12 @@
     on(root, 'click', function (e) {
       if (e.target.closest('[data-start]') !== root) return;
       var button = e.target.closest('button'); if (!button || button.disabled) return;
-      if (button.hasAttribute('data-launcher-pin')) { e.preventDefault(); setPinned(!pinned()); }
+      if (button.hasAttribute('data-launcher-pin')) {
+        e.preventDefault();
+        var heldPinFocus = document.activeElement === button;
+        setPinned(!pinned());
+        if (heldPinFocus && button.isConnected && button.getClientRects().length) button.focus({ preventScroll: true });
+      }
       if (button.hasAttribute('data-launcher-reset')) { e.preventDefault(); resetSize(); }
       if (button.hasAttribute('data-launcher-close')) { e.preventDefault(); present(pinned() ? 'collapsed' : 'closed', { focus: true, reason: 'close' }); }
     });
@@ -318,13 +343,20 @@
       e.preventDefault(); open();
     });
     on(document, 'keydown', function (e) {
-      if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing || e.altKey || e.ctrlKey || e.metaKey || !compactMode || !popup()) return;
+      if (e.key !== 'Escape' || e.defaultPrevented || e.isComposing || e.altKey || e.ctrlKey || e.metaKey || (!compactMode && !commandSession) || !popup()) return;
       /* Menus and dialogs get the first Escape, including native dismissal
          when focus is outside their panel. The remaining manual catalog
          still needs a dismissal path after focus returns to the taskbar. */
       if (document.querySelector('dialog[open]:modal') || Array.from(document.querySelectorAll('[popover]:popover-open')).some(function (panel) { return panel !== root; })) return;
       e.preventDefault(); present(pinned() ? 'collapsed' : 'closed', { focus: true, reason: 'close' });
     });
+    /* Start owns ordinary opener focus. Command sessions intercept only their
+       own popup Escape, after preserving nested popup and modal priority. */
+    on(root, 'keydown', function (e) {
+      if (!commandSession || !popup() || e.key !== 'Escape' || e.defaultPrevented || e.isComposing || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (document.querySelector('dialog[open]:modal') || Array.from(document.querySelectorAll('[popover]:popover-open')).some(function (panel) { return panel !== root; })) return;
+      e.preventDefault(); e.stopPropagation(); present(pinned() ? 'collapsed' : 'closed', { focus: true, reason: 'close' });
+    }, true);
     on(document, 'pudl:menubar-launcher', function (e) {
       if (e.detail.target !== root) return;
       if (e.detail.invoker && e.detail.invoker.ownerDocument === document) requestInvoker = e.detail.invoker;
@@ -332,6 +364,7 @@
     });
     on(root, 'beforetoggle', function (e) {
       if (e.target !== root || !root.hasAttribute('popover')) return;
+      if (!presenting) clearReturnTarget();
       var control = button(); if (control && control.getAttribute('role') !== 'tab') attr(control, 'aria-expanded', String(e.newState === 'open'));
       if (e.newState === 'open') { current = compactMode && pinned() ? 'pane' : 'popup'; changed('open'); place(true); }
       else if (current === 'popup' || compactMode && current === 'pane') { cancelFeedback(); current = pinned() ? 'collapsed' : 'closed'; changed('dismiss'); }
@@ -406,7 +439,8 @@
         if (generatedTaskbarButton) taskbarButton.remove();
         if (originalSplitValue) layout.style.setProperty(splitProp, originalSplitValue); else layout.style.removeProperty(splitProp);
         controls.delete(root); pudlSplit.refresh(layout);
-        if (restoreFocus) focusInvoker();
+        if (restoreFocus) focusReturnTarget();
+        clearReturnTarget();
       }
     });
     var initial = options.presentation || 'closed', visibilityOverride = compactMode && typeof options.compactVisible === 'boolean';

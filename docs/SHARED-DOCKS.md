@@ -4,7 +4,7 @@ Split panes are available as an opt-in extension described under [Split panes](#
 
 Shared docks add tabs to the window manager's docks, icon rails to its side docks and a collapsed strip to its top and bottom docks. They are opt-in; existing layers keep their previous dock behavior. Shared side docks were introduced in v0.55.0, and shared top and bottom docks and tab order in v0.57.0.
 
-The [sample workbench](../samples/shared-docks.html) has a required Workspace window, two browsers, a document, and Output and Problems windows in the bottom dock. Resize it to see the rails and the collapsed bottom strip, or use a dock's collapse button. Each collapsed dock's pin button opens it persistently.
+The [sample workbench](../samples/shared-docks.html) has a required Workspace window, two browsers, a document, and Output and Problems windows in the bottom dock. Resize it to see the rails and the collapsed bottom strip. Each dock has a pin membership button with one pin glyph and a stable edge-specific accessible name. Its aria-pressed state is true only for the explicit open preference. An automatically expanded dock is unpressed; its first activation pins it open, and the next activation unpins it to a rail. Transient peek does not change membership. Enter and Space activate the same toggle.
 
 ## Markup
 
@@ -29,7 +29,7 @@ Add `data-win-dock-omit-docked` to the taskbar's `data-win-dock` element to omit
 
 A pinned shared dock hides its windows' title bars. The active tab connects to the content, and each tab has a window-menu button instead of a close button. Ordinary rail slideouts retain their title bars. Rails use the same square icon buttons as Pin, without dropdown buttons, including permanent side panels. The button stays depressed while its slideout is visible. Shift+F10 opens its window menu, including the placement commands for permanent side panels.
 
-Dock labels use `text-2xs`, weight 700 and line height 1.55, matching compact badges. Collapse and Pin stay at the same outer top corner as a side dock changes mode. Left docks place the toggle before their tabs, right docks after them; both rails place Pin above their tabs. Top and bottom docks place the toggle at the end of their strip.
+Dock labels use `text-2xs`, weight 700 and line height 1.55, matching compact badges. The pin button stays at the same outer top corner as a side dock changes mode. Left docks place the toggle before their tabs, right docks after them; both rails place Pin above their tabs. Top and bottom docks place the toggle at the end of their strip. Moving a focused button between these positions retains its keyboard focus. The `data-win-text-dock-pin-button` label template defaults to `Pin {edge} dock open`; `data-win-text-dock-edge-left`, `-right`, `-top` and `-bottom` localize the edge words. An existing `data-win-text-dock-pin` label remains the fallback when no button-specific template is supplied.
 
 ## Top and Bottom Docks
 
@@ -81,7 +81,7 @@ A host that renders its windows on the server, so its pages work without script,
 </div>
 ```
 
-The group is a direct child of the layer. Each tab is a link to the address that selects it, so without script selecting a tab is a page load. The server marks the dock's windows `data-win-dock-shared` with their `data-win-edge`, and gives every window but the selected one the `hidden` attribute. The script then wires the strip's keys and selection, adds the collapse toggle and the menu buttons, keeps each tab's `href` current, and selects in place, so the link is only followed without script. Space selects a link tab as it does a button.
+The group is a direct child of the layer. Each tab is a link to the address that selects it, so without script selecting a tab is a page load. The server marks the dock's windows `data-win-dock-shared` with their `data-win-edge`, and gives every window but the selected one the `hidden` attribute. The script then wires the strip's keys and selection, adds the pin toggle and the menu buttons, keeps each tab's `href` current, and selects in place, so the link is only followed without script. Space selects a link tab as it does a button.
 
 Until a strip is there, drawn by either, a window marked `data-win-dock-shared` keeps its title bar and the whole of its dock, so a server that marks its windows to avoid a shift when the script arrives leaves no empty band where the strip would be.
 
@@ -101,13 +101,13 @@ Selecting a tab in a rail or a collapsed strip slides out its mounted window ove
 
 ## More Tabs
 
-A strip whose tabs do not all fit scrolls sideways, and a tab that is selected, by a press, by the arrow keys or by its window being raised, is scrolled whole into view, with its menu button. While any tab is wholly or partly outside the strip, a More button stands at the strip's end, before the collapse button (0.97.7): a raised icon button with the More glyph, named "More tabs" with the count of hidden tabs, from `data-win-text-dock-more` on the layer. The strip's room is measured with the button present, so its appearing never pushes a tab under it. Its menu lists the hidden tabs in strip order, each with its window's picture or glyph, its title and its state mark; choosing one selects the tab, as pressing it would, and scrolls it whole into view. Every shared dock edge with tabs has one, and so does each pane of a split dock. A tab's own menu button shows only while the whole tab is inside the strip, so a tab scrolled almost off never leaves its caret alone at the strip's edge. The thin scrollbar stays for those who use it.
+A strip whose tabs do not all fit scrolls sideways, and a tab that is selected, by a press, by the arrow keys or by its window being raised, is scrolled whole into view, with its menu button. While any tab is wholly or partly outside the strip, a More button stands at the strip's end, before the pin button (0.97.7): a raised icon button with the More glyph, named "More tabs" with the count of hidden tabs, from `data-win-text-dock-more` on the layer. The strip's room is measured with the button present, so its appearing never pushes a tab under it. Its menu lists the hidden tabs in strip order, each with its window's picture or glyph, its title and its state mark; choosing one selects the tab, as pressing it would, and scrolls it whole into view. Every shared dock edge with tabs has one, and so does each pane of a split dock. A tab's own menu button shows only while the whole tab is inside the strip, so a tab scrolled almost off never leaves its caret alone at the strip's edge. The thin scrollbar stays for those who use it.
 
 PUDL generates the dock groups and their accessibility attributes. A grouped window is a tab panel, labelled by its tab, and regains its previous role and label when it leaves the group. Hosts should use the public API and status attributes rather than modifying generated elements.
 
 ## Split panes
 
-Add `data-win-dock-splits` to a layer that already enables shared docks. Left and right docks support vertically stacked panes. Top and bottom docks support side-by-side panes when `data-win-dock-tabs="all"` is enabled. Each pane has its own tab order and selected window. The dock retains one outer size and one Collapse or Pin control.
+Add `data-win-dock-splits` to a layer that already enables shared docks. Left and right docks support vertically stacked panes. Top and bottom docks support side-by-side panes when `data-win-dock-tabs="all"` is enabled. Each pane has its own tab order and selected window. The dock retains one outer size and one pin membership button.
 
 ```javascript
 pudlWindows.dock('browser', 'right');
@@ -150,7 +150,7 @@ The decoder accepts at most 32,768 decoded characters, 255 nodes, depth 32 and 2
 
 ### Server-rendered split strips
 
-A server can render one direct-child `.win-dock-group[data-dock-edge][data-dock-pane]` for each visible pane, with the same tab markup described above. `data-dock-pane` is its group ID. Render Collapse or Pin only on the first strip. The script adopts those strips and supplies missing controls. Selection links include the complete split state with that group's updated selection and active group.
+A server can render one direct-child `.win-dock-group[data-dock-edge][data-dock-pane]` for each visible pane, with the same tab markup described above. `data-dock-pane` is its group ID. Render the pin membership button only on the first strip. The script adopts those strips and supplies missing controls. Selection links include the complete split state with that group's updated selection and active group.
 
 Render the windows as direct children of the layer, mark them `data-win-dock-shared` and `data-win-dock-pane`, and hide every window except each group's selected non-minimized member. Set the layer's existing `--dock-*` sizes. For each pane, compute pixel geometry after subtracting divider tracks and clamping branch ratios to the minima. Give its windows `--dock-pane-x`, `--dock-pane-y`, `--dock-pane-w` and `--dock-pane-h`. Place its tab strip at the pane's top, or its foot for a top dock. The stylesheet reserves 40px for that strip. This gives a usable static view and ordinary navigation links without script; the enhancement adds dividers and in-place selection.
 

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invented identity glyph contract</title>
+<link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+<script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-split.js" defer></script>
+<script src="../../dist/pudl-start.js" defer></script><script src="../../dist/pudl-launcher.js" defer></script><script src="../../dist/pudl-windows.js" defer></script>
+<style>
+body{margin:0}.topbar{padding:6px 24px}.specimens{position:absolute;top:72px;left:600px;width:600px;padding:20px;background:var(--surface);display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.specimens .glyph{--glyph-size:16px}.specimens .md-item{gap:8px}.fixture-split{height:480px;--split-a:420px}.fixture-host{height:260px;margin:24px}.win-bar{position:fixed;bottom:0;width:100%}
+.glyphs-hidden .glyph{visibility:hidden}
+.glyphs-hidden :is(#specimens .md-item,#catalog .start-item)>span:not(.glyph){visibility:hidden}
+</style>
+</head>
+<body>
+<header class="topbar"><button id="opener" class="btn" type="button">Invented catalog</button></header>
+<div id="layout" class="split fixture-split" data-split-pane="second"><div id="pane" class="split-pane"></div><div class="split-handle" aria-label="Resize catalog"></div><main class="split-pane"><p>Invented workspace</p></main></div>
+<section id="catalog" class="menu-panel start-menu" data-start popover role="dialog" aria-label="Identity catalog">
+<header class="popover-head start-header"><button class="btn" type="button" id="settings"><span class="glyph" aria-hidden="true" style="--glyph:var(--glyph-gear)"></span>Settings</button><button class="icon-btn" data-launcher-pin type="button" aria-label="Pin catalog"><span class="glyph" aria-hidden="true" style="--glyph:var(--glyph-pin)"></span></button><button class="icon-btn" data-launcher-close type="button" aria-label="Close catalog"><span class="glyph" aria-hidden="true" style="--glyph:var(--glyph-close)"></span></button></header>
+<div class="start-search"><input class="form-input" data-start-query aria-label="Find destination" type="search"></div>
+<div class="start-content"><nav data-start-categories aria-label="Categories"><a href="?category=" data-start-category-key="">All</a></nav><ul class="row-list" data-start-items id="catalog-items"></ul><p data-start-empty hidden>No matches</p></div>
+</section>
+<section class="specimens" aria-label="Authored identity states" id="specimens"></section>
+<div class="win-host fixture-host"><main class="win-layer" data-win-layer data-win-default="alpha,beta,gamma" data-win-switcher data-win-taskbar-stacks="always" data-win-dock-tabs="all" data-win-taskbar-reorder id="windows"></main></div>
+<footer class="win-bar"><nav class="win-dock" data-win-dock aria-label="Open windows"></nav></footer>
+<script>
+window.identityKinds=['conversation','document','files','tools'];
+const glyphs=['comments','document','folder','terminal'];
+const entries=identityKinds.map((kind,i)=>({id:kind,label:kind[0].toUpperCase()+kind.slice(1),glyph:glyphs[i],identityKind:kind,href:'#'+kind}));
+entries.push({id:'unknown',label:'Unknown',glyph:'app',identityKind:'unknown',href:'#unknown'});
+document.getElementById('catalog-items').innerHTML=entries.map(d=>'<li class="md-row" data-start-item><a class="md-item start-item" id="link-'+d.id+'" href="'+d.href+'"><span class="glyph" data-identity-kind="'+d.identityKind+'" aria-hidden="true" style="--glyph:var(--glyph-'+d.glyph+')"></span><span>'+d.label+'</span></a></li>').join('');
+document.getElementById('specimens').innerHTML=entries.map(d=>'<a class="md-item" id="sample-'+d.id+'" href="'+d.href+'"><span class="glyph" data-identity-kind="'+d.identityKind+'" aria-hidden="true" style="--glyph:var(--glyph-'+d.glyph+')"></span><span>'+d.label+'</span></a>').join('')+'<button class="btn" id="disabled" disabled><span class="glyph" data-identity-kind="document" aria-hidden="true" style="--glyph:var(--glyph-document)"></span>Unavailable</button><button class="btn" id="action"><span class="glyph" aria-hidden="true" style="--glyph:var(--glyph-gear)"></span>Settings action</button><p class="notice-title">Status <span class="glyph danger" id="status" aria-hidden="true" style="--glyph:var(--glyph-warning)"></span></p>';
+document.getElementById('windows').innerHTML=['alpha','beta','gamma'].map((key,i)=>'<section class="win" data-win="'+key+'" data-win-glyph="'+(i<2?'document':'terminal')+'" data-win-identity-kind="'+(i<2?'document':'tools')+'" '+(i<2?'data-win-group="notes" data-win-group-label="Notes" data-win-group-glyph="document" data-win-destination="document"':'')+' style="--win-x:'+(i*.32)+';--win-y:.05;--win-w:.3;--win-h:.8"><header class="win-head"><span class="glyph" data-identity-kind="'+(i<2?'document':'tools')+'" aria-hidden="true" style="--glyph:var(--glyph-'+(i<2?'document':'terminal')+')"></span><h2 class="win-title">'+key+'</h2></header><div class="win-body"><input class="form-input" aria-label="'+key+' draft" value="Invented draft"></div></section>').join('');
+window.fixtureDestinations=entries;
+window.addEventListener('load',async()=>{
+  await document.fonts.ready;
+  window.identitySkin=async function(id){
+    const old=document.getElementById('fixture-skin');if(old)old.remove();
+    if(id==='standard')return;
+    await new Promise((resolve,reject)=>{const link=document.createElement('link');link.id='fixture-skin';link.rel='stylesheet';link.href='../../dist/pudl-skin-'+id+'.css';link.onload=resolve;link.onerror=()=>reject(new Error('Skin link failed: '+id));document.head.appendChild(link);});
+  };
+  pudlWindows.configureTaskbar({destinations:entries,pins:entries.map(d=>d.id),order:[]});
+  window.catalog=document.getElementById('catalog');
+  if(!pudlLauncher.enhance(catalog,{pane:document.getElementById('pane'),layout:document.getElementById('layout'),invoker:document.getElementById('opener'),placement:'below',size:{width:440,height:450}}))throw new Error('Launcher fixture enhancement failed');
+  window.fixtureReady=true;
+});
+</script>
+</body></html>

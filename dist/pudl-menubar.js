@@ -117,7 +117,14 @@
   function launcherItems() {
     var list = launcherActionsSource && launcherActionsSource.parentElement === bar && bar.querySelector(':scope > ul[data-menubar-launcher-actions]') === launcherActionsSource ? launcherActionsSource : null;
     function tag(items, disabled, path) { items.forEach(function (c, i) { if (!c || typeof c !== 'object') return; c.launcherSource = list; c.launcherPath = (path || []).concat(i); c.disabled = !!(disabled || c.disabled); if (c.items) tag(c.items, c.disabled, c.launcherPath); }); return items; }
-    return [{ id: 'pudl-launcher-opener', label: text('launcher', 'Launcher'), glyph: 'app', launcherOpener: true }].concat(list ? tag(readList(list)) : []);
+    var opener = { id: 'pudl-launcher-opener', label: text('launcher', 'Launcher'), glyph: 'app', launcherOpener: true, bind: false };
+    var shortcut = bar.getAttribute('data-menubar-launcher-shortcut');
+    if (shortcut && shortcut.trim()) {
+      var parts = shortcut.split('+').map(function (part) { return part.trim(); }), key = parts.pop();
+      var validKey = /^[A-Za-z0-9]$/.test(key) || /^(F([1-9]|1[0-9]|2[0-4])|Escape|Enter|Space|Tab|Backspace|Delete|Insert|Home|End|PageUp|PageDown|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/.test(key);
+      if (validKey && parts.every(function (part) { return /^(Mod|Ctrl|Control|Cmd|Command|Alt|Option|Shift)$/i.test(part); })) opener.shortcut = combo(shortcut);
+    }
+    return [opener].concat(list ? tag(readList(list)) : []);
   }
   var menuScope = null;
   var STANDARD = ['site', 'go', 'applets', 'view', 'window', 'help'];

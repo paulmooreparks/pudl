@@ -36,6 +36,14 @@ The controller prepares popup position and effective dimensions before native or
 
 Add `data-launcher-pin` to the standard pin glyph button, `data-launcher-close` to the close button, and, optionally, `data-launcher-size` to the Size button, `data-launcher-size-panel` to its named `.popover`, and `data-launcher-width` and `data-launcher-height` to its numeric fields. Render the fields with PUDL form classes and labelled pixel units. The controller owns the pin's `aria-pressed` state. Size remains enabled while pinned and exposes only the pane's active axis. Pinned dimensions also use the existing splitter's pointer and keyboard interaction. The controller does not generate a second catalog or copy its content.
 
+## Command opening and return focus
+
+A host command may call `pudlLauncher.open(root, { returnFocus: editor })` or `pudlLauncher.toggle(root, { returnFocus: editor })`. The host registers its own shortcut. The target belongs to the opening session and has no placement or popup-opener role. Closing toggle ignores its second options argument, so a second shortcut activation returns to the original editor. Explicit close and eligible popup Escape also restore that target. Repeated open while visible and internal pin or responsive transitions retain the session.
+
+The target must be an HTMLElement in the catalog's document. A programmatically focusable element with `tabindex="-1"` is supported. Missing, foreign, disconnected, hidden, disabled or inert targets do not prevent opening. At dismissal the controller checks the target again, attempts focus and falls back to the normal visible opener if focus cannot be established. Completed dismissal clears the session; a subsequent pointer or default opening cannot inherit it. Each catalog keeps a separate target.
+
+Pointer light dismissal preserves the clicked control's focus. Accepted destination activation relinquishes the return target before delayed dismissal, allowing newly opened content to keep focus. Nested popovers and modal dialogs keep their Escape priority, and desktop pinned-pane Escape does not dismiss the pane. Destroy restores the target only when the catalog owned focus, then discards the session.
+
 ## Launcher header actions
 
 The launcher does not repeat the site or application title as a visible heading. Its opener already identifies the host. Give the catalog an accessible name such as `aria-label="Dinah launcher"`; removing a visible label must not leave a dangling `aria-labelledby` reference. The shared controller requires no visible title and does not generate one.

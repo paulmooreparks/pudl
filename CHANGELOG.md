@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.112.0 (2026-11-28)
+
+- Ordinary menu and taskbar bands use matching scale-aware minimum heights. Existing control sizes remain, and bands can grow for larger text or content.
+- Identity glyphs accept explicit conversation, document, files and tools metadata. Generated identities follow current window or destination metadata, while actions and status marks retain their existing treatment. Selected, disabled and forced-colour contexts use their documented foreground behavior.
+- Membership pin buttons use one stable target-specific accessible name and expose raised or pressed membership state. Automatic dock expansion does not itself pin the dock, and existing Pin/Unpin menus remain available.
+- Host launcher commands accept an optional session return-focus target. Menubars accept optional host-owned launcher shortcut metadata for tooltip and ARIA presentation without a PUDL key binding.
+
+Hosts should replace the complete matching distribution and follow docs/IDENTITY-GLYPHS.md, docs/LAUNCHER.md and docs/MENU-BARS.md. Existing integrations do not need identity metadata or a launcher return-focus target.
+
+Firefox issues [43](https://github.com/paulmooreparks/pudl/issues/43) and [44](https://github.com/paulmooreparks/pudl/issues/44) remain open and are owned by the PUDL maintainers. Their causes remain unconfirmed. Sites serving Firefox visitors should not adopt 0.112.0 until both defects are closed. Installed-host acceptance remains separate from library publication.
+
 ## 0.110.1 (2026-11-27)
 
 - The visible menubar launcher lookup resolves the ribbon row's Launcher button. The panel opens below that control, leaving it exposed for a second pointer activation to close the panel. Configured taskbar launchers retain their lower anchor when the viewport widens.
