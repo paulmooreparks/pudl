@@ -1,6 +1,16 @@
 # PUDL carryover
 
-## Current 0.110.0 candidate
+## Current 0.110.1 patch candidate
+
+The 0.110.1 launcher placement patch has prepared metadata and generated copies on fix/launcher-placement-20261127 from main 8e25327b14817ca1347d9ef678d566e0db79dc8c. The frozen source has 45 passing original outcomes across three browser engines. Hosted PR and main validation, immutable packaging and public-byte acceptance remain pending. The patch has not been published. The held 0.111 skin migration is separate.
+
+The published baseline is 0.110.0, with annotated tag 0be9c893cdc84c85a45762c4b5d33233c7e48a3d at release commit be15ce340d4549625bdc091db9ead8fded5069ce. The later diagnostic main 8e25327b14817ca1347d9ef678d566e0db79dc8c adds host failure evidence and required teardown propagation without changing product bytes or issuing a release.
+
+Firefox [issue 43](https://github.com/paulmooreparks/pudl/issues/43) remains open with an unknown cause, and [issue 44](https://github.com/paulmooreparks/pudl/issues/44) remains open with investigation stopped. PUDL maintainers own closure. Sites serving Firefox visitors should not adopt 0.110.1 until both defects close. New passing outcomes establish no cause or closure. Downstream installed-host acceptance remains separate from library publication.
+
+The earlier preparation records below are historical. Their pending 0.110.0 steps were subsequently completed. Their evidence and qualifications remain preserved and do not describe the current patch status.
+
+## Historical 0.110.0 candidate preparation
 
 The active candidate combines neutral window counts and a launcher-backed ribbon row on feat/window-neutral-count-20261126. Final source and rendered clearance was recorded on 27 November at 09:53:55 Singapore in tests/output/verification-count-ribbon-20261127/review.md. The generated copies, 0.110.0 metadata and all 25 local README integrity values are prepared under tests/output/lead-generation-20261127. Static checks and generated-copy checks pass. Independent metadata review, hosted PR/main validation and publication have not occurred. The released baseline remains 0.109.0 at main f8f7f21ab4479fd5acc5edbe9f8dcc7c13bfb90c.
 

@@ -50,7 +50,13 @@
       return bar && bar.getAttribute('data-menubar-launcher') === root.id && title.getClientRects().length ? title : null;
     }
     function visibleRequest() { if (requestInvoker && (!requestInvoker.isConnected || requestInvoker.ownerDocument !== document || !requestInvoker.getClientRects().length)) requestInvoker = null; return requestInvoker; }
-    function anchor() { var requested = typeof options.anchor === 'function' ? options.anchor() : options.anchor; return compactMode && taskbarButton ? taskbarButton : requested && requested.getClientRects().length ? requested : visibleRequest() || titleButton() || button(); }
+    function anchor() {
+      var requested = typeof options.anchor === 'function' ? options.anchor() : options.anchor, configured = button();
+      var configuredTaskbar = configured && configured === taskbarButton && configured.isConnected && configured.ownerDocument === document &&
+        !configured.disabled && configured.getAttribute('aria-disabled') !== 'true' && !configured.closest('[hidden], [inert]') &&
+        configured.getClientRects().length && getComputedStyle(configured).visibility === 'visible' ? configured : null;
+      return compactMode && taskbarButton ? taskbarButton : requested && requested.getClientRects().length ? requested : visibleRequest() || configuredTaskbar || titleButton() || configured;
+    }
     function paneAxis() { return layout.classList.contains('stacked') ? 'height' : 'width'; }
     function pinned() { return current === 'pane' || current === 'collapsed'; }
     function popup() { return root.hasAttribute('popover') && root.matches(':popover-open'); }
@@ -105,21 +111,29 @@
       signature = key; next.reason = reason;
       root.dispatchEvent(new CustomEvent('pudl:launcher-change', { bubbles: true, detail: next }));
     }
-    function place() {
-      if (!popup()) return;
+    function place(preparing) {
+      if (!popup() && !preparing) return;
       if (compactMode) {
         var area = layout.getBoundingClientRect(), top = Math.max(0, area.top), left = Math.max(0, area.left);
+        style('min-height', '0px'); style('max-height', 'none');
         style('top', top + 'px'); style('left', left + 'px'); style('width', Math.max(0, Math.min(area.right, innerWidth) - left) + 'px'); style('height', Math.max(0, Math.min(area.bottom, innerHeight) - top) + 'px'); return;
       }
-      var button = anchor(), rect = button && button.getBoundingClientRect();
-      var height = root.getBoundingClientRect().height, width = root.getBoundingClientRect().width;
-      var below = rect ? rect.bottom + 6 : 8, above = rect ? rect.top - height - 6 : 8;
-      var placement = taskbarButton === firstInvoker && taskbarButton.hidden && button === titleButton() ? 'below' : options.placement;
-      var top = placement === 'above' || (placement !== 'below' && rect && innerHeight - below < height && rect.top > innerHeight - rect.bottom) ? above : below;
-      top = Math.max(8, Math.min(top, Math.max(8, innerHeight - height - 8)));
+      /* Resolve the controller's border-box size and available side before
+         showing, without measuring a hidden popover. */
+      var control = anchor(), rect = control && control.getBoundingClientRect();
+      var width = Math.max(Math.min(280, innerWidth - 16), Math.min(size.width, innerWidth - 16));
+      var below = rect ? rect.bottom + 6 : 8;
+      var belowSpace = Math.max(0, innerHeight - below - 12), aboveSpace = rect ? Math.max(0, rect.top - 14) : 0;
+      var placement = taskbarButton === firstInvoker && taskbarButton.hidden && control === titleButton() ? 'below' : options.placement;
+      var desiredHeight = Math.max(260, size.height);
+      var above = placement === 'above' || (placement !== 'below' && desiredHeight > belowSpace && aboveSpace > belowSpace);
+      var available = above ? aboveSpace : belowSpace, height = Math.min(desiredHeight, available);
+      var top = Math.max(8, above && rect ? rect.top - height - 6 : below);
+      style('box-sizing', 'border-box'); style('width', width + 'px'); style('height', height + 'px');
+      style('min-height', Math.min(260, available) + 'px'); style('max-height', available + 'px');
       style('top', top + 'px'); style('--launcher-top', top + 'px');
       style('left', Math.max(8, Math.min(rect ? rect.left : 8, innerWidth - width - 8)) + 'px');
-      if (window.pudlMenu && sizePanel) pudlMenu.place(sizePanel);
+      if (popup() && window.pudlMenu && sizePanel) pudlMenu.place(sizePanel);
     }
     function applySize() {
       if (compactMode) return;
@@ -147,7 +161,7 @@
       if (pinned() && !compactMode) {
         root.removeAttribute('popover'); attr(root, 'role', 'region');
         if (root.parentNode !== pane) pane.appendChild(root);
-        root.style.removeProperty('width'); root.style.removeProperty('height');
+        root.style.removeProperty('width'); root.style.removeProperty('height'); root.style.removeProperty('min-height'); root.style.removeProperty('max-height');
         if (paneSizes[paneAxis()]) layout.style.setProperty(splitProp, paneSizes[paneAxis()] + 'px');
         if (next === 'pane') layout.removeAttribute('data-split-pane'); else attr(layout, 'data-split-pane', 'second');
       } else {
@@ -156,7 +170,7 @@
         attr(root, 'popover', compactMode ? 'manual' : 'auto'); attr(root, 'role', 'dialog'); applySize();
       }
       current = next; sync();
-      if (next === 'popup' || compactMode && next === 'pane') { pudlStart.open(root, anchor(), { focus: settings.focus === false ? false : settings.focus === 'browse' ? 'browse' : 'search' }); place(); }
+      if (next === 'popup' || compactMode && next === 'pane') { place(true); pudlStart.open(root, anchor(), { focus: settings.focus === false ? false : settings.focus === 'browse' ? 'browse' : 'search' }); place(); }
       pudlSplit.refresh(layout); pudlSplit.refresh(root);
       if (settings.focus && next === 'pane') pudlStart.focus(root, settings.focus === 'browse' ? 'browse' : 'search');
       if (settings.focus && (next === 'closed' || next === 'collapsed')) focusInvoker();
@@ -319,7 +333,7 @@
     on(root, 'beforetoggle', function (e) {
       if (e.target !== root || !root.hasAttribute('popover')) return;
       var control = button(); if (control && control.getAttribute('role') !== 'tab') attr(control, 'aria-expanded', String(e.newState === 'open'));
-      if (e.newState === 'open') { current = compactMode && pinned() ? 'pane' : 'popup'; changed('open'); }
+      if (e.newState === 'open') { current = compactMode && pinned() ? 'pane' : 'popup'; changed('open'); place(true); }
       else if (current === 'popup' || compactMode && current === 'pane') { cancelFeedback(); current = pinned() ? 'collapsed' : 'closed'; changed('dismiss'); }
     });
     on(root, 'toggle', function (e) {

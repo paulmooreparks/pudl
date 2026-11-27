@@ -28,6 +28,12 @@ pudlLauncher.enhance(root, {
 
 A menubar launcher request identifies its actual opener. While that control remains connected and visible, closing returns focus to it. An explicit host anchor retains placement precedence; compact presentation uses its taskbar opener. If the request's control disappears, placement and focus use the normal configured/visible-opener fallback. A new programmatic open or visible presentation without a request uses that configured fallback rather than a previous request. The retained menubar identity remains available through launcherButton(), but while it is a ribbon tab the controller does not assign popup opener attributes to it.
 
+When the configured invoker is an available taskbar launcher button, desktop placement uses it before the title fallback. This keeps an above-placed taskbar launcher attached to its lower control when the viewport widens. Explicit anchors and current opener requests retain their precedence.
+
+`pudlMenubar.launcherButton({ visible: true })` resolves the current launcher opener, including the ribbon row's Launcher button. It follows toolbar changes and returns `null` when no live opener is available. Calling `launcherButton()` without the visible option continues to return the retained identity control.
+
+The controller prepares popup position and effective dimensions before native or API opening makes it visible. On the chosen side of the opener, available viewport space can reduce the effective panel height without moving it across the opener. The configured requested dimensions remain available when space returns. A ribbon Launcher button therefore remains exposed for a second pointer activation that closes the popup.
+
 Add `data-launcher-pin` to the standard pin glyph button, `data-launcher-close` to the close button, and, optionally, `data-launcher-size` to the Size button, `data-launcher-size-panel` to its named `.popover`, and `data-launcher-width` and `data-launcher-height` to its numeric fields. Render the fields with PUDL form classes and labelled pixel units. The controller owns the pin's `aria-pressed` state. Size remains enabled while pinned and exposes only the pane's active axis. Pinned dimensions also use the existing splitter's pointer and keyboard interaction. The controller does not generate a second catalog or copy its content.
 
 ## Launcher header actions

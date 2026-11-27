@@ -2517,8 +2517,21 @@
       return title ? rows(title.items) : [];
     },
     launcherButton: function (options) {
-      if (options && options.visible && launcherControl && !launcherControl.getClientRects().length) return titles().find(function (t) { return t._menu.all; }) || launcherControl;
-      return launcherControl;
+      if (!options || !options.visible) return launcherControl;
+      function live(control) {
+        return control && control.isConnected && control.ownerDocument === document && !control.disabled && control.getAttribute('aria-disabled') !== 'true' &&
+          !control.closest('[hidden], [inert]') && control.getClientRects().length && getComputedStyle(control).visibility === 'visible';
+      }
+      if (ribbonActive() && ribbonRow) {
+        var opener = Array.prototype.find.call(ribbonRow.querySelectorAll(':scope > .toolbar button'), function (control) {
+          return control._item && control._item.launcherOpener && control.getAttribute('popovertarget') === bar.getAttribute('data-menubar-launcher') && live(control);
+        });
+        if (opener) return opener;
+      }
+      if (live(launcherControl) && launcherControl.getAttribute('role') !== 'tab') return launcherControl;
+      var glyph = built && built.querySelector('.menubar-menu:first-child > .menubar-glyph');
+      if (live(glyph) && glyph.getAttribute('popovertarget') === bar.getAttribute('data-menubar-launcher')) return glyph;
+      return titles().find(function (control) { return control._menu.all && live(control); }) || null;
     },
     focus: function (options) { return focusBar(options); },
     /* Rows are read afresh as each menu opens, so a refresh builds the bar
