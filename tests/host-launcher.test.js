@@ -1,9 +1,34 @@
 /* Interactive host studies use real catalog, splitter and window controls. */
 const assert = require('assert/strict');
+const fs = require('node:fs');
 const { launch, ROOT, out } = require('./lib');
 (async () => {
   const browser = await launch();
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+  const traceEnabled = process.env.PUDL_HOST_TRACE === '1', ownedContexts = [], retainedGlyphs = [];
+  let primaryError;
+  async function evidence(label, collect) {
+    try { return await collect(); }
+    catch (error) { console.error('Evidence collection failed (' + label + '): ' + error.message); return null; }
+  }
+  async function ownedContext(options, name) {
+    const context = await browser.newContext(options);
+    const owned = { context, name, tracing: false }; ownedContexts.push(owned);
+    if (traceEnabled) await evidence('trace start ' + name, async () => { await context.tracing.start({ screenshots: true, snapshots: true, sources: true }); owned.tracing = true; });
+    return context;
+  }
+  async function stopTrace(context) {
+    const owned = ownedContexts.find(entry => entry.context === context);
+    if (!owned || !owned.tracing) return;
+    owned.tracing = false;
+    await evidence('trace stop ' + owned.name, () => context.tracing.stop({ path: out('host-trace-' + owned.name + '.zip') }));
+  }
+  async function closeContext(context) {
+    const owned = ownedContexts.find(entry => entry.context === context);
+    if (!owned || owned.closeAttempted) return;
+    owned.closeAttempted = true;
+    await context.close();
+  }
+  const context = await ownedContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true }, 'main');
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
   async function chooseView(view) {
@@ -33,6 +58,7 @@ const { launch, ROOT, out } = require('./lib');
       await page.locator('#host-title').click();
       assert.equal(await root.isVisible(), true, 'title toggles the launcher open again');
       const siteGlyph = page.locator('.menubar-menu:not(.menubar-front):not(.menubar-one) > .menubar-glyph');
+      retainedGlyphs.push(...await siteGlyph.elementHandles());
       await siteGlyph.click(); assert.equal(await root.isVisible(), false, 'site hamburger closes the launcher');
       await siteGlyph.click(); assert.equal(await root.isVisible(), true, 'site hamburger opens the launcher');
       if (kind !== 'content') {
@@ -163,12 +189,14 @@ const { launch, ROOT, out } = require('./lib');
     await chooseView('list');
     await page.locator('#host-launcher [data-demo-open="cheerp"]').click(); await page.waitForFunction(() => !document.querySelector('[data-launcher-selected]'));
     await page.waitForSelector('.win[data-win="cheerp"]');
-    const shared = await browser.newPage();
+    const sharedContext = await ownedContext({}, 'shared');
+    const shared = await sharedContext.newPage();
     await shared.goto(page.url());
     await shared.waitForSelector('.win[data-win="cheerp"]');
     assert.equal(await shared.locator('[data-start-item]:visible').count(), 10);
     assert.equal(await shared.locator('button[data-catalog-view="list"]').getAttribute('aria-checked'), 'true');
-    await shared.close();
+    await stopTrace(sharedContext);
+    await closeContext(sharedContext);
     await page.goto(ROOT + '/samples/host-launcher-content.html?catalog=collapsed');
     const guide = page.locator('.desktop-guide');
     await guide.waitFor({ state: 'visible' });
@@ -217,9 +245,38 @@ const { launch, ROOT, out } = require('./lib');
     assert.deepEqual(errors, []);
     console.log('PASS standalone switching, diagram export, colour picker, host choice, calculator, expenses, checklist, history, clean-context shared URL and no page errors');
   } catch (error) {
-    await page.screenshot({ path: out('host-failure.png') });
-    console.error(await page.evaluate(() => ({ url: location.href, width: innerWidth, scrollWidth: document.documentElement.scrollWidth, overflow: Array.from(document.querySelectorAll('body *')).filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.right > innerWidth + 1; }).slice(0, 15).map(el => ({ tag: el.tagName, id: el.id, className: el.className, right: el.getBoundingClientRect().right })) })));
+    primaryError = error;
+    const describe = nodes => {
+      function one(node) {
+        const rect = node.getBoundingClientRect(), style = getComputedStyle(node);
+        const box = r => ({ x: r.x, y: r.y, width: r.width, height: r.height });
+        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        return { html: node.outerHTML, connected: node.isConnected, disabled: node.matches(':disabled'), ariaDisabled: node.getAttribute('aria-disabled'), inert: !!node.closest('[inert]'), hidden: !!node.closest('[hidden]'), display: style.display, visibility: style.visibility, opacity: style.opacity, rect: box(rect), clientRects: Array.from(node.getClientRects()).map(box), hit: hit && { tag: hit.tagName, id: hit.id, className: hit.className }, receivesCenter: !!hit && (hit === node || node.contains(hit)) };
+      }
+      return Array.isArray(nodes) ? nodes.map(one) : one(nodes);
+    };
+    const failure = { error: { name: error.name, message: error.message, stack: error.stack }, matched: null, retained: [] };
+    failure.presentation = await evidence('presentation', () => page.evaluate(() => {
+      const root = document.getElementById('host-launcher');
+      return { url: location.href, visibility: document.visibilityState, viewport: { width: innerWidth, height: innerHeight }, bodyPresentation: document.body.dataset.presentation, launcher: root && { connected: root.isConnected, presentation: root.getAttribute('data-launcher-presentation'), popover: root.hasAttribute('popover') && root.matches(':popover-open') }, menubarRows: Array.from(document.querySelectorAll('.menubar-row')).map(node => node.className) };
+    }));
+    failure.matched = await evidence('matched actionability', () => page.locator('.menubar-menu:not(.menubar-front):not(.menubar-one) > .menubar-glyph').evaluateAll(describe));
+    for (const handle of retainedGlyphs) failure.retained.push(await evidence('retained actionability', () => handle.evaluate(describe)));
+    await evidence('failure screenshot', () => page.screenshot({ path: out('host-failure.png') }));
+    await evidence('failure JSON', () => fs.promises.writeFile(out('host-failure-actionability.json'), JSON.stringify(failure, null, 2) + '\n'));
     console.error(error);
     throw error;
-  } finally { await browser.close(); }
+  } finally {
+    const cleanupErrors = [];
+    async function requiredClose(label, close) {
+      try { await close(); }
+      catch (error) { cleanupErrors.push(error); console.error('Required teardown failed (' + label + '):', error); }
+    }
+    for (const owned of ownedContexts) {
+      await stopTrace(owned.context);
+      await requiredClose('context ' + owned.name, () => closeContext(owned.context));
+    }
+    await requiredClose('browser', () => browser.close());
+    if (!primaryError && cleanupErrors.length) throw cleanupErrors[0];
+  }
 })().catch(e => { console.error(e); process.exitCode = 1; });
