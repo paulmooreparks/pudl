@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.110.1 (2026-11-27)
+
+- The visible menubar launcher lookup resolves the ribbon row's Launcher button. The panel opens below that control, leaving it exposed for a second pointer activation to close the panel. Configured taskbar launchers retain their lower anchor when the viewport widens.
+- Native and API opening prepare popup geometry before visibility. Effective minimum sizes and available viewport space use the same placement calculation, while requested dimensions recover when room returns.
+
+Hosts should replace the complete matching distribution. Existing markup and startup order continue to work. See docs/LAUNCHER.md for opener selection and placement behavior.
+
+Firefox issues [43](https://github.com/paulmooreparks/pudl/issues/43) and [44](https://github.com/paulmooreparks/pudl/issues/44) remain open and are owned by the PUDL maintainers. Their causes remain unconfirmed. Sites serving Firefox visitors should not adopt 0.110.1 until both defects are closed.
+
 ## 0.110.0 (2026-11-27)
 
 - Windows accept `data-win-count` and an optional localized `data-win-count-label` independently of attention marks. Stack counts use exact integer totals and retain a common suffix only when contributing labels agree.
