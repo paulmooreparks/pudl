@@ -1,6 +1,20 @@
 # PUDL carryover
 
-This record describes the PUDL lead's work as of 25 November 2026. The branch is fix/desktop-edit-menus-20261125 in C:/Users/paul/source/repos/pudl-desktop-edit-menus-20261125. The older lead checkout has unrelated preserved changes and is not the implementation worktree.
+## Current 0.110.0 candidate
+
+The active candidate combines neutral window counts and a launcher-backed ribbon row on feat/window-neutral-count-20261126. Final source and rendered clearance was recorded on 27 November at 09:53:55 Singapore in tests/output/verification-count-ribbon-20261127/review.md. The generated copies, 0.110.0 metadata and all 25 local README integrity values are prepared under tests/output/lead-generation-20261127. Static checks and generated-copy checks pass. Independent metadata review, hosted PR/main validation and publication have not occurred. The released baseline remains 0.109.0 at main f8f7f21ab4479fd5acc5edbe9f8dcc7c13bfb90c.
+
+The Firefox host-launcher opening regression remains open as [issue 43](https://github.com/paulmooreparks/pudl/issues/43), owned by the PUDL maintainers. Sites serving Firefox visitors should not adopt 0.110.0 until this defect is closed. The retained diagnostic times out on the first site-hamburger click in Firefox. Chromium and WebKit passed the eight relevant baseline suites. The cause is unconfirmed, and investigation continues after release on a separate branch. This single open check does not cover any other failure or waive release integrity verification.
+
+The candidate also requires the visible wide-ribbon hamburger correction, a passing actual-folding chooser regression, and enlarged-count containment evidence. The original enlarged-text check changed the root font without changing the fixed badge token. Its claim was withdrawn. The replacement asserts computed 11px and 22px badge text and exposed taskbar clipping, which is being corrected before freeze. Failed and superseded originals remain retained.
+
+The chooser fixture correction now constrains its owning topbar and passes without a product change or extended wait. The count correction passes enlarged-text and narrow-scroll checks in all three engines. Combined allocation neutral-count-ribbon-combined-20261126-1 retains an additional Firefox window-state-presentation timeout while waiting for a grouped taskbar execution glyph. It is tracked separately in [issue 44](https://github.com/paulmooreparks/pudl/issues/44), owned by the PUDL maintainers. Later diagnostic and affected-CSS refresh passes establish no cause. Its diagnosis is stopped. The release disposition permits these two specific Firefox checks to remain open, while their actual failed outcomes remain visible. No other failure or integrity check is excepted. Sites serving Firefox visitors should wait until both open Firefox defects are closed.
+
+The launcher beforetoggle guard, synchronous regression and permanent enlarged-count taskbar regression are written. Final LF allocation neutral-count-corrections-20261127-2 passes all twelve affected outcomes across Chromium, Firefox and WebKit with unchanged source hashes. The initial CRLF attempt and its whitespace failure remain retained. Independent review accepted both corrections, the chooser setup and count layout against the nine recorded LF inputs. Normal generated-byte, hosted, immutable-asset and public-byte verification remain required.
+
+## Earlier work record
+
+The remaining sections preserve the work record from 25 November 2026. Their pending 0.109.0 steps were subsequently completed and do not describe the current candidate.
 
 ## Released baseline
 

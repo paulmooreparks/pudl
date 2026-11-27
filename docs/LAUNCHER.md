@@ -24,7 +24,9 @@ pudlLauncher.enhance(root, {
 });
 ```
 
-`pane` must be a direct child of `layout` and represents its first pane. `invoker` is an element or a function returning the current identity button. Optional `anchor` is an element or function returning the visible control used for placement and focus return. Optional `popupHost` is a connected container outside the catalog, defaulting to `document.body`. `placement` is `auto`, `above` or `below`; automatic placement chooses the side with room. The controller constrains popup geometry to the viewport. The default popup size is 720 by 600 pixels. Sizes are positive finite numbers; effective dimensions can be smaller on a narrow viewport.
+`pane` must be a direct child of `layout` and represents its first pane. `invoker` is an element or a function returning the current identity button. Optional `anchor` is an element or function returning the visible control used for placement. Optional `popupHost` is a connected container outside the catalog, defaulting to `document.body`. `placement` is `auto`, `above` or `below`; automatic placement chooses the side with room. The controller constrains popup geometry to the viewport. The default popup size is 720 by 600 pixels. Sizes are positive finite numbers; effective dimensions can be smaller on a narrow viewport.
+
+A menubar launcher request identifies its actual opener. While that control remains connected and visible, closing returns focus to it. An explicit host anchor retains placement precedence; compact presentation uses its taskbar opener. If the request's control disappears, placement and focus use the normal configured/visible-opener fallback. A new programmatic open or visible presentation without a request uses that configured fallback rather than a previous request. The retained menubar identity remains available through launcherButton(), but while it is a ribbon tab the controller does not assign popup opener attributes to it.
 
 Add `data-launcher-pin` to the standard pin glyph button, `data-launcher-close` to the close button, and, optionally, `data-launcher-size` to the Size button, `data-launcher-size-panel` to its named `.popover`, and `data-launcher-width` and `data-launcher-height` to its numeric fields. Render the fields with PUDL form classes and labelled pixel units. The controller owns the pin's `aria-pressed` state. Size remains enabled while pinned and exposes only the pane's active axis. Pinned dimensions also use the existing splitter's pointer and keyboard interaction. The controller does not generate a second catalog or copy its content.
 
@@ -50,7 +52,7 @@ The interactive studies demonstrate a functional Settings destination using the 
 
 ## Site title and other openers
 
-Set `data-menubar-launcher="catalog"` on the real `[data-menubar]` to make its identity title and hamburger open that catalog. Other site menus and the active application's menus retain their normal behavior. The collapsed menu bar includes a launcher command. Initialize after the menu bar has started:
+Set `data-menubar-launcher="catalog"` on the real `[data-menubar]` to make its identity title and hamburger open that catalog in menu mode. In active wide ribbon mode, the title selects the product row described below and the hamburger still opens the catalog. Other site menus and the active application's menus retain their normal behavior. The collapsed menu bar includes a launcher command. Initialize after the menu bar has started:
 
 ```js
 pudlLauncher.enhance(root, {
@@ -62,6 +64,26 @@ pudlLauncher.enhance(root, {
 ```
 
 The menu bar retains its identity button across rebuilds. The launcher consumes `pudl:menubar-launcher` for hamburger, keyboard and collapsed-menu activation. A normal button with `popovertarget="catalog"` also works, including top-bar and taskbar placement. Use `placement: 'above'` for a lower taskbar button. Native pointer invocation supplies the open/close toggle. Arrow Down opens or enters the catalog without closing an already-open one.
+
+## Launcher ribbon row
+
+When a launcher-backed menubar also enables `data-menubar-ribbon`, its active wide ribbon treats the product title as a tab. The title selects the product row; the hamburger opens the launcher directly. The product row always contains Launcher, including at startup when that tab is selected. A host that declares no additional actions gets this single button. The toggle keeps its fixed localized Show as ribbon label and pressed state.
+
+To add host actions, render one hidden `ul[data-menubar-launcher-actions]` directly inside the menubar, beside its ordinary menu source, before initialization. Keep that list mounted and update its children and source controls as command availability changes. PUDL prepends Launcher and reads the additional rows using the normal menu markup parser:
+
+```html
+<ul data-menubar-launcher-actions hidden>
+  <li><button type="button" data-cmd="updates" data-menu-glyph="download">Updates…</button></li>
+  <li><button type="button" data-cmd="settings" data-menu-glyph="gear">Settings</button></li>
+  <li><button type="button" data-cmd="quit" data-menu-glyph="close">Exit</button></li>
+</ul>
+```
+
+The data-cmd values are example host hooks. PUDL invokes the source controls through their normal handlers, while the host owns their labels, glyphs, authorization, enabled state and safeguards. A browser host omits Exit unless its environment actually supports quitting. If several action lists are declared, PUDL uses the first direct-child list and warns that the others are ignored. These extra rows do not add global shortcut bindings.
+
+Keep the launcher's own header actions in place. PUDL does not move or clone them into the ribbon. Both views invoke the host's existing commands. The row's Launcher command uses the same cancelable request as the hamburger and preserves popup or persistent-pane handling. The source list affects only the ribbon; menu and compact modes keep their existing direct launcher routes.
+
+Set `data-menubar-text-launcher` on the menubar to localize the generated Launcher button. The existing `data-menubar-launcher-label` still controls the separate Open launcher entry in the collapsed menu.
 
 ## Fixed taskbar commands
 

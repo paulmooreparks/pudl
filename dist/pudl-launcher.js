@@ -32,7 +32,7 @@
       taskbar.insertBefore(taskbarButton, taskbar.firstChild); generatedTaskbarButton = true;
     }
     var current = 'closed', returnPopup = false, destroyed = false, signature = '';
-    var feedback = null, clickAction = null, inputIntent = 'search';
+    var feedback = null, clickAction = null, inputIntent = 'search', requestInvoker = null;
     var size = { width: 720, height: 600 }, popupHost = options.popupHost || document.body;
     var pin = root.querySelector('[data-launcher-pin]'), sizeButton = root.querySelector('[data-launcher-size]');
     var widthField = root.querySelector('[data-launcher-width]'), heightField = root.querySelector('[data-launcher-height]');
@@ -49,7 +49,8 @@
       var title = window.pudlMenubar && pudlMenubar.launcherButton(), bar = title && title.closest('[data-menubar-launcher]');
       return bar && bar.getAttribute('data-menubar-launcher') === root.id && title.getClientRects().length ? title : null;
     }
-    function anchor() { var requested = typeof options.anchor === 'function' ? options.anchor() : options.anchor; return compactMode && taskbarButton ? taskbarButton : requested && requested.getClientRects().length ? requested : titleButton() || button(); }
+    function visibleRequest() { if (requestInvoker && (!requestInvoker.isConnected || requestInvoker.ownerDocument !== document || !requestInvoker.getClientRects().length)) requestInvoker = null; return requestInvoker; }
+    function anchor() { var requested = typeof options.anchor === 'function' ? options.anchor() : options.anchor; return compactMode && taskbarButton ? taskbarButton : requested && requested.getClientRects().length ? requested : visibleRequest() || titleButton() || button(); }
     function paneAxis() { return layout.classList.contains('stacked') ? 'height' : 'width'; }
     function pinned() { return current === 'pane' || current === 'collapsed'; }
     function popup() { return root.hasAttribute('popover') && root.matches(':popover-open'); }
@@ -70,7 +71,8 @@
       }
       attr(root, 'data-launcher-presentation', current);
       if (compactMode) attr(root, 'data-launcher-compact', ''); else root.removeAttribute('data-launcher-compact');
-      [button(), taskbarButton].filter(Boolean).forEach(function (control) {
+      [button(), taskbarButton, visibleRequest()].filter(Boolean).forEach(function (control) {
+        if (control.getAttribute('role') === 'tab') return;
         remember(control); attr(control, 'aria-controls', root.id); attr(control, 'aria-expanded', String(current === 'pane' || current === 'popup'));
         if (pinned() && !compactMode) { control.removeAttribute('popovertarget'); control.removeAttribute('aria-haspopup'); }
         else { attr(control, 'popovertarget', root.id); attr(control, 'aria-haspopup', 'dialog'); }
@@ -125,12 +127,13 @@
       style('height', Math.max(Math.min(260, innerHeight - 16), Math.min(size.height, innerHeight - 16)) + 'px');
     }
     function focusInvoker() {
-      var control = [anchor(), button(), window.pudlMenubar && pudlMenubar.launcherButton({ visible: true })].find(function (node) { return node && node.isConnected && node.getClientRects().length; });
+      var control = [visibleRequest(), anchor(), button(), window.pudlMenubar && pudlMenubar.launcherButton({ visible: true })].find(function (node) { return node && node.isConnected && node.getClientRects().length; });
       if (control) control.focus({ preventScroll: true });
     }
     function present(next, settings) {
       if (destroyed || ['popup', 'pane', 'collapsed', 'closed'].indexOf(next) < 0) return false;
       settings = settings || {};
+      if ((!settings.reason || settings.reason === 'api') && (next === 'popup' || next === 'pane')) requestInvoker = null;
       if (compactMode && (!settings.reason || /^(api|init|pin|unpin)$/.test(settings.reason))) desktopPresentation = next;
       cancelFeedback();
       if (!settings.reason || settings.reason === 'api' || settings.reason === 'init') returnPopup = false;
@@ -161,6 +164,7 @@
     }
     function open(settings) {
       settings = settings || {};
+      requestInvoker = settings.invoker || null;
       var mode = settings.focus === 'browse' ? 'browse' : 'search';
       if ((!compactMode && current === 'pane') || popup()) { pudlStart.focus(root, mode); return true; }
       return present(current === 'collapsed' ? 'pane' : 'popup', { focus: mode, reason: 'open' });
@@ -278,6 +282,7 @@
       if (button.hasAttribute('data-launcher-close')) { e.preventDefault(); present(pinned() ? 'collapsed' : 'closed', { focus: true, reason: 'close' }); }
     });
     on(document, 'pointerdown', function (e) { inputIntent = e.pointerType === 'touch' || e.pointerType === 'pen' ? 'browse' : 'search'; }, true);
+    on(document, 'click', function (e) { var control = e.target.closest && e.target.closest('button'); if (control && control.getAttribute('popovertarget') === root.id) requestInvoker = control; }, true);
     on(document, 'click', function (e) {
       if (!compactMode || !popup() || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
       var tab = e.target.closest('[data-win-tab]');
@@ -308,11 +313,12 @@
     });
     on(document, 'pudl:menubar-launcher', function (e) {
       if (e.detail.target !== root) return;
-      e.preventDefault(); if (e.detail.toggle) toggle({ focus: inputIntent }); else open({ focus: inputIntent });
+      if (e.detail.invoker && e.detail.invoker.ownerDocument === document) requestInvoker = e.detail.invoker;
+      e.preventDefault(); if (e.detail.toggle) toggle({ focus: inputIntent, invoker: requestInvoker }); else open({ focus: inputIntent, invoker: requestInvoker });
     });
     on(root, 'beforetoggle', function (e) {
       if (e.target !== root || !root.hasAttribute('popover')) return;
-      var control = button(); if (control) attr(control, 'aria-expanded', String(e.newState === 'open'));
+      var control = button(); if (control && control.getAttribute('role') !== 'tab') attr(control, 'aria-expanded', String(e.newState === 'open'));
       if (e.newState === 'open') { current = compactMode && pinned() ? 'pane' : 'popup'; changed('open'); }
       else if (current === 'popup' || compactMode && current === 'pane') { cancelFeedback(); current = pinned() ? 'collapsed' : 'closed'; changed('dismiss'); }
     });
@@ -380,7 +386,7 @@
         if (parent.isConnected) parent.insertBefore(root, sibling && sibling.parentNode === parent ? sibling : null);
         Object.keys(original).forEach(function (name) { if (original[name] === null) root.removeAttribute(name); else root.setAttribute(name, original[name]); });
         if (originalPane === null) layout.removeAttribute('data-split-pane'); else layout.setAttribute('data-split-pane', originalPane);
-        invokers.forEach(function (attrs, button) { Object.keys(attrs).forEach(function (name) { if (attrs[name] === null) button.removeAttribute(name); else button.setAttribute(name, attrs[name]); }); });
+        invokers.forEach(function (attrs, button) { if (button.getAttribute('role') === 'tab') return; Object.keys(attrs).forEach(function (name) { if (attrs[name] === null) button.removeAttribute(name); else button.setAttribute(name, attrs[name]); }); });
         originalControls.forEach(function (attrs, control) { Object.keys(attrs).forEach(function (name) { if (attrs[name] === null) control.removeAttribute(name); else control.setAttribute(name, attrs[name]); }); });
         generatedControls.forEach(function (control) { control.remove(); });
         if (generatedTaskbarButton) taskbarButton.remove();

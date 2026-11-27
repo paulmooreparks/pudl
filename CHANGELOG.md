@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.110.0 (2026-11-27)
+
+- Windows accept `data-win-count` and an optional localized `data-win-count-label` independently of attention marks. Stack counts use exact integer totals and retain a common suffix only when contributing labels agree.
+- Count-bearing taskbar entries preserve full digits and grow with enlarged badge text. Narrow rails wrap long values vertically; taskbar pressure retains the existing folding and scroll access. No empty badge space is reserved.
+- Launcher-backed product tabs select a populated ribbon row. The default row contains Launcher; hosts can declare a retained direct-child `ul[data-menubar-launcher-actions]` with additional commands. The product hamburger opens the launcher directly, and the launcher header remains intact.
+- The fixed Show as ribbon toggle label remains unchanged. Launcher presentation preserves the selected product tab and returns focus to a surviving request opener.
+
+Hosts should replace the complete matching distribution. See docs/WINDOW-STATUS.md for neutral counts and docs/LAUNCHER.md for the ribbon declaration. Hosts retain command ownership and should omit Exit unless their documented host capability can quit the application.
+
+Known issues remain open in Firefox. The first host-launcher opening regression times out in [issue 43](https://github.com/paulmooreparks/pudl/issues/43), and a separate grouped-taskbar execution-glyph wait times out in [issue 44](https://github.com/paulmooreparks/pudl/issues/44). PUDL maintainers own both defects. Their causes remain unconfirmed despite later passing focused checks. Sites serving Firefox visitors should not adopt 0.110.0 until both defects are closed. No other failed check or integrity requirement is excepted.
+
 ## 0.109.0 (2026-11-25)
 
 This release extends desktop editing and menu integration while retaining the 0.108.2 taskbar sizing.

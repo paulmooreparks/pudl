@@ -303,6 +303,14 @@
 .win-dock-group[data-dock-rail] .doc-tab-close { display: none; }
 .win-dock-group[data-dock-rail] .win-item-attention { position: absolute; top: 0; right: 0; padding: 0 3px; font-size: var(--text-2xs); }
 .win-dock-group[data-dock-rail] .win-item-attention::before { display: none; }
+.win-dock-group[data-dock-rail] .win-item-count { padding: 0 3px; font-size: var(--text-2xs); max-width: 100%; white-space: normal; overflow-wrap: anywhere; display: block; }
+/* A neutral count can contain a full safe integer. Give it normal flow
+   in the fixed-width rail so every digit remains visible. This also
+   separates coexisting attention and execution marks without reserving
+   an empty count row on windows that do not use the new attribute. */
+.win-dock-group[data-dock-rail] [role="tab"]:has(.win-item-count:not([hidden])) { height: auto; min-height: 32px; flex-direction: column; gap: 2px; padding-block: 4px; }
+.win-dock-group[data-dock-rail] [role="tab"]:has(.win-item-count:not([hidden])) :is(.win-item-attention, .win-item-count, .win-item-state) { position: static; flex: none; }
+.win-dock-group[data-dock-rail] [role="tab"]:has(.win-item-count:not([hidden])) .win-item-attention { max-width: 100%; white-space: normal; overflow-wrap: anywhere; display: block; }
 .win-dock-group[data-dock-rail] .win-item-state { position: absolute; bottom: 2px; inset-inline-end: 2px; }
 .win[data-win-dock-peek] {
   top: var(--dock-top, 0px);
@@ -419,6 +427,7 @@
    words are drawn further toward the text colour than an ordinary badge's
    so that they keep 4.5:1 on every one of them, in both themes. */
 .win-item-attention.badge:is(.warn, .danger, .positive, .accent) { color: color-mix(in srgb, var(--badge-color) 40%, var(--text)); }
+.win-item-count { flex: none; white-space: nowrap; }
 /* Reserve the execution slot even before a window has a state. */
 .win-item-state { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; }
 .win-state { display: inline-flex; align-items: center; gap: var(--space-1); min-width: 0; max-width: 100%; }
@@ -985,6 +994,7 @@
   .win-tab::before, .md-row-child .md-item::before { forced-color-adjust: none; background: CanvasText; }
   .win-tab[aria-current="true"]::before, .win-tab[aria-current="true"] .win-item-glyph { background: HighlightText; }
   .win-stack[aria-current="true"] .win-item-attention { color: HighlightText; border-color: HighlightText; background: Highlight; }
+  :is(.win-stack, .win-tab)[aria-current="true"] .win-item-count { color: HighlightText; border-color: HighlightText; background: Highlight; }
   .win-stack-link:focus-visible, .win-stack[aria-expanded="true"] { outline-color: Highlight; }
 }
 
@@ -1037,6 +1047,13 @@
 .win-bar[data-win-pins-collapsed] .win-taskbar-heading { padding:0; }
 .win-bar[data-win-pins-collapsed] .win-taskbar-heading > :not(.win-pins-more) { display:none; }
 .win-bar[data-win-pins-collapsed] .win-pins-more { display:inline-flex; }
+/* Count digits stay complete; the taskbar folds an entry before shrinking it. */
+.win-bar:has(.win-item-count:not([hidden])) {
+  --win-bar-entry-height: max(30px, calc(1.125rem + 12px), calc(var(--text-2xs) * 1.55 + 10px));
+}
+.win-bar .win-dock > .win-tab:has(.win-item-count:not([hidden])) {
+  flex: none; width: max-content; min-width: max-content; max-width: none;
+}
 @media(pointer:coarse) { .win-bar [data-win-tab-glyph] { min-width:40px; } }
 
 .win-bar[data-win-bar-priority] .win-dock > .win-tab[data-win-tab-glyph] { flex:none; min-width:0; width:max-content; }

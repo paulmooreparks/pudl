@@ -8,6 +8,8 @@ The **site bar** belongs to the site or application shell. Its commands and orde
 
 Each group begins with an identity menu bearing its owner's visible name, optionally with a logo. The hamburger glyph toggles that group's first menu. The name and glyph must not navigate to different destinations or expose different commands.
 
+A launcher-backed host has separate roles in its active wide ribbon. The product name selects its ribbon row, while the hamburger opens the launcher directly. The row always contains Launcher and may include additional host-declared actions. Menu and collapsed modes retain the direct launcher route. See [launcher ribbon rows](LAUNCHER.md#launcher-ribbon-row).
+
 Each group forms one slightly raised surface around its glyph, identity, and menu titles. Its shared border and shadow establish that elevation in both themes. Individual titles gain hover, open, and focus treatments within that surface.
 
 Menus describe the scope of their commands. Opening a menu does not change the active content or selection on which those commands operate. Settings labels distinguish this instance's settings from defaults for future instances where both exist.
