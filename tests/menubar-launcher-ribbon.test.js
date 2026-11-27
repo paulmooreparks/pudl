@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { launch, ROOT, out } = require('./lib');
+const fs = require('node:fs');
 (async () => {
   const browser=await launch();
   try {
@@ -78,6 +79,53 @@ const { launch, ROOT, out } = require('./lib');
     await p.getByRole('tab',{name:'Reader',exact:true}).click(); await row().getByRole('button',{name:'Bookmark',exact:true}).waitFor();
     await site().click(); await row().getByRole('button',{name:'Lanceur',exact:true}).waitFor();
     await p.getByRole('tab',{name:'Reader',exact:true}).click(); await row().getByRole('button',{name:'Bookmark',exact:true}).waitFor();
-    assert.deepEqual(errors,[]); console.log('PASS launcher ribbon defaults, host actions, fresh sources, native and enhanced invocation, tab semantics and compact access');
+    const shortcutRecords=[];
+    for (const platform of ['Win32','MacIntel']) {
+      const q=await browser.newPage({viewport:{width:1280,height:850},reducedMotion:'reduce'});
+      q.on('pageerror',e=>errors.push(e.message));
+      await q.addInitScript(platform=>Object.defineProperty(navigator,'platform',{value:platform}),platform);
+      await q.goto(url+'?default');await q.waitForFunction(()=>window.fixtureReady);
+      const launchButton=q.locator('#menubar-ribbon-row').getByRole('button',{name:'Launcher',exact:true});
+      const before=await launchButton.boundingBox();
+      assert.equal(await launchButton.getAttribute('aria-keyshortcuts'),null,'missing launcher shortcut stays absent');
+      await q.evaluate(()=>{document.querySelector('[data-menubar]').setAttribute('data-menubar-launcher-shortcut','Mod+Shift+X');pudlMenubar.refresh();});
+      const expectedTip=platform==='MacIntel'?'Launcher (⇧⌘X)':'Launcher (Ctrl+Shift+X)';
+      const expectedAria=platform==='MacIntel'?'Meta+Shift+X':'Control+Shift+X';
+      assert.equal(await launchButton.getAttribute('data-tooltip'),expectedTip);
+      assert.equal(await launchButton.getAttribute('aria-keyshortcuts'),expectedAria);
+      const accessible=await launchButton.ariaSnapshot();
+      await q.addScriptTag({url:ROOT+'/dist/pudl-tooltip.js'});
+      await q.mouse.move(900,800);
+      await launchButton.hover();await q.getByRole('tooltip',{name:expectedTip,exact:true}).waitFor();
+      assert.equal(await q.getByRole('tooltip').innerText(),expectedTip);
+      await launchButton.hover();await q.screenshot({path:out('launcher-shortcut-'+platform+'.png')});
+      const metadataRect=await launchButton.boundingBox();
+      assert.deepEqual(metadataRect,before,'shortcut metadata keeps opener geometry');
+      assert.equal((await q.evaluate(()=>pudlMenubar.shortcuts())).some(c=>c.key==='Mod+Shift+X'),false,'host-owned shortcut is not registered by PUDL');
+      await q.keyboard.press(platform==='MacIntel'?'Meta+Shift+X':'Control+Shift+X');
+      assert.equal(await q.locator('#catalog').evaluate(n=>n.matches(':popover-open')),false,'shortcut metadata installs no key handler');
+      await launchButton.click();await q.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).visible);
+      await q.locator('[data-launcher-close]').click();
+      await q.evaluate(()=>{document.querySelector('[data-menubar]').setAttribute('data-menubar-launcher-shortcut','Mod+K');pudlMenubar.refresh();});
+      assert.equal(await launchButton.getAttribute('aria-keyshortcuts'),platform==='MacIntel'?'Meta+K':'Control+K');
+      assert.equal(await launchButton.getAttribute('data-tooltip'),platform==='MacIntel'?'Launcher (⌘K)':'Launcher (Ctrl+K)');
+      for(const value of ['',null,'Hyper+X','Mod++X','Mod+','Mod+NotAKey']) {
+        await q.evaluate(value=>{const bar=document.querySelector('[data-menubar]');if(value===null)bar.removeAttribute('data-menubar-launcher-shortcut');else bar.setAttribute('data-menubar-launcher-shortcut',value);pudlMenubar.refresh();},value);
+        assert.equal(await launchButton.getAttribute('aria-keyshortcuts'),null,'empty or removed shortcut clears ARIA metadata');
+        assert.equal(await launchButton.getAttribute('data-tooltip'),null,'empty or removed shortcut clears tooltip metadata');
+      }
+      await q.evaluate(()=>{const bar=document.querySelector('[data-menubar]');bar.setAttribute('data-menubar-text-launcher','Lanceur');bar.setAttribute('data-menubar-launcher-shortcut','Mod+Shift+X');pudlMenubar.refresh();});
+      const localized=q.locator('#menubar-ribbon-row').getByRole('button',{name:'Lanceur',exact:true});
+      assert.equal(await localized.getAttribute('data-tooltip'),expectedTip.replace('Launcher','Lanceur'));
+      assert.equal(await localized.getAttribute('aria-keyshortcuts'),expectedAria);
+      shortcutRecords.push({platform,expectedTip,expectedAria,accessible,before,metadataRect,localizedRect:await localized.boundingBox()});
+      await q.goto(url+'?native&default');await q.waitForFunction(()=>window.fixtureReady);
+      await q.evaluate(()=>{document.querySelector('[data-menubar]').setAttribute('data-menubar-launcher-shortcut','Mod+Shift+X');pudlMenubar.refresh();});
+      await launchButton.click();assert.equal(await q.locator('#catalog').evaluate(n=>n.matches(':popover-open')),true,'metadata keeps native pointer opening');
+      await launchButton.click();assert.equal(await q.locator('#catalog').evaluate(n=>n.matches(':popover-open')),false,'metadata keeps native pointer closing');
+      await q.close();
+    }
+    fs.writeFileSync(out('launcher-shortcut.json'),JSON.stringify(shortcutRecords,null,2));
+    assert.deepEqual(errors,[]); console.log('PASS launcher ribbon defaults, host actions, fresh sources, native and enhanced invocation, tab semantics, compact access and shortcut presentation');
   } finally {await browser.close();}
 })().catch(e=>{console.error('FAIL '+e.stack);process.exitCode=1;});

@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.110.1.
+   Version 0.112.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -508,6 +508,7 @@
 :root {
   --raise-border: var(--text-muted);
   --raise-border-hover: var(--text);
+  --chrome-band-min-height: max(43px, calc(1.125rem + 25px));
 }
 
 /* Annotation content stays flat; only its explicit actions are raised. */
@@ -605,7 +606,8 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 .topbar {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
   gap: var(--space-2);
-  --tb-pad-y: 10px;
+  --tb-pad-y: 6px;
+  min-height: var(--chrome-band-min-height); box-sizing: border-box;
   padding: var(--tb-pad-y) 20px;
   background: var(--tb-grad);
   border-bottom: 1px solid var(--tb-border);
@@ -613,7 +615,7 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
 }
 .topbar.native-chrome {
   --native-chrome-size: calc(var(--win-button-size, var(--text-md) * 2) + 4px);
-  position: relative; flex-wrap: nowrap; min-height: 40px; box-sizing: border-box;
+  position: relative; flex-wrap: nowrap; min-height: max(var(--chrome-band-min-height), calc(var(--native-chrome-size) + 1px)); box-sizing: border-box;
   padding-left: calc(var(--native-chrome-size) + 24px);
   padding-right: calc(var(--native-chrome-size) * 3 + 8px);
 }
@@ -997,7 +999,7 @@ tr[data-menu-for] > :is(td, th) > [data-row-actions] { color: var(--text); backg
    button widen the chrome. */
 .menu-btn-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 640px) {
-  .topbar { --tb-pad-y: 8px; padding: var(--tb-pad-y) 12px; }
+  .topbar { padding: var(--tb-pad-y) 12px; }
   /* On a phone the tabs take a row of their own, the last, so they still
      stand on the topbar's edge above the page, and scroll sideways. */
   .topbar-tabs { order: 1; flex: 1 0 100%; }
@@ -3874,6 +3876,22 @@ a.seg-choice { text-decoration: none; }
   mask: var(--glyph) center / contain no-repeat;
 }
 
+/* Identity ink is explicit on the glyph, never inherited from an entry.
+   These are presentation families; action and status glyphs stay neutral. */
+@media (forced-colors: none) {
+.glyph[data-identity-kind="conversation"] { background-color: #2458a6; }
+.glyph[data-identity-kind="document"] { background-color: #6843a0; }
+.glyph[data-identity-kind="files"] { background-color: #00677b; }
+.glyph[data-identity-kind="tools"] { background-color: #584f9d; }
+[data-theme="dark"] .glyph[data-identity-kind="conversation"] { background-color: #a8c8ff; }
+[data-theme="dark"] .glyph[data-identity-kind="document"] { background-color: #cfb5f4; }
+[data-theme="dark"] .glyph[data-identity-kind="files"] { background-color: #85d4e5; }
+[data-theme="dark"] .glyph[data-identity-kind="tools"] { background-color: #bfb9f2; }
+:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], :disabled, [aria-disabled="true"]) .glyph:is([data-identity-kind="conversation"], [data-identity-kind="document"], [data-identity-kind="files"], [data-identity-kind="tools"]),
+.glyph:is([data-identity-kind="conversation"], [data-identity-kind="document"], [data-identity-kind="files"], [data-identity-kind="tools"]):is([aria-current]:not([aria-current="false"]), [aria-selected="true"], :disabled, [aria-disabled="true"]),
+.win.active .win-head .glyph:is([data-identity-kind="conversation"], [data-identity-kind="document"], [data-identity-kind="files"], [data-identity-kind="tools"]) { background-color: currentColor; }
+}
+
 /* === Drop targets ========================================================
    What may be dropped where is the application's rule, so the behaviour
    is the host's; PUDL supplies only the look, so every application shows
@@ -4040,11 +4058,13 @@ del.diff-word { text-decoration-color: var(--diff-del); }
   .seg [aria-current]:not([aria-current="false"]), .seg button.active,
   .section-tab[aria-current]:not([aria-current="false"]), .section-tab.active,
   .md-row:has(> [aria-current]:not([aria-current="false"])), .md-row.active,
-  .btn[aria-pressed="true"], .menu:has(> .menu-panel:popover-open) > .menu-btn,
+  .btn[aria-pressed="true"], .icon-btn[aria-pressed="true"], .menu:has(> .menu-panel:popover-open) > .menu-btn,
   .topbar-pill[aria-current]:not([aria-current="false"]) {
     forced-color-adjust: none;
     background: Highlight; color: HighlightText; border-color: Highlight;
   }
+  :is(.btn, .icon-btn)[aria-pressed="true"] { outline: 1px solid ButtonText; outline-offset: -3px; }
+  :is(.btn, .icon-btn)[aria-pressed="true"] > .glyph { forced-color-adjust: none; background: HighlightText; color: HighlightText; }
   .md-row > .md-item[aria-current]:not([aria-current="false"]), .md-row > [aria-current]:not([aria-current="false"]) :is(.md-item, .md-meta),
   .md-row > [aria-current]:not([aria-current="false"]) ~ :is(.md-item, .md-meta), .md-row > [aria-current]:not([aria-current="false"]) ~ * :is(.md-item, .md-meta),
   .md-row.active .md-item, .md-row.active .md-meta { color: HighlightText; }

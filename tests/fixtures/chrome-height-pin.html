@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" data-theme="light"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Harbor height and pin controls</title>
+<script>
+window.parameters=new URLSearchParams(location.search);window.loadedSheets=[];
+document.documentElement.dataset.skin=parameters.get('skin')||'standard';
+document.documentElement.dataset.theme=parameters.get('theme')||'light';
+document.documentElement.dir=parameters.get('dir')||'ltr';
+if(parameters.has('font'))document.documentElement.style.fontSize=parameters.get('font')+'px';
+localStorage.setItem('pudl-menubar-ribbon:Harbor chrome menus',parameters.get('mode')==='ribbon'?'ribbon':'menus');
+</script>
+<link rel="stylesheet" href="../../dist/pudl.css" onload="loadedSheets.push('pudl')">
+<link rel="stylesheet" href="../../dist/pudl-windows.css" onload="loadedSheets.push('windows')">
+<link rel="stylesheet" href="../../dist/pudl-skin-bevel.css" onload="loadedSheets.push('bevel')">
+<link rel="stylesheet" href="../../dist/pudl-skin-gel.css" onload="loadedSheets.push('gel')">
+<link rel="stylesheet" href="../../dist/pudl-skin-glaze.css" onload="loadedSheets.push('glaze')">
+<link rel="stylesheet" href="../../dist/pudl-skin-matte.css" onload="loadedSheets.push('matte')">
+<link rel="stylesheet" href="../../dist/pudl-skin-ink.css" onload="loadedSheets.push('ink')">
+<link rel="stylesheet" href="../../dist/pudl-skin-alloy.css" onload="loadedSheets.push('alloy')">
+<link rel="stylesheet" href="../../dist/pudl-skin-alloy-bold.css" onload="loadedSheets.push('alloy-bold')">
+<link rel="stylesheet" href="../../dist/pudl-skin-glass.css" onload="loadedSheets.push('glass')">
+<style>
+body{margin:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+#layout{flex:1;min-height:0}.win-host{height:100%;min-width:0}.win-body{padding:20px}
+</style>
+<script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-toolbar.js" defer></script>
+<script src="../../dist/pudl-split.js" defer></script><script src="../../dist/pudl-start.js" defer></script>
+<script src="../../dist/pudl-launcher.js" defer></script><script src="../../dist/pudl-windows.js" defer></script>
+<script src="../../dist/pudl-menubar.js" defer></script>
+</head><body>
+<header class="topbar"><nav class="menubar" data-menubar data-menubar-ribbon data-menubar-launcher="catalog" aria-label="Harbor chrome menus">
+<ul data-menubar-source hidden><li>Harbor</li><li data-menu-glyph="comments">Chat<ul><li><button data-menu-glyph="plus">New conversation</button></li></ul></li><li data-menu-glyph="folder">Workspace<ul><li><button data-menu-glyph="folder">Open folder</button></li></ul></li></ul>
+<ul data-menubar-launcher-actions hidden><li><button data-menu-glyph="download">Updates</button></li></ul>
+</nav></header>
+<div class="split" id="layout" data-split-pane="second"><div class="split-pane" id="launcher-pane"></div><div class="split-handle" aria-label="Resize launcher"></div><main class="split-pane win-host">
+<div class="win-layer" data-win-layer data-win-default="notes" data-win-src="#chrome-{key}" data-win-menu data-win-dock-tabs="all" data-win-taskbar-reorder></div>
+</main></div>
+<footer class="win-bar" aria-label="Taskbar"><button id="taskbar-launcher" class="icon-btn win-bar-launcher" aria-label="Open launcher" popovertarget="catalog"><span class="glyph" style="--glyph:var(--glyph-app)" aria-hidden="true"></span></button><nav class="win-dock" data-win-dock aria-label="Open windows"></nav><button id="ordinary-action" class="btn">Workspace</button></footer>
+<template id="chrome-notes"><section class="win" data-win="notes" data-win-destination="notes" data-win-title="Team notes" data-win-glyph="file" style="--win-x:.1;--win-y:.12;--win-w:.65;--win-h:.65"><header class="win-head"><h2 class="win-title">Team notes</h2><nav class="win-chrome"><button class="win-btn" data-win-action="menu" aria-label="Window menu"></button><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><p>Invented planning notes.</p><button id="stock-button" class="btn">Save draft</button><button id="direct-pin" class="icon-btn" data-win-pin-toggle="notes" aria-label="Pin Team notes to taskbar"><span class="glyph" style="--glyph:var(--glyph-pin)" aria-hidden="true"></span></button><button class="icon-btn" data-win-pin-toggle="missing" aria-label="Pin unavailable destination to taskbar"><span class="glyph" style="--glyph:var(--glyph-pin)" aria-hidden="true"></span></button></div></section></template>
+<section id="catalog" class="menu-panel start-menu" data-start popover role="dialog" aria-label="Harbor launcher"><header class="popover-head start-header"><strong>Harbor</strong><button class="icon-btn" data-launcher-pin aria-label="Pin launcher"><span class="glyph" style="--glyph:var(--glyph-pin)" aria-hidden="true"></span></button><button class="icon-btn" data-launcher-close aria-label="Close launcher">&times;</button></header><div class="start-search"><input data-start-query type="search" aria-label="Find in Harbor"></div><div class="split start-content"><div class="split-pane"><ul class="row-list" data-start-items><li class="md-row" data-start-item><button class="md-item">Team notes</button></li></ul></div><div class="split-handle" aria-label="Resize categories"></div><nav class="split-pane" data-start-categories aria-label="Categories"><a href="?category=" data-start-category-key="">All</a></nav></div></section>
+<script>
+if(parameters.has('native'))document.querySelector('.topbar').classList.add('native-chrome');
+if(parameters.has('wrap')){const label=document.createElement('span');label.textContent='Harbor planning workspace with a long invented name that wraps when space is limited';label.style.maxWidth='200px';document.querySelector('.topbar').append(label);}
+window.addEventListener('load',()=>{
+ if(!pudlLauncher.enhance(document.getElementById('catalog'),{pane:document.getElementById('launcher-pane'),layout:document.getElementById('layout'),invoker:()=>pudlMenubar.launcherButton(),anchor:()=>pudlMenubar.launcherButton({visible:true})}))throw Error('Launcher did not enhance');
+ pudlWindows.configureTaskbar({destinations:[{id:'notes',label:'Team notes',glyph:'file'}],pins:[]});
+ window.fixtureReady=true;
+});
+</script></body></html>

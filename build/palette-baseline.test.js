@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
-const { taskbarSizingBaseline, loadBaseline, revision } = require('./palette-baseline');
+const { taskbarSizingBaseline, loadBaseline, revision, ordinaryBandBaseline, ordinaryBandEdits } = require('./palette-baseline');
 const root = path.resolve(__dirname, '..');
 const historical = execFileSync('git', ['show', '92b25d1ab0179ec7aca7cb54b7c5f8e49a209dfc:dist/pudl-windows.css'], { cwd: root, encoding: 'utf8' });
 const oldParts = [
@@ -43,4 +43,40 @@ test('missing, changed or duplicate historical declarations reject instead of wi
     assert.throws(() => taskbarSizingBaseline(historical.replace(part, part.replace('win-bar', 'foreign-bar'))), /Approved taskbar baseline declaration changed/);
   }
   assert.throws(() => taskbarSizingBaseline(taskbarSizingBaseline(historical)), /Approved taskbar baseline declaration changed/);
+});
+
+const historicalCSS = execFileSync('git', ['show', revision + ':dist/pudl.css'], { cwd: root, encoding: 'utf8' });
+test('ordinary band overlay is reversible and preserves unrelated historical bytes', () => {
+  const input = { css: historicalCSS, windows: taskbarSizingBaseline(historical) };
+  const output = ordinaryBandBaseline(input.css, input.windows);
+  assert.equal(ordinaryBandEdits.length, 4);
+  assert.equal(output.css.split('--chrome-band-min-height: max(43px, calc(1.125rem + 25px));').length, 2);
+  assert.ok(output.css.includes('--tb-pad-y: 6px;\n  min-height: var(--chrome-band-min-height); box-sizing: border-box;'));
+  assert.ok(output.css.includes('  .topbar { padding: var(--tb-pad-y) 12px; }'));
+  const restored = { ...output };
+  for (const edit of [...ordinaryBandEdits].reverse()) {
+    assert.equal(restored[edit.file].split(edit.after).length, 2, 'only the ordinary-band replacement occurs once');
+    restored[edit.file] = restored[edit.file].replace(edit.after, edit.before);
+  }
+  for (const file of ['css', 'windows']) assert.deepEqual(Buffer.from(restored[file]), Buffer.from(input[file]), file + ' retains every unrelated historical byte');
+  assert.equal(revision, '92b25d1ab0179ec7aca7cb54b7c5f8e49a209dfc');
+  const loaded = loadBaseline(root);
+  assert.ok(loaded.get('dist/pudl.css').includes(Buffer.from('--chrome-band-min-height: max(43px, calc(1.125rem + 25px));')));
+  assert.ok(loaded.get('dist/pudl-windows.css').includes(Buffer.from('min-height: var(--chrome-band-min-height); box-sizing: border-box;')));
+});
+
+test('ordinary band overlay rejects missing, changed, duplicate or already-overlaid inputs', () => {
+  const input = { css: historicalCSS, windows: taskbarSizingBaseline(historical) };
+  for (const edit of ordinaryBandEdits) {
+    for (const replacement of ['', edit.before + edit.before, edit.before.replace(/\S/, '!')]) {
+      const changed = { ...input, [edit.file]: input[edit.file].replace(edit.before, replacement) };
+      assert.throws(() => ordinaryBandBaseline(changed.css, changed.windows), /Ordinary-band baseline declaration changed/);
+    }
+  }
+  for (const file of ['css', 'windows']) {
+    const changed = { ...input, [file]: input[file] + '\n--chrome-band-min-height: 43px;' };
+    assert.throws(() => ordinaryBandBaseline(changed.css, changed.windows), /Ordinary-band baseline token already exists/);
+  }
+  const updated = ordinaryBandBaseline(input.css, input.windows);
+  assert.throws(() => ordinaryBandBaseline(updated.css, updated.windows), /Ordinary-band baseline token already exists/);
 });

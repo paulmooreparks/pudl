@@ -876,6 +876,7 @@
    bar's edge is part of every button on it. */
 .win-bar {
   --win-bar-entry-height: max(30px, calc(1.125rem + 12px));
+  min-height: var(--chrome-band-min-height); box-sizing: border-box;
   display: flex; align-items: center; gap: 6px; flex: none; min-width: 0;
   padding: 6px 12px max(6px, env(safe-area-inset-bottom));
   background: var(--surface-alt); border-top: 1px solid var(--border);
