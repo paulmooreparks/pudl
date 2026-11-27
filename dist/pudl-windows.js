@@ -155,7 +155,9 @@
   var menuRuns = {};       // key -> the content's commands in its open window menu, by index
   var lastFocus = {};      // key -> the element that last had focus in the window, which it gets back
   var cancelGesture = null;
-  var policyStamp = '';
+  var policyStamp = null;
+  var policyGeneration = 0, policyDriver = false, policyPending = false, policyDeferred = false;
+  var policyOwner = null, renderDepth = 0, renderFailed = false, resumePolicy = null;
   var syncing = 0;
   var restoreSerial = 0;
   var required = [];
@@ -1072,7 +1074,39 @@
     node.ratio = current ? Math.max(current.__split.min, Math.min(current.__split.max, value)) : Math.max(0.01, Math.min(0.99, value));
     commit(work, true);
   }
-  function renderDockGroups() {
+  /* Render nesting protects the whole outer tail; ownership is explicit
+     so a public call made by a listener never inherits a policy pass. */
+  function enterPolicyRender(owner) {
+    if (!renderDepth) renderFailed = false;
+    renderDepth++;
+    policyStamp = null;
+    if (!owner || owner !== policyOwner) {
+      policyGeneration++;
+      if (policyOwner) policyOwner.interrupted = true;
+      if (policyDriver) policyPending = true;
+    }
+  }
+  function leavePolicyRender(success) {
+    if (!success) {
+      renderFailed = true;
+      policyStamp = null;
+      if (policyOwner) policyOwner.failed = true;
+    }
+    renderDepth--;
+    if (renderDepth) return;
+    if (renderFailed) { policyPending = false; policyDeferred = false; return; }
+    if (policyDeferred && !syncing && state.open.length && resumePolicy) {
+      if (policyDriver) policyPending = true;
+      else resumePolicy();
+    }
+  }
+  function renderDockGroups(owner) {
+    enterPolicyRender(owner);
+    var success = false;
+    try { renderDockGroupsBody(); success = true; }
+    finally { leavePolicyRender(success); }
+  }
+  function renderDockGroupsBody() {
     if (!sharedDocks()) return;
     var layout = layoutDockPanes(state), wantedGroups = new Set();
     state.open.forEach(function (k) { if (wins[k]) wins[k].removeAttribute('data-win-dock-pane'); });
@@ -2630,7 +2664,13 @@
     });
   }
 
-  function apply(st) {
+  function apply(st, owner) {
+    enterPolicyRender(owner);
+    var success = false;
+    try { applyBody(st, owner); success = true; }
+    finally { leavePolicyRender(success); }
+  }
+  function applyBody(st, owner) {
     if (taskbarDrag) taskbarDrag.cancel();
     st.taskbarOrder = taskbarKeys(st);
     st.open.forEach(function (k) {
@@ -2707,7 +2747,7 @@
     updateLinks();
     renderDocks();
     fitBarsSoon();
-    renderDockGroups();
+    renderDockGroups(owner);
     renderRows();
     syncPane();
     renderSplitters(st);
@@ -6082,21 +6122,53 @@
     /* A side dock moves to the bottom when the layer grows too narrow for
        it, and back when it widens again. */
     function refreshPolicy() {
-      if (syncing || !state.open.length) return;
-      var stamp = String(narrowLayer()) + ':' + (layer.hasAttribute('data-win-dock-splits') ? layer.clientWidth + ',' + layer.clientHeight : '') + ':' + sharedEdges().map(autoCollapsed).join(',') + ':' + Object.keys(roomFor(state)).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
-      if (stamp === policyStamp) return;
-      policyStamp = stamp;
-      if (cancelGesture) cancelGesture();
-      layer.querySelectorAll('.menu-panel:popover-open').forEach(function (p) { p.hidePopover(); });
-      var focusedWindow = document.activeElement && document.activeElement.closest('.win');
-      apply(state);
-      if (focusedWindow && focusedWindow.hidden) {
-        var focusedKey = focusedWindow.getAttribute('data-win');
-        var railTab = layer.querySelector('[data-dock-key="' + CSS.escape(focusedKey) + '"]');
-        if (railTab) railTab.focus();
-      }
-      layer.dispatchEvent(new CustomEvent('pudl:windows-policy', { bubbles: true }));
+      if (policyDriver) { policyPending = true; return; }
+      if (renderDepth) { policyDeferred = true; return; }
+      policyDriver = true;
+      try {
+        do {
+          policyPending = false;
+          policyDeferred = false;
+          if (syncing || !state.open.length) { policyStamp = null; policyDeferred = true; break; }
+          forgetLayerSize();
+          var stamp = policyIdentity();
+          if (stamp === policyStamp) continue;
+          if (cancelGesture) cancelGesture();
+          layer.querySelectorAll('.menu-panel:popover-open').forEach(function (p) { p.hidePopover(); });
+          if (syncing || !state.open.length) { policyStamp = null; policyDeferred = true; break; }
+          forgetLayerSize();
+          stamp = policyIdentity();
+          var owner = { generation: policyGeneration, interrupted: false, failed: false };
+          policyOwner = owner;
+          var focusedWindow = document.activeElement && document.activeElement.closest('.win');
+          apply(state, owner);
+          if (focusedWindow && focusedWindow.hidden) {
+            var focusedKey = focusedWindow.getAttribute('data-win');
+            var railTab = layer.querySelector('[data-dock-key="' + CSS.escape(focusedKey) + '"]');
+            if (railTab) railTab.focus();
+          }
+          forgetLayerSize();
+          var complete = !owner.interrupted && !owner.failed && owner.generation === policyGeneration &&
+            !syncing && state.open.length && stamp === policyIdentity();
+          policyOwner = null;
+          if (owner.failed) { policyStamp = null; policyPending = false; policyDeferred = false; break; }
+          if (!complete) { policyStamp = null; policyPending = true; continue; }
+          policyStamp = stamp;
+          /* Completion listeners can invalidate this identity. Keep the
+             driver guarded until their finite follow-up work is drained. */
+          layer.dispatchEvent(new CustomEvent('pudl:windows-policy', { bubbles: true }));
+        } while (policyPending);
+      } catch (error) {
+        policyStamp = null;
+        policyPending = false;
+        policyDeferred = false;
+        throw error;
+      } finally { policyOwner = null; policyDriver = false; }
     }
+    function policyIdentity() {
+      return String(narrowLayer()) + ':' + (layer.hasAttribute('data-win-dock-splits') ? layer.clientWidth + ',' + layer.clientHeight : '') + ':' + sharedEdges().map(autoCollapsed).join(',') + ':' + Object.keys(roomFor(state)).join(',') + state.open.map(function (k) { return k + ':' + restricted(k); }).join(',');
+    }
+    resumePolicy = refreshPolicy;
     window.addEventListener('resize', function () { forgetLayerSize(); refreshPolicy(); });
     var policyFrame = 0;
     if (window.ResizeObserver) new ResizeObserver(function () {

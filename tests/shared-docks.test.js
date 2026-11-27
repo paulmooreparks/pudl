@@ -1,15 +1,210 @@
-const { launch, ROOT, out } = require('./lib');
+const { launch, ROOT, out, engine } = require('./lib');
 const { AxeBuilder } = require('@axe-core/playwright');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+function bounded(operation, milliseconds, late) {
+  let timer, timedOut = false;
+  const work = Promise.resolve().then(operation);
+  work.then(value => { if (timedOut) late({ ok: true, value }); }, error => { if (timedOut) late({ ok: false, error: String(error.stack || error) }); });
+  return Promise.race([work, new Promise((resolve, reject) => {
+    timer = setTimeout(() => { timedOut = true; reject(Object.assign(new Error('Capture stage exceeded ' + milliseconds + 'ms'), { captureTimedOut: true })); }, milliseconds);
+  })]).finally(() => clearTimeout(timer));
+}
+
+async function finishCapture({ primary, stages, limits = {}, onLate }) {
+  const report = { primary: primary ? String(primary.stack || primary) : null, outcomes: [], lateSettlements: [],
+    unresolved: [], failed: !!primary, recordingCutoff: null,
+    qualification: 'Timeouts bound waiting without cancellation. Unresolved operations can settle after the last recorded update or process exit.' };
+  for (const stage of stages) {
+    let settledLate = false;
+    try {
+      const value = await bounded(stage.run, limits[stage.name] || stage.milliseconds, result => {
+        settledLate = true;
+        report.unresolved = report.unresolved.filter(name => name !== stage.name);
+        report.lateSettlements.push({ name: stage.name, at: new Date().toISOString(), ...result });
+        if (!result.ok) report.failed = true;
+        report.recordingCutoff = new Date().toISOString();
+        if (onLate) try { onLate(report); } catch (error) {
+          report.failed = true; report.lateSettlements.push({ name: 'late-report-write', ok: false, error: String(error) });
+          console.error('FAIL late capture record write', error, JSON.stringify(report));
+        }
+      });
+      report.outcomes.push({ name: stage.name, ok: true, value });
+    } catch (error) {
+      report.failed = true;
+      const message = String(error.stack || error);
+      report.outcomes.push({ name: stage.name, ok: false, error: message });
+      if (error.captureTimedOut && !settledLate) report.unresolved.push(stage.name);
+    }
+  }
+  report.recordingCutoff = new Date().toISOString();
+  return report;
+}
+
+async function expectedVideo(video, directory, io = fs) {
+  if (!video) throw new Error('Missing page video handle');
+  const file = await video.path();
+  if (typeof file !== 'string' || !file) throw new Error('Missing expected video path');
+  const relative = path.relative(path.resolve(directory), path.resolve(file));
+  if (!relative || relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) throw new Error('Expected video path is outside recording directory');
+  const bytes = io.readFileSync(file);
+  if (!bytes.length) throw new Error('Empty expected video');
+  const expected = { file, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex') };
+  const inventory = io.readdirSync(directory).map(name => {
+    const data = io.readFileSync(path.join(directory, name));
+    return { name, bytes: data.length, sha256: crypto.createHash('sha256').update(data).digest('hex') };
+  });
+  return { expected, inventory };
+}
+
+function publicHistory() {
+  const documentDescriptor = () => ({ url: location.href, timeOrigin: performance.timeOrigin, readyState: document.readyState });
+  const initialized = documentDescriptor();
+  const records = [], maximum = 512;
+  let sequence = 0, dropped = 0, mutationDropped = 0;
+  const ids = new WeakMap(); let nextId = 0;
+  const identity = node => { if (!ids.has(node)) ids.set(node, ++nextId); return ids.get(node); };
+  window.__sharedDockNodeIdentity = identity;
+  const record = event => {
+    const row = { document: documentDescriptor(), sequence: ++sequence, at: performance.now(), kind: event.type, detail: event.detail || null,
+      groups: [...document.querySelectorAll('[data-dock-edge]')].map(group => ({
+        id: identity(group), edge: group.getAttribute('data-dock-edge'), rail: group.hasAttribute('data-dock-rail'),
+        selected: [...group.querySelectorAll('[aria-selected="true"]')].map(tab => tab.getAttribute('data-dock-key'))
+      })) };
+    if (records.length === maximum) { records.shift(); dropped++; }
+    records.push(row);
+  };
+  for (const name of ['resize', 'error', 'pudl:windows-policy', 'pudl:windows-change'])
+    (name.startsWith('pudl:') ? document : window).addEventListener(name, record);
+  const observe = () => {
+    const layer = document.querySelector('[data-win-layer]');
+    if (!layer) return;
+    new ResizeObserver(entries => record({ type: 'resize-observer', detail: entries.map(entry => ({
+      id: identity(entry.target), width: entry.contentRect.width, height: entry.contentRect.height
+    })) })).observe(layer);
+    new MutationObserver(rows => { mutationDropped += Math.max(0, rows.length - 64); record({ type: 'mutation-delivery', detail: rows.slice(0, 64).map(row => ({
+      id: identity(row.target), name: row.attributeName, old: row.oldValue, current: row.target.getAttribute(row.attributeName)
+    })) }); }).observe(layer, {
+      subtree: true, attributes: true, attributeOldValue: true,
+      attributeFilter: ['data-dock-rail', 'aria-pressed', 'aria-selected', 'hidden']
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe, { once: true });
+  else observe();
+  window.__sharedDockHistory = () => ({ document: documentDescriptor(), initialized, records: records.slice(), sequence, dropped, mutationDropped, maximum,
+    currentGroups: [...document.querySelectorAll('[data-dock-edge]')].map(group => ({ id: identity(group), edge: group.getAttribute('data-dock-edge') })),
+    qualification: 'Mutation current values are callback-delivery observations. Public history does not expose private policy state. Mutation batches retain at most 64 entries.' });
+}
+
+function finalPublicState() {
+  const layer = document.querySelector('[data-win-layer]');
+  const state = window.pudlWindows ? pudlWindows.state() : null;
+  const identity = node => window.__sharedDockNodeIdentity ? window.__sharedDockNodeIdentity(node) : null;
+  const authored = node => Object.fromEntries([...node.attributes].filter(a => /^(data-win-(narrow|size|dock-rail-width|dock-collapse-height|room)|style)/.test(a.name)).map(a => [a.name, a.value]));
+  const member = node => ({ id: identity(node), key: node.getAttribute('data-win'), connected: node.isConnected,
+    hidden: node.hidden, restricted: node.hasAttribute('data-win-restricted'), peek: node.hasAttribute('data-win-dock-peek'),
+    edge: node.getAttribute('data-win-edge'), inputs: authored(node) });
+  const windows = [...document.querySelectorAll('.win[data-win]')].map(member);
+  return { document: { url: location.href, timeOrigin: performance.timeOrigin, readyState: document.readyState },
+    historyInitialized: typeof window.__sharedDockHistory === 'function',
+    missingInitialization: typeof window.__sharedDockHistory === 'function' ? null : 'Document history initialization was not observed',
+    viewport: { width: innerWidth, height: innerHeight },
+    layer: layer ? { id: identity(layer), clientWidth: layer.clientWidth, clientHeight: layer.clientHeight, bounds: layer.getBoundingClientRect().toJSON(), inputs: authored(layer) } : null,
+    state, windows, front: state ? windows.find(node => node.key === state.top) || null : null,
+    groups: [...document.querySelectorAll('[data-dock-edge]')].map(group => ({
+      id: identity(group), connected: group.isConnected, hidden: group.hidden,
+      edge: group.getAttribute('data-dock-edge'), rail: group.hasAttribute('data-dock-rail'),
+      selected: windows.filter(node => [...group.querySelectorAll('[aria-selected="true"]')].some(tab => tab.getAttribute('data-dock-key') === node.key)),
+      members: windows.filter(node => [...group.querySelectorAll('[data-dock-key]')].some(tab => tab.getAttribute('data-dock-key') === node.key)),
+      bounds: group.getBoundingClientRect().toJSON(),
+      toggles: [...group.querySelectorAll('.win-dock-toggle')].map(toggle => Object.fromEntries([...toggle.attributes].map(a => [a.name, a.value]))),
+      tabs: [...group.querySelectorAll('[data-dock-key]')].map(tab => ({ key: tab.getAttribute('data-dock-key'), selected: tab.getAttribute('aria-selected') }))
+    })), focus: document.activeElement && { id: document.activeElement.id, key: document.activeElement.getAttribute('data-dock-key') },
+    history: window.__sharedDockHistory ? window.__sharedDockHistory() : null };
+}
+
+async function captureLifecycleChecks() {
+  const assert = require('assert/strict');
+  const vm = require('vm');
+  const descriptor = { url: 'https://example.invalid/dock?case=one', timeOrigin: 123456, readyState: 'complete' };
+  const fake = { location: { href: descriptor.url }, performance: { timeOrigin: descriptor.timeOrigin },
+    document: { readyState: descriptor.readyState, querySelector: () => null, querySelectorAll: () => [], activeElement: null },
+    window: {}, innerWidth: 1400, innerHeight: 850 };
+  const terminal = vm.runInNewContext('(' + finalPublicState.toString() + ')()', fake);
+  assert.deepEqual(JSON.parse(JSON.stringify(terminal.document)), descriptor);
+  assert.equal(terminal.historyInitialized, false); assert.match(terminal.missingInitialization, /not observed/);
+  fake.document.addEventListener = () => {}; fake.window.addEventListener = () => {};
+  vm.runInNewContext('(' + publicHistory.toString() + ')()', fake);
+  const history = JSON.parse(JSON.stringify(fake.window.__sharedDockHistory()));
+  assert.deepEqual(history.document, descriptor); assert.deepEqual(history.initialized, descriptor);
+  const initializedTerminal = vm.runInNewContext('(' + finalPublicState.toString() + ')()', fake);
+  assert.equal(initializedTerminal.historyInitialized, true); assert.equal(initializedTerminal.missingInitialization, null);
+  const names = ['state', 'trace', 'context', 'video', 'browser'];
+  const visited = [];
+  const result = await finishCapture({ primary: new Error('primary sentinel'), stages: names.map(name => ({ name, milliseconds: 5,
+    run: () => { visited.push(name); if (name !== 'browser') throw new Error(name + ' sentinel'); return true; } })) });
+  assert.deepEqual(visited, names);
+  assert.match(result.primary, /primary sentinel/);
+  assert.equal(result.failed, true);
+  for (const operation of [() => Promise.reject(new Error('collector rejection')), () => new Promise(() => {})]) {
+    let closed = false;
+    const timed = await finishCapture({ stages: [{ name: 'state', milliseconds: 5, run: operation },
+      { name: 'browser', milliseconds: 5, run: () => { closed = true; } }] });
+    assert.equal(timed.failed, true); assert.equal(closed, true);
+    if (timed.outcomes[0].error.includes('Capture stage exceeded')) assert.deepEqual(timed.unresolved, ['state']);
+  }
+  const clean = await finishCapture({ stages: names.map(name => ({ name, milliseconds: 5, run: () => true })) });
+  assert.equal(clean.failed, false);
+  let lateRecorded = false, closedAfterTimeout = false;
+  const late = await finishCapture({ primary: new Error('original primary'),
+    onLate: report => { lateRecorded = report.lateSettlements.some(row => /late rejection sentinel/.test(row.error || '')); },
+    stages: [{ name: 'state', milliseconds: 5, run: () => new Promise((resolve, reject) => setTimeout(() => reject(new Error('late rejection sentinel')), 15)) },
+      { name: 'browser', milliseconds: 100, run: async () => { closedAfterTimeout = true; await new Promise(resolve => setTimeout(resolve, 25)); } }] });
+  assert.equal(closedAfterTimeout, true); assert.equal(lateRecorded, true);
+  assert.match(late.primary, /original primary/); assert.match(late.outcomes[0].error, /Capture stage exceeded/);
+  assert.match(late.lateSettlements[0].error, /late rejection sentinel/); assert.deepEqual(late.unresolved, []);
+  const directory = path.resolve('fake-video'), expected = path.join(directory, 'expected.webm');
+  const files = new Map([[expected, Buffer.from('expected video')], [path.join(directory, 'stale.webm'), Buffer.from('stale video')]]);
+  const io = { readFileSync: file => { if (!files.has(file)) throw new Error('missing expected file'); return files.get(file); }, readdirSync: () => ['expected.webm', 'stale.webm'] };
+  const verified = await expectedVideo({ path: async () => expected }, directory, io);
+  assert.equal(verified.expected.sha256, crypto.createHash('sha256').update(files.get(expected)).digest('hex'));
+  for (const video of [null, { path: async () => { throw new Error('path sentinel'); } }, { path: async () => '' },
+    { path: async () => path.resolve('outside.webm') }, { path: async () => path.join(directory, 'missing.webm') }]) {
+    let browserClosed = false;
+    const failure = await finishCapture({ primary: new Error('video primary'), stages: [
+      { name: 'video', milliseconds: 50, run: () => expectedVideo(video, directory, io) },
+      { name: 'browser', milliseconds: 50, run: () => { browserClosed = true; } }] });
+    assert.equal(failure.failed, true); assert.match(failure.primary, /video primary/); assert.equal(browserClosed, true);
+  }
+  files.set(expected, Buffer.alloc(0));
+  await assert.rejects(expectedVideo({ path: async () => expected }, directory, io), /Empty expected video/);
+  console.log('PASS capture lifecycle preserves primary errors and independently attempts bounded cleanup');
+  console.log('PASS capture retains late errors and verifies the expected page video independently of stale files');
+}
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? ' ' + JSON.stringify(detail) : ''));
   if (!ok) failures++;
 }
-(async () => {
+async function main() {
+  const media = engine === 'webkit';
+  const videoDirectory = out('shared-docks-video');
+  const trace = out('shared-docks-trace.zip'), stateFile = out('shared-docks-state.json'), mediaFile = out('shared-docks-media.json');
+  if (media) fs.mkdirSync(videoDirectory, { recursive: true });
   const browser = await launch();
-  const context = await browser.newContext({ viewport: { width: 1400, height: 850 }, reducedMotion: 'reduce' });
-  const page = await context.newPage();
+  let context, page, video, primary;
   const errors = [];
+  try {
+  context = await browser.newContext({ viewport: { width: 1400, height: 850 }, reducedMotion: 'reduce',
+    ...(media ? { recordVideo: { dir: videoDirectory, size: { width: 1400, height: 850 } } } : {}) });
+  if (media) {
+    await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+    await context.addInitScript(publicHistory);
+  }
+  page = await context.newPage();
+  if (media) video = page.video();
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(ROOT + '/samples/shared-docks.html');
   await page.waitForSelector('[data-dock-key="workspace"]');
@@ -214,6 +409,28 @@ function check(name, ok, detail) {
   await page.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length === 0);
   check('empty docks retain their preferences across reloads', await page.evaluate(() => pudlWindows.state().docks.left.mode === 'rail' && pudlWindows.state().docks.right.mode === 'open'));
   check('no page errors occurred', !errors.length, errors);
-  await browser.close();
-  process.exit(failures ? 1 : 0);
-})().catch(err => { console.error(err); process.exit(1); });
+  } catch (error) { primary = error; console.error(error); }
+  const report = await finishCapture({ primary, onLate: report => {
+    if (media) fs.writeFileSync(mediaFile, JSON.stringify(report, null, 2));
+    else console.error('Capture late settlement', JSON.stringify(report));
+  }, stages: [
+    ...(media && page ? [{ name: 'state', milliseconds: 5000, run: async () => {
+      const state = await page.evaluate(finalPublicState);
+      fs.writeFileSync(stateFile, JSON.stringify({ state, errors }, null, 2)); return true;
+    } }] : []),
+    ...(media && context ? [{ name: 'trace', milliseconds: 10000, run: async () => {
+      await context.tracing.stop({ path: trace });
+      if (!fs.statSync(trace).size) throw new Error('Empty trace'); return true;
+    } }] : []),
+    ...(context ? [{ name: 'context', milliseconds: 10000, run: () => context.close() }] : []),
+    ...(media ? [{ name: 'video', milliseconds: 5000, run: () => expectedVideo(video, videoDirectory) }] : []),
+    { name: 'browser', milliseconds: 10000, run: () => browser.close() }
+  ] });
+  if (media) try { fs.writeFileSync(mediaFile, JSON.stringify(report, null, 2)); }
+  catch (error) { report.failed = true; report.outcomes.push({ name: 'report-write', ok: false, error: String(error) }); }
+  if (report.failed) { failures++; console.error('FAIL shared dock execution or evidence cleanup', JSON.stringify(report)); }
+  process.exitCode = failures ? 1 : 0;
+}
+
+module.exports = { finishCapture, captureLifecycleChecks };
+if (require.main === module) main().catch(error => { console.error(error); process.exitCode = 1; });

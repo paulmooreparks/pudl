@@ -5,6 +5,7 @@
 - Ordinary menu and taskbar bands use matching scale-aware minimum heights. Existing control sizes remain, and bands can grow for larger text or content.
 - Identity glyphs accept explicit conversation, document, files and tools metadata. Generated identities follow current window or destination metadata, while actions and status marks retain their existing treatment. Selected, disabled and forced-colour contexts use their documented foreground behavior.
 - Membership pin buttons use one stable target-specific accessible name and expose raised or pressed membership state. Automatic dock expansion does not itself pin the dock, and existing Pin/Unpin menus remain available.
+- Automatic docks expand after a narrowed host is restored to a wide size, correcting [issue 49](https://github.com/paulmooreparks/pudl/issues/49).
 - Host launcher commands accept an optional session return-focus target. Menubars accept optional host-owned launcher shortcut metadata for tooltip and ARIA presentation without a PUDL key binding.
 
 Hosts should replace the complete matching distribution and follow docs/IDENTITY-GLYPHS.md, docs/LAUNCHER.md and docs/MENU-BARS.md. Existing integrations do not need identity metadata or a launcher return-focus target.

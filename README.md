@@ -14,6 +14,8 @@ The web implementation is a stylesheet, a small theme script and a font, with op
 
 [PUDL 0.112.0](https://github.com/paulmooreparks/pudl/releases/tag/v0.112.0) gives ordinary menu and taskbar bands matching scale-aware minimum heights, optional identity glyph colours, and raised or pressed pin buttons that expose actual membership. Host commands can supply a launcher return-focus target, and menubars can display a host-owned launcher shortcut without registering a key binding. Projects replace the complete matching distribution; existing integrations remain neutral until they opt into identity metadata. See [identity glyphs](docs/IDENTITY-GLYPHS.md), [launcher integration](docs/LAUNCHER.md) and [menu bars](docs/MENU-BARS.md).
 
+Automatic docks also expand when a narrowed host is restored to a wide size, correcting [issue 49](https://github.com/paulmooreparks/pudl/issues/49).
+
 Sites serving Firefox visitors should not adopt 0.112.0 until the open [launcher-opening defect](https://github.com/paulmooreparks/pudl/issues/43) and [grouped execution-glyph defect](https://github.com/paulmooreparks/pudl/issues/44) are closed. Both are owned by the PUDL maintainers, and their causes remain unconfirmed. Later passing focused checks do not close them. Installed host behavior remains subject to downstream verification.
 
 The preceding [0.110.1 release](https://github.com/paulmooreparks/pudl/releases/tag/v0.110.1) corrected launcher placement and first-opening geometry. The [0.110.0 release](https://github.com/paulmooreparks/pudl/releases/tag/v0.110.0) added neutral window counts and launcher-backed ribbon rows. Earlier capability and native-host qualifications remain documented in the linked guides. The examples below identify the matching 0.112.0 distribution and expected SHA384 values.
@@ -107,7 +109,7 @@ With floating windows as well:
       integrity="sha384-m60Q06MIqZf0o9VociUedHzQVNSWFQTrAEKU0ELbveDb5VxDmjW7lOczjfgkstZT"
       crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/gh/paulmooreparks/pudl@v0.112.0/dist/pudl-windows.js" defer
-        integrity="sha384-KVcjC6sdbs/I09NjEGz0RTNXIU6SQe7TLHeolp3X7+SVE51HHAngRTJnAiFzIjuv"
+        integrity="sha384-ezOzo7LZAsU6jX5zftrPJpgIZLOv5lXIoBNOhHvnhcSFS7H0gHE52WR+XKOHJuXW"
         crossorigin="anonymous"></script>
 ```
 
