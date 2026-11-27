@@ -670,6 +670,12 @@
     });
   }
 
+  function neutralCount(win) {
+    var value = Number(win.getAttribute('data-win-count'));
+    return Number.isSafeInteger(value) && value > 0 ? value : 0;
+  }
+  function countPhrase(value, label) { return String(value) + (label ? ' ' + label : ''); }
+
   /* title, when given, is the tooltip in place of the spoken name. */
   function windowMark(node, key, title) {
     var win = wins[key];
@@ -677,6 +683,7 @@
     var glyph = glyphOf(key), src = iconOf(key);
     var count = Number(win.getAttribute('data-win-attention'));
     count = Number.isSafeInteger(count) && count > 0 ? count : 0;
+    var neutral = neutralCount(win), neutralLabel = (win.getAttribute('data-win-count-label') || '').trim();
     var execution = executionState(win);
     var progressText = (win.getAttribute('data-win-progress') || '').trim();
     var progress = progressText ? Number(progressText) : NaN;
@@ -713,6 +720,10 @@
     var badge = node.querySelector('.win-item-attention');
     setHidden(badge, !count);
     setText(badge, count ? String(count) : '');
+    var neutralBadge = node.querySelector('.win-item-count');
+    if (!neutralBadge) { neutralBadge = document.createElement('span'); neutralBadge.className = 'badge win-item-count'; neutralBadge.setAttribute('aria-hidden', 'true'); badge.after(neutralBadge); }
+    setHidden(neutralBadge, !neutral);
+    setText(neutralBadge, neutral ? String(neutral) : '');
     var mark = node.querySelector('.win-item-running'), stackRow = node.hasAttribute('data-win-stack-row');
     /* A stack row's state is the execution-state badge (0.96.4), and shows
        the lifecycle word when there is no state (0.96.5). */
@@ -722,9 +733,9 @@
     var meter = node.querySelector('.win-item-progress');
     setHidden(meter, progress === null);
     setText(meter, progress === null ? '' : progress + '%');
-    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (execution ? ', ' + stateName(execution) : life ? ', ' + life.label : '') + (progress === null ? '' : ', ' + progress + '%');
+    var label = fullTitle(key) + (count ? ', ' + count + ' ' + text('attention', 'needing attention') : '') + (neutral ? ', ' + countPhrase(neutral, neutralLabel) : '') + (execution ? ', ' + stateName(execution) : life ? ', ' + life.label : '') + (progress === null ? '' : ', ' + progress + '%');
     setAttr(node, 'aria-label', label);
-    setAttr(node, 'title', title ? title + (execution ? ', ' + stateName(execution) : '') : label);
+    setAttr(node, 'title', title ? title + (neutral ? ', ' + countPhrase(neutral, neutralLabel) : '') + (execution ? ', ' + stateName(execution) : '') : label);
   }
 
   /* Text and hidden set only when they differ (0.69.3); setting text to
@@ -3081,7 +3092,7 @@
      has it, by id or by name, and otherwise goes to the new body; a notice
      in the new content is announced. */
   var WINDOW_HEADER = 'X-PUDL-Window';
-  var STATUS_ATTRS = ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
+  var STATUS_ATTRS = ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-count', 'data-win-count-label', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-state-title', 'data-win-status-rows', 'data-win-progress'];
   var announceRegion = null;
 
   function announce(words) {
@@ -4833,6 +4844,8 @@
   }
   function stackMark(button, entry) {
     var meta = stackMetadata(entry.group), count = 0, execution = stackState(entry.keys);
+    var neutral = 0n, labels = new Set();
+    entry.keys.forEach(function (k) { var n = neutralCount(wins[k]); if (n) { neutral += BigInt(n); labels.add((wins[k].getAttribute('data-win-count-label') || '').trim()); } });
     entry.keys.forEach(function (k) { var n = Number(wins[k].getAttribute('data-win-attention')); if (Number.isSafeInteger(n) && n > 0) count += n; });
     if (!button.firstChild) button.innerHTML = '<span class="glyph win-item-glyph" aria-hidden="true"></span><span class="win-item-title"></span><span class="win-stack-count" aria-hidden="true"></span><span class="badge warn win-item-attention" aria-hidden="true"></span><span class="win-item-state"><span class="win-state win-item-running"></span></span><span class="win-stack-edges" aria-hidden="true"></span>';
     if (entry.keys.length > 1) setAttr(button, 'data-win-stack-depth', String(Math.min(2, entry.keys.length - 1)));
@@ -4842,9 +4855,13 @@
     setText(button.querySelector('.win-item-title'), meta.label);
     setText(button.querySelector('.win-stack-count'), String(entry.keys.length));
     var badge = button.querySelector('.win-item-attention'); setText(badge, String(count)); setHidden(badge, !count);
+    var neutralBadge = button.querySelector('.win-item-count');
+    if (!neutralBadge) { neutralBadge = document.createElement('span'); neutralBadge.className = 'badge win-item-count'; neutralBadge.setAttribute('aria-hidden', 'true'); badge.after(neutralBadge); }
+    setText(neutralBadge, neutral ? String(neutral) : ''); setHidden(neutralBadge, !neutral);
     paintState(button.querySelector('.win-item-running'), execution);
     var name = stackText('stack-name', '{label}, {n} windows', { label: meta.label, n: entry.keys.length });
     if (count) name += stackText('stack-attention', ', {attention} needing attention', { attention: count });
+    if (neutral) name += ', ' + countPhrase(neutral, labels.size === 1 ? Array.from(labels)[0] : '');
     if (execution) name += ', ' + execution.label;
     setAttr(button, 'aria-label', name);
     setAttr(button, 'title', button.getAttribute('aria-label'));
@@ -6075,7 +6092,7 @@
        its pin, or to the layer, can move or regroup the tabs, so the docks
        are drawn again whole. A write of the value an attribute already had
        changes nothing and is passed over. */
-    var MARKS = ['data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress'];
+    var MARKS = ['data-win-attention', 'data-win-count', 'data-win-count-label', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress'];
     new MutationObserver(function (records) {
       var marked = new Set(), whole = false;
       records.forEach(function (r) {
@@ -6109,7 +6126,7 @@
       if (taskbarDrag) taskbarDrag.cancel();
       renderDocks(null, marked); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh();
     }).observe(layer, { subtree: true, attributes: true, attributeOldValue: true,
-      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-pinnable', 'data-win-destination-provider', 'data-win-destination', 'data-win-group', 'data-win-group-label', 'data-win-group-detail', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
+      attributeFilter: ['data-win-glyph', 'data-win-icon', 'data-win-attention', 'data-win-count', 'data-win-count-label', 'data-win-running', 'data-win-state', 'data-win-lifecycle', 'data-win-state-label', 'data-win-state-detail', 'data-win-progress', 'data-win-pinnable', 'data-win-destination-provider', 'data-win-destination', 'data-win-group', 'data-win-group-label', 'data-win-group-detail', 'data-win-group-glyph', 'data-win-section', 'data-win-group-open', 'data-win-taskbar-stacks'] });
     new MutationObserver(function () { if (taskbarDrag) taskbarDrag.cancel(); renderDocks(); fitBarsSoon(); if (taskbarArrangement) taskbarArrangement.refresh(); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-win-dock-omit-docked'] });
     new MutationObserver(function (records) {
       var changed = records.some(function (record) {

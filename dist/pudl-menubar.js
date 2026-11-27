@@ -85,10 +85,14 @@
   var titleLetters = {};   // letter -> the title's label, for the bar as built
 
   var bar, source, pinsSource, built, panel, sub, submenus = [], frontSrc = null, menus = [], openTitle = null, returnTo = null;
-  var launcherControl = null;
+  var launcherControl = null, launcherActionsSource = null;
   function isLauncher(title) { return !!(bar && bar.hasAttribute('data-menubar-launcher') && title && title._menu && title._menu.menu && title._menu.menu.kind === 'host' && title._menu.title.id === 'site'); }
   function syncLauncherControl(control, target) {
     if (!control || !target) return;
+    if (control === launcherControl && ribbonActive()) {
+      control.removeAttribute('popovertarget'); control.removeAttribute('aria-haspopup'); control.removeAttribute('aria-expanded');
+      return;
+    }
     control.setAttribute('aria-controls', target.id);
     var popup = target.hasAttribute('popover');
     if (popup) { control.setAttribute('popovertarget', target.id); control.setAttribute('aria-haspopup', 'dialog'); }
@@ -96,17 +100,24 @@
     var presentation = target.getAttribute('data-launcher-presentation');
     control.setAttribute('aria-expanded', String(presentation ? presentation === 'popup' || presentation === 'pane' : popup && target.matches(':popover-open')));
   }
-  function requestLauncher(title, toggle, focus) {
+  function requestLauncher(title, toggle, focus, invoker, nativeEvent) {
     if (!isLauncher(title)) return false;
     closeAll(false);
     var target = document.getElementById(bar.getAttribute('data-menubar-launcher'));
-    var event = new CustomEvent('pudl:menubar-launcher', { bubbles: true, cancelable: true, detail: { target: target, invoker: title, toggle: toggle, focus: focus } });
-    if (bar.dispatchEvent(event) && target && target.hasAttribute('popover')) {
+    var event = new CustomEvent('pudl:menubar-launcher', { bubbles: true, cancelable: true, detail: { target: target, invoker: invoker || title, toggle: toggle, focus: focus } });
+    var allowed = bar.dispatchEvent(event);
+    if (!allowed && nativeEvent) nativeEvent.preventDefault();
+    if (allowed && !nativeEvent && target && target.hasAttribute('popover')) {
       if (toggle || !target.matches(':popover-open')) target.togglePopover();
     }
     var glyph = title.previousElementSibling;
-    if (glyph && glyph.classList.contains('menubar-glyph')) glyph.setAttribute('aria-expanded', title.getAttribute('aria-expanded') || 'false');
+    if (!ribbonActive() && glyph && glyph.classList.contains('menubar-glyph')) glyph.setAttribute('aria-expanded', title.getAttribute('aria-expanded') || 'false');
     return true;
+  }
+  function launcherItems() {
+    var list = launcherActionsSource && launcherActionsSource.parentElement === bar && bar.querySelector(':scope > ul[data-menubar-launcher-actions]') === launcherActionsSource ? launcherActionsSource : null;
+    function tag(items, disabled, path) { items.forEach(function (c, i) { if (!c || typeof c !== 'object') return; c.launcherSource = list; c.launcherPath = (path || []).concat(i); c.disabled = !!(disabled || c.disabled); if (c.items) tag(c.items, c.disabled, c.launcherPath); }); return items; }
+    return [{ id: 'pudl-launcher-opener', label: text('launcher', 'Launcher'), glyph: 'app', launcherOpener: true }].concat(list ? tag(readList(list)) : []);
   }
   var menuScope = null;
   var STANDARD = ['site', 'go', 'applets', 'view', 'window', 'help'];
@@ -819,6 +830,7 @@
      or its label. */
   function sameItem(a, b) {
     if (!a || !b) return false;
+    if (a.launcherSource || b.launcherSource) return a.launcherSource === b.launcherSource && (a.el || b.el ? a.el === b.el : a.label === b.label);
     if (a.owner || b.owner) return !!(a.owner && b.owner) && sameSource(a.owner, b.owner) && JSON.stringify(a.commandPath) === JSON.stringify(b.commandPath);
     if (a.id || b.id) return a.id === b.id;
     return a.label === b.label;
@@ -1088,7 +1100,7 @@
       glyph.addEventListener('click', function (e) {
         e.preventDefault();
         var first = g.querySelector('.menubar-title');
-        if (first) toggle(first, true);
+        if (first && !requestLauncher(first, true, 'first', glyph)) toggle(first, true);
       });
       if (m.kind === 'host' && bar.hasAttribute('data-menubar-launcher')) glyph.setAttribute('popovertarget', bar.getAttribute('data-menubar-launcher'));
       g.appendChild(glyph);
@@ -1420,6 +1432,7 @@
   }
 
   function open(title, focusWhere) {
+    if (isLauncher(title) && ribbonActive()) { chooseTab(title, focusWhere); return; }
     if (requestLauncher(title, false, focusWhere)) return;
     if (!currentTarget()) {
       var prior = title._menu;
@@ -1477,6 +1490,7 @@
   }
 
   function toggle(title, keyboard) {
+    if (isLauncher(title) && ribbonActive()) { chooseTab(title, keyboard ? 'first' : null); return; }
     if (requestLauncher(title, true, keyboard ? 'first' : null)) return;
     if (openTitle === title && panel && panel.matches(':popover-open')) { closeAll(true); return; }
     open(title, keyboard ? 'first' : null);
@@ -1559,6 +1573,13 @@
   /* Re-resolve a contributed command by its source and menu path. A
      closure from a previous opening must never outlive its availability. */
   function currentCommand(c) {
+    if (c.launcherSource) {
+      if (bar.querySelector(':scope > ul[data-menubar-launcher-actions]') !== c.launcherSource) return null;
+      var found = null;
+      function search(items) { items.forEach(function (item) { if (!item || typeof item !== 'object') return; if (c.el ? item.el === c.el : item.items && JSON.stringify(item.launcherPath) === JSON.stringify(c.launcherPath)) found = item; if (item.items) search(item.items); }); }
+      search(launcherItems());
+      return found;
+    }
     if (!c.owner) return c;
     var matches = [], path = JSON.stringify(c.commandPath);
     function visit(list) {
@@ -1620,7 +1641,7 @@
     var t = e.target.closest('.menubar-title');
     if (!t || !built.contains(t)) return;
     if (e.type === 'click') {
-      if (isLauncher(t)) {
+      if (isLauncher(t) && !ribbonActive()) {
         /* Keep native invocation for popups so a second press does not
            light-dismiss before the click can toggle the launcher. */
         var target = document.getElementById(bar.getAttribute('data-menubar-launcher'));
@@ -1976,6 +1997,14 @@
     if (!ribbonRow) return;
     if (ribbonToggle) ribbonToggle.hidden = collapsed;
     var on = ribbonActive();
+    if (launcherControl) {
+      var launcherGlyph = built.querySelector('.menubar-menu:first-child > .menubar-glyph');
+      if (launcherGlyph) {
+        launcherGlyph.setAttribute('role', on ? 'button' : 'menuitem');
+        launcherGlyph.tabIndex = on ? 0 : -1;
+        launcherGlyph.setAttribute('aria-label', on ? (bar.getAttribute('data-menubar-launcher-label') || text('open-launcher', 'Open launcher')) : launcherControl._menu.title.label);
+      }
+    }
     built.classList.toggle('menubar-ribbon-on', on);
     /* The page's root says so while the ribbon shows, so a page can style
        for it, and a toolbar marked data-toolbar-ribbon="hide", such as a
@@ -2012,6 +2041,8 @@
       built.setAttribute('role', 'menubar');
       groups.forEach(function (g) { g.setAttribute('role', 'group'); });
       list.forEach(asMenu);
+      var launcher = document.getElementById(bar.getAttribute('data-menubar-launcher'));
+      if (launcher) syncLauncherControl(launcherControl, launcher);
       return;
     }
     /* The site's and the applet's titles together are one tab list; the
@@ -2028,6 +2059,7 @@
       x.setAttribute('role', 'tab');
       x.removeAttribute('aria-haspopup');
       x.removeAttribute('aria-expanded');
+      if (isLauncher(x)) x.removeAttribute('popovertarget');
       x.setAttribute('aria-selected', x === t ? 'true' : 'false');
       if (x === t) x.setAttribute('aria-controls', rowId); else x.removeAttribute('aria-controls');
     });
@@ -2043,7 +2075,7 @@
     var label = t._menu.title.label;
     var fresh = findTitle(t._menu.menu.kind, label);
     var tb = el('div', 'toolbar', { role: 'toolbar', id: rowId, 'aria-label': label, 'data-toolbar-fold': '', 'data-toolbar-captions': bar.getAttribute('data-menubar-ribbon-captions') || 'none' });
-    ribbonGroups(displayItems(t._menu.menu, fresh || t._menu.title, menus), label).forEach(function (g) { tb.appendChild(g); });
+    ribbonGroups(isLauncher(t) ? launcherItems() : displayItems(t._menu.menu, fresh || t._menu.title, menus), label).forEach(function (g) { tb.appendChild(g); });
     if (old && old.getAttribute('aria-label') === label) { reconcileRibbon(old, tb, t); return; }
     var focusedCommand = old && old.contains(document.activeElement) ? document.activeElement._item : null;
     if (old) old.replaceWith(tb); else ribbonRow.appendChild(tb);
@@ -2219,6 +2251,7 @@
     if (c.disabled) { if (n.tagName === 'BUTTON') n.disabled = true; else n.setAttribute('aria-disabled', 'true'); }
     n.__ownDisabled = !!c.disabled && n.tagName === 'BUTTON';
     n._item = c;
+    if (c.launcherOpener) { n.setAttribute('popovertarget', bar.getAttribute('data-menubar-launcher')); n.setAttribute('aria-controls', bar.getAttribute('data-menubar-launcher')); n.setAttribute('aria-haspopup', 'dialog'); }
     return n;
   }
 
@@ -2240,7 +2273,17 @@
     while (n && n !== ribbonRow && !n._item) n = n.parentNode;
     if (!n || n === ribbonRow) return;
     var c = n._item;
-    if (!c || c.items) return;
+    if (!c) return;
+    if (c.launcherOpener) {
+      if (!ribbonActive() || !isLauncher(launcherControl) || n.getAttribute('popovertarget') !== bar.getAttribute('data-menubar-launcher')) { e.preventDefault(); render(); return; }
+      requestLauncher(launcherControl, true, e.detail === 0 ? 'first' : null, n, e); e.stopPropagation(); return;
+    }
+    if (c.launcherSource) {
+      var fresh = currentCommand(c);
+      if (!fresh || fresh.disabled || fresh.href !== c.href) { e.preventDefault(); e.stopPropagation(); render(); return; }
+      c = fresh;
+    }
+    if (c.items) return;
     if (n.tagName === 'A' && (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return;
     e.preventDefault();
     e.stopPropagation();
@@ -2253,12 +2296,13 @@
 
   /* === Starting ========================================================== */
 
-  var pending = 0, pinsChanged = false;
+  var pending = 0, pinsChanged = false, launcherActionsChanged = false;
   function soon() {
     if (pending) return;
     pending = requestAnimationFrame(function () {
       pending = 0;
       if (!currentTarget()) { render(); return; }
+      if (launcherActionsChanged) { launcherActionsChanged = false; syncRibbon(); }
       /* Retain a valid open menu. Command state is read afresh on opening,
          and a change to the pins is drawn once it closes. */
       if (panel && panel.matches(':popover-open')) return;
@@ -2275,6 +2319,9 @@
     source = bar.querySelector('[data-menubar-source]');
     if (!source) return;
     pinsSource = bar.querySelector('[data-menubar-pins]');
+    var actionLists = bar.querySelectorAll(':scope > ul[data-menubar-launcher-actions]');
+    launcherActionsSource = actionLists[0] || null;
+    if (actionLists.length > 1) warn('only the first direct launcher actions list is used');
     built = el('div', 'menubar-row', { role: 'menubar', 'aria-label': bar.getAttribute('aria-label') || text('menu', 'Menu') });
     Array.prototype.forEach.call(bar.children, function (c) { if (c !== source && c !== pinsSource) c.setAttribute('data-menubar-fallback', ''); });
     bar.appendChild(built);
@@ -2333,13 +2380,14 @@
          pane. Keep its companion invoker in step without watching content. */
       var glyph = launcherControl.previousElementSibling;
       if (!glyph || !glyph.classList.contains('menubar-glyph')) return;
+      if (ribbonActive()) { syncLauncherControl(glyph, launcher); return; }
       glyph.setAttribute('aria-expanded', launcherControl.getAttribute('aria-expanded') || 'false');
       if (launcherControl.hasAttribute('aria-haspopup')) glyph.setAttribute('aria-haspopup', launcherControl.getAttribute('aria-haspopup'));
       else glyph.removeAttribute('aria-haspopup');
     }).observe(launcherControl, { attributes: true, attributeFilter: ['aria-expanded', 'aria-haspopup'] });
     if (launcher) launcher.addEventListener('beforetoggle', function (e) {
       if (e.target !== launcher) return;
-      if (launcherControl) launcherControl.setAttribute('aria-expanded', String(e.newState === 'open'));
+      if (launcherControl && !ribbonActive()) launcherControl.setAttribute('aria-expanded', String(e.newState === 'open'));
       built.querySelectorAll('.menubar-menu:first-child > .menubar-glyph').forEach(function (glyph) { glyph.setAttribute('aria-expanded', String(e.newState === 'open')); });
     });
     document.addEventListener('pudl:windows-change', soon);
@@ -2368,6 +2416,10 @@
     /* The host changes its pins list as the reader pins and unpins. */
     if (pinsSource) new MutationObserver(function () { pinsChanged = true; soon(); })
       .observe(pinsSource, { subtree: true, childList: true, characterData: true, attributes: true });
+    if (launcherActionsSource) {
+      new MutationObserver(function () { launcherActionsChanged = true; soon(); }).observe(launcherActionsSource, { subtree: true, childList: true, characterData: true, attributes: true });
+      new MutationObserver(function (records) { if (records.some(function (r) { return Array.from(r.removedNodes).indexOf(launcherActionsSource) >= 0; })) { launcherActionsChanged = true; soon(); } }).observe(bar, { childList: true });
+    }
     /* Measured on the next frame, not in the observer, since measuring
        shows the full bar for a moment and that changes what is observed. */
     var measuring = 0;

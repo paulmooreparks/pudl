@@ -1,6 +1,6 @@
 /* ==========================================================================
    PUDL, the Pleasantly Usable Design Language (pronounced "puddle").
-   Version 0.109.0.
+   Version 0.110.0.
 
    PUDL gives every affordance one visual representation, so that somebody
    who has learned it once can use any application built with it on sight.
@@ -761,6 +761,8 @@ table, input, select, textarea, time, data, output, code, kbd, samp, .num,
   padding: 0; border: 0; background: none; box-shadow: none;
 }
 .menubar-row.menubar-ribbon-on > .menubar-menu:not(.menubar-pins) > .menubar-glyph { display: none; }
+/* A launcher-backed host keeps its direct opener beside the product tab. */
+[data-menubar-launcher] > .menubar-row.menubar-ribbon-on > .menubar-menu:first-child > .menubar-glyph[role="button"] { display: inline-flex; align-self: center; }
 /* The pins are not tabs: their group looks as it does folded, and stands
    where the topbar's other controls do, lifted by its padding. */
 .menubar-row.menubar-ribbon-on > .menubar-pins { align-self: flex-end; margin-bottom: var(--tb-pad-y); }

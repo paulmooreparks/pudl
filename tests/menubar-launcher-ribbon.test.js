@@ -1,0 +1,83 @@
+const assert = require('node:assert/strict');
+const { launch, ROOT, out } = require('./lib');
+(async () => {
+  const browser=await launch();
+  try {
+    const p=await browser.newPage({viewport:{width:1280,height:850},reducedMotion:'reduce'}), errors=[];
+    p.on('pageerror',e=>errors.push(e.message));
+    const url=ROOT+'/tests/fixtures/menubar-launcher-ribbon.html';
+    async function load(query='') { await p.goto(url+query); await p.waitForFunction(()=>window.fixtureReady); await p.waitForSelector('#menubar-ribbon-row'); }
+    const site=()=>p.locator('[data-menu-id="site"]');
+    const row=()=>p.locator('#menubar-ribbon-row');
+    const opener=()=>row().getByRole('button',{name:'Launcher',exact:true});
+    const glyph=()=>p.locator('.menubar-menu:first-child > .menubar-glyph');
+    async function closed() {await p.waitForFunction(()=>!document.querySelector('#catalog').matches(':popover-open') && document.querySelector('#catalog').getAttribute('data-launcher-presentation')!=='pane');}
+    async function semantics() {assert.equal(await site().getAttribute('role'),'tab');assert.equal(await site().getAttribute('aria-haspopup'),null);assert.equal(await site().getAttribute('aria-expanded'),null);assert.equal(await site().getAttribute('popovertarget'),null);assert.equal(await site().getAttribute('aria-controls'),'menubar-ribbon-row');}
+    await load('?default'); assert.deepEqual(await row().locator('button').evaluateAll(nodes=>nodes.filter(n=>n._item).map(n=>n.textContent.trim())),['Launcher']); await semantics();
+    const synchronous = await p.evaluate(() => {
+      const root=document.querySelector('#catalog'), control=pudlMenubar.launcherButton(), toolbar=document.getElementById(control.getAttribute('aria-controls')), snapshots=[];
+      const capture=e=>snapshots.push({state:e.newState,role:control.getAttribute('role'),selected:control.getAttribute('aria-selected'),controls:control.getAttribute('aria-controls'),sameToolbar:document.getElementById(control.getAttribute('aria-controls'))===toolbar,hasPopup:control.getAttribute('aria-haspopup'),expanded:control.getAttribute('aria-expanded'),target:control.getAttribute('popovertarget')});
+      root.addEventListener('beforetoggle',capture);
+      pudlLauncher.open(root); pudlLauncher.close(root);
+      root.removeEventListener('beforetoggle',capture);
+      return snapshots;
+    });
+    assert.deepEqual(synchronous,['open','closed'].map(state=>({state,role:'tab',selected:'true',controls:'menubar-ribbon-row',sameToolbar:true,hasPopup:null,expanded:null,target:null})), 'tab ownership holds synchronously before observer repair');
+    await site().click(); assert.equal(await p.locator('#catalog').evaluate(n=>n.matches(':popover-open')),false);
+    await opener().click(); await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).visible); await semantics();
+    assert(await p.evaluate(()=>requests.at(-1).invoker===document.querySelector('#menubar-ribbon-row button')));
+    await p.locator('[data-launcher-close]').click(); await closed(); assert(await opener().evaluate(n=>n===document.activeElement));
+    await load(); assert.deepEqual((await row().locator('button,a').evaluateAll(nodes=>nodes.filter(n=>n._item).map(n=>n.textContent))).map(s=>s.trim()),['Launcher','Updates…','Settings','Guide']);
+    assert.equal(await p.locator('.menubar-ribbon-toggle').innerText(),'Show as ribbon'); assert.equal(await p.locator('.menubar-ribbon-toggle').getAttribute('aria-pressed'),'true');
+    assert.equal((await p.evaluate(()=>pudlMenubar.shortcuts())).filter(c=>c.key==='Mod+U').length,0,'ribbon actions add no global shortcut');
+    await row().getByRole('button',{name:'Settings',exact:true}).click(); await p.waitForFunction(()=>document.querySelector('#menubar-ribbon-row [aria-pressed="true"]'));
+    assert.deepEqual(await p.evaluate(()=>hits),['settings']);
+    await p.evaluate(()=>{window.keptUpdate=document.querySelector('#menubar-ribbon-row button:nth-of-type(2)');document.getElementById('updates').textContent='Check updates';});
+    await row().getByRole('button',{name:'Check updates',exact:true}).waitFor();
+    await p.evaluate(()=>{document.getElementById('updates').disabled=true;}); await p.waitForFunction(()=>Array.from(document.querySelectorAll('#menubar-ribbon-row button')).some(n=>n.textContent.trim()==='Check updates' && n.disabled));
+    const stale=await row().getByRole('button',{name:'Check updates',exact:true}).elementHandle();
+    assert(await p.evaluate(()=>{const source=document.getElementById('updates');source.disabled=false;source.replaceWith(source.cloneNode(true));return true;}));
+    await stale.evaluate(n=>n.click()); assert.deepEqual(await p.evaluate(()=>hits),['settings'],'stale replaced source does not run');
+    await p.evaluate(()=>{const link=document.querySelector('#menubar-ribbon-row a');document.getElementById('guide').href='#changed';window.staleModified=link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,ctrlKey:true}));});
+    assert.equal(await p.evaluate(()=>staleModified),false,'stale modified href is canceled');
+    await p.waitForFunction(()=>document.querySelector('#menubar-ribbon-row a').getAttribute('href')==='#changed');
+    assert(await p.evaluate(()=>document.querySelector('#menubar-ribbon-row a').dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,ctrlKey:true}))), 'current modified link keeps native default');
+    await p.evaluate(()=>{window.keptAction=document.querySelector('#menubar-ribbon-row [aria-pressed]');window.actionList=document.querySelector('[data-menubar-launcher-actions]');actionList.remove();keptAction.click();});
+    assert.deepEqual(await p.evaluate(()=>hits),['settings'],'removed source list cannot run retained controls');
+    await p.waitForFunction(()=>Array.from(document.querySelectorAll('#menubar-ribbon-row button')).filter(n=>n._item).length===1);
+    await p.evaluate(()=>document.querySelector('[data-menubar]').insertBefore(actionList,document.querySelector('.menubar-row')));
+    await p.evaluate(()=>pudlMenubar.refresh()); await row().getByRole('button',{name:'Settings',exact:true}).waitFor();
+    await p.getByRole('tab',{name:'Chat',exact:true}).click(); await glyph().click(); await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).visible);
+    assert.equal(await p.getByRole('tab',{name:'Chat',exact:true}).getAttribute('aria-selected'),'true');
+    assert(await p.evaluate(()=>requests.at(-1).invoker===document.querySelector('.menubar-menu:first-child > .menubar-glyph')));
+    await p.locator('[data-launcher-close]').click(); assert(await glyph().evaluate(n=>n===document.activeElement));
+    assert.equal(await glyph().getAttribute('role'),'button');
+    await glyph().focus(); await p.keyboard.press('Enter'); await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).visible); await p.locator('[data-launcher-close]').click();
+    await site().click(); await opener().focus(); await p.keyboard.press('Enter'); await p.locator('[data-launcher-pin]').click();
+    await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).presentation==='pane'); await semantics();
+    await p.locator('[data-launcher-close]').click(); await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).presentation==='collapsed'); assert(await opener().evaluate(n=>n===document.activeElement));
+    await p.evaluate(()=>pudlLauncher.open(document.querySelector('#catalog'))); await p.locator('[data-launcher-close]').click(); assert(await site().evaluate(n=>n===document.activeElement),'programmatic open resets prior request opener');
+    await p.locator('.menubar-ribbon-toggle').click(); assert.equal(await site().getAttribute('role'),'menuitem'); await site().click(); await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).visible);
+    await p.locator('[data-launcher-close]').click(); await p.locator('.menubar-ribbon-toggle').click(); await site().click(); await semantics();
+    await p.evaluate(()=>document.documentElement.dir='rtl'); await site().focus(); await p.keyboard.press('ArrowDown'); assert(await opener().evaluate(n=>n===document.activeElement));
+    await p.screenshot({path:out('launcher-ribbon-wide-rtl.png')});
+    await p.evaluate(()=>document.querySelector('.topbar').style.maxWidth='300px');
+    await p.waitForSelector('.menubar-title-glyphs');
+    assert(await p.locator('.menubar-ribbon-tabs').isVisible(),'actual title folding exposes Ribbon tabs chooser');
+    await p.locator('.menubar-ribbon-tabs').click(); await p.getByRole('menuitemradio',{name:'Harbor',exact:true}).click(); await opener().waitFor();
+    await p.evaluate(()=>document.querySelector('.topbar').style.maxWidth='');
+    await p.setViewportSize({width:240,height:850}); await p.waitForSelector('.menubar-collapsed'); assert.equal(await p.locator('.menubar-ribbon-toggle').isVisible(),false);
+    await p.locator('.menubar-one .menubar-title').click(); await p.getByRole('menuitem',{name:'Open launcher',exact:true}).click(); await p.waitForFunction(()=>pudlLauncher.state(document.querySelector('#catalog')).visible); assert.equal(await p.locator('[data-launcher-pin]').isVisible(),false);
+    await p.screenshot({path:out('launcher-ribbon-compact.png')});
+    await p.setViewportSize({width:1280,height:850}); await p.waitForFunction(()=>!document.querySelector('.menubar-row').classList.contains('menubar-collapsed')); await site().click();
+    await p.evaluate(()=>{window.identity=pudlMenubar.launcherButton();pudlLauncher.destroy(document.querySelector('#catalog'));}); await semantics(); assert(await p.evaluate(()=>identity===pudlMenubar.launcherButton()));
+    await load('?native'); await opener().click(); await p.waitForFunction(()=>document.querySelector('#catalog').matches(':popover-open')); await semantics();
+    await opener().click(); await closed(); await site().click(); assert.equal(await p.locator('#catalog').evaluate(n=>n.matches(':popover-open')),false);
+    await p.evaluate(()=>{document.querySelector('[data-menubar]').setAttribute('data-menubar-text-launcher','Lanceur');pudlMenubar.refresh();}); await row().getByRole('button',{name:'Lanceur',exact:true}).waitFor();
+    await p.evaluate(()=>{const nav=document.createElement('nav');nav.setAttribute('data-page-menu','');nav.hidden=true;nav.innerHTML='<ul><li>Reader<ul><li><button type="button">Bookmark</button></li></ul></li></ul>';document.querySelector('main').append(nav);pudlMenubar.refresh();});
+    await p.getByRole('tab',{name:'Reader',exact:true}).click(); await row().getByRole('button',{name:'Bookmark',exact:true}).waitFor();
+    await site().click(); await row().getByRole('button',{name:'Lanceur',exact:true}).waitFor();
+    await p.getByRole('tab',{name:'Reader',exact:true}).click(); await row().getByRole('button',{name:'Bookmark',exact:true}).waitFor();
+    assert.deepEqual(errors,[]); console.log('PASS launcher ribbon defaults, host actions, fresh sources, native and enhanced invocation, tab semantics and compact access');
+  } finally {await browser.close();}
+})().catch(e=>{console.error('FAIL '+e.stack);process.exitCode=1;});

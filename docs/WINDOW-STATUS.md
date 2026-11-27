@@ -36,6 +36,22 @@ PUDL adds no live region. An application may announce meaningful transitions thr
 
 Menu and popover labels use the layer's existing localization mechanism: `data-win-text-status` replaces "Window status", and `data-win-text-status-dismiss` replaces "Dismiss". A theme must provide sufficient contrast for the title bar's own foreground and background. The chips inherit that contrast; PUDL cannot repair an invalid host palette.
 
+## Neutral counts
+
+Set `data-win-count="3"` on a window to show a plain count in its taskbar item, dock tab or rail and generated window-selector rows. The count uses the neutral badge appearance. It has no warning glyph and does not replace `data-win-attention`; when both are present, attention comes first. A positive safe integer is required, using the same numeric conversion as the attention count. Zero, absent, negative, fractional and nonfinite values show no badge and reserve no space. The tab grows when a count appears.
+
+A rail keeps its fixed width. A tab with a neutral count lays out its glyph, counts and execution mark vertically, growing as needed. Long count values wrap between digits so their full value remains visible. A tab without a neutral count keeps its existing rail layout.
+
+A taskbar entry with a neutral count keeps enough width for its complete content. Under pressure, the taskbar folds labels and uses its existing horizontal scroll path instead of clipping count digits. A taskbar containing a neutral count also grows its shared entry height when enlarged badge text needs more room; the usual size is unchanged.
+
+An optional `data-win-count-label="busy"` makes the accessible count phrase and tooltip read `3 busy`. The visible badge shows only `3`. Without a suffix, the accessible phrase is the number alone. The host supplies localized suffix text; surrounding whitespace is trimmed, and the value is treated as plain text.
+
+Applications own the count and its meaning. For example, a host may count every open chat that has work running, regardless of the list group it appears in. PUDL does not infer activity or add a live region. Changes to either count attribute refresh existing controls and open selector lists. Whole-window updates copy or remove these attributes; body-only updates preserve them. Counts do not enter URL state or storage.
+
+The separate Ctrl+Tab switcher keeps its existing icon, title and detail rows. The dock strip's More tabs menu keeps its title and state rows. Neither gains count badges. Selector rows that already expose attention through the shared window-mark renderer also expose the neutral count.
+
+A stack adds the valid counts of its represented windows. Its accessible phrase uses the common suffix when every contributing window has the same trimmed suffix. If those suffixes differ, the aggregate phrase is the bare total. Each row in the stack list retains its own count and suffix. Windows with no positive count do not affect the common suffix.
+
 ## Execution states (0.95.1)
 
 Set `data-win-state="working|waiting|stuck|idle"` on the window. An optional `data-win-state-label` supplies localized words and a reason, such as "Waiting for approval". An explicit valid state takes precedence over `data-win-running`; invalid explicit values render no execution state. The legacy running attribute maps to Working when no explicit state is present. Removing both attributes leaves the slot empty. These marks do not represent unread counts, provider connection, presence, or closed/retired lifecycle states.

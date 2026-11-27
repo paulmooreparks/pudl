@@ -1,0 +1,10 @@
+<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Neutral window counts</title>
+<link rel="stylesheet" href="../../dist/pudl.css"><link rel="stylesheet" href="../../dist/pudl-windows.css">
+<script src="../../dist/pudl-menu.js" defer></script><script src="../../dist/pudl-toolbar.js" defer></script><script src="../../dist/pudl-windows.js" defer></script>
+<style>body{margin:0}.win-host{height:calc(100vh - 60px)}.win-bar{position:fixed;bottom:0;inset-inline:0}</style></head><body>
+<div class="win-host"><main class="win-layer" data-win-layer data-win-switcher data-win-dock-tabs="all" data-win-default="a,b,c" data-win-src="#count-{key}"></main></div>
+<footer class="win-bar"><nav id="all" class="win-dock" data-win-dock aria-label="Open windows"></nav></footer>
+<template id="count-a"><section class="win" data-win="a" data-win-group="chats" data-win-group-label="Chats" data-win-count="3" data-win-count-label=" busy " data-win-attention="2" style="--win-x:.05;--win-y:.05;--win-w:.4;--win-h:.5"><header class="win-head"><h2 class="win-title">Harbor chat</h2><nav class="win-chrome"><button class="win-btn" data-win-action="close" aria-label="Close"></button></nav></header><div class="win-body"><input aria-label="Draft" value="Invented draft"></div></section></template>
+<template id="count-b"><section class="win" data-win="b" data-win-group="chats" data-win-group-label="Chats" data-win-count="4" data-win-count-label="busy" style="--win-x:.2;--win-y:.15;--win-w:.4;--win-h:.5"><header class="win-head"><h2 class="win-title">Studio chat</h2></header><div class="win-body">Invented studio conversation.</div></section></template>
+<template id="count-c"><section class="win" data-win="c" style="--win-x:.4;--win-y:.2;--win-w:.4;--win-h:.5"><header class="win-head"><h2 class="win-title">Notes</h2></header><div class="win-body">Invented notes.</div></section></template>
+</body></html>
