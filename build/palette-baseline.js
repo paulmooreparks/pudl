@@ -26,6 +26,23 @@ function taskbarSizingBaseline(windows) {
   return windows + '\n.win-bar > .status-area > .status-item { height: var(--win-bar-entry-height); min-height: var(--win-bar-entry-height); }\n';
 }
 
+// Apply the ordinary-band sizing policy without replacing historical paint.
+const ordinaryBandEdits = [
+  { file: 'css', before: '\n.topbar {\n', after: '\n:root { --chrome-band-min-height: max(43px, calc(1.125rem + 25px)); }\n.topbar {\n' },
+  { file: 'css', before: '  --tb-pad-y: 10px;\n  padding: var(--tb-pad-y) 20px;', after: '  --tb-pad-y: 6px;\n  min-height: var(--chrome-band-min-height); box-sizing: border-box;\n  padding: var(--tb-pad-y) 20px;' },
+  { file: 'css', before: '  .topbar { --tb-pad-y: 8px; padding: var(--tb-pad-y) 12px; }', after: '  .topbar { padding: var(--tb-pad-y) 12px; }' },
+  { file: 'windows', before: '\n.win-bar {\n  --win-bar-entry-height: max(30px, calc(1.125rem + 12px));\n', after: '\n.win-bar {\n  --win-bar-entry-height: max(30px, calc(1.125rem + 12px));\n  min-height: var(--chrome-band-min-height); box-sizing: border-box;\n' }
+];
+function ordinaryBandBaseline(css, windows) {
+  if (css.includes('--chrome-band-min-height') || windows.includes('--chrome-band-min-height')) throw new Error('Ordinary-band baseline token already exists');
+  const values = { css, windows };
+  for (const edit of ordinaryBandEdits) {
+    if (values[edit.file].split(edit.before).length !== 2) throw new Error('Ordinary-band baseline declaration changed: ' + edit.before);
+    values[edit.file] = values[edit.file].replace(edit.before, edit.after);
+  }
+  return values;
+}
+
 function loadBaseline(root) {
   try {
     const baseline = new Map(files.map(file => [file, execFileSync('git', ['show', revision + ':' + file], {
@@ -41,14 +58,15 @@ function loadBaseline(root) {
       if (css.split(before).length !== 2) throw new Error('Approved boundary baseline declaration changed: ' + before);
       css = css.replace(before, after);
     }
-    baseline.set('dist/pudl.css', Buffer.from(css));
     let windows = baseline.get('dist/pudl-windows.css').toString();
     const count = '.win-stack-count { flex: none; font-variant-numeric: tabular-nums; }';
     if (windows.split(count).length !== 2) throw new Error('Approved count baseline declaration changed');
     windows = windows.replace(count, '.win-stack-count { flex: none; font-family: var(--mono); font-variant-numeric: tabular-nums; }');
     // The new decorative span is inert when comparing historical foreground geometry.
     windows += '\n.win-stack-edges { display: none; }\n';
-    baseline.set('dist/pudl-windows.css', Buffer.from(taskbarSizingBaseline(windows)));
+    const bands = ordinaryBandBaseline(css, taskbarSizingBaseline(windows));
+    baseline.set('dist/pudl.css', Buffer.from(bands.css));
+    baseline.set('dist/pudl-windows.css', Buffer.from(bands.windows));
     return baseline;
   } catch (cause) {
     throw new Error('Palette baseline setup failed: both CSS files from commit ' + revision +
@@ -56,4 +74,4 @@ function loadBaseline(root) {
   }
 }
 
-module.exports = { loadBaseline, revision, files, taskbarSizingBaseline };
+module.exports = { loadBaseline, revision, files, taskbarSizingBaseline, ordinaryBandBaseline, ordinaryBandEdits };
