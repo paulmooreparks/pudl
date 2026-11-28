@@ -139,11 +139,31 @@ async function publish() {
   const source = dryRun ? commit : tag;
   const zipName = 'pudl-' + version + '.zip';
   const zip = path.join(out, zipName);
-  /* The archive holds the guides in docs/ and any deeper document the
-     README links to. */
+  /* The archive holds the guides and release records in docs/, which are
+     the files named in capitals, and every deeper document a reader can
+     reach from them, the README or the changelog by following links. No
+     link inside the archive is then broken, and a working record that
+     nothing links to is left out. */
   const tracked = new Set(git('ls-tree', '-r', '--name-only', commit, 'docs').split('\n'));
-  const linked = [...new Set([...readme.matchAll(/\]\((docs\/[^)#\s]+\/[^)#\s]+)/g)].map(m => m[1]))].filter(f => tracked.has(f)).sort();
-  git('archive', '--format=zip', '--prefix=pudl-' + version + '/', '-o', zip, source, 'CHANGELOG.md', 'LICENSE', 'README.md', 'dist', ':(glob)docs/*.md', ...linked);
+  const linked = new Set();
+  const follow = (from, text) => {
+    for (const match of text.matchAll(/\]\(([^)#\s]+\.md)(#[^)\s]*)?\)/g)) {
+      if (/^[a-z][a-z0-9+.-]*:/i.test(match[1])) continue;
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(from), match[1]));
+      if (!tracked.has(target) || linked.has(target)) continue;
+      linked.add(target);
+      follow(target, show(target).toString('utf8'));
+    }
+  };
+  follow('README.md', readme);
+  follow('CHANGELOG.md', show('CHANGELOG.md').toString('utf8'));
+  for (const file of [...tracked].filter(f => /^docs\/[A-Z0-9][A-Z0-9.-]*\.md$/.test(f)).sort()) {
+    if (linked.has(file)) continue;
+    linked.add(file);
+    follow(file, show(file).toString('utf8'));
+  }
+  result.documents = [...linked].sort();
+  git('archive', '--format=zip', '--prefix=pudl-' + version + '/', '-o', zip, source, 'CHANGELOG.md', 'LICENSE', 'README.md', 'dist', ...result.documents);
   const zipHash = sha256(fs.readFileSync(zip));
   const sumName = zipName + '.sha256';
   fs.writeFileSync(path.join(out, sumName), zipHash + '  ' + zipName + '\n', 'utf8');
