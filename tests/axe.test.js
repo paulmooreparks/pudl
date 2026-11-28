@@ -32,7 +32,9 @@ const PAGES = [
       await ctx.addInitScript(t => { try { localStorage.setItem('pudl-theme', t); } catch (e) { /* none */ } }, theme);
       const p = await ctx.newPage();
       await p.goto(ROOT + path);
-      await p.waitForLoadState('networkidle');
+      /* goto has waited for the load event. The fonts are the only thing
+         still able to arrive, and the document says when they have. */
+      await p.evaluate(() => document.fonts.ready.then(() => true));
       const r = await new AxeBuilder({ page: p }).withRules(RULES).analyze();
       const found = r.violations.map(v => v.id + ' ' + v.nodes.map(n => n.target.join(' ')).slice(0, 3).join(', '));
       check(theme + ' ' + path, found.length === 0, found.join(' | '));

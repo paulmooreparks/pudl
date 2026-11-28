@@ -25,7 +25,13 @@ const { suiteResult } = require('./suite-result');
 const { selectSuites } = require('./suite-plan');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const PORT = Number(process.env.PUDL_PORT || 8765);
+/* The server takes a free port unless PUDL_PORT names one, so runs in
+   several worktrees on one machine do not collide. */
+let PORT = Number(process.env.PUDL_PORT || 0);
+/* With PUDL_MIN=1 a request for a script or stylesheet in dist/ is served
+   from its minified copy in dist/min/ (build/minify.js), so every suite
+   runs against what a project loading the minified files gets. */
+const MIN = process.env.PUDL_MIN === '1';
 const ENGINES = ['chromium', 'firefox', 'webkit'];
 const JOBS = Math.max(1, Number(process.env.PUDL_JOBS) || Math.min(8, Math.floor(os.cpus().length / 2) || 1));
 const SUITE_TIMEOUT = 1000 * (Number(process.env.PUDL_SUITE_TIMEOUT) || 120);
@@ -51,16 +57,21 @@ const TYPES = {
 function serve() {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
-    let file = path.join(ROOT_DIR, decodeURIComponent(url.pathname));
+    const pathname = decodeURIComponent(url.pathname);
+    const min = MIN && /^\/dist\/[\w-]+\.(js|css)$/.test(pathname);
+    let file = path.join(ROOT_DIR, min ? pathname.replace('/dist/', '/dist/min/') : pathname);
     if (!file.startsWith(ROOT_DIR)) { res.writeHead(403); res.end(); return; }
     if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
     fs.readFile(file, (err, data) => {
       if (err) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); return; }
+      /* The copy is served at the readable file's address, so a stylesheet's
+         addresses, written to reach up from dist/min/, are pointed at dist/. */
+      if (min && file.endsWith('.css')) data = data.toString('utf8').replace(/url\((["']?)\.\.\//g, 'url($1/dist/');
       res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream' });
       res.end(data);
     });
   });
-  return new Promise(resolve => server.listen(PORT, '127.0.0.1', () => resolve(server)));
+  return new Promise(resolve => server.listen(PORT, '127.0.0.1', () => { PORT = server.address().port; resolve(server); }));
 }
 
 function runSuite(file, engine) {

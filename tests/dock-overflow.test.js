@@ -136,7 +136,7 @@ function check(name, ok, detail) {
   await page.evaluate(() => { ['r6', 'r7'].forEach(k => { const pane = document.querySelectorAll('.win-dock-group[data-dock-edge="right"][data-dock-pane]')[1].getAttribute('data-dock-pane'); pudlWindows.dock(k, 'right', { group: pane, position: 'tab' }); }); });
   await settle();
   const paneOverflow = await page.locator('.win-dock-group[data-dock-edge="right"][data-dock-pane]').evaluateAll(gs => gs.map(g => ({ pane: g.getAttribute('data-dock-pane'), tabs: g.querySelectorAll('[data-dock-entry]').length, more: !g.querySelector('.win-dock-more').hidden, name: g.querySelector('.win-dock-more').getAttribute('aria-label') })));
-  check('each pane measures its own strip', paneOverflow.length === 2 && paneOverflow.every(p => p.tabs < 2 || p.more === true || true), paneOverflow);
+  check('each pane has a strip of its own', paneOverflow.length === 2, paneOverflow);
   const firstPane = page.locator('.win-dock-group[data-dock-edge="right"][data-dock-pane]').first();
   const firstMore = await firstPane.evaluate(g => !g.querySelector('.win-dock-more').hidden);
   check('the first pane, with five tabs, shows its More button', firstMore, paneOverflow);
