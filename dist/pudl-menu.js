@@ -16,6 +16,11 @@
        panel with no button opens as a palette near the top of the window. */
 (function () {
   'use strict';
+  /* Queued frames and resize deliveries report to pudl-settle.js when the
+     page loaded it first, so pudlSettled() knows when this script has
+     finished (docs/SETTLED.md). Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
 
   var GAP = 4;          // px between the button and the panel
   var EDGE = 8;         // px the panel keeps from the edges of the window

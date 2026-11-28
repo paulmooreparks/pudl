@@ -56,6 +56,11 @@
 
 (function () {
   'use strict';
+  /* Queued frames and resize deliveries report to pudl-settle.js when the
+     page loaded it first, so pudlSettled() knows when this script has
+     finished (docs/SETTLED.md). Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
 
   var HEAD = '.dialog-head, .dialog-title:not(.dialog-head .dialog-title)';
   var watching = new Map();

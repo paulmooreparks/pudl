@@ -4,7 +4,7 @@
    title and state mark, and choosing one selects it and scrolls it whole
    into view. A tab's own menu button shows only while the whole tab is
    inside the strip. Selecting a tab by any route scrolls it into view. */
-const { launch, ROOT, out } = require('./lib');
+const { launch, ROOT, out, settled, resize } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail !== undefined && !ok ? ' ' + JSON.stringify(detail) : ''));
@@ -17,10 +17,7 @@ function check(name, ok, detail) {
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   const URL = ROOT + '/tests/fixtures/dock-overflow.html';
-  /* A timer does not flush the frames used by ResizeObserver and overflow placement. */
-  const settle = () => page.evaluate(() => new Promise(resolve => {
-    setTimeout(() => requestAnimationFrame(() => requestAnimationFrame(resolve)), 150);
-  }));
+  const settle = () => settled(page);
   const group = (edge, pane) => page.locator('.win-dock-group[data-dock-edge="' + edge + '"]' + (pane ? '[data-dock-pane]' : ':not([data-dock-pane])')).first();
   const more = (edge, pane) => group(edge, pane).locator(':scope > .win-dock-more');
   const menu = () => page.locator('.context-menu:popover-open');
@@ -109,17 +106,17 @@ function check(name, ok, detail) {
   check('raising a hidden window scrolls its tab whole into view', s.entries[6].selected && s.entries[6].whole && s.entries[6].menuShown, s);
 
   /* At 1024 the same holds. */
-  await page.setViewportSize({ width: 1024, height: 800 });
+  await resize(page, { width: 1024, height: 800 });
   await settle();
   await overflowChecks('right', 'right dock at 1024');
   await page.keyboard.press('Escape');
 
   /* Widening until every tab fits: the button goes. */
-  await page.setViewportSize({ width: 4400, height: 800 });
+  await resize(page, { width: 4400, height: 800 });
   await settle();
   s = await strip('left');
   check('wide enough for every tab, the More button goes', !s.hidden.length && !s.moreShown && s.entries.every(e => e.menuShown), s);
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await resize(page, { width: 1440, height: 900 });
   await settle();
 
   /* A left dock and a top dock. */
@@ -192,7 +189,7 @@ function check(name, ok, detail) {
   /* The words come from the layer. */
   await page.goto(URL + '?');
   await page.evaluate(() => { document.querySelector('[data-win-layer]').setAttribute('data-win-text-dock-more', 'Weitere Reiter'); });
-  await page.setViewportSize({ width: 1400, height: 900 });
+  await resize(page, { width: 1400, height: 900 });
   await page.waitForSelector('[data-dock-key="r8"]');
   await settle();
   s = await strip('right');

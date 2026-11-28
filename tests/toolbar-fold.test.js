@@ -4,7 +4,7 @@
    stays in a menu, the controls follow the commands' state, the keys
    work, and an agent lists and runs the commands by id. The reference
    page's hand-written folding toolbar folds too. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -50,7 +50,7 @@ function check(name, ok, detail) {
   /* Every command is in the More menu at the narrowest width. */
   await width(280);
   await p.click('.applet-toolbars .toolbar-more .menu-btn');
-  await p.waitForTimeout(150);
+  await settled(p);
   const rows = await p.evaluate(() => [...document.querySelectorAll('.toolbar-more .menu-panel .menu-words')].map(r => r.textContent));
   check('More holds the folded groups\' commands', ['Heading 2', 'Bulleted List', 'Horizontal Rule', 'Open', 'Next Comment', 'Split', 'Word Wrap'].every(t => rows.includes(t)), JSON.stringify(rows));
   const ticked = await p.evaluate(() => [...document.querySelectorAll('.toolbar-more .menu-panel .menu-action[aria-checked="true"] .menu-words')].map(r => r.textContent));
@@ -62,10 +62,10 @@ function check(name, ok, detail) {
   await p.click('textarea');
   await p.keyboard.press('Control+End');
   await p.keyboard.type(' x');
-  await p.waitForTimeout(80);
+  await settled(p);
   const saveOn = await p.evaluate(() => !document.querySelector('[data-command="save"]').disabled);
   await p.keyboard.press('Control+s');
-  await p.waitForTimeout(80);
+  await settled(p);
   const saveOff = await p.evaluate(() => document.querySelector('[data-command="save"]').disabled);
   check('Save follows its state and answers its key', saveOn && saveOff);
   const agent = await p.evaluate(async () => {
@@ -76,20 +76,20 @@ function check(name, ok, detail) {
     await pudlCommands.run('view-preview', undefined, m);
     return { ids: list.map(c => c.id), save: list.find(c => c.id === 'save'), refused, view: m.querySelector('.notes').getAttribute('data-view') };
   });
-  await p.waitForTimeout(80);
+  await settled(p);
   agent.pressed = await p.evaluate(() => document.querySelector('[data-command="view-preview"]').getAttribute('aria-pressed'));
   check('an agent lists every command with its state', agent.ids.length > 20 && agent.save.disabled === true && agent.save.reason && agent.save.action === 'sample.notes/save@1', JSON.stringify(agent.save));
   check('a disabled command refuses an agent with its reason', agent.refused === 'Nothing has changed since it was saved.', agent.refused);
-  await p.waitForTimeout(80);
+  await settled(p);
   check('a command an agent runs changes what the reader sees', agent.view === 'preview' && agent.pressed === 'true', JSON.stringify(agent));
 
   /* Groups whose commands are all hidden leave the row (0.68.1). */
   await p.evaluate(() => pudlCommands.run('view-preview', undefined, document.querySelector('[data-applet="notes"]')));
-  await p.waitForTimeout(150);
+  await settled(p);
   const hiddenGroups = await p.evaluate(() => [...document.querySelectorAll('.applet-toolbars .toolbar-group')].filter(g => g.hidden).map(g => g.getAttribute('data-toolbar-group')).sort().join());
   check('in Preview the editing groups leave the toolbar', hiddenGroups === 'Insert,Lists,Style,Text', hiddenGroups);
   await p.evaluate(() => pudlCommands.run('view-split', undefined, document.querySelector('[data-applet="notes"]')));
-  await p.waitForTimeout(150);
+  await settled(p);
   check('and come back with the text', await p.evaluate(() => ![...document.querySelectorAll('.applet-toolbars .toolbar-group')].some(g => g.hidden)));
 
   /* Menu rows named by command id (0.68.1). */
@@ -115,7 +115,7 @@ function check(name, ok, detail) {
   await p.keyboard.press('Control+Home');
   await p.keyboard.press('End');
   await p.keyboard.type('  ');
-  await p.waitForTimeout(150);
+  await settled(p);
   const alarm = await tone();
   check('a tone colours a control, and a toned command without a glyph takes the status glyph',
     calm.tone === 'positive' && /check/.test(calm.glyph) && alarm.tone === 'danger' && /stop/.test(alarm.glyph) && alarm.color !== calm.color && alarm.label === 'Checks, 1', JSON.stringify([calm, alarm]));
@@ -135,19 +135,19 @@ function check(name, ok, detail) {
   });
   await p.waitForSelector('#own-box [data-command="grid"] .glyph');
   await p.click('#own-box [data-command="pick"]');
-  await p.waitForTimeout(100);
+  await settled(p);
   const details = await p.evaluate(() => [...document.querySelectorAll('.menu-panel:popover-open .menu-row-detail')].map(d => d.textContent));
   check('a command\'s detail is its menu row\'s second line', details.includes('The first of them.'), JSON.stringify(details));
   await p.keyboard.press('Escape');
   await p.click('#own-box [data-command="grid"]');
-  await p.waitForTimeout(100);
+  await settled(p);
   await p.click('.menu-panel:popover-open .grid-cell');
   check('a command with a panel draws it in its own menu, and what it draws works', await p.evaluate(() => window.__picked === 'cell'));
   await p.keyboard.press('Escape');
   await p.evaluate(() => document.getElementById('own-box').remove());
   await width(280);
   await p.click('.applet-toolbars .toolbar-more .menu-btn');
-  await p.waitForTimeout(100);
+  await settled(p);
   const inMore = await p.evaluate(() => document.querySelectorAll('.toolbar-more .menu-panel .menu-command-panel .notes-symbols button').length);
   check('and in a folded group\'s menu, under its name', inMore === 12, String(inMore));
   await p.keyboard.press('Escape');
@@ -184,7 +184,7 @@ function check(name, ok, detail) {
     return { shownA, shownB, ran, strict, row: { shortcut: row.shortcut, bind: row.bind, glyphOnly: row.glyphOnly } };
   });
   await p.keyboard.press('Control+Alt+j');
-  await p.waitForTimeout(50);
+  await settled(p);
   const ranAfterKey = await p.evaluate(() => window.__ran.slice());
   check('a command is described by its own scope\'s controls only', scoped.shownA === 'none' && scoped.shownB === 'toolbar', JSON.stringify(scoped));
   check('run with an element runs only that element\'s command', JSON.stringify(scoped.ran) === '["a"]' && scoped.strict === 'there is no command only-b', JSON.stringify(scoped));
@@ -195,7 +195,7 @@ function check(name, ok, detail) {
 
   /* The reference page's hand-written folding toolbar. */
   await p.goto(ROOT + '/reference.html#toolbar-fold');
-  await p.waitForTimeout(300);
+  await settled(p);
   const ref = await p.evaluate(async () => {
     const box = document.getElementById('ref-fold-box'), bar = box.querySelector('.toolbar');
     /* Waits for the folding to report, not for a fixed time. */

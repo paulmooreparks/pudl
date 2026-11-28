@@ -3,7 +3,7 @@
    do not fit the bar scrolls sideways, starting scrolled to its end. A
    scrolled-off place is still in the Tab order and comes into view as it
    takes focus. A bar marked .wrap wraps as before. */
-const { launch, ROOT, out, engine } = require('./lib');
+const { launch, ROOT, out, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail !== undefined && !ok ? ' ' + JSON.stringify(detail) : ''));
@@ -14,7 +14,7 @@ function check(name, ok, detail) {
   const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  const settle = () => page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+  const settle = () => settled(page);
 
   /* The bar's geometry: whether it is one line, which places are cut, and
      which are wholly inside the bar's box. */

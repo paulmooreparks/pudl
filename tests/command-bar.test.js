@@ -7,7 +7,7 @@
    captions; and a ribbon shows one tab's row at a time, folds into a
    menu bar of the same names and back, remembers that, and keeps its
    band one height so nothing on it moves. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled, resize } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -25,7 +25,7 @@ function check(name, ok, detail) {
   const width = async (wrap, w) => {
     await p.evaluate(([wrap, w]) => { window.__before = window.__fits; document.getElementById(wrap).style.width = w + 'px'; }, [wrap, w]);
     await p.waitForFunction(() => window.__fits > window.__before, null, { timeout: 5000 }).catch(() => {});
-    await p.waitForTimeout(50);
+    await settled(p);
   };
   const stages = () => p.evaluate(() => {
     const s = {};
@@ -51,7 +51,7 @@ function check(name, ok, detail) {
 
   /* The menu bar. */
   await p.click('.menubar-title[popovertarget="m-go"]');
-  await p.waitForTimeout(100);
+  await settled(p);
   const go = await p.evaluate(() => {
     const t = document.querySelector('.menubar-title[popovertarget="m-go"]');
     return { expanded: t.getAttribute('aria-expanded'), haspopup: t.getAttribute('aria-haspopup'), bg: getComputedStyle(t).backgroundColor, other: getComputedStyle(document.querySelector('.menubar-title[popovertarget="m-view"]')).backgroundColor };
@@ -59,20 +59,20 @@ function check(name, ok, detail) {
   check('a command bar title opens its menu, says so and is pressed in', JSON.stringify(await open()) === '["m-go"]' && go.expanded === 'true' && go.haspopup === 'menu' && go.bg !== go.other, JSON.stringify(go));
   await p.focus('#go-front');
   await p.keyboard.press('ArrowRight');
-  await p.waitForTimeout(100);
+  await settled(p);
   check('Right in an open menu opens the next menu with focus on its first row', JSON.stringify(await open()) === '["m-view"]' && await focused() === 'view-wrap', JSON.stringify([await open(), await focused()]));
   await p.keyboard.press('ArrowLeft');
-  await p.waitForTimeout(100);
+  await settled(p);
   check('Left goes back', JSON.stringify(await open()) === '["m-go"]', JSON.stringify(await open()));
   await p.hover('.menubar-title[popovertarget="m-help"]');
-  await p.waitForTimeout(150);
+  await settled(p);
   check('the pointer moving onto another title opens its menu', JSON.stringify(await open()) === '["m-help"]', JSON.stringify(await open()));
   await p.keyboard.press('Escape');
   await p.mouse.move(5, 880);
 
   /* A plain panel ticks a menuitemcheckbox by aria-checked. */
   await p.click('.menubar-title[popovertarget="m-view"]');
-  await p.waitForTimeout(100);
+  await settled(p);
   const tick = await p.evaluate(() => {
     const row = document.getElementById('view-wrap'), zoom = document.getElementById('view-zoom');
     const words = el => { const r = document.createRange(); r.selectNodeContents(el); return [...r.getClientRects()].map(x => Math.round(x.left)); };
@@ -104,11 +104,11 @@ function check(name, ok, detail) {
 
   /* Folded menus are submenus with their headings. */
   await p.click('#cb [data-toolbar-menus] > .toolbar-fold .menu-btn');
-  await p.waitForTimeout(100);
+  await settled(p);
   const menuRows = await p.evaluate(() => [...document.querySelectorAll('#cb [data-toolbar-menus] > .toolbar-fold .menu-panel > .menu-action')].map(r => r.textContent.trim() + (r.classList.contains('menubar-has-sub') ? '>' : '')));
   check('the folded menus are one row each that opens a submenu', JSON.stringify(menuRows) === '["Go>","View>","Help>"]', JSON.stringify(menuRows));
   await p.click('#cb [data-toolbar-menus] > .toolbar-fold .menu-panel > .menu-action >> text=Go');
-  await p.waitForTimeout(150);
+  await settled(p);
   const sub = await p.evaluate(() => {
     const s = document.querySelector('.toolbar-sub:popover-open');
     if (!s) return null;
@@ -117,17 +117,17 @@ function check(name, ok, detail) {
   });
   check('a submenu opens beside its row with the menu\'s headings and separators, the menu still open', sub && JSON.stringify(sub.kids) === '["#Feeds","Front page","-","#Yours","Saved stories"]' && sub.beside && sub.expanded === 'true' && sub.parentOpen, JSON.stringify(sub));
   await p.click('.toolbar-sub:popover-open .menu-action >> text=Front page');
-  await p.waitForTimeout(100);
+  await settled(p);
   check('choosing in a submenu runs the command and closes every menu', await log() === 'go-front' && (await open()).length === 0, JSON.stringify(await open()));
 
   await p.click('#cb [data-toolbar-menus] > .toolbar-fold .menu-btn');
-  await p.waitForTimeout(100);
+  await settled(p);
   await p.focus('#cb [data-toolbar-menus] > .toolbar-fold .menu-panel > .menu-action');
   await p.keyboard.press('ArrowRight');
-  await p.waitForTimeout(150);
+  await settled(p);
   check('Right on a submenu row opens it with focus on its first row', await focused() === 'Front page', await focused());
   await p.keyboard.press('ArrowLeft');
-  await p.waitForTimeout(100);
+  await settled(p);
   check('Left closes it and goes back to its row', await focused() === 'Go' && (await open()).length === 1, JSON.stringify([await focused(), await open()]));
   await p.keyboard.press('Escape');
 
@@ -137,60 +137,60 @@ function check(name, ok, detail) {
   const rowsIn = sel => p.evaluate(sel => [...document.querySelectorAll(sel + ' > *')].map(c => c.matches('.md-section-label') ? '#' + c.textContent : (c.getAttribute('role') || '') + ':' + c.textContent.trim().replace(/\s+/g, ' ')), sel);
   check('the Feed and Format groups are folded into menus of their own', narrow.Feed >= 3 && narrow.Feed < 5 && narrow.Format >= 3 && narrow.Format < 5, JSON.stringify(narrow));
   await p.click(foldOf('Feed') + ' .menu-btn');
-  await p.waitForTimeout(100);
+  await settled(p);
   const feed = await rowsIn(foldOf('Feed') + ' .menu-panel');
   check('a folded group holds its command and its choices, ticked, under the choices\' name', JSON.stringify(feed) === JSON.stringify(['menuitem:Refresh', '#List', 'menuitemradio:Top', 'menuitemradio:New']) && await p.evaluate(s => document.querySelector(s + ' .menu-action[role="menuitemradio"]').getAttribute('aria-checked'), foldOf('Feed')) === 'true', JSON.stringify(feed));
   await p.keyboard.press('Escape');
   await p.click(foldOf('Format') + ' .menu-btn');
-  await p.waitForTimeout(100);
+  await settled(p);
   const format = await rowsIn(foldOf('Format') + ' .menu-panel');
   check('a folded group holds a select with its value, a switch and a stepper', JSON.stringify(format) === JSON.stringify(['menuitem:FontInter', 'menuitemcheckbox:Bold', 'menuitem:Smaller text', 'menuitem:Larger text']), JSON.stringify(format));
   await p.click(foldOf('Format') + ' .menu-action >> text=Bold');
-  await p.waitForTimeout(80);
+  await settled(p);
   const boldRow = await p.evaluate(s => document.querySelector(s + ' .menu-action[role="menuitemcheckbox"]').getAttribute('aria-checked'), foldOf('Format'));
   check('a switch row presses its key, ticks, and keeps the menu open', boldRow === 'true' && await p.evaluate(() => document.getElementById('bold').getAttribute('aria-pressed')) === 'true' && (await open()).length === 1, JSON.stringify([boldRow, await open()]));
   await p.click(foldOf('Format') + ' .menu-action >> text=Larger text');
   await p.click(foldOf('Format') + ' .menu-action >> text=Larger text');
   check('a stepper row can be pressed again and again with the menu open', (await log()).indexOf('larger,larger') >= 0 && (await open()).length === 1);
   await p.click(foldOf('Format') + ' .menu-action >> text=Font');
-  await p.waitForTimeout(150);
+  await settled(p);
   const fontSub = await p.evaluate(() => { const s = document.querySelector('.toolbar-sub:popover-open'); return s ? [...s.querySelectorAll('.menu-action')].map(r => r.textContent + ':' + r.getAttribute('aria-checked')) : null; });
   check('a select folds into a submenu of its options, the current one ticked', JSON.stringify(fontSub) === '["Inter:true","Georgia:false","Mono:false"]', JSON.stringify(fontSub));
   await p.click('.toolbar-sub:popover-open .menu-action >> text=Georgia');
-  await p.waitForTimeout(100);
+  await settled(p);
   check('choosing an option sets the select, fires change and closes the menus', await p.inputValue('#font') === 'Georgia' && (await log()).indexOf('font=Georgia') >= 0 && (await open()).length === 0, JSON.stringify(await open()));
 
   await p.click('#cb > .toolbar-more .menu-btn');
-  await p.waitForTimeout(100);
+  await settled(p);
   const more = await rowsIn('#cb > .toolbar-more .menu-panel');
   check('More holds the groups gone furthest, a field and a menu among them', JSON.stringify(more) === JSON.stringify(['#Find', 'menuitem:Find…', '#Share', 'menuitem:Copy link', 'menuitem:Export']), JSON.stringify(more));
   await p.click('#cb > .toolbar-more .menu-action >> text=Find');
-  await p.waitForTimeout(150);
+  await settled(p);
   const pop = await p.evaluate(() => { const o = document.querySelector('.toolbar-field-popover:popover-open'); return { open: !!o, holds: !!(o && o.contains(document.getElementById('find'))), focused: document.activeElement.id }; });
   check('a field folds into a row that opens the field itself in a popover, focused', pop.open && pop.holds && pop.focused === 'find', JSON.stringify(pop));
   await p.keyboard.type('menus');
   /* Escape in a search field clears it first, as the browser does, so the
      popover is closed by a press outside. */
   await p.mouse.click(5, 880);
-  await p.waitForTimeout(100);
+  await settled(p);
   const home = await p.evaluate(() => ({ back: !!document.getElementById('find').closest('#cb .toolbar-group'), value: document.getElementById('find').value, pops: document.querySelectorAll('.toolbar-field-popover').length }));
   check('closing the popover puts the field back in its group with what was typed', home.back && home.value === 'menus' && home.pops === 0, JSON.stringify(home));
 
   /* On a narrow window a submenu shows in place, with Back. */
-  await p.setViewportSize({ width: 600, height: 900 });
-  await p.waitForTimeout(150);
+  await resize(p, { width: 600, height: 900 });
+  await settled(p);
   await p.click('#cb > .toolbar-more .menu-btn');
-  await p.waitForTimeout(150);
+  await settled(p);
   await p.click('#cb > .toolbar-more .menu-action >> text=Export');
-  await p.waitForTimeout(150);
+  await settled(p);
   const drill = await p.evaluate(() => [...document.querySelectorAll('#cb > .toolbar-more .menu-panel > *')].map(c => c.matches('.md-section-label') ? '#' + c.textContent : c.matches('.menu-sep') ? '-' : c.textContent.trim()));
   check('on a narrow window a submenu replaces the menu, Back first', drill[0] === 'Export' && drill.indexOf('#Formats') > 0 && drill.indexOf('PDF') > 0 && !(await p.evaluate(() => !!document.querySelector('.toolbar-sub:popover-open'))), JSON.stringify(drill));
   await p.click('#cb > .toolbar-more .menubar-back');
-  await p.waitForTimeout(100);
+  await settled(p);
   const backRows = await p.evaluate(() => [...document.querySelectorAll('#cb > .toolbar-more .menu-panel > .md-section-label')].map(c => c.textContent));
   check('Back brings the menu\'s rows back', backRows.indexOf('Share') >= 0, JSON.stringify(backRows));
   await p.keyboard.press('Escape');
-  await p.setViewportSize({ width: 1300, height: 900 });
+  await resize(p, { width: 1300, height: 900 });
   await width('cb-wrap', 1200);
 
   /* The ribbon. */
@@ -212,13 +212,13 @@ function check(name, ok, detail) {
   });
   const shown = await geom();
   await p.click('#rb .ribbon-bar .ribbon-toggle');
-  await p.waitForTimeout(100);
+  await settled(p);
   const folded = await geom();
   const fold = await p.evaluate(() => ({ folded: document.getElementById('rb').hasAttribute('data-ribbon-folded'), pressed: document.querySelector('#rb .ribbon-menus .ribbon-toggle').getAttribute('aria-pressed'), titles: [...document.querySelectorAll('#rb .ribbon-menus .menubar-title')].map(t => t.textContent).join(), tabs: !!document.querySelector('#rb .ribbon-bar').offsetParent, kept: localStorage.getItem('pudl-ribbon:rb') }));
   check('Show as ribbon folds the ribbon into a menu bar of the same names, released, and remembers it', fold.folded && fold.pressed === 'false' && fold.titles === 'Home,Insert' && !fold.tabs && fold.kept === 'folded', JSON.stringify(fold));
   check('the band is one height either way and the toggle does not move', shown.band === folded.band && shown.x === folded.x && shown.y === folded.y && folded.below < shown.below, JSON.stringify([shown, folded]));
   await p.click('#rb .ribbon-menus .menubar-title >> text=Home');
-  await p.waitForTimeout(100);
+  await settled(p);
   const homeMenu = await p.evaluate(() => [...document.querySelector('#rb .ribbon-menus .menu-panel:popover-open').children].map(c => c.matches('.md-section-label') ? '#' + c.textContent : c.matches('.menu-sep') ? '-' : c.textContent.trim()));
   check('a folded tab\'s menu holds its groups under their names, separated', JSON.stringify(homeMenu) === '["#Clipboard","Paste","Copy","-","#Font","Size11","Bold"]', JSON.stringify(homeMenu));
   await p.click('#rb .ribbon-menus .menu-panel:popover-open .menu-action >> text=Paste');
@@ -227,7 +227,7 @@ function check(name, ok, detail) {
   await p.waitForFunction(() => document.querySelector('#rb.ribbon-ready'));
   check('the ribbon stays folded after a reload', await p.evaluate(() => document.getElementById('rb').hasAttribute('data-ribbon-folded')));
   await p.click('#rb .ribbon-menus .ribbon-toggle');
-  await p.waitForTimeout(100);
+  await settled(p);
   check('pressing Show as ribbon again brings the tabs back', await p.evaluate(() => !document.getElementById('rb').hasAttribute('data-ribbon-folded') && !!document.querySelector('#rb .ribbon-bar').offsetParent && localStorage.getItem('pudl-ribbon:rb') === 'ribbon'));
 
   check('no errors', errors.length === 0, errors.join('; '));

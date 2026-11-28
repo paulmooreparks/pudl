@@ -1675,6 +1675,7 @@ Everything a project uses is in `dist/`, and everything else supports it.
   - `pudl-split.js`, the optional script for splitters between two panes
   - `pudl-disclose.js`, the optional script for cards that open and close
   - `pudl-zoom.js`, the optional script that scales a picture in a viewport that scrolls
+  - `pudl-settle.js`, the optional script, loaded first, that tells a host or a test when PUDL has finished its queued work ([the settled signal](docs/SETTLED.md))
   - `pudl-rows.js`, the optional script that keeps focus right in a row editor
   - `pudl-toolbar.js`, the optional script that makes a toolbar one tab stop besides its fields, and folds one marked `data-toolbar-fold` (preview)
   - `pudl-actions.js`, `pudl-actions-core.js` and `vendor/cfworker-json-schema-4.1.1/`, the optional applet actions: the broker, the rules any host shares, and the JSON Schema validator it loads (MIT, see its `NOTICE.txt`)

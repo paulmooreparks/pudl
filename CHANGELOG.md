@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- New optional `pudl-settle.js` gives `pudlSettled()`, a promise that resolves when the page and its fonts have loaded and PUDL has finished the frames, resize observations and short timers it queued. `pudl:settled` fires on the document at the same moment, and `pudlBusy()` lets a host report work of its own. Load the script before the other PUDL scripts. A page that does not load it is unchanged. See [the settled signal](docs/SETTLED.md).
+
 ## 0.112.0 (2026-11-28)
 
 - Ordinary menu and taskbar bands use matching scale-aware minimum heights. Existing control sizes remain, and bands can grow for larger text or content.
