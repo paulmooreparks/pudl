@@ -56,7 +56,7 @@ function check(name, ok, extra) {
   await p.keyboard.press('Home');
   check('Home goes to the minimum', (await w()) === 180);
   check('keys are not announced one by one', (await p.evaluate(() => window.__ev.length)) === 0);
-  await p.waitForTimeout(450);
+  await p.waitForFunction(() => window.__ev.length > 0);
   ev = await p.evaluate(() => window.__ev);
   check('keys are announced once they go quiet', ev.length === 1 && JSON.parse(ev[0]).width === 180, JSON.stringify(ev));
   check('aria-valuenow follows', (await p.getAttribute(H, 'aria-valuenow')) === '180');

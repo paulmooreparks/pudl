@@ -3,6 +3,13 @@
    See docs/proposals/host-launcher.md for the public contract. */
 (function () {
   'use strict';
+  /* Queued frames and resize deliveries report to pudl-settle.js when the
+     page loaded it first, so pudlSettled() knows when this script has
+     finished (docs/SETTLED.md). Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
+  var cancelAnimationFrame = pudlBusy ? pudlBusy.cancelFrame : function (id) { window.cancelAnimationFrame(id); };
+  var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
   var controls = new WeakMap();
   function enhance(root, options) {
     if (controls.has(root)) return true;

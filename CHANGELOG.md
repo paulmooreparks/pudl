@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Back and Forward no longer reload a page that has no regions. `pudl-regions.js` loaded the address whenever a history entry differed in a field that was not a window's, such as a host's `start` and `start-mode` launcher fields, and that redrew every window. A host replaces `pudl-regions.js` and needs no other change; it keeps restoring its own state in its `popstate` listener. A page that does have regions swaps them as before.
+- New optional `pudl-settle.js` gives `pudlSettled()`, a promise that resolves when the page and its fonts have loaded and PUDL has finished the frames, resize observations and short timers it queued. `pudl:settled` fires on the document at the same moment, and `pudlBusy()` lets a host report work of its own. Load the script before the other PUDL scripts. A page that does not load it is unchanged. See [the settled signal](docs/SETTLED.md).
 
 ## 0.112.0 (2026-11-28)
 

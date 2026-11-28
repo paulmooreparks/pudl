@@ -67,6 +67,15 @@
    host-supplied address without changing the workspace. */
 (function () {
   'use strict';
+  /* Queued frames and resize deliveries report to pudl-settle.js when the
+     page loaded it first, so pudlSettled() knows when this script has
+     finished (docs/SETTLED.md). Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
+  var cancelAnimationFrame = pudlBusy ? pudlBusy.cancelFrame : function (id) { window.cancelAnimationFrame(id); };
+  var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
+  var unlater = pudlBusy ? pudlBusy.cancelTimeout : function (id) { window.clearTimeout(id); };
 
   var MODES = ['floating', 'maximized', 'left', 'right', 'zone', 'dock-top', 'dock-bottom', 'dock-left', 'dock-right'];
   /* The named zones, as [left, top, right, bottom] in sixths of the inner
@@ -545,7 +554,7 @@
       if (done) return;
       done = true;
       document.removeEventListener('click', after);
-      setTimeout(function () { applyPeek(); }, 0);
+      later(function () { applyPeek(); }, 0);
     };
     var after = function () { finish(); };
     document.addEventListener('click', after);
@@ -762,7 +771,7 @@
     group.__placeSoon = true;
     var go = function () { if (!group.__placeSoon) return; group.__placeSoon = false; if (group.isConnected) positionDockMenus(group); };
     requestAnimationFrame(go);
-    setTimeout(go, 100);
+    later(go, 100);
   }
 
   /* The tabs of a strip that are wholly or partly outside it, in strip
@@ -937,7 +946,7 @@
       if (tab.hasPointerCapture && tab.hasPointerCapture(id)) tab.releasePointerCapture(id);
       /* The click a drag ends with does not select the tab. */
       group.__dragged = true;
-      setTimeout(function () { group.__dragged = false; }, 0);
+      later(function () { group.__dragged = false; }, 0);
       if (keep && drop) {
         var work = drop.destination ? placeInDock(state, key, drop.edge, drop.destination) : docked(state, key, drop.edge);
         if (work) { commit(work, true); focusDockTab(drop.edge, key); }
@@ -3029,7 +3038,7 @@
   /* Applies a state and records it in the URL. Opening a window and split
      arrangement operations push history; ordinary placement replaces it. */
   function commit(st, push, rename) {
-    clearTimeout(urlTimer);
+    unlater(urlTimer);
     if (rename && taskbarArrangement) taskbarArrangement.remap(rename.from, rename.to);
     apply(st);
     var url = urlFor(st, rename);
@@ -3039,7 +3048,7 @@
          The page is already right, so the address is written again once
          things are quiet. */
       try { history[push ? 'pushState' : 'replaceState'](history.state, '', url); }
-      catch (err) { urlTimer = setTimeout(function () { commit(state, false); }, URL_DELAY * 10); }
+      catch (err) { urlTimer = later(function () { commit(state, false); }, URL_DELAY * 10); }
     }
     layer.dispatchEvent(new CustomEvent('pudl:windows-change', { bubbles: true, detail: copy(st) }));
   }
@@ -3049,8 +3058,8 @@
      may replace its history entry. */
   function commitSoon(st) {
     apply(st);
-    clearTimeout(urlTimer);
-    urlTimer = setTimeout(function () { commit(state, false); }, URL_DELAY);
+    unlater(urlTimer);
+    urlTimer = later(function () { commit(state, false); }, URL_DELAY);
   }
 
   /* === Loading and adopting windows ====================================== */
@@ -3162,7 +3171,7 @@
     }
     /* Emptied first, so the same words said twice are said again. */
     announceRegion.textContent = '';
-    setTimeout(function () { announceRegion.textContent = words; }, 50);
+    later(function () { announceRegion.textContent = words; }, 50);
   }
 
   /* The window element in a piece of markup: the one with the key, or the
@@ -4446,7 +4455,7 @@
           function releaseClick() {
             document.removeEventListener('pointerup', releaseClick, true);
             document.removeEventListener('pointercancel', releaseClick, true);
-            setTimeout(function () { suppressClick = false; }, 0);
+            later(function () { suppressClick = false; }, 0);
           }
           document.addEventListener('pointerup', releaseClick, true);
           document.addEventListener('pointercancel', releaseClick, true);
@@ -4457,7 +4466,7 @@
       if (!moved) return;
       /* The click that follows a drag must not follow the title link. */
       suppressClick = true;
-      setTimeout(function () { suppressClick = false; }, 0);
+      later(function () { suppressClick = false; }, 0);
       var st = raised(state, key);
       if (ev.type === 'escape' || (ev.type === 'pointercancel' && (outline || layer.hasAttribute('data-win-dock-splits')))) {
         if (target.hasPointerCapture(e.pointerId)) target.releasePointerCapture(e.pointerId);
