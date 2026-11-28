@@ -316,7 +316,13 @@
      puts the regions right when the part of the address they show has
      changed. */
   window.addEventListener('popstate', function () {
-    if (withoutWindows(new URL(location.href)) === listPart) return;
+    var part = withoutWindows(new URL(location.href));
+    if (part === listPart) return;
+    /* A page with no regions has nothing here to put right. The history
+       entry was written by the host's own script, such as one that keeps a
+       launcher's state in the address, and that script answers for it.
+       Loading the address instead would redraw the whole page. */
+    if (!document.querySelector('[data-region]')) { listPart = part; return; }
     swap(location.pathname + location.search + location.hash, false);
   });
 

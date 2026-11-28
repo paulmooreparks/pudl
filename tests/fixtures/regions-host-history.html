@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Host history without regions</title>
+  <link rel="stylesheet" href="../../dist/pudl.css">
+  <script src="../../dist/pudl-regions.js" defer></script>
+</head>
+<body>
+  <!-- A desktop page with no regions whose host keeps a launcher's state
+       in the address, as docs/LAUNCHER.md invites it to. -->
+  <p id="state">closed</p>
+  <script>
+    window.addEventListener('popstate', function () {
+      document.getElementById('state').textContent = new URLSearchParams(location.search).get('start') || 'closed';
+    });
+  </script>
+</body>
+</html>
