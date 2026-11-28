@@ -23,6 +23,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { suiteResult } = require('./suite-result');
 const { selectSuites } = require('./suite-plan');
+const setAside = require('./set-aside');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PORT = Number(process.env.PUDL_PORT || 8765);
@@ -100,7 +101,12 @@ function runSuite(file, engine) {
   const server = await serve();
   const runStarted = Date.now();
   const queue = [];
-  engines.forEach(engine => suites.forEach(suite => queue.push({ engine, suite })));
+  /* A full run leaves out the suites in tests/set-aside.json. */
+  const aside = filters.length ? [] : setAside.load(available);
+  engines.forEach(engine => suites.forEach(suite => {
+    if (setAside.isSetAside(aside, suite, engine)) console.log('SET ASIDE ' + engine + ' ' + suite);
+    else queue.push({ engine, suite });
+  }));
   const results = [];
 
   /* Each worker takes the next suite until none are left, and reports it

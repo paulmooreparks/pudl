@@ -4,6 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { suiteResult } = require('./suite-result');
 const { selectSuites } = require('./suite-plan');
+const setAside = require('./set-aside');
 
 // These identities are the original nested cases, not a count of wrapper exits.
 function nestedNames(suite, engine) {
@@ -66,6 +67,7 @@ function verifyShards(root, revision) {
   assert.match(revision, /^[a-f0-9]{40}$/, 'Expected full commit revision');
   const suites = fs.readdirSync(__dirname).filter(name => name.endsWith('.test.js')).sort();
   assert.ok(suites.length > 0, 'Nonempty expected suite set');
+  const aside = setAside.load(suites);
   const targets = [['chromium', false], ['firefox', false], ['webkit', false], ['chromium', true]];
   const artifacts = targets.flatMap(([engine, minified]) => [1, 2].map(index => ({
     engine, minified, index, name: `output-${engine}-${minified ? 'minified' : 'source'}-${index}`
@@ -76,13 +78,14 @@ function verifyShards(root, revision) {
     const directory = path.join(root, name);
     assert.deepEqual(entries(directory), [engine, 'results.json'].sort(), name + ' artifact contents');
     const plan = selectSuites(suites, [], `${index}/2`);
+    const ran = plan.suites.filter(suite => !setAside.isSetAside(aside, suite, engine));
     const aggregate = json(path.join(directory, 'results.json'));
     for (const [key, value] of Object.entries({ jobs: 1, suiteTimeoutSeconds: 300, revision, minified, shard: { index, total: 2 }, totalSuites: suites.length, suites: plan.suites })) {
       assert.deepEqual(aggregate[key], value, name + ' ' + key);
     }
     assert.ok(Array.isArray(aggregate.results), name + ' aggregate rows');
-    assert.deepEqual(aggregate.results.map(row => row.suite).sort(), [...plan.suites].sort(), name + ' exact aggregate suite identities');
-    assert.deepEqual(entries(path.join(directory, engine)), plan.suites.map(suite => suite.replace(/\.test\.js$/, '')).sort(), name + ' exact child directories');
+    assert.deepEqual(aggregate.results.map(row => row.suite).sort(), [...ran].sort(), name + ' exact aggregate suite identities');
+    assert.deepEqual(entries(path.join(directory, engine)), ran.map(suite => suite.replace(/\.test\.js$/, '')).sort(), name + ' exact child directories');
     for (const row of aggregate.results) {
       assert.equal(row.engine, engine, name + ' aggregate engine');
       assert.equal(row.code, 0, name + ' aggregate effective return');
