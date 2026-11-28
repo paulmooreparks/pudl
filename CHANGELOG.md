@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Back and Forward no longer reload a page that has no regions. `pudl-regions.js` loaded the address whenever a history entry differed in a field that was not a window's, such as a host's `start` and `start-mode` launcher fields, and that redrew every window. A host replaces `pudl-regions.js` and needs no other change; it keeps restoring its own state in its `popstate` listener. A page that does have regions swaps them as before.
+
 ## 0.112.0 (2026-11-28)
 
 - Ordinary menu and taskbar bands use matching scale-aware minimum heights. Existing control sizes remain, and bands can grow for larger text or content.
