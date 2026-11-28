@@ -327,7 +327,11 @@ function compile(input) {
   if (skin.treatment === 'glass') css += glassChrome(condition);
   /* System-colour and print rendering remain entirely component-owned.
      A later skin file must not override their palette resets. */
-  return '@media screen and (forced-colors: none) {\n' + css + '}\n';
+  /* The marker lets pudl-skins.js see that this file has loaded and
+     applies. It stands outside the media rule so that printing or forced
+     colours do not make the skin look unloaded. docs/SKINS.md documents it. */
+  const marker = ':where(:root) {\n  --pudl-skin-' + skin.id + ': 1;\n}\n';
+  return marker + '@media screen and (forced-colors: none) {\n' + css + '}\n';
 }
 
 module.exports = { compile };

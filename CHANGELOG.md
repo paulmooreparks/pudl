@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `pudl-skins.js` no longer accepts a skin whose stylesheet failed to load. Each skin file now sets `--pudl-skin-<id>` on the root, and the runtime registers a skin only when that property is set. Replace the skin stylesheets together with `pudl-skins.js`. A host that compiles its own skins must compile them again; until it does, those skins are unavailable and Standard stays in effect. See [skins](docs/SKINS.md).
+
 ## 0.112.0 (2026-11-28)
 
 - Ordinary menu and taskbar bands use matching scale-aware minimum heights. Existing control sizes remain, and bands can grow for larger text or content.

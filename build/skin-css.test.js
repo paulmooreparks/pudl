@@ -71,7 +71,7 @@ test('material treatments retain bounded geometry and distinct surface paints', 
 test('Glass scopes its enhancement to the selected identifier and supplies an opaque fallback', () => {
   const input = skin(); input.id = 'glass-probe'; input.treatment = 'glass';
   const css = compile(input);
-  assert.ok(css.startsWith('@media screen and (forced-colors: none)'));
+  assert.ok(css.startsWith(':where(:root) {\n  --pudl-skin-glass-probe: 1;\n}\n@media screen and (forced-colors: none)'), 'the load marker stands outside the media rule');
   assert.ok(css.includes(':where(:root[data-skin="glass-probe"]) .win-head'));
   assert.ok(!css.includes('[data-skin="glass"]'));
   assert.ok(css.includes('@supports (backdrop-filter: blur(2px))'));
