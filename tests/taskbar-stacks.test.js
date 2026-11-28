@@ -1,5 +1,5 @@
 const assert = require('assert/strict');
-const { launch, ROOT, engine, out } = require('./lib');
+const { launch, ROOT, engine, out, settled } = require('./lib');
 
 (async () => {
   const browser = await launch();
@@ -175,7 +175,7 @@ const { launch, ROOT, engine, out } = require('./lib');
       await atlas('#all').click();
       await page.locator('#outside').hover();
       // Wait beyond the specified hover transit allowance to distinguish pinned state.
-      await page.waitForTimeout(400);
+      await settled(page);
       assert.equal(await popup().isVisible(), true);
       await atlas('#all').click();
       await popup().waitFor({ state: 'hidden' });

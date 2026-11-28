@@ -1,7 +1,7 @@
 /* The menu bar's pins group: between the site's group and the applet's, the Pins menu
    and a button for each pinned item, giving way all together to an Items
    menu when they do not fit. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail ? '  ' + detail : ''));
@@ -85,7 +85,7 @@ function check(name, ok, detail) {
   let middle = 0;
   for (let w = 1500; w >= 400; w -= 10) {
     await p.setViewportSize({ width: w, height: 800 });
-    await p.waitForTimeout(30);
+    await settled(p);
     const state = await p.$eval('.menubar-row', r => r.classList.contains('menubar-collapsed') ? 2 : r.classList.contains('menubar-pins-collapsed') ? 1 : 0);
     if (state === 1) { middle = w; break; }
     if (state === 2) break;

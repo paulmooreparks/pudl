@@ -2,7 +2,7 @@
    value with a list of suggestions, and a select that filters as the
    reader types; their keys, events, options from the server, and their
    place in a toolbar and a dialog. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -157,7 +157,7 @@ function check(name, ok, detail) {
   check('choosing sets the select, fires input and change on it, and shows its words', await p.inputValue('#world') === 'DKK' && await val('world-combo') === 'DKK · Danish krone' && await heard() === 'input:world,change:world');
   await p.keyboard.press('Control+a');
   await p.keyboard.type('nothing like it');
-  await p.focus('#tb1'); await p.waitForTimeout(50);
+  await p.focus('#tb1'); await settled(p);
   check('leaving with words that match no option puts the choice back', await p.inputValue('#world') === 'DKK' && await val('world-combo') === 'DKK · Danish krone');
   await p.click('#world-combo');
   await p.keyboard.press('Control+a');

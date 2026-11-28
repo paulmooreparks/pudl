@@ -1,6 +1,6 @@
 /* Nothing scrolls the whole page sideways on a phone, whatever it holds,
    and a crowded topbar wraps (issue #9). */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -19,7 +19,7 @@ const PAGES = ['/reference.html', '/samples/article-reader.html', '/samples/arti
     const wide = [];
     for (const u of PAGES) {
       await p.goto(ROOT + u);
-      await p.waitForTimeout(300);
+      await settled(p);
       const r = await p.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
       if (r[0] > r[1]) wide.push(u + ' ' + r.join('>'));
     }

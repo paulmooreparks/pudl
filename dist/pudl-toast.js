@@ -36,6 +36,11 @@
    that lasts, such as the application's notifications. */
 (function () {
   'use strict';
+  /* Queued timers report to pudl-settle.js when the page loaded it first,
+     so pudlSettled() knows when this script has finished (docs/SETTLED.md).
+     Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var DURATION = 5000;
   var LEAVE = 200;
@@ -186,7 +191,7 @@
     /* A live region announces what is added to it after it exists, so a
        region made just now for a dialog gets its first toast a moment
        later, as the server's toasts do on load. */
-    if (fresh) setTimeout(function () { r.appendChild(t); arm(t); }, 150);
+    if (fresh) later(function () { r.appendChild(t); arm(t); }, 150);
     else { r.appendChild(t); arm(t); }
     return t;
   };
@@ -222,7 +227,7 @@
       t.hidden = false;
       if (!t.querySelector('.toast-close')) t.appendChild(closeButton(r.getAttribute('data-toast-close-label') || 'Dismiss'));
     });
-    setTimeout(function () { found.forEach(function (t) { r.appendChild(t); arm(t); }); }, fresh ? 150 : 0);
+    later(function () { found.forEach(function (t) { r.appendChild(t); arm(t); }); }, fresh ? 150 : 0);
   }
 
   function init() {
@@ -238,7 +243,7 @@
       }
     }
     /* Windows the server rendered into the page carry theirs too. */
-    setTimeout(function () { document.querySelectorAll('.win').forEach(takeIn); }, 150);
+    later(function () { document.querySelectorAll('.win').forEach(takeIn); }, 150);
   }
 
   document.addEventListener('pudl:window-open', function (e) { takeIn(e.target); });

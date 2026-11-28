@@ -28,6 +28,11 @@
    detail.name, fire on the pre after each action. */
 (function () {
   'use strict';
+  /* Queued timers report to pudl-settle.js when the page loaded it first,
+     so pudlSettled() knows when this script has finished (docs/SETTLED.md).
+     Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var DONE_MS = 2000;
 
@@ -112,7 +117,7 @@
   function say(wrap, text) {
     var s = wrap.querySelector('.code-head [role="status"]');
     s.textContent = '';
-    setTimeout(function () { s.textContent = text; }, 50);
+    later(function () { s.textContent = text; }, 50);
   }
 
   /* The check stays two seconds after the last copy, however many there

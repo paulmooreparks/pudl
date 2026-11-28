@@ -91,6 +91,11 @@
    (0.97.1). */
 (function () {
   'use strict';
+  /* Queued timers report to pudl-settle.js when the page loaded it first,
+     so pudlSettled() knows when this script has finished (docs/SETTLED.md).
+     Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var uid = 0;
   var TYPEAHEAD_MS = 600;
@@ -458,7 +463,7 @@
       box.focus();
     });
     var form = select.form;
-    if (form) form.addEventListener('reset', function () { setTimeout(function () { core.reset(); core.paint(); core.showChosen(); }, 0); });
+    if (form) form.addEventListener('reset', function () { later(function () { core.reset(); core.paint(); core.showChosen(); }, 0); });
     select.__pudlListboxSync = build;
     select.__pudlListboxActivate = function (which) {
       var i = -1;

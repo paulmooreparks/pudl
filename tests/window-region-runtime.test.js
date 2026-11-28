@@ -1,7 +1,7 @@
 /* Four runtime features of windows and regions: window-scoped
    address parameters, pudlRegions.reload(), collapsed segment choices that
    swap regions, and pudlWindows.rekey(). */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -113,7 +113,7 @@ function check(name, ok, extra) {
   });
   await p.unroute('**/article-reader.html*');
   const loadsNow = loads.length;
-  await p.waitForTimeout(300);
+  await settled(p);
   check('a reload whose page has other regions rejects, leaves the regions and never navigates', failed.rejected && failed.kept && !failed.busy && loads.length === loadsNow, JSON.stringify(failed));
 
   /* === Collapsed segment choices swap regions =========================== */

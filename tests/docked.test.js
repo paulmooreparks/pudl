@@ -1,5 +1,5 @@
 /* Docked windows, from docs/proposals/docked-windows.md. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -78,7 +78,7 @@ const FIX = ROOT + '/tests/fixtures/docked.html';
   /* Keys on its title bar. */
   await p.focus('.win[data-win="site"] .win-head');
   await p.keyboard.press('Shift+ArrowUp');
-  await p.waitForTimeout(400);
+  await settled(p);
   const grown = await box('.win[data-win="site"]');
   check('Shift with the arrow into the workspace grows it', grown.h > site.h, JSON.stringify({ before: site.h, after: grown.h }));
   await p.keyboard.press('Enter');

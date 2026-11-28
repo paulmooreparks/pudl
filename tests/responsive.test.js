@@ -1,4 +1,4 @@
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 const assert = require('node:assert/strict');
 (async () => {
   const browser = await launch();
@@ -143,7 +143,7 @@ const assert = require('node:assert/strict');
     }, stacked);
     for (const pane of ['first', 'second', 'first']) {
       await p.evaluate(pane => document.querySelector('#split-test').setAttribute('data-split-pane', pane), pane);
-      await p.waitForTimeout(40);
+      await settled(p);
       assert.equal(await p.locator('#split-test').evaluate(s => s.style.getPropertyValue('--split-a')), '150px');
       assert.equal(await p.locator('#split-test .split-handle').isVisible(), false);
     }
@@ -231,7 +231,7 @@ const assert = require('node:assert/strict');
   await p.goto(ROOT + '/samples/article-reader.html?open=url-state,url-state-parse&top=url-state-parse');
   await p.waitForSelector('[data-win="url-state-parse"]', { state: 'attached' });
   await p.setViewportSize({ width: 1100, height: 900 });
-  await p.waitForTimeout(50);
+  await settled(p);
   assert.equal(await p.locator('[data-win="url-state-parse"]').count(), 1);
   releaseFragment();
   await p.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length === 2);

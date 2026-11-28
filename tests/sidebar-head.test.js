@@ -3,7 +3,7 @@
    going with the sidebar to either side, hidden with it when collapsed,
    fitting a narrow column and a phone's list pane, and chips shown only
    while there are some. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -53,7 +53,7 @@ function check(name, ok, extra) {
   check('a list swap leaves the head and its field as they are', kept);
 
   await p.setViewportSize({ width: 380, height: 700 });
-  await p.waitForTimeout(300);
+  await settled(p);
   const phone = await shape();
   check('on a phone\'s list pane the head runs across it, nothing overflowing', phone.visible && phone.fieldFills && !phone.overflowX && phone.headW >= 340, JSON.stringify(phone));
 

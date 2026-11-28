@@ -7,7 +7,7 @@
    0.108.1 contract. This checks that visibility and retained styling in
    every engine, and in Chromium, from its trace, how many elements one
    insertion restyles. */
-const { launch, ROOT, engine } = require('./lib');
+const { launch, ROOT, engine, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -18,7 +18,7 @@ function check(name, ok, detail) {
   const browser = await launch();
   const p = await browser.newPage({ viewport: { width: 1200, height: 800 } });
   await p.goto(ROOT + '/tests/fixtures/restyle-scope.html');
-  await p.waitForTimeout(200);
+  await settled(p);
 
   const look = await p.evaluate(() => {
     const cs = el => getComputedStyle(el);

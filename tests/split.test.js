@@ -1,5 +1,5 @@
 /* Splitters. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -51,7 +51,7 @@ const STACK = '#split ~ .demo .split.stacked';
   await p.keyboard.press('End');
   const end = await info(SIDE);
   check('the arrow keys step, and Home and End go to the limits', stepped.first === dragged.first + 16 && home.first === 100 && Math.abs(end.first - end.max) <= 1, JSON.stringify({ stepped: stepped.first, home: home.first, end: end.first, max: end.max }));
-  await p.waitForTimeout(400);
+  await settled(p);
   check('the keyboard\'s change is announced once it goes quiet', (await p.evaluate(() => window.__sizes)).slice(-1)[0] === end.first);
   await p.keyboard.press('Enter');
   const back = await info(SIDE);
@@ -68,7 +68,7 @@ const STACK = '#split ~ .demo .split.stacked';
   /* The limits hold as the split narrows. */
   await p.keyboard.press('End');
   await p.evaluate(s => { document.querySelector(s).style.height = '150px'; }, STACK);
-  await p.waitForTimeout(300);
+  await settled(p);
   const narrowed = await info(STACK);
   check('a size beyond a new limit leaves the second minimum and track', narrowed.first <= narrowed.max && narrowed.max === narrowed.whole - 60 - 6, JSON.stringify(narrowed));
 

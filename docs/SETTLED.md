@@ -42,9 +42,14 @@ Table 1 lists the work each script reports as of this release. The list grows as
 | Script | Frames | Resize observations | Timers |
 |---|---|---|---|
 | `pudl-windows.js` | All | All | Zero-delay deferrals, the dock menu placement fallback, the delayed address write after keyboard moves, the live-region announcement |
-| `pudl-toolbar.js`, `pudl-menubar.js`, `pudl-split.js`, `pudl-launcher.js`, `pudl-md.js`, `pudl-annotations.js` | All | All | None yet |
+| `pudl-split.js`, `pudl-md.js` | All | All | The announcement after a handle's keys go quiet, the fallback and zero-delay deferrals |
+| `pudl-toolbar.js`, `pudl-menubar.js` | All | All | The placement fallback and the ribbon's zero-delay deferral |
+| `pudl-launcher.js`, `pudl-annotations.js` | All | All | None yet |
 | `pudl-menu.js` | All | None used | None yet |
 | `pudl-dialog.js`, `pudl-zoom.js` | None used | All | None used |
+| `pudl-reorder.js`, `pudl-code.js` | None used | None used | The live-region announcement |
+| `pudl-combo.js`, `pudl-fields.js`, `pudl-listbox.js` | None used | None used | The deferral after a form reset |
+| `pudl-toast.js` | None used | None used | The deferrals that place toasts found in the page |
 | Every other script | None used | None used | None yet |
 
 *Note.* Delays that wait for a person are never counted: hover intent, tooltip delays, toast dismissal and the pause before a window switcher shows.

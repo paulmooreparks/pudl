@@ -2,7 +2,7 @@
    while dragged and their placement does not reach their content, every
    fetch and file a page's markup can name stays on the page's origin, and
    the sidebar's minimum may be written in any length. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -73,7 +73,7 @@ function check(name, ok, extra) {
     return { state: m.getAttribute('data-applet-state'),
              loaded: !!document.querySelector('script[src*="from-mount"], link[href*="from-mount"]') };
   });
-  await q.waitForTimeout(200);
+  await settled(q);
   check('a mount naming its own files loads nothing, even from this origin, and warns',
         mount.state === 'loading' && !mount.loaded && warned2.length === 1, JSON.stringify(mount) + ' ' + warned2.length);
   /* The mixer puts its page in a share link, so a javascript: page would

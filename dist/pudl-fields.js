@@ -117,6 +117,11 @@
    a meter or a number field's input. (0.74.0) */
 (function () {
   'use strict';
+  /* Queued timers report to pudl-settle.js when the page loaded it first,
+     so pudlSettled() knows when this script has finished (docs/SETTLED.md).
+     Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var uid = 0;
   /* The zero of each script's run of ten decimal digits that a reader may
@@ -501,7 +506,7 @@
     }
     sync();
     new MutationObserver(sync).observe(input, { attributes: true });
-    if (input.form) input.form.addEventListener('reset', function () { setTimeout(function () { bad = false; sync(); show(); }, 0); });
+    if (input.form) input.form.addEventListener('reset', function () { later(function () { bad = false; sync(); show(); }, 0); });
     input.__pudlFieldsRefresh = function () { bad = false; sync(); show(); };
   }
 

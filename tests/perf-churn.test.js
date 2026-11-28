@@ -4,7 +4,7 @@
    moves things with styles, none of it PUDL's, must cost no page-wide
    search, no measurement and no reading of computed style from PUDL. Time
    is too noisy to test; these are counted, so the test is exact. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -15,7 +15,7 @@ function check(name, ok, detail) {
   const browser = await launch();
   const p = await browser.newPage({ viewport: { width: 1300, height: 900 } });
   await p.goto(ROOT + '/reference.html');
-  await p.waitForTimeout(1000);
+  await settled(p);
   const counts = await p.evaluate(async () => {
     /* Every call counted, with whether it came from a PUDL script. */
     const counts = {};

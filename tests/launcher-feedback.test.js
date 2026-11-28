@@ -1,5 +1,5 @@
 const assert = require('assert/strict');
-const { launch, ROOT, out } = require('./lib');
+const { launch, ROOT, out, settled } = require('./lib');
 (async () => {
   const browser = await launch();
   try {
@@ -48,10 +48,10 @@ const { launch, ROOT, out } = require('./lib');
     await waitClosed();
     await open();
     await page.evaluate(() => { const root = document.getElementById('catalog-a'); document.getElementById('item-a').click(); pudlLauncher.activated(root, document.getElementById('item-a')); pudlLauncher.close(root); pudlLauncher.open(root); });
-    await page.waitForTimeout(230);
+    await settled(page);
     assert.equal(await root.evaluate(el => el.matches(':popover-open')), true, 'a stale dismissal cannot close a reopened popup');
     await page.evaluate(() => { const root = document.getElementById('catalog-a'); document.getElementById('item-a').click(); pudlLauncher.activated(root, document.getElementById('item-a')); pudlLauncher.pin(root, true); });
-    await page.waitForTimeout(230);
+    await settled(page);
     assert.equal(await page.evaluate(() => pudlLauncher.state(document.getElementById('catalog-a')).presentation), 'pane');
     await page.locator('#item-a').focus(); await page.keyboard.press('Space');
     assert.equal(await root.locator('[data-launcher-selected]').count(), 1);
@@ -87,7 +87,7 @@ const { launch, ROOT, out } = require('./lib');
     await page.evaluate(() => {
       const root = document.getElementById('catalog-a'); document.getElementById('item-a').click(); pudlLauncher.activated(root, document.getElementById('item-a')); pudlLauncher.destroy(root);
     });
-    await page.waitForTimeout(230);
+    await settled(page);
     assert.equal(await root.locator('[data-launcher-selected]').count(), 0);
     await page.reload(); await page.waitForFunction(() => window.fixtureReady);
     await open();

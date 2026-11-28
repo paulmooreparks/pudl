@@ -4,7 +4,7 @@
    under it; typing in many forms; the calendar with its year and month
    chooser; the list of times; their keys, events, range, and their place
    in a dialog. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -384,10 +384,10 @@ function check(name, ok, detail) {
   await p.evaluate(() => { const d = document.getElementById('due'); d.value = '2026-06-30'; pudlDate.refresh(d); });
   check('pudlDate.refresh shows a value a script set', await text('due') === '30/06/2026' && await echo('due') === 'Tuesday 30 June 2026');
   await p.evaluate(() => document.getElementById('form').reset());
-  await p.waitForTimeout(50);
+  await settled(p);
   check('resetting the form shows the values it put back', await text('due') === '22/10/2026' && await text('at') === '13:30', await text('due') + ' ' + await text('at'));
   await p.evaluate(() => document.getElementById('long').setAttribute('disabled', ''));
-  await p.waitForTimeout(20);
+  await settled(p);
   check('a state set on the hidden input later reaches the field', await p.evaluate(() => document.getElementById('long-text').disabled));
 
   /* In a dialog. */
