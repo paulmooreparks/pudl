@@ -57,14 +57,12 @@ function check(name, ok, detail) {
   const wrapped = await read('wrapped');
   check('.wrap wraps as before', wrapped.lines > 1 && !wrapped.scrolls && wrapped.places.every(p => !p.cut && p.inView), wrapped);
 
-  /* Tabbing back to the first place scrolls it into view. */
+  /* A place out of view comes into view as it takes focus. Focus moves by
+     script in every engine, because whether Tab stops at a link is a
+     browser setting and not something PUDL decides. */
   await page.locator('#deep a').last().focus();
-  /* Playwright's WebKit moves Tab past links, as Safari does by default,
-     so there the first place takes focus by script; what is checked is
-     that a place out of view comes into view as it takes focus. */
-  if (engine === 'webkit') await page.locator('#deep a').first().focus();
-  else for (let i = 0; i < 6; i++) await page.keyboard.press('Shift+Tab');
-  check('Shift+Tab reaches the first place', await page.evaluate(() => document.activeElement === document.querySelector('#deep a')));
+  await page.locator('#deep a').first().focus();
+  check('the first place takes focus', await page.evaluate(() => document.activeElement === document.querySelector('#deep a')));
   await focusedPlaceInView(0);
   let d = await read('deep');
   check('the focused first place is scrolled into view', d.places[0].inView && !d.places[7].inView, d);

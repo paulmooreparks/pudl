@@ -18,11 +18,15 @@ function check(name, ok, extra) {
       btn.className = 'btn'; btn.hidden = true; btn.textContent = 'x';
       const found = document.createElement('div');
       found.className = 'btn'; found.setAttribute('hidden', 'until-found');
-      document.body.append(btn, found);
-      return [getComputedStyle(btn).display, getComputedStyle(found).display];
+      /* An element with no PUDL class shows what the browser itself does
+         with until-found, which not every engine supports. */
+      const plain = document.createElement('div');
+      plain.setAttribute('hidden', 'until-found');
+      document.body.append(btn, found, plain);
+      return [getComputedStyle(btn).display, getComputedStyle(found).display, getComputedStyle(plain).display];
     });
     check(theme + ': hidden beats a component display', hid[0] === 'none', hid[0]);
-    check(theme + ': hidden="until-found" is left to the browser', hid[1] !== 'none' || true, hid[1]);
+    check(theme + ': hidden="until-found" is left to the browser', (hid[1] === 'none') === (hid[2] === 'none'), hid);
 
     const pressed = await p.evaluate(() => {
       const on = document.querySelector('.btn[aria-pressed="true"]');
