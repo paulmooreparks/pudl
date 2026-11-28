@@ -1,0 +1,68 @@
+name: Stress
+
+# Reruns chosen suites on four hosted runners until the time limit. Use it
+# for a failure nobody can explain: any failing round is a reproducer, and
+# a clean run is the evidence for closing the issue as not reproduced.
+on:
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: Suite name filters, separated by spaces, as given to tests/run.js
+        required: true
+      browser:
+        description: Engine
+        type: choice
+        options: [firefox, webkit, chromium]
+        default: firefox
+      minified:
+        description: Test the minified copies
+        type: boolean
+        default: false
+      minutes:
+        description: Minutes to keep rerunning on each runner (at most 60)
+        default: '45'
+      jobs:
+        description: Suites at a time on each runner (the gate uses 1)
+        default: '1'
+
+jobs:
+  stress:
+    name: Stress runner ${{ matrix.runner }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --user 1001 --init --ipc=host
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Rerun until the time limit
+        env:
+          FILTER: ${{ inputs.filter }}
+          BROWSER: ${{ inputs.browser }}
+          MINUTES: ${{ inputs.minutes }}
+          PUDL_JOBS: ${{ inputs.jobs }}
+          PUDL_MIN: ${{ inputs.minified && '1' || '0' }}
+          PUDL_SUITE_TIMEOUT: '300'
+          PUDL_RUN_REVISION: ${{ github.sha }}
+        run: node tests/stress.js "$MINUTES" "$BROWSER" $FILTER
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stress-${{ matrix.runner }}
+          path: tests/output/stress/
+          if-no-files-found: warn
