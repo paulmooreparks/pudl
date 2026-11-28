@@ -29,7 +29,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
       document.addEventListener('pudl:skin-change', event => window.bootEvents.push(event.detail.skin));
       const link = document.createElement('link');
       link.rel = 'stylesheet'; link.dataset.pudlSkin = 'gel';
-      link.href = 'data:text/css,:root[data-skin="gel"]{--boot-probe:1}';
+      link.href = 'data:text/css,:root{--pudl-skin-gel:1}:root[data-skin="gel"]{--boot-probe:1}';
       const loaded = new Promise((resolve, reject) => {link.onload=resolve;link.onerror=reject;});
       document.head.appendChild(link); await loaded;
     });

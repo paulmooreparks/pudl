@@ -12,7 +12,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
       const page = await browser.newPage();
       await page.route('http://skins.test/**', route => route.fulfill({
         contentType: route.request().url().endsWith('.css') ? 'text/css' : 'text/html',
-        body: route.request().url().endsWith('.css') ? ':root[data-skin="bevel"] { --probe: 1; }' : '<link id="skin" rel="stylesheet" href="/bevel.css"><div id="drawing"></div>'
+        body: route.request().url().endsWith('.css') ? ':where(:root) { --pudl-skin-bevel: 1; } :root[data-skin="bevel"] { --probe: 1; }' : '<link id="skin" rel="stylesheet" href="/bevel.css"><div id="drawing"></div>'
       }));
       await page.goto('http://skins.test/');
       await page.addScriptTag({ content: script });
@@ -58,7 +58,7 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
     try {
       const page = await browser.newPage();
       await page.route('http://skins.test/**', route => route.fulfill({ contentType: route.request().url().endsWith('.css') ? 'text/css' : 'text/html',
-        body: route.request().url().endsWith('.css') ? ':root[data-skin="bevel"] { --probe: 1; }' : '<link id="skin" rel="stylesheet" href="/bevel.css"><input id="editor" value="keep">' }));
+        body: route.request().url().endsWith('.css') ? ':where(:root) { --pudl-skin-bevel: 1; } :root[data-skin="bevel"] { --probe: 1; }' : '<link id="skin" rel="stylesheet" href="/bevel.css"><input id="editor" value="keep">' }));
       await page.goto('http://skins.test/');
       await page.addScriptTag({ content: script });
       let result = await page.evaluate(() => {
@@ -107,6 +107,36 @@ for (const engine of (process.env.PUDL_BROWSER ? [process.env.PUDL_BROWSER] : ['
         return { before, after: api.preference(), invalid, available: api.available() };
       });
       assert.deepEqual(result, { before: 'bevel', after: 'bevel', invalid: false, available: ['standard'] });
+      /* A stylesheet that failed to load, or loaded without the skin's
+         marker, is refused, both when registered by hand and when declared
+         in the page before the script runs. */
+      await page.unroute('http://skins.test/**');
+      await page.route('http://skins.test/**', route => {
+        const url = route.request().url();
+        if (url.endsWith('/missing.css')) return route.fulfill({ status: 404, contentType: 'text/css', body: '' });
+        if (url.endsWith('/aborted.css')) return route.abort();
+        if (url.endsWith('/plain.css')) return route.fulfill({ contentType: 'text/css', body: ':root[data-skin="gel"] { --probe: 1; }' });
+        if (url.endsWith('/gel.css')) return route.fulfill({ contentType: 'text/css', body: ':where(:root) { --pudl-skin-gel: 1; }' });
+        return route.fulfill({ contentType: 'text/html', body: '<html data-skin="gel" data-pudl-persistence="host"><link id="declared" data-pudl-skin="gel" rel="stylesheet" href="/missing.css"><p>Page</p></html>' });
+      });
+      await page.goto('http://skins.test/failed.html');
+      await page.addScriptTag({ content: script });
+      result = await page.evaluate(async () => {
+        const api = pudlSkins;
+        const startup = { current: api.current(), available: api.available(), preference: api.preference(), attribute: document.documentElement.dataset.skin };
+        const outcome = {};
+        for (const name of ['missing', 'aborted', 'plain', 'gel']) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet'; link.href = '/' + name + '.css';
+          await new Promise(resolve => { link.onload = link.onerror = resolve; document.head.appendChild(link); });
+          outcome[name] = api.register('gel', link);
+        }
+        return { startup, outcome, current: api.current() };
+      });
+      assert.deepEqual(result, {
+        startup: { current: 'standard', available: ['standard'], preference: 'gel', attribute: 'standard' },
+        outcome: { missing: false, aborted: false, plain: false, gel: true }, current: 'gel'
+      });
     } finally { await browser.close(); }
   });
 }

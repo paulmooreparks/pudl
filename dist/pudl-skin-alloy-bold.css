@@ -1,3 +1,6 @@
+:where(:root) {
+  --pudl-skin-alloy-bold: 1;
+}
 @media screen and (forced-colors: none) {
 /* Generated candidate skin. Rendered conformance is a separate gate. */
 :root:where([data-skin="alloy-bold"]) {

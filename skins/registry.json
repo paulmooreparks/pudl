@@ -2,41 +2,41 @@
   {
     "id": "bevel",
     "admitted": true,
-    "sha256": "b53aed80c2ed88019e0431bb1acb151a30d23404d2d0e9b29ab91d91d1125057"
+    "sha256": "fc918cda89723c9d5c25505f464cd0d3c48e24f3e572d763ad3b7297891a7e41"
   },
   {
     "id": "gel",
     "admitted": true,
-    "sha256": "ba5ee07b9342c11620998faf5c8f6d3117660b3fa1ec3978e3270e168c6126a4"
+    "sha256": "81496b6842a8ca76d277a4f049128225b321a4b05ded1d5028e97a917369f562"
   },
   {
     "id": "glaze",
     "admitted": true,
-    "sha256": "2ed6de7ffc5d8ab7c388414df00613bf13993e969dce4f8a0f54087f039e2b4b"
+    "sha256": "44679bb3dc55b46581390d1461acb865a1fad5d5b242e7b4386821786b80d414"
   },
   {
     "id": "matte",
     "admitted": true,
-    "sha256": "e9503d2c96d009afa7b4d64638824af5322a3c344fa22760594a638aaa72f2fe"
+    "sha256": "1d19fb998df323d7b6f9c7350c54e5af5107c04cb5f5c5299bec105c3e7d5808"
   },
   {
     "id": "ink",
     "admitted": true,
-    "sha256": "4365295fd6cdadb961fdc64d09611425a0cc2f40d2034527eccde0120e02e60d"
+    "sha256": "5749a89eee8023eca399c2266cd61ba84519db6f7385d255db1caf58a77f85e5"
   },
   {
     "id": "alloy",
     "admitted": true,
-    "sha256": "c62fd11e99c0278664c897dece48bbbda0bf429aba93caaa6beb5b365555e155"
+    "sha256": "7166c77b0f1c2666065c167b3bf259249ebe11d84f535e0a8cdd3b7cd5c15255"
   },
   {
     "id": "alloy-bold",
     "admitted": true,
-    "sha256": "c68ce257c012822cfc29a37e2050be1c1380441c2b3d8f17149239fdd848955d"
+    "sha256": "ae5feb286fe60fc7e6d0a58c149cec8f8795e26bab694994e2496ce14433504f"
   },
   {
     "id": "glass",
     "admitted": true,
-    "sha256": "3b89d92a98c57c09c9df2833a006da47332158807cd1f6a9009c675e15711993"
+    "sha256": "cd19e0df63ab46aea36df106ac43a0a1e1741489c2d78f4ea2ef65b14fc1b3f9"
   }
 ]
