@@ -2,7 +2,7 @@
    docs/proposals/zone-splitters.md): halves, two and one, quarters with
    the crossing handle, thirds, the keys, the double-click, the limits,
    the address, and no splitter where none belongs. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled, resize } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -22,7 +22,7 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
       await p.waitForFunction(k => document.querySelector('.win[data-win="' + k + '"]'), k);
       await p.evaluate(([k, zone]) => pudlWindows.snap(k, zone), [k, zone]);
     }
-    await p.waitForTimeout(100);
+    await settled(p);
   }
   /* Each window's rectangle as shares of the inner area, and the
      splitters and crossings drawn. */
@@ -43,7 +43,7 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
     await p.mouse.move((sx + toX) / 2, (sy + toY) / 2);
     await p.mouse.move(toX, toY);
     await p.mouse.up();
-    await p.waitForTimeout(80);
+    await settled(p);
   }
 
   /* Halves. */
@@ -59,28 +59,28 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
   const url = v.url;
   await p.goto(ROOT + '/tests/fixtures/zone-splitters.html' + url);
   await p.waitForFunction(() => document.querySelectorAll('.win[data-win]').length === 2);
-  await p.waitForTimeout(100);
+  await settled(p);
   v = await look();
   check('the address restores the moved line', near(v.wins.a.w, 0.4) && v.splitters[0].now === 40, JSON.stringify(v.wins));
 
   /* Keys. */
   await p.focus('.win-splitter');
   await p.keyboard.press('ArrowRight');
-  await p.waitForTimeout(50);
+  await settled(p);
   v = await look();
   check('an arrow key moves the line a hundredth', v.splitters[0].now === 41 && near(v.wins.a.w, 0.41), JSON.stringify(v.splitters));
   await p.keyboard.press('Shift+ArrowRight');
-  await p.waitForTimeout(50);
+  await settled(p);
   v = await look();
   check('Shift with an arrow moves it a sixth', near(v.wins.a.w, 0.41 + 1 / 6, 0.012), JSON.stringify(v.wins.a));
   await p.keyboard.press('Home');
-  await p.waitForTimeout(50);
+  await settled(p);
   v = await look();
   const minW = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.win[data-win="a"]')).getPropertyValue('--win-min-w')) || 320);
   check('Home takes it to its limit, where the left window keeps its least size',
     Math.abs(v.wins.a.w * v.inner.width - Math.min(minW, v.inner.width / 2)) <= 3, JSON.stringify({ w: v.wins.a.w * v.inner.width, minW }));
   await p.keyboard.press('Enter');
-  await p.waitForTimeout(400);
+  await settled(p);
   v = await look();
   check('Enter returns the line to the middle and the address forgets it', near(v.wins.a.w, 0.5) && !/grid=/.test(v.url), v.url);
   check('the splitter keeps the focus', await p.evaluate(() => document.activeElement.classList.contains('win-splitter')));
@@ -88,14 +88,14 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
   /* Double-click. */
   await drag('.win-splitter', v.inner.left + v.inner.width * 0.65, v.inner.top + 200);
   await p.dblclick('.win-splitter');
-  await p.waitForTimeout(80);
+  await settled(p);
   v = await look();
   check('a double-click returns the line to the grid', near(v.wins.a.w, 0.5) && !/grid=/.test(v.url), JSON.stringify({ a: v.wins.a, url: v.url }));
 
   /* Floating one of the halves forgets the line. */
   await drag('.win-splitter', v.inner.left + v.inner.width * 0.35, v.inner.top + 200);
   await p.evaluate(() => pudlWindows.snap('b', 'floating'));
-  await p.waitForTimeout(80);
+  await settled(p);
   v = await look();
   check('with one half floated there is no splitter, and the line is forgotten', v.splitters.length === 0 && !/grid=/.test(v.url) && near(v.wins.a.w, 0.5), JSON.stringify({ s: v.splitters, url: v.url }));
 
@@ -130,7 +130,7 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
   v = await look();
   check('moving the first leaves the right third alone', near(v.wins.a.w, 0.4) && near(v.wins.b.x, 0.4) && near(v.wins.c.x, 2 / 3) && near(v.wins.c.w, 1 / 3), JSON.stringify(v.wins));
   await p.dblclick('.win-splitter[data-win-grid="x2"]');
-  await p.waitForTimeout(80);
+  await settled(p);
   v = await look();
   check('returning it to the grid leaves nothing in the address', !/grid=/.test(v.url) && near(v.wins.a.w, 1 / 3), v.url);
 
@@ -141,7 +141,7 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
   await p.evaluate(() => { pudlWindows.open('c'); });
   await p.waitForFunction(() => document.querySelector('.win[data-win="c"]'));
   await p.evaluate(() => pudlWindows.snap('c', 'bottom-right'));
-  await p.waitForTimeout(80);
+  await settled(p);
   v = await look();
   check('a window snapped after the line moved fills the cells as they are now', near(v.wins.c.x, 0.4) && near(v.wins.c.w, 0.6), JSON.stringify(v.wins.c));
 
@@ -150,8 +150,8 @@ const near = (a, b, d) => Math.abs(a - b) <= (d || 0.01);
   v = await look();
   check('a splitter runs only where two windows share the line', v.splitters.length === 1 && near(v.splitters[0].h, 0.5), JSON.stringify(v.splitters));
   await p.evaluate(() => document.querySelector('[data-win-layer]').setAttribute('data-win-narrow', 'maximized'));
-  await p.setViewportSize({ width: 390, height: 700 });
-  await p.waitForTimeout(200);
+  await resize(p, { width: 390, height: 700 });
+  await settled(p);
   v = await look();
   check('a narrow screen has no splitters', v.splitters.length === 0, JSON.stringify(v.splitters));
 
