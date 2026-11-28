@@ -3,7 +3,7 @@
    folds or unfolds anything; the Status item's tone, count and name; its
    menu; a folded item's popover placed against it; and a stack row's
    detail that repeats data-win-group-detail. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail !== undefined && !ok ? ' ' + JSON.stringify(detail) : ''));
@@ -16,7 +16,7 @@ function check(name, ok, detail) {
   p.on('pageerror', e => errors.push(e.message));
   await p.goto(ROOT + '/tests/fixtures/status-fold.html');
   await p.waitForFunction(() => window.pudlWindows && pudlWindows.state().open.length === 4 && document.querySelector('#tray-all > .status-fold'));
-  const settle = () => p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 60)))));
+  const settle = () => settled(p);
   const width = async (id, w) => { await p.evaluate(([id, w]) => { document.getElementById(id).style.width = w + 'px'; }, [id, w]); await settle(); };
   const tray = id => p.evaluate(id => {
     const t = document.getElementById(id), f = t.querySelector('.status-fold');
