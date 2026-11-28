@@ -2,6 +2,12 @@
    content, permissions and persistence. All ranges belong to this document. */
 (function () {
   'use strict';
+  /* Queued frames and resize deliveries report to pudl-settle.js when the
+     page loaded it first, so pudlSettled() knows when this script has
+     finished (docs/SETTLED.md). Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
+  var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
   var selections = new Map(), notes = new Map(), queued = false;
   function validRange(range, body) {
     return range && body.isConnected && body.contains(range.startContainer) && body.contains(range.endContainer) && !range.collapsed;

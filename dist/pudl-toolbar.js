@@ -27,6 +27,12 @@
    toolbars a host has added. */
 (function () {
   'use strict';
+  /* Queued frames and resize deliveries report to pudl-settle.js when the
+     page loaded it first, so pudlSettled() knows when this script has
+     finished (docs/SETTLED.md). Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
+  var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
 
   /* A control marked data-toolbar-skip is part of another, such as a combo
      box's opener (0.72.0), and is never one of the toolbar's stops. */

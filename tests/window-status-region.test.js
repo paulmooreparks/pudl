@@ -2,7 +2,7 @@
    that is a tab stop, and a window that sets data-win-status-rows reserves
    that many rows so Dismiss does not move as rows change. */
 const assert = require('assert/strict');
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled, resize } = require('./lib');
 
 (async () => {
   const browser = await launch();
@@ -14,7 +14,7 @@ const { launch, ROOT } = require('./lib');
     await p.goto(ROOT + '/tests/fixtures/window-status.html');
     await p.waitForFunction(() => window.pudlWindows && document.querySelector('.win-status-toggle'));
     const win = p.locator('[data-win="status"]');
-    const settle = () => p.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
+    const settle = () => settled(p);
     const popup = '.win-status-popover:popover-open';
     await win.locator('input').click();
     await win.evaluate(w => w.style.setProperty('--win-w', '.27'));
@@ -120,13 +120,13 @@ const { launch, ROOT } = require('./lib');
       await p.evaluate(() => { document.documentElement.style.removeProperty('--text-md'); });
     });
     await scenario('a short viewport keeps the popover and Dismiss on screen', async () => {
-      await setRows('6'); await rowsTo(6); await p.setViewportSize({ width: 1400, height: 260 }); await settle();
+      await setRows('6'); await rowsTo(6); await resize(p, { width: 1400, height: 260 }); await settle();
       await open();
       const g = await geometry();
       assert(g.panelBottom <= g.viewport + 1, 'the popover fits the viewport: ' + JSON.stringify(g));
       assert(g.dismissBottom <= g.viewport + 1, 'Dismiss is on screen');
       await close();
-      await p.setViewportSize({ width: 1400, height: 900 });
+      await resize(p, { width: 1400, height: 900 });
     });
     await scenario('changing, removing or breaking the reservation while open refreshes the popover', async () => {
       await rowsTo(2); await setRows('2'); await open();
@@ -186,20 +186,29 @@ const { launch, ROOT } = require('./lib');
       const box = await p.locator(popup + ' .win-status-rows').boundingBox();
       await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       const read = () => p.evaluate(() => ({ rows: document.querySelector('.win-status-popover:popover-open .win-status-rows').scrollTop, under: document.getElementById('underlay').scrollTop, page: scrollY }));
-      await p.mouse.wheel(0, 30); await settle();
+      /* Scrolling after a wheel turn is the browser's own work, which
+         pudlSettled() does not cover. Where the rows must move, the check
+         waits for their position. Where nothing may move there is no event
+         to wait for, so those two checks still wait three frames. */
+      const rowsAt = test => p.waitForFunction(test, null, { timeout: 5000 }).then(() => true, () => false);
+      const frames = () => p.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
+      await p.mouse.wheel(0, 30);
+      await rowsAt(() => document.querySelector('.win-status-popover:popover-open .win-status-rows').scrollTop > 0);
       let now = await read();
       assert(now.rows > 0, 'the wheel scrolled the rows');
       assert.equal(now.under + now.page, 0, 'the surface beneath did not scroll');
       for (let i = 0; i < 6; i++) await p.mouse.wheel(0, 400);
-      await settle(); now = await read();
+      await rowsAt(() => { const r = document.querySelector('.win-status-popover:popover-open .win-status-rows'); return Math.abs(r.scrollTop - (r.scrollHeight - r.clientHeight)) <= 1; });
+      now = await read();
       const max = await p.locator(popup + ' .win-status-rows').evaluate(r => r.scrollHeight - r.clientHeight);
       assert(Math.abs(now.rows - max) <= 1, 'the rows reached their end');
-      await p.mouse.wheel(0, 400); await settle(); now = await read();
+      await p.mouse.wheel(0, 400); await frames(); now = await read();
       assert.equal(now.under + now.page, 0, 'the wheel at the end of the rows does not scroll the surface beneath');
       for (let i = 0; i < 8; i++) await p.mouse.wheel(0, -400);
-      await settle(); now = await read();
+      await rowsAt(() => document.querySelector('.win-status-popover:popover-open .win-status-rows').scrollTop === 0);
+      now = await read();
       assert.equal(now.rows, 0, 'the rows scrolled back to the start');
-      await p.mouse.wheel(0, -400); await settle(); now = await read();
+      await p.mouse.wheel(0, -400); await frames(); now = await read();
       assert.equal(now.under + now.page, 0, 'the wheel at the start of the rows does not scroll the surface beneath');
       await close();
       await p.evaluate(() => document.getElementById('underlay').remove());
