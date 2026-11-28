@@ -27,7 +27,12 @@ const {launch,ROOT,out}=require('./lib');
  });
  const link=page.getByRole('menuitem',{name:'Native reference',exact:true});
  assert.equal(await link.evaluate(n=>n.tagName),'A');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await link.getAttribute('rel'),'noopener');
- const popupPromise=page.context().waitForEvent('page');await link.click({modifiers:['ControlOrMeta']});const native=await popupPromise;await native.waitForLoadState();assert.match(native.url(),/reference.html/);await native.close();
+ /* A Ctrl+click on a link row is the browser's to act on: PUDL neither cancels it nor runs the row's source.
+    The check stops there. Whether a headless browser then opens a background tab is not PUDL's behaviour, and under
+    load it often does not (issue 57), so the last listener cancels the click once it has seen that PUDL left it alone. */
+ await page.evaluate(()=>{window.modified=null;window.addEventListener('click',e=>{if(!e.ctrlKey&&!e.metaKey)return;modified={row:!!e.target.closest('a[role="menuitem"]'),cancelled:e.defaultPrevented};e.preventDefault();});});
+ await link.click({modifiers:['ControlOrMeta']});
+ assert.deepEqual(await page.evaluate(()=>modified),{row:true,cancelled:false},'modified activation reaches the browser uncancelled');
  assert.equal(await page.evaluate(()=>sourceClicks),0,'modified activation stays native');
  await page.evaluate(()=>pudlMenu.openAt(20,100,[{id:'native',label:'Native reference',source:linkSource}]));
  const plainPromise=page.context().waitForEvent('page');await page.getByRole('menuitem',{name:'Native reference',exact:true}).click();const plain=await plainPromise;await plain.waitForLoadState();await plain.close();
