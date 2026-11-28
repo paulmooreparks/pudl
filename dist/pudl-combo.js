@@ -110,6 +110,11 @@
    shows values a script has set on the hidden input. */
 (function () {
   'use strict';
+  /* Queued timers report to pudl-settle.js when the page loaded it first,
+     so pudlSettled() knows when this script has finished (docs/SETTLED.md).
+     Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var LIMIT = 100;
   var uid = 0;
@@ -780,7 +785,7 @@
       }
       new MutationObserver(sync).observe(keeper, { attributes: true, attributeFilter: ['disabled', 'required', 'value'] });
       var form = keeper.form;
-      if (form) form.addEventListener('reset', function () { setTimeout(function () { field.value = ''; sync(); }, 0); });
+      if (form) form.addEventListener('reset', function () { later(function () { field.value = ''; sync(); }, 0); });
       keeper.__pudlComboSync = sync;
       values = parse(keeper.value);
       render();

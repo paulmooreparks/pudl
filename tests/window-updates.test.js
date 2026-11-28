@@ -9,7 +9,7 @@
    - a strip the server drew works without script, and the script adopts
      it; without a strip, no empty band;
    - a window's attention count keeps 4.5:1 on the taskbar and the tabs. */
-const { launch, ROOT, engine } = require('./lib');
+const { launch, ROOT, engine, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail !== undefined && !ok ? ' ' + JSON.stringify(detail) : ''));
@@ -119,12 +119,12 @@ const TAGS = n => `<section class="win" data-win="tags" data-win-attention="${n}
   await page.evaluate(() => pudlWindows.open('site'));
   await page.waitForSelector('.win[data-win="site"]');
   await page.setViewportSize({ width: 500, height: 800 });
-  await page.waitForTimeout(200);
+  await settled(page);
   check('the layer\'s narrow policy fills the workspace with its windows', await page.evaluate(() => pudlWindows.effectivePlacement('tags').mode) === 'maximized');
   check('data-win-narrow="keep" leaves a docked strip docked', await win('site').getAttribute('data-win-edge') === 'bottom' && await page.evaluate(() => pudlWindows.effectivePlacement('site').mode) === 'dock-bottom');
   check('a window that keeps its placement has no restricted mark', await win('site').getAttribute('data-win-restricted') === null);
   await page.setViewportSize({ width: 1300, height: 800 });
-  await page.waitForTimeout(200);
+  await settled(page);
   await page.evaluate(() => pudlWindows.dock('site', null));
   check('data-win-undock sends a window to its zone when it leaves its dock', (await place('site')).mode === 'left');
 

@@ -1,6 +1,6 @@
 /* A window fetched over a slow network must not take focus from whatever
    the reader moved to while it was on its way, such as the "/" palette. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -25,7 +25,7 @@ function check(name, ok, extra) {
   await p.keyboard.press('/');
   const early = await p.evaluate(() => document.activeElement.className);
   await p.waitForSelector('.win[data-win="elevation"]');
-  await p.waitForTimeout(200);
+  await settled(p);
   const late = await p.evaluate(() => ({ cls: document.activeElement.className, open: document.getElementById('launcher').matches(':popover-open') }));
   check('the palette takes focus at once', early === 'md-filter', early);
   check('a window arriving later leaves focus in the palette', late.cls === 'md-filter' && late.open, JSON.stringify(late));
@@ -37,7 +37,7 @@ function check(name, ok, extra) {
   await q.goto(ROOT + '/samples/article-reader.html');
   await q.click('.md-sidebar a[data-win-open="numerals"]');
   await q.waitForSelector('.win[data-win="numerals"]');
-  await q.waitForTimeout(100);
+  await settled(q);
   check('a window the reader waited for takes focus', await q.evaluate(() => document.activeElement.classList.contains('win-head')));
 
   /* The same holds for a window that replaces another. */
@@ -47,7 +47,7 @@ function check(name, ok, extra) {
   await q.keyboard.press('Enter');
   await q.keyboard.press('/');
   await q.waitForSelector('.win[data-win="url-state"]');
-  await q.waitForTimeout(200);
+  await settled(q);
   check('a replacing window arriving later leaves focus in the palette', await q.evaluate(() => document.activeElement.className === 'md-filter'));
 
   check('no errors', errors.length === 0, errors.join(' | '));

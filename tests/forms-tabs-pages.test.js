@@ -1,4 +1,4 @@
-const { launch, ROOT, out, engine } = require('./lib');
+const { launch, ROOT, out, engine, settled } = require('./lib');
 const path = require('path');
 let failures = 0;
 function check(name, ok, extra) {
@@ -85,7 +85,7 @@ function check(name, ok, extra) {
   check('tooltips: hovering an icon button names it, above it', tt.text === 'Drag to reorder' && tt.role === 'tooltip' && tt.above, JSON.stringify(tt));
   const tb = await p.locator('.tooltip').boundingBox();
   await p.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2, { steps: 3 });
-  await p.waitForTimeout(300);
+  await settled(p);
   check('tooltips: it stays while the pointer is on it', await p.evaluate(() => document.querySelector('.tooltip').matches(':popover-open')));
   await p.keyboard.press('Escape');
   check('tooltips: Escape dismisses it', !(await p.evaluate(() => document.querySelector('.tooltip').matches(':popover-open'))));

@@ -12,7 +12,7 @@
    place keep their place too. Escape, a press outside and choosing a
    command still close the popup, and an update right after them does not
    bring it back or take focus. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 (async () => {
   const b = await launch();
   let failed = 0;
@@ -72,7 +72,7 @@ const { launch, ROOT } = require('./lib');
         const a = document.activeElement;
         return { same: a.__mark === 1, open: !!document.querySelector('#menubar-panel:popover-open, #menubar-ribbon-row .menu-panel:popover-open') };
       }, [fn.toString().replace(/^[^{]*{|}$/g, ''), arg]);
-      await p.waitForTimeout(150);
+      await settled(p);
       const later = await p.evaluate(() => ({ same: document.activeElement.__mark === 1, events: window.__events.slice() }));
       return { now, later };
     }

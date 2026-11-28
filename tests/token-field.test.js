@@ -2,7 +2,7 @@
    values gather below it as chips. What adds a value, separators of each
    kind, duplicates, pasting, mending a chip, moving among the chips by
    keys, keys that look a value up, a most, and what the form sends. */
-const { launch, ROOT, out } = require('./lib');
+const { launch, ROOT, out, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -60,13 +60,13 @@ function check(name, ok, detail) {
   check('typing the separator adds a value', await chips('tags') === 'receipts|q4|travel|meals' && await typed('tags') === '');
   await p.keyboard.type('mileage');
   await p.keyboard.press('Tab');
-  await p.waitForTimeout(50);
+  await settled(p);
   check('Tab adds a value', (await chips('tags')).endsWith('|mileage'));
   check('and goes on to the chips', (await focusLabel()) === 'Remove receipts');
   await p.click('#tags-combo');
   await p.keyboard.type('lunch');
   await p.click('#after');
-  await p.waitForTimeout(50);
+  await settled(p);
   check('leaving the field adds a value', (await chips('tags')).endsWith('|lunch'));
   await p.click('#tags-combo');
   await p.keyboard.type('mi');
@@ -177,7 +177,7 @@ function check(name, ok, detail) {
   await p.evaluate(() => { const k = document.getElementById('tags'); k.value = 'one,two'; pudlCombo.refresh(k); });
   check('pudlCombo.refresh shows values a script set', await chips('tags') === 'one|two');
   await p.evaluate(() => document.getElementById('form').reset());
-  await p.waitForTimeout(50);
+  await settled(p);
   check('a form reset shows the page\'s values again', await chips('tags') === 'receipts|q4' && await chips('people') === 'Cruz, Ana|Reyes, Jun' && await chips('signs') === '');
 
   /* A plain combo box is as it was. */

@@ -1,4 +1,4 @@
-const { launch, ROOT, out, engine } = require('./lib');
+const { launch, ROOT, out, engine, settled } = require('./lib');
 const path = require('path');
 
 const BASE = ROOT + '/reference.html';
@@ -138,7 +138,7 @@ function check(name, ok, extra) {
   await page.keyboard.press('Shift+ArrowDown');
   const k2 = await page.locator('.win[data-win="exp-13"]').boundingBox();
   check('shift+arrow resizes', k2.height > k1.height + 3);
-  await page.waitForTimeout(450);
+  await settled(page);
   const sKeys = await q();
   check('URL written after keys go quiet', sKeys !== s, sKeys);
 

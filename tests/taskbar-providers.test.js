@@ -1,6 +1,6 @@
 const assert = require('assert/strict');
 const fs = require('fs');
-const { launch, ROOT, out } = require('./lib');
+const { launch, ROOT, out, settled } = require('./lib');
 (async () => {
   const browser = await launch();
   try {
@@ -34,7 +34,7 @@ const { launch, ROOT, out } = require('./lib');
     for (const id of ['article-one', 'article-two']) {
       await open(id);
       await page.waitForFunction(id => providerCalls.includes(id), id);
-      await page.waitForTimeout(50);
+      await settled(page);
       await page.locator('.win-bar [data-win-tab="' + id + '"]').click({ button: 'right' });
       await page.getByRole('menuitem', { name: 'Pin to taskbar', exact: true }).click();
       await pin(id).waitFor();
@@ -104,7 +104,7 @@ const { launch, ROOT, out } = require('./lib');
     assert.equal(await pin('article-two').count(), 0, 'forbidden pin remains removable');
     await page.evaluate(async () => { policy = 'available'; await pudlWindows.refreshTaskbarDestinations(); });
     for (const id of ['tool-one', 'tool-two', 'transient']) await open(id);
-    await page.waitForTimeout(80);
+    await settled(page);
     await page.evaluate(() => pudlWindows.pinTaskbar('tool', true));
     assert.equal(await pin('tool').getAttribute('data-win-stack'), 'pin:tool');
     assert.equal(await pin('tool').locator('.win-item-icon').count(), 1, 'multi-instance aggregate retains destination icon');

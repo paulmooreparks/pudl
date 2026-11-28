@@ -4,7 +4,7 @@
    the grant and the confirm hook, a question for the reader, an
    idempotent second call, a command that names its action, and the
    deprecated pudlActions name. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (ok ? '' : '  ' + (detail || '')));
@@ -80,7 +80,7 @@ function check(name, ok, detail) {
 
   /* A command naming an action: Word Count runs it and says the result. */
   await p.evaluate(() => pudlCommands.run('word-count', undefined, document.querySelector('[data-applet="notes"]')));
-  await p.waitForTimeout(150);
+  await settled(p);
   const status = await p.textContent('.notes-status');
   check('a command that calls its action shows the result', /\d+ words, \d+ lines, \d+ headings?\./.test(status), status);
   const listed = await p.evaluate(() => pudlCommands.list(document.querySelector('[data-applet="notes"]')).find(c => c.id === 'save').action);

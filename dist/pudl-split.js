@@ -36,6 +36,8 @@
   var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
   var cancelAnimationFrame = pudlBusy ? pudlBusy.cancelFrame : function (id) { window.cancelAnimationFrame(id); };
   var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
+  var unlater = pudlBusy ? pudlBusy.cancelTimeout : function (id) { window.clearTimeout(id); };
 
   var STEP = 16;          // px per arrow key
   var STEP_BIG = 64;      // px per arrow key with Shift
@@ -195,8 +197,8 @@
     else return;
     e.preventDefault();
     px = set(p, px, l);
-    clearTimeout(timers.get(p.handle));
-    timers.set(p.handle, setTimeout(function () { announce(p, px); }, QUIET));
+    unlater(timers.get(p.handle));
+    timers.set(p.handle, later(function () { announce(p, px); }, QUIET));
   });
 
   /* The limits follow the split's size, whatever changed it, a window being
@@ -217,7 +219,7 @@
       if (!p) return;
       if (watch) watch.observe(p.split);
       if (single(p) || !span(p)) {
-        clearTimeout(timers.get(h));
+        unlater(timers.get(h));
         if (h.classList.contains('dragging') && cancelDrag) cancelDrag();
         return;
       }
@@ -239,13 +241,13 @@
   var opened = [], openTimer = 0;
   function syncOpened() {
     if (!openTimer) return;
-    cancelAnimationFrame(openTimer.frame); clearTimeout(openTimer.time); openTimer = 0;
+    cancelAnimationFrame(openTimer.frame); unlater(openTimer.time); openTimer = 0;
     var list = opened; opened = [];
     list.forEach(function (w) { if (w.isConnected) syncAll(w); });
   }
   document.addEventListener('pudl:window-open', function (e) {
     opened.push(e.target);
-    if (!openTimer) openTimer = { frame: requestAnimationFrame(syncOpened), time: setTimeout(syncOpened, 100) };
+    if (!openTimer) openTimer = { frame: requestAnimationFrame(syncOpened), time: later(syncOpened, 100) };
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncAll);
   else syncAll();

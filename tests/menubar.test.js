@@ -1,5 +1,5 @@
 /* The menu bar. */
-const { launch, ROOT } = require('./lib');
+const { launch, ROOT, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, extra) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : ''));
@@ -130,7 +130,7 @@ const FIX = ROOT + '/tests/fixtures/menubar.html';
   await waitOpen();
   await p.click('#menubar-panel .menu-action >> text=Coincidences');
   await p.waitForSelector('.win[data-win="article"]');
-  await p.waitForTimeout(150);
+  await settled(p);
   bt = await bar();
   check('a host link to a window opens it, and an article gets its own menu and no File menu of PUDL\'s', bt.endsWith('/ Coincidences: Coincidences|Sections'), bt);
   await p.click('.menubar-front .menubar-title >> text=Coincidences');

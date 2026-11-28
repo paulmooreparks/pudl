@@ -56,6 +56,11 @@
    -list and -item (what a screen reader calls the list and an item). */
 (function () {
   'use strict';
+  /* Queued timers report to pudl-settle.js when the page loaded it first,
+     so pudlSettled() knows when this script has finished (docs/SETTLED.md).
+     Without it these are the browser's own. */
+  var pudlBusy = window.pudlBusy;
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var LIST = '[data-reorder]';
   var THRESHOLD = 4;
@@ -106,7 +111,7 @@
       document.body.appendChild(live);
     }
     live.textContent = '';
-    setTimeout(function () { live.textContent = words; }, 50);
+    later(function () { live.textContent = words; }, 50);
   }
   function keysFor(list) {
     var custom = list.getAttribute('data-reorder-text-keys');

@@ -28,6 +28,8 @@
   var pudlBusy = window.pudlBusy;
   var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
   var cancelAnimationFrame = pudlBusy ? pudlBusy.cancelFrame : function (id) { window.cancelAnimationFrame(id); };
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
+  var unlater = pudlBusy ? pudlBusy.cancelTimeout : function (id) { window.clearTimeout(id); };
 
   var STEP = 16;          // px per arrow key
   var STEP_BIG = 64;      // px per arrow key with Shift
@@ -106,7 +108,7 @@
     var startX = e.clientX, lastX = startX;
     var startW = width(p);
     var original = p.layout.style.getPropertyValue('--md-sidebar-w');
-    clearTimeout(timers.get(p.handle));
+    unlater(timers.get(p.handle));
     var l = limits(p);
     var sign = rtl(p) ? -1 : 1;
     var moved = false, frame = 0;
@@ -163,8 +165,8 @@
     else return;
     e.preventDefault();
     set(p, w, l);
-    clearTimeout(timers.get(p.handle));
-    timers.set(p.handle, setTimeout(function () { announce(p, false); }, QUIET));
+    unlater(timers.get(p.handle));
+    timers.set(p.handle, later(function () { announce(p, false); }, QUIET));
   });
 
   function syncAll() {
@@ -191,6 +193,7 @@
      finished (docs/SETTLED.md). Without it these are the browser's own. */
   var pudlBusy = window.pudlBusy;
   var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
   var records = new Map(), uid = 0, requestId = 0;
   function number(el, name, fallback) {
     var raw = el.getAttribute(name), n = raw === null || raw.trim() === '' ? NaN : Number(raw);
@@ -480,7 +483,7 @@
        what the reader came for; the click is carried out first. */
     p.side.addEventListener('click', function (e) {
       if (!p.peek || !e.target.closest || !e.target.closest('a[href]')) return;
-      setTimeout(function () { closePeek(p); }, 0);
+      later(function () { closePeek(p); }, 0);
     });
     p.handle.addEventListener('focus', function () { if (byKeyboard && !p.closing) openPeek(p); });
   }

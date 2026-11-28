@@ -33,6 +33,7 @@
   var pudlBusy = window.pudlBusy;
   var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
   var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   /* A control marked data-toolbar-skip is part of another, such as a combo
      box's opener (0.72.0), and is never one of the toolbar's stops. */
@@ -200,7 +201,7 @@
     bar.__fitSoon = true;
     var go = function () { if (!bar.__fitSoon) return; bar.__fitSoon = false; fit(bar); };
     requestAnimationFrame(go);
-    setTimeout(go, 100);
+    later(go, 100);
   }
 
   /* === Folding (preview, docs/proposals/toolbar-commands.md) ==============

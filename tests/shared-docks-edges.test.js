@@ -3,7 +3,7 @@
    collapses to the strip alone, by mode or by the layer's height; and a
    tab can be dragged, or moved with Alt+Shift and the arrow keys, to a new
    place among the ordinary tabs of its dock, which the address keeps. */
-const { launch, ROOT, out } = require('./lib');
+const { launch, ROOT, out, settled } = require('./lib');
 let failures = 0;
 function check(name, ok, detail) {
   console.log((ok ? 'PASS ' : 'FAIL ') + name + (detail !== undefined && !ok ? ' ' + JSON.stringify(detail) : ''));
@@ -50,7 +50,7 @@ function check(name, ok, detail) {
   const heightBefore = (await win('problems').boundingBox()).height;
   await tab('problems').focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('Shift+ArrowUp');
-  await page.waitForTimeout(400);
+  await settled(page);
   const grown = (await win('problems').boundingBox()).height;
   await tab('output').click();
   check('Shift+ArrowUp grows the bottom dock, and every tab shares the height', grown > heightBefore + 20 && Math.abs((await win('output').boundingBox()).height - grown) < 2, { heightBefore, grown });
@@ -100,7 +100,7 @@ function check(name, ok, detail) {
   const topBefore = topShown.height;
   await tab('problems').focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('Shift+ArrowDown');
-  await page.waitForTimeout(400);
+  await settled(page);
   check('Shift+ArrowDown grows the top dock', (await win('problems').boundingBox()).height > topBefore + 20);
   await page.keyboard.press('ArrowLeft');
   check('the arrow keys move along a top strip', await tab('output').evaluate(el => el === document.activeElement));

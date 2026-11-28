@@ -75,6 +75,7 @@
   var pudlBusy = window.pudlBusy;
   var requestAnimationFrame = pudlBusy ? pudlBusy.frame : function (fn) { return window.requestAnimationFrame(fn); };
   var ResizeObserver = function (fn) { return pudlBusy ? pudlBusy.ResizeObserver(fn) : new window.ResizeObserver(fn); };
+  var later = pudlBusy ? pudlBusy.timeout : function (fn, ms) { return window.setTimeout(fn, ms); };
 
   var MAC = /Mac|iPhone|iPad|iPod/.test(navigator.platform || '');
   /* Keys a page cannot have, or that every field needs: the browser's
@@ -2304,7 +2305,7 @@
     if (p && p.matches(':popover-open')) p.hidePopover();
     act(c, false);
     /* What the command changed, such as a switch's state, shows next. */
-    setTimeout(function () { if (ribbonActive()) syncRibbon(); }, 0);
+    later(function () { if (ribbonActive()) syncRibbon(); }, 0);
   }
 
   /* === Starting ========================================================== */
